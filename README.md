@@ -66,7 +66,7 @@ In order to collect payments and setup subscriptions for your users, we will be 
 4. Open up `stripeSetup.ts` and change your product information
 5. run `npm run stripe:setup` to setup your Stripe product
 6. [Create a new Pricing Table](https://dashboard.stripe.com/test/pricing-tables) and add your newly created products
-7. When creating your new Pricing Table, set the *Confirmation Page* to *Don't show confirmation page*. Add [YOUR_PUBLIC_URL/subscribe/success](YOUR_PUBLIC_URL/subscribe/success) as the value(use [http://localhost:3000/subscribe/success](http://localhost:3000/subscribe/success) for local development). This will redirect the user to your main dashboard when they have completed their checkout. For prod, this will be your public url
+7. When creating your new Pricing Table, set the *Confirmation Page* to *Don't show confirmation page*. Add [YOUR_PUBLIC_URL/subscribe/success](YOUR_PUBLIC_URL/subscribe/success) as the value(use [http://localhost:3001/subscribe/success](http://localhost:3001/subscribe/success) for local development). This will redirect the user to your main dashboard when they have completed their checkout. For prod, this will be your public url
 
 ![image](https://github.com/user-attachments/assets/af8e9dda-3297-4e04-baa0-de7eac2a1579)
 
@@ -99,7 +99,7 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
 
 ### Setup Stripe for Local Development
 To receive webhook events from Stripe while developing locally, follow these steps:
@@ -114,7 +114,7 @@ Run the following command to forward Stripe events to your local server:
 npm run stripe:listen
 ```
 
-This command starts the Stripe CLI in listening mode and forwards incoming webhook events to `http://localhost:3000/webhook/stripe`. 
+This command starts the Stripe CLI in listening mode and forwards incoming webhook events to `http://localhost:3001/webhook/stripe`. 
 
 ## Deploy on Vercel
 

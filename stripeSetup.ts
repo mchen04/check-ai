@@ -28,7 +28,7 @@ interface WebhookEndpoint {
 }
 
 // Configuration
-const PUBLIC_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000";
+const PUBLIC_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3001";
 const CURRENCY = 'usd';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 

@@ -8,7 +8,7 @@ import { usersTable } from '@/utils/db/schema'
 import { eq } from 'drizzle-orm'
 
 
-const PUBLIC_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000"
+const PUBLIC_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3001"
 
 export async function resetPassword(currentState: { message: string }, formData: FormData) {
     const supabase = createClient()
