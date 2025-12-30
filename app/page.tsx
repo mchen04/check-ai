@@ -60,547 +60,503 @@ export default async function LandingPage() {
 
   return (
     <div className="flex min-h-[100dvh] flex-col">
-      <header className="sticky top-0 z-50 flex h-16 w-full items-center border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-6">
-        <Link className="flex items-center justify-center gap-2" href="#">
-          <Shield className="h-6 w-6" />
-          <span className="text-xl font-bold">VerifyAI</span>
-          <span className="rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
-            BETA
-          </span>
+      <header className="sticky top-0 z-50 flex h-20 w-full items-center border-b border-border/50 bg-background/80 px-6 backdrop-blur-xl lg:px-8">
+        <Link className="flex items-center gap-3" href="#">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+            <Shield className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <span className="text-xl font-semibold tracking-tight">VerifyAI</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
+        <nav className="ml-auto hidden items-center gap-8 md:flex">
           <a
-            className="text-sm font-medium underline-offset-4 hover:underline"
-            href="#problem"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            href="#methods"
           >
-            Problem
-          </a>
-          <a className="text-sm font-medium underline-offset-4 hover:underline" href="#methods">
-            Methods
+            How it works
           </a>
           <a
-            className="text-sm font-medium underline-offset-4 hover:underline"
-            href="#research"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            href="#pricing"
           >
-            Research
-          </a>
-          <a className="text-sm font-medium underline-offset-4 hover:underline" href="#pricing">
             Pricing
           </a>
         </nav>
-        <Button asChild className="ml-4 md:ml-6 lg:ml-8">
+        <Button asChild size="sm" className="ml-8">
           <Link href="#waitlist">Join Beta</Link>
         </Button>
       </header>
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32">
+        <section className="relative w-full overflow-hidden pb-24 pt-2 md:pb-32 md:pt-3 lg:pb-40 lg:pt-4">
           <div className="container">
-            <div className="flex flex-col items-center gap-12 md:flex-row md:gap-16">
-              <div className="flex w-full flex-col space-y-6 md:w-1/2">
-                <div className="space-y-4">
-                  <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-                    Stop $2.4M Hallucination Incidents
-                  </h1>
-                  <p className="text-lg leading-relaxed text-muted-foreground md:text-xl">
-                    Multi-method AI verification. One API, seven approaches, custom weighting.
-                  </p>
-                  <p className="text-base leading-relaxed text-muted-foreground">
-                    Companies are legally liable for AI hallucinations. We help you catch them
-                    before deployment using research-backed verification methods.
-                  </p>
+            <div className="mx-auto grid max-w-[1400px] items-center gap-12 lg:grid-cols-2 lg:gap-16">
+              {/* Left: Text Content */}
+              <div className="space-y-8">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
+                  </span>
+                  <span className="font-medium">Now in Beta</span>
                 </div>
-                <div className="flex flex-col gap-4 sm:flex-row">
-                  <Button size="lg" asChild>
-                    <Link href="#waitlist">Join Beta Waitlist</Link>
+                <h1 className="text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
+                  Your AI outputs cost you $2.4M when they&apos;re wrong
+                </h1>
+                <p className="text-xl leading-relaxed text-muted-foreground lg:text-2xl">
+                  Catch hallucinations before deployment with seven research-backed verification
+                  methods. Configure the mix that fits your use case—medical, legal, or anything in
+                  between.
+                </p>
+                <div className="flex flex-col gap-4 pt-4 sm:flex-row">
+                  <Button size="lg" className="text-base" asChild>
+                    <Link href="#waitlist">Join the beta</Link>
                   </Button>
-                  <Button variant="outline" size="lg" asChild>
-                    <Link href="#methods">See How It Works</Link>
+                  <Button variant="outline" size="lg" className="text-base" asChild>
+                    <Link href="#methods">See how it works</Link>
                   </Button>
                 </div>
               </div>
-              <div className="flex w-full justify-center md:w-1/2">
-                <div className="w-full max-w-md rounded-lg border bg-card p-4 font-mono text-sm md:max-w-full">
-                  <div className="mb-2 flex items-center gap-2 border-b pb-2 text-xs text-muted-foreground">
-                    <Code className="h-4 w-4" />
-                    <span>POST /v1/verify</span>
+
+              {/* Right: API Example - Product Focused */}
+              <div className="relative">
+                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-primary/20 to-primary/0 blur-lg"></div>
+                <div className="relative rounded-xl border bg-card p-6 shadow-2xl">
+                  <div className="mb-4 flex items-center gap-3 border-b border-border/50 pb-4">
+                    <div className="flex gap-1.5">
+                      <div className="h-3 w-3 rounded-full bg-destructive/20"></div>
+                      <div className="h-3 w-3 rounded-full bg-primary/20"></div>
+                      <div className="h-3 w-3 rounded-full bg-success/20"></div>
+                    </div>
+                    <span className="font-mono text-sm text-muted-foreground">POST /v1/verify</span>
                   </div>
-                  <pre className="overflow-x-auto text-xs leading-relaxed">
-                    <code>{`{
-  "content": "Patient should take
-    500mg aspirin daily",
+                  <div className="space-y-6">
+                    <div>
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Request
+                      </div>
+                      <pre className="rounded-lg bg-muted/50 p-4 font-mono text-sm">
+                        <code className="text-foreground/90">{`{
+  "content": "Patient should
+    take 500mg aspirin
+    daily",
   "methods": {
     "reasoning": 0.5,
     "tool": 0.3,
     "biprm": 0.2
   }
-}
-
-→ Response:
-{
+}`}</code>
+                      </pre>
+                    </div>
+                    <div>
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Response
+                      </div>
+                      <pre className="rounded-lg bg-muted/50 p-4 font-mono text-sm">
+                        <code className="text-foreground/90">{`{
   "verdict": "false",
   "confidence": 0.94,
   "decision": "reject",
-  "reasoning": "Dosage exceeds
-    safe limits (max 325mg)"
+  "reasoning": "Dosage
+    exceeds safe limits
+    (max 325mg)"
 }`}</code>
-                  </pre>
+                      </pre>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Problem Cost Section */}
-        <section className="w-full bg-muted py-16 md:py-24 lg:py-32" id="problem">
+        {/* Problem - Simplified Stats Section */}
+        <section className="w-full border-y bg-muted/30 py-20 md:py-28">
           <div className="container">
-            <h2 className="mb-12 text-center text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-              The Cost of AI Hallucinations
-            </h2>
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="flex flex-col items-center space-y-4 rounded-lg border bg-card p-8 text-center transition-shadow hover:shadow-lg">
-                <div className="rounded-full bg-destructive/10 p-4">
-                  <AlertCircle className="h-10 w-10 text-destructive" />
-                </div>
-                <h3 className="text-4xl font-bold">$2.4M</h3>
-                <p className="leading-relaxed text-muted-foreground">
-                  Average cost per major hallucination incident (malpractice, SEC violations,
-                  legal sanctions)
+            <div className="mx-auto max-w-[1000px] space-y-16">
+              <div className="text-center">
+                <h2 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl">
+                  The stakes are higher than you think
+                </h2>
+                <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+                  Even GPT-5 will have an 8% error rate. Zero hallucinations is mathematically
+                  impossible.
                 </p>
               </div>
-              <div className="flex flex-col items-center space-y-4 rounded-lg border bg-card p-8 text-center transition-shadow hover:shadow-lg">
-                <div className="rounded-full bg-primary/10 p-4">
-                  <BarChart className="h-10 w-10 text-primary" />
+
+              <div className="grid gap-12 sm:grid-cols-3">
+                <div className="text-center">
+                  <div className="mb-4 text-6xl font-bold tracking-tight">$2.4M</div>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    Average cost per hallucination incident in regulated industries
+                  </p>
                 </div>
-                <h3 className="text-4xl font-bold">78%</h3>
-                <p className="leading-relaxed text-muted-foreground">
-                  Of enterprises now use AI in production, moving from experiments to
-                  customer-facing systems
+                <div className="text-center">
+                  <div className="mb-4 text-6xl font-bold tracking-tight">78%</div>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    Of enterprises now deploy AI in production systems
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="mb-4 text-6xl font-bold tracking-tight">100%</div>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    Legally liable for every AI output your product generates
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border bg-card p-8 text-center shadow-sm">
+                <p className="text-base leading-relaxed text-muted-foreground">
+                  Air Canada was sued after their chatbot invented a refund policy. The court ruled
+                  the company was legally liable for AI outputs. Verification isn&apos;t optional
+                  anymore.
                 </p>
               </div>
-              <div className="flex flex-col items-center space-y-4 rounded-lg border bg-card p-8 text-center transition-shadow hover:shadow-lg sm:col-span-2 lg:col-span-1">
-                <div className="rounded-full bg-primary/10 p-4">
-                  <Shield className="h-10 w-10 text-primary" />
-                </div>
-                <h3 className="text-4xl font-bold">$812</h3>
-                <p className="leading-relaxed text-muted-foreground">
-                  Air Canada settlement after chatbot invented refund policy (Feb 2024). Court
-                  ruled companies are legally liable for AI outputs.
-                </p>
-              </div>
-            </div>
-            <div className="mt-12 rounded-lg border bg-card p-6 md:p-8">
-              <p className="text-center text-lg leading-relaxed">
-                <strong>Reality:</strong> Even GPT-5 will have an 8% error rate. Zero hallucinations
-                is mathematically impossible. Every company deploying AI needs verification.{' '}
-                <strong>Not optional.</strong>
-              </p>
             </div>
           </div>
         </section>
 
-        {/* Competitive Comparison */}
-        <section className="w-full py-16 md:py-24 lg:py-32">
+        {/* Why Different Section - Simplified */}
+        <section className="w-full py-20 md:py-28">
           <div className="container">
-            <h2 className="mb-4 text-center text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-              Why Existing Solutions Fail
-            </h2>
-            <p className="mb-12 text-center text-lg leading-relaxed text-muted-foreground">
-              All existing solutions force one verification method. Different use cases need
-              different approaches.
-            </p>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse rounded-lg border bg-card text-sm">
-                <thead>
-                  <tr className="border-b bg-muted">
-                    <th className="p-4 text-left font-semibold">Feature</th>
-                    <th className="p-4 text-left font-semibold">Guardrails AI</th>
-                    <th className="p-4 text-left font-semibold">Cleanlab</th>
-                    <th className="p-4 text-left font-semibold">Harmonic</th>
-                    <th className="bg-primary/5 p-4 text-left font-semibold">VerifyAI</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b">
-                    <td className="p-4 font-medium">Multiple Methods</td>
-                    <td className="p-4">
-                      <X className="h-5 w-5 text-destructive" />
-                    </td>
-                    <td className="p-4">
-                      <X className="h-5 w-5 text-destructive" />
-                    </td>
-                    <td className="p-4">
-                      <X className="h-5 w-5 text-destructive" />
-                    </td>
-                    <td className="bg-primary/5 p-4">
-                      <div className="flex items-center gap-2">
-                        <Check className="h-5 w-5 text-success" />
-                        <span className="text-xs font-semibold">7+ methods</span>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="p-4 font-medium">Custom Weighting</td>
-                    <td className="p-4">
-                      <X className="h-5 w-5 text-destructive" />
-                    </td>
-                    <td className="p-4">
-                      <X className="h-5 w-5 text-destructive" />
-                    </td>
-                    <td className="p-4">
-                      <X className="h-5 w-5 text-destructive" />
-                    </td>
-                    <td className="bg-primary/5 p-4">
-                      <Check className="h-5 w-5 text-success" />
-                    </td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="p-4 font-medium">All Domains</td>
-                    <td className="p-4">
-                      <X className="h-5 w-5 text-destructive" />
-                    </td>
-                    <td className="p-4">
-                      <X className="h-5 w-5 text-destructive" />
-                    </td>
-                    <td className="p-4">
-                      <span className="text-xs text-muted-foreground">Math only</span>
-                    </td>
-                    <td className="bg-primary/5 p-4">
-                      <Check className="h-5 w-5 text-success" />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 font-medium">Approach</td>
-                    <td className="p-4 text-xs text-muted-foreground">Rule-based validators</td>
-                    <td className="p-4 text-xs text-muted-foreground">Single trust score</td>
-                    <td className="p-4 text-xs text-muted-foreground">Mathematical proofs</td>
-                    <td className="bg-primary/5 p-4 text-xs font-semibold">
-                      Multi-method platform
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="mx-auto max-w-[900px]">
+              <div className="mb-16 text-center">
+                <h2 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl">
+                  One method doesn&apos;t fit all use cases
+                </h2>
+                <p className="text-lg text-muted-foreground">
+                  Existing solutions lock you into a single approach. Medical AI needs different
+                  verification than customer support. Legal AI needs different checks than
+                  e-commerce.
+                </p>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="rounded-xl border border-border/50 bg-card p-6">
+                  <div className="mb-3 text-sm font-medium text-muted-foreground">
+                    Traditional Approach
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <X className="mt-0.5 h-5 w-5 flex-shrink-0 text-destructive" />
+                      <span className="text-sm">Single verification method</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <X className="mt-0.5 h-5 w-5 flex-shrink-0 text-destructive" />
+                      <span className="text-sm">One-size-fits-all approach</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <X className="mt-0.5 h-5 w-5 flex-shrink-0 text-destructive" />
+                      <span className="text-sm">Limited to specific domains</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-primary/30 bg-primary/5 p-6">
+                  <div className="mb-3 text-sm font-semibold">VerifyAI</div>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
+                      <span className="text-sm">7 verification methods to choose from</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
+                      <span className="text-sm">Custom weighting for your use case</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
+                      <span className="text-sm">Works across all domains</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         {/* The 7 Methods */}
-        <section className="w-full bg-muted py-16 md:py-24 lg:py-32" id="methods">
+        <section className="w-full bg-muted/30 py-20 md:py-28" id="methods">
           <div className="container">
-            <h2 className="mb-4 text-center text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-              The 7 Verification Methods
-            </h2>
-            <p className="mb-12 text-center text-lg leading-relaxed text-muted-foreground">
-              Choose the right mix for your use case. Each method has different strengths,
-              speeds, and accuracy rates.
-            </p>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              <Card className="flex flex-col transition-shadow hover:shadow-lg">
-                <CardHeader>
-                  <div className="mb-2 flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-xl">Semantic Similarity</CardTitle>
+            <div className="mx-auto max-w-[1100px]">
+              <div className="mb-16 text-center">
+                <h2 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl">
+                  Seven verification methods
+                </h2>
+                <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+                  Mix and match based on your use case. Each method has different speed-accuracy
+                  tradeoffs.
+                </p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="group rounded-xl border bg-card p-6 transition-all hover:border-primary/30 hover:shadow-sm">
+                  <div className="mb-4 flex items-start justify-between">
+                    <div>
+                      <h3 className="mb-1 text-lg font-semibold">Semantic Similarity</h3>
+                      <p className="font-mono text-xs text-muted-foreground">
+                        FPR: 50-100% • ~100ms
+                      </p>
+                    </div>
+                    <Zap className="h-5 w-5 text-primary opacity-60 group-hover:opacity-100" />
                   </div>
-                  <CardDescription className="text-xs font-mono">
-                    FPR: 50-100% • Speed: ~100ms
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-                    Compares embeddings for quick filtering. Fast but vulnerable to RLHF-trained
+                  <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+                    Embedding comparison for quick filtering. Fast but vulnerable to RLHF
                     hallucinations.
                   </p>
-                  <p className="text-xs font-semibold">Best for: Quick pre-filtering</p>
-                </CardContent>
-              </Card>
+                  <p className="text-xs font-medium">Best for pre-filtering</p>
+                </div>
 
-              <Card className="flex flex-col transition-shadow hover:shadow-lg">
-                <CardHeader>
-                  <div className="mb-2 flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-xl">Reasoning-Based</CardTitle>
+                <div className="group rounded-xl border bg-card p-6 transition-all hover:border-primary/30 hover:shadow-sm">
+                  <div className="mb-4 flex items-start justify-between">
+                    <div>
+                      <h3 className="mb-1 text-lg font-semibold">Reasoning-Based</h3>
+                      <p className="font-mono text-xs text-muted-foreground">FPR: 7% • 2-3s</p>
+                    </div>
+                    <Activity className="h-5 w-5 text-primary opacity-60 group-hover:opacity-100" />
                   </div>
-                  <CardDescription className="text-xs font-mono">
-                    FPR: 7% • Speed: 2-3s
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-                    LLM analyzes logical consistency with chain-of-thought reasoning. General
-                    purpose verification.
+                  <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+                    Chain-of-thought reasoning analysis. General purpose verification.
                   </p>
-                  <p className="text-xs font-semibold">Best for: General verification</p>
-                </CardContent>
-              </Card>
+                  <p className="text-xs font-medium">Best for general use</p>
+                </div>
 
-              <Card className="flex flex-col transition-shadow hover:shadow-lg">
-                <CardHeader>
-                  <div className="mb-2 flex items-center gap-2">
-                    <Code className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-xl">Tool-Augmented</CardTitle>
+                <div className="group rounded-xl border bg-card p-6 transition-all hover:border-primary/30 hover:shadow-sm">
+                  <div className="mb-4 flex items-start justify-between">
+                    <div>
+                      <h3 className="mb-1 text-lg font-semibold">Tool-Augmented</h3>
+                      <p className="font-mono text-xs text-muted-foreground">FPR: ~2% • 1-2s</p>
+                    </div>
+                    <Code className="h-5 w-5 text-primary opacity-60 group-hover:opacity-100" />
                   </div>
-                  <CardDescription className="text-xs font-mono">
-                    FPR: ~2% • Speed: 1-2s
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-                    Web search + code execution to verify factual claims. Highest accuracy for
-                    verifiable facts.
+                  <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+                    Web search and code execution. Highest accuracy for verifiable facts.
                   </p>
-                  <p className="text-xs font-semibold">Best for: Factual claims</p>
-                </CardContent>
-              </Card>
+                  <p className="text-xs font-medium">Best for factual claims</p>
+                </div>
 
-              <Card className="flex flex-col transition-shadow hover:shadow-lg">
-                <CardHeader>
-                  <div className="mb-2 flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-xl">BiPRM</CardTitle>
+                <div className="group rounded-xl border bg-card p-6 transition-all hover:border-primary/30 hover:shadow-sm">
+                  <div className="mb-4 flex items-start justify-between">
+                    <div>
+                      <h3 className="mb-1 text-lg font-semibold">BiPRM</h3>
+                      <p className="font-mono text-xs text-muted-foreground">FPR: ~10% • 3-5s</p>
+                    </div>
+                    <Shield className="h-5 w-5 text-primary opacity-60 group-hover:opacity-100" />
                   </div>
-                  <CardDescription className="text-xs font-mono">
-                    FPR: ~10% • Speed: 3-5s
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-                    Bidirectional reasoning verification. 31.9% more accurate than unidirectional
-                    checking.
+                  <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+                    Bidirectional reasoning. 31.9% more accurate than unidirectional.
                   </p>
-                  <p className="text-xs font-semibold">Best for: Medical, legal reasoning</p>
-                </CardContent>
-              </Card>
+                  <p className="text-xs font-medium">Best for medical & legal</p>
+                </div>
 
-              <Card className="flex flex-col transition-shadow hover:shadow-lg">
-                <CardHeader>
-                  <div className="mb-2 flex items-center gap-2">
-                    <BarChart className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-xl">Ensemble</CardTitle>
+                <div className="group rounded-xl border bg-card p-6 transition-all hover:border-primary/30 hover:shadow-sm">
+                  <div className="mb-4 flex items-start justify-between">
+                    <div>
+                      <h3 className="mb-1 text-lg font-semibold">Ensemble</h3>
+                      <p className="font-mono text-xs text-muted-foreground">FPR: 20-40% • 5-10s</p>
+                    </div>
+                    <BarChart className="h-5 w-5 text-primary opacity-60 group-hover:opacity-100" />
                   </div>
-                  <CardDescription className="text-xs font-mono">
-                    FPR: 20-40% • Speed: 5-10s
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-                    Multiple models vote on verdict. Raises precision from 73% to 95.6% with 3
-                    diverse models.
+                  <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+                    Multiple models voting. Raises precision from 73% to 95.6%.
                   </p>
-                  <p className="text-xs font-semibold">Best for: High-stakes decisions</p>
-                </CardContent>
-              </Card>
+                  <p className="text-xs font-medium">Best for high-stakes</p>
+                </div>
 
-              <Card className="flex flex-col transition-shadow hover:shadow-lg">
-                <CardHeader>
-                  <div className="mb-2 flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-xl">Semantic Entropy</CardTitle>
+                <div className="group rounded-xl border bg-card p-6 transition-all hover:border-primary/30 hover:shadow-sm">
+                  <div className="mb-4 flex items-start justify-between">
+                    <div>
+                      <h3 className="mb-1 text-lg font-semibold">Semantic Entropy</h3>
+                      <p className="font-mono text-xs text-muted-foreground">FPR: TBD • ~200ms</p>
+                    </div>
+                    <CheckCircle className="h-5 w-5 text-primary opacity-60 group-hover:opacity-100" />
                   </div>
-                  <CardDescription className="text-xs font-mono">
-                    FPR: TBD • Speed: ~200ms
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-                    Measures consistency across multiple generations to detect hallucination
-                    patterns.
+                  <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+                    Consistency across generations to detect patterns.
                   </p>
-                  <p className="text-xs font-semibold">Best for: Hallucination detection</p>
-                </CardContent>
-              </Card>
+                  <p className="text-xs font-medium">Best for pattern detection</p>
+                </div>
 
-              <Card className="flex flex-col border-primary/50 bg-primary/5 transition-shadow hover:shadow-lg sm:col-span-2 lg:col-span-3">
-                <CardHeader>
-                  <div className="mb-2 flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-xl">Formal Verification</CardTitle>
+                <div className="group rounded-xl border border-primary/30 bg-primary/5 p-6 transition-all hover:border-primary/50 hover:shadow-sm sm:col-span-2 lg:col-span-3">
+                  <div className="mb-4 flex items-start justify-between">
+                    <div>
+                      <h3 className="mb-1 text-lg font-semibold">Formal Verification</h3>
+                      <p className="font-mono text-xs text-muted-foreground">FPR: 0% • Variable</p>
+                    </div>
+                    <FileText className="h-5 w-5 text-primary opacity-60 group-hover:opacity-100" />
                   </div>
-                  <CardDescription className="text-xs font-mono">
-                    FPR: 0% • Speed: Variable
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
+                  <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
                     Mathematical proofs for cryptography and smart contracts. Zero false positives
                     when applicable.
                   </p>
-                  <p className="text-xs font-semibold">
-                    Best for: Crypto, code verification (Coming soon)
-                  </p>
-                </CardContent>
-              </Card>
+                  <p className="text-xs font-medium">Best for crypto & code (Coming soon)</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Use Cases */}
-        <section className="w-full py-16 md:py-24 lg:py-32">
+        {/* Use Cases - Simplified */}
+        <section className="w-full py-20 md:py-28">
           <div className="container">
-            <h2 className="mb-12 text-center text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-              Configure for Your Use Case
-            </h2>
-            <div className="grid gap-8 lg:grid-cols-3">
-              <div className="rounded-lg border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold">Medical AI</h3>
-                <div className="mb-4 rounded-md bg-muted p-3 font-mono text-xs">
-                  <div className="text-muted-foreground">Configuration:</div>
-                  <div>60% BiPRM</div>
-                  <div>30% Tool</div>
-                  <div>10% Semantic</div>
-                </div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Optimized for accuracy and fact-checking medical claims. Catches reasoning
-                  errors while verifying against databases.
+            <div className="mx-auto max-w-[900px]">
+              <div className="mb-12 text-center">
+                <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
+                  Configure for your domain
+                </h2>
+                <p className="text-base text-muted-foreground">
+                  Different industries need different verification mixes
                 </p>
               </div>
-
-              <div className="rounded-lg border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold">Legal AI</h3>
-                <div className="mb-4 rounded-md bg-muted p-3 font-mono text-xs">
-                  <div className="text-muted-foreground">Configuration:</div>
-                  <div>50% Ensemble</div>
-                  <div>50% Tool</div>
+              <div className="grid gap-6 sm:grid-cols-3">
+                <div className="rounded-xl border bg-card p-5">
+                  <h3 className="mb-3 font-semibold">Medical AI</h3>
+                  <div className="mb-3 space-y-1 font-mono text-xs">
+                    <div>60% BiPRM</div>
+                    <div>30% Tool</div>
+                    <div>10% Semantic</div>
+                  </div>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Prioritizes accuracy and medical fact-checking
+                  </p>
                 </div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Maximum accuracy with citation verification. Ensures case law references are
-                  real and properly cited.
-                </p>
-              </div>
 
-              <div className="rounded-lg border bg-card p-6">
-                <h3 className="mb-4 text-xl font-semibold">Customer Support</h3>
-                <div className="mb-4 rounded-md bg-muted p-3 font-mono text-xs">
-                  <div className="text-muted-foreground">Configuration:</div>
-                  <div>80% Reasoning</div>
-                  <div>20% Semantic</div>
+                <div className="rounded-xl border bg-card p-5">
+                  <h3 className="mb-3 font-semibold">Legal AI</h3>
+                  <div className="mb-3 space-y-1 font-mono text-xs">
+                    <div>50% Ensemble</div>
+                    <div>50% Tool</div>
+                  </div>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Maximum accuracy with citation verification
+                  </p>
                 </div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Balanced speed and accuracy for customer-facing applications. Quick responses
-                  without sacrificing quality.
-                </p>
+
+                <div className="rounded-xl border bg-card p-5">
+                  <h3 className="mb-3 font-semibold">Support AI</h3>
+                  <div className="mb-3 space-y-1 font-mono text-xs">
+                    <div>80% Reasoning</div>
+                    <div>20% Semantic</div>
+                  </div>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Balanced speed and accuracy
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         {/* Research Foundation */}
-        <section className="w-full bg-muted py-16 md:py-24 lg:py-32" id="research">
+        <section className="w-full border-y bg-muted/30 py-20 md:py-28">
           <div className="container">
-            <h2 className="mb-4 text-center text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-              Built on Peer-Reviewed Research
-            </h2>
-            <p className="mb-12 text-center text-lg leading-relaxed text-muted-foreground">
-              Our verification methods are backed by published academic research, not
-              hand-waving.
-            </p>
-            <div className="mx-auto max-w-4xl space-y-4">
-              <div className="rounded-lg border bg-card p-6">
-                <div className="mb-2 flex items-start gap-3">
-                  <FileText className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                  <div>
-                    <h3 className="mb-1 font-semibold">
-                      Semantic Illusion Problem{' '}
-                      <a
-                        href="https://arxiv.org/abs/2512.15068"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-mono text-xs text-primary hover:underline"
-                      >
-                        arxiv:2512.15068
-                      </a>
-                    </h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground">
-                      Embedding-based detection achieves 50-100% FPR on RLHF-trained outputs.
-                      Validates our multi-method approach.
-                    </p>
+            <div className="mx-auto max-w-[1000px]">
+              <div className="mb-12 text-center">
+                <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
+                  Backed by peer-reviewed research
+                </h2>
+                <p className="text-base text-muted-foreground">
+                  Each method is grounded in published academic work, not speculation
+                </p>
+              </div>
+              <div className="space-y-3">
+                <div className="rounded-lg border bg-card p-5">
+                  <div className="flex items-start gap-4">
+                    <FileText className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex flex-wrap items-baseline gap-2">
+                        <h3 className="font-semibold">Semantic Illusion Problem</h3>
+                        <a
+                          href="https://arxiv.org/abs/2512.15068"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono text-xs text-primary hover:underline"
+                        >
+                          arxiv:2512.15068
+                        </a>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        50-100% FPR on RLHF-trained outputs validates multi-method approach
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="rounded-lg border bg-card p-6">
-                <div className="mb-2 flex items-start gap-3">
-                  <FileText className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                  <div>
-                    <h3 className="mb-1 font-semibold">
-                      Process Supervision (OpenAI, ICLR 2024){' '}
-                      <span className="font-mono text-xs text-muted-foreground">
-                        &quot;Let&apos;s Verify Step by Step&quot;
-                      </span>
-                    </h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground">
-                      Process supervision significantly outperforms outcome-only verification.
-                      78.2% accuracy on MATH dataset. Foundation for BiPRM method.
-                    </p>
+                <div className="rounded-lg border bg-card p-5">
+                  <div className="flex items-start gap-4">
+                    <FileText className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1">
+                        <h3 className="font-semibold">Process Supervision (OpenAI, ICLR 2024)</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        78.2% accuracy on MATH dataset—foundation for BiPRM method
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="rounded-lg border bg-card p-6">
-                <div className="mb-2 flex items-start gap-3">
-                  <FileText className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                  <div>
-                    <h3 className="mb-1 font-semibold">
-                      FacTool{' '}
-                      <a
-                        href="https://arxiv.org/abs/2307.13528"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-mono text-xs text-primary hover:underline"
-                      >
-                        arxiv:2307.13528
-                      </a>
-                    </h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground">
-                      Tool-grounded verification achieves 98.97% F1 score. Web search + code
-                      execution for claim verification.
-                    </p>
+                <div className="rounded-lg border bg-card p-5">
+                  <div className="flex items-start gap-4">
+                    <FileText className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex flex-wrap items-baseline gap-2">
+                        <h3 className="font-semibold">FacTool</h3>
+                        <a
+                          href="https://arxiv.org/abs/2307.13528"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono text-xs text-primary hover:underline"
+                        >
+                          arxiv:2307.13528
+                        </a>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        98.97% F1 with tool-grounded verification
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="rounded-lg border bg-card p-6">
-                <div className="mb-2 flex items-start gap-3">
-                  <FileText className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                  <div>
-                    <h3 className="mb-1 font-semibold">
-                      BiPRM Research{' '}
-                      <a
-                        href="https://arxiv.org/abs/2508.01682"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-mono text-xs text-primary hover:underline"
-                      >
-                        arxiv:2508.01682
-                      </a>
-                    </h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground">
-                      Bidirectional verification is 31.9% more accurate than unidirectional. First
-                      application to non-math domains.
-                    </p>
+                <div className="rounded-lg border bg-card p-5">
+                  <div className="flex items-start gap-4">
+                    <FileText className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex flex-wrap items-baseline gap-2">
+                        <h3 className="font-semibold">BiPRM Research</h3>
+                        <a
+                          href="https://arxiv.org/abs/2508.01682"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono text-xs text-primary hover:underline"
+                        >
+                          arxiv:2508.01682
+                        </a>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        31.9% more accurate than unidirectional verification
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="rounded-lg border bg-card p-6">
-                <div className="mb-2 flex items-start gap-3">
-                  <FileText className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                  <div>
-                    <h3 className="mb-1 font-semibold">
-                      Ensemble Methods{' '}
-                      <a
-                        href="https://arxiv.org/abs/2411.06535"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-mono text-xs text-primary hover:underline"
-                      >
-                        arxiv:2411.06535
-                      </a>
-                    </h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground">
-                      3 diverse models raise precision from 73% to 95.6%. Cohen&apos;s kappa &gt;0.76
-                      threshold for reliable consensus.
-                    </p>
+                <div className="rounded-lg border bg-card p-5">
+                  <div className="flex items-start gap-4">
+                    <FileText className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex flex-wrap items-baseline gap-2">
+                        <h3 className="font-semibold">Ensemble Methods</h3>
+                        <a
+                          href="https://arxiv.org/abs/2411.06535"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono text-xs text-primary hover:underline"
+                        >
+                          arxiv:2411.06535
+                        </a>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        3 diverse models raise precision from 73% to 95.6%
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -609,202 +565,167 @@ export default async function LandingPage() {
         </section>
 
         {/* Pricing Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32" id="pricing">
+        <section className="w-full py-20 md:py-28" id="pricing">
           <div className="container">
-            <h2 className="mb-4 text-center text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-              Transparent BYOK Pricing
-            </h2>
-            <p className="mb-12 text-center text-lg leading-relaxed text-muted-foreground">
-              Bring your own API keys. We charge for the platform, not token resale. No hidden
-              markups.
-            </p>
-            <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              <Card className="flex flex-col transition-shadow hover:shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-2xl">Free</CardTitle>
-                  <CardDescription className="text-base">
-                    For testing and experimentation
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="mb-6 text-4xl font-bold">$0</p>
-                  <ul className="space-y-3">
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">
-                        100 verifications per month
-                      </span>
+            <div className="mx-auto max-w-[1000px]">
+              <div className="mb-16 text-center">
+                <h2 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
+                  Transparent pricing
+                </h2>
+                <p className="text-lg text-muted-foreground">
+                  Bring your own API keys. No token markups. Just platform access.
+                </p>
+              </div>
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="flex flex-col rounded-xl border bg-card p-6">
+                  <div className="mb-6">
+                    <h3 className="mb-1 text-xl font-semibold">Free</h3>
+                    <p className="text-sm text-muted-foreground">For testing</p>
+                  </div>
+                  <div className="mb-6">
+                    <div className="text-4xl font-bold">$0</div>
+                  </div>
+                  <ul className="mb-6 flex-1 space-y-2.5">
+                    <li className="flex items-start gap-2.5 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>100 verifications/month</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">Semantic method only</span>
+                    <li className="flex items-start gap-2.5 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Semantic method</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">API access</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">Community support</span>
+                    <li className="flex items-start gap-2.5 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>API access</span>
                     </li>
                   </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full" size="lg" variant="outline" asChild>
-                    <Link href="#waitlist">Join Beta</Link>
+                  <Button variant="outline" asChild>
+                    <Link href="#waitlist">Join beta</Link>
                   </Button>
-                </CardFooter>
-              </Card>
+                </div>
 
-              <Card className="flex flex-col border-primary transition-shadow hover:shadow-lg">
-                <CardHeader>
-                  <div className="mb-2 flex items-center gap-2">
-                    <CardTitle className="text-2xl">Pro</CardTitle>
-                    <span className="rounded-md bg-primary px-2 py-1 text-xs font-semibold text-primary-foreground">
-                      POPULAR
-                    </span>
+                <div className="flex flex-col rounded-xl border-2 border-primary bg-card p-6 shadow-lg">
+                  <div className="mb-6">
+                    <div className="mb-2 flex items-center gap-2">
+                      <h3 className="text-xl font-semibold">Pro</h3>
+                      <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
+                        Popular
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">For production</p>
                   </div>
-                  <CardDescription className="text-base">
-                    For production deployments
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="mb-6">
-                    <span className="text-4xl font-bold">$99-299</span>
-                    <span className="text-muted-foreground">/month</span>
-                  </p>
-                  <ul className="space-y-3">
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">
+                  <div className="mb-6">
+                    <div className="text-4xl font-bold">$99-299</div>
+                    <div className="text-sm text-muted-foreground">/month</div>
+                  </div>
+                  <ul className="mb-6 flex-1 space-y-2.5">
+                    <li className="flex items-start gap-2.5 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>
                         <strong>Unlimited</strong> verifications
                       </span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">
-                        All 7 verification methods
+                    <li className="flex items-start gap-2.5 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>All 7 methods</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Custom weighting</span>
+                    </li>
+                    <li className="flex items-start gap-2.5 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>
+                        <strong>BYOK</strong> (no markup)
                       </span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">Custom method weighting</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">
-                        <strong>BYOK:</strong> Your API keys, no markup
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">Priority support</span>
+                    <li className="flex items-start gap-2.5 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Priority support</span>
                     </li>
                   </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full" size="lg" asChild>
-                    <Link href="#waitlist">Join Beta</Link>
+                  <Button asChild>
+                    <Link href="#waitlist">Join beta</Link>
                   </Button>
-                </CardFooter>
-              </Card>
+                </div>
 
-              <Card className="flex flex-col transition-shadow hover:shadow-lg sm:col-span-2 lg:col-span-1">
-                <CardHeader>
-                  <CardTitle className="text-2xl">Enterprise</CardTitle>
-                  <CardDescription className="text-base">
-                    For large-scale deployments
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="mb-6 text-4xl font-bold">Custom</p>
-                  <ul className="space-y-3">
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">Everything in Pro</span>
+                <div className="flex flex-col rounded-xl border bg-card p-6">
+                  <div className="mb-6">
+                    <h3 className="mb-1 text-xl font-semibold">Enterprise</h3>
+                    <p className="text-sm text-muted-foreground">For scale</p>
+                  </div>
+                  <div className="mb-6">
+                    <div className="text-4xl font-bold">Custom</div>
+                  </div>
+                  <ul className="mb-6 flex-1 space-y-2.5">
+                    <li className="flex items-start gap-2.5 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Everything in Pro</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">Custom SLAs</span>
+                    <li className="flex items-start gap-2.5 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Custom SLAs</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">White-label deployment</span>
+                    <li className="flex items-start gap-2.5 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>White-label option</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">
-                        Custom method development
-                      </span>
+                    <li className="flex items-start gap-2.5 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Custom methods</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                      <span className="text-sm leading-relaxed">Dedicated support team</span>
+                    <li className="flex items-start gap-2.5 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Dedicated support</span>
                     </li>
                   </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full" size="lg" variant="outline" asChild>
-                    <Link href="#waitlist">Contact Sales</Link>
+                  <Button variant="outline" asChild>
+                    <Link href="#waitlist">Contact sales</Link>
                   </Button>
-                </CardFooter>
-              </Card>
-            </div>
-            <div className="mt-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                <strong>ROI:</strong> Avoid one $2.4M hallucination incident. Platform cost:{' '}
-                &lt;$50K/year. Building in-house: $500K-1M/year.
-              </p>
+                </div>
+              </div>
+              <div className="mt-12 text-center">
+                <p className="text-sm text-muted-foreground">
+                  One avoided incident pays for years of the platform
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
         {/* CTA Section / Waitlist */}
-        <section className="w-full bg-muted py-16 md:py-24 lg:py-32" id="waitlist">
+        <section className="w-full border-y bg-muted/30 py-20 md:py-28" id="waitlist">
           <div className="container">
-            <div className="mx-auto flex max-w-3xl flex-col items-center justify-center space-y-6 text-center">
-              <div className="space-y-4">
-                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-                  Join the Beta
-                </h2>
-                <p className="text-lg leading-relaxed text-muted-foreground md:text-xl">
-                  Get early access to VerifyAI. We&apos;re working with design partners in
-                  healthcare, legal, and financial AI to validate our approach.
+            <div className="mx-auto max-w-2xl text-center">
+              <div className="mb-10 space-y-4">
+                <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">Join the beta</h2>
+                <p className="text-lg text-muted-foreground">
+                  We&apos;re working with design partners in healthcare, legal, and finance to
+                  validate our approach.
                 </p>
               </div>
-              <div className="w-full max-w-md space-y-4">
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <input
-                    type="email"
-                    placeholder="your@email.com"
-                    className="flex-1 rounded-md border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  />
-                  <Button size="lg" className="sm:w-auto">
-                    Join Waitlist
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  No spam. Just updates on our beta launch and research findings.
-                </p>
+              <div className="mb-12 flex flex-col gap-3 sm:flex-row">
+                <input
+                  type="email"
+                  placeholder="you@company.com"
+                  className="flex-1 rounded-lg border border-input bg-background px-5 py-3.5 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <Button size="lg" className="text-base sm:w-auto">
+                  Join waitlist
+                </Button>
               </div>
-              <div className="grid gap-6 pt-8 text-left sm:grid-cols-3">
+              <div className="grid gap-8 text-center sm:grid-cols-3">
                 <div>
-                  <h3 className="mb-2 text-sm font-semibold">Free Beta Access</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Early adopters get extended free tier
-                  </p>
+                  <div className="mb-2 font-semibold">Extended free tier</div>
+                  <p className="text-sm text-muted-foreground">for early adopters</p>
                 </div>
                 <div>
-                  <h3 className="mb-2 text-sm font-semibold">Shape the Product</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Direct input on features and methods
-                  </p>
+                  <div className="mb-2 font-semibold">Shape the product</div>
+                  <p className="text-sm text-muted-foreground">direct feature input</p>
                 </div>
                 <div>
-                  <h3 className="mb-2 text-sm font-semibold">Beta Pricing Lock</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Keep your beta pricing when we launch
-                  </p>
+                  <div className="mb-2 font-semibold">Lock in beta pricing</div>
+                  <p className="text-sm text-muted-foreground">when we launch</p>
                 </div>
               </div>
             </div>
@@ -812,25 +733,29 @@ export default async function LandingPage() {
         </section>
       </main>
 
-      <footer className="flex w-full shrink-0 flex-col items-center gap-4 border-t px-4 py-8 sm:flex-row md:px-6">
-        <p className="text-sm text-muted-foreground">
-          © 2025 VerifyAI. Built on peer-reviewed research.
-        </p>
-        <nav className="flex gap-6 sm:ml-auto">
-          <Link className="text-sm underline-offset-4 hover:underline" href="#">
-            Terms of Service
-          </Link>
-          <Link className="text-sm underline-offset-4 hover:underline" href="#">
-            Privacy
-          </Link>
+      <footer className="flex w-full flex-col items-center gap-6 border-t px-6 py-12 sm:flex-row md:px-8">
+        <p className="text-sm text-muted-foreground">© 2025 VerifyAI</p>
+        <nav className="flex gap-8 sm:ml-auto">
           <a
-            className="text-sm underline-offset-4 hover:underline"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
             href="https://arxiv.org/abs/2512.15068"
             target="_blank"
             rel="noopener noreferrer"
           >
             Research
           </a>
+          <Link
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            href="#"
+          >
+            Terms
+          </Link>
+          <Link
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            href="#"
+          >
+            Privacy
+          </Link>
         </nav>
       </footer>
     </div>
