@@ -6,38 +6,35 @@ import ProviderSigninBlock from "@/components/ProviderSigninBlock"
 
 export default function Signup() {
     return (
-        <div className="flex items-center justify-center bg-muted min-h-screen">
-
-            <Card className="w-[350px] mx-auto">
-                <CardHeader className="space-y-1">
-                    <div className="flex justify-center py-4">
+        <div className="flex items-center justify-center bg-muted min-h-screen p-4">
+            <Card className="w-full max-w-sm">
+                <CardHeader className="space-y-2">
+                    <div className="flex justify-center pb-4">
                         <Link href='/'>
                             <Image src="/logo.png" alt="logo" width={50} height={50} />
                         </Link>
                     </div>
-
-                    <CardTitle className="text-2x\l font-bold">Signup</CardTitle>
-                    <CardDescription>Create your account now!</CardDescription>
+                    <CardTitle className="text-2xl font-bold text-center">Sign Up</CardTitle>
+                    <CardDescription className="text-center">Create your account now!</CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-4">
+                <CardContent className="space-y-6">
                     <SignupForm />
                     <div className="relative">
                         <div className="absolute inset-0 flex items-center">
                             <span className="w-full border-t" />
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                            <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
                         </div>
                     </div>
                     <ProviderSigninBlock />
                 </CardContent>
-                <CardFooter className="flex-col text-center">
-                    <Link className="w-full text-sm text-muted-foreground" href="/login">
-                        Have an account? Login
+                <CardFooter className="flex flex-col gap-2 text-center">
+                    <Link className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors" href="/login">
+                        Have an account? Log in
                     </Link>
                 </CardFooter>
             </Card>
-        </div >
-
+        </div>
     )
 }

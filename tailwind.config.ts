@@ -12,7 +12,13 @@ const config = {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: {
+        DEFAULT: "1rem",
+        sm: "1.5rem",
+        lg: "2rem",
+        xl: "2.5rem",
+        "2xl": "3rem",
+      },
       screens: {
         "2xl": "1400px",
       },
@@ -36,6 +42,10 @@ const config = {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
@@ -52,6 +62,47 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+      },
+      spacing: {
+        '1': 'var(--spacing-1)',
+        '2': 'var(--spacing-2)',
+        '3': 'var(--spacing-3)',
+        '4': 'var(--spacing-4)',
+        '5': 'var(--spacing-5)',
+        '6': 'var(--spacing-6)',
+        '8': 'var(--spacing-8)',
+        '10': 'var(--spacing-10)',
+        '12': 'var(--spacing-12)',
+        '16': 'var(--spacing-16)',
+        '20': 'var(--spacing-20)',
+        '24': 'var(--spacing-24)',
+        '32': 'var(--spacing-32)',
+      },
+      fontSize: {
+        'xs': ['var(--font-size-xs)', { lineHeight: 'var(--leading-normal)' }],
+        'sm': ['var(--font-size-sm)', { lineHeight: 'var(--leading-normal)' }],
+        'base': ['var(--font-size-base)', { lineHeight: 'var(--leading-relaxed)' }],
+        'lg': ['var(--font-size-lg)', { lineHeight: 'var(--leading-relaxed)' }],
+        'xl': ['var(--font-size-xl)', { lineHeight: 'var(--leading-relaxed)' }],
+        '2xl': ['var(--font-size-2xl)', { lineHeight: 'var(--leading-snug)' }],
+        '3xl': ['var(--font-size-3xl)', { lineHeight: 'var(--leading-snug)' }],
+        '4xl': ['var(--font-size-4xl)', { lineHeight: 'var(--leading-tight)' }],
+        '5xl': ['var(--font-size-5xl)', { lineHeight: 'var(--leading-tight)' }],
+        '6xl': ['var(--font-size-6xl)', { lineHeight: 'var(--leading-tight)' }],
+      },
+      fontWeight: {
+        normal: 'var(--font-normal)',
+        medium: 'var(--font-medium)',
+        semibold: 'var(--font-semibold)',
+        bold: 'var(--font-bold)',
+      },
+      lineHeight: {
+        'none': 'var(--leading-none)',
+        'tight': 'var(--leading-tight)',
+        'snug': 'var(--leading-snug)',
+        'normal': 'var(--leading-normal)',
+        'relaxed': 'var(--leading-relaxed)',
+        'loose': 'var(--leading-loose)',
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -1,4 +1,3 @@
-
 "use client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,32 +17,40 @@ export default function ResetPasswordForm() {
         message: ''
     }
     const [formState, formAction] = useFormState(resetPassword, initialState)
-    return (<>
-        <form action={formAction}>
-            <div className="grid gap-2">
-                <Label htmlFor="email">Password</Label>
-                <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter New Password"
-                    name="password"
-                    required
-                />
-                <Input
-                    id="confirm_password"
-                    type="password"
-                    placeholder="Confirm Password"
-                    name="confirm_password"
-                    required
-                />
+
+    return (
+        <form action={formAction} className="space-y-4">
+            <div className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="password">New Password</Label>
+                    <Input
+                        id="password"
+                        type="password"
+                        placeholder="Enter new password"
+                        name="password"
+                        required
+                        minLength={6}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="confirm_password">Confirm Password</Label>
+                    <Input
+                        id="confirm_password"
+                        type="password"
+                        placeholder="Confirm password"
+                        name="confirm_password"
+                        required
+                        minLength={6}
+                    />
+                </div>
                 <Suspense>
                     <GetCodeHiddenInput />
                 </Suspense>
             </div>
-            <Button className="w-full mt-4" type="submit">Update Password</Button>
+            <Button className="w-full" type="submit">Update Password</Button>
             {formState?.message && (
-                <p className="text-sm text-red-500 text-center py-2">{formState.message}</p>
+                <p className="text-sm text-destructive text-center">{formState.message}</p>
             )}
-        </form >
-    </>)
+        </form>
+    )
 }

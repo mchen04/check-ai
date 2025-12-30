@@ -6,18 +6,18 @@ export default function ProviderSigninBlock() {
     const isGithubEnabled = process.env.GITHUB_OAUTH_CLIENT_ID ? true : false
     return (
         <>
-            <div className="flex flex-row gap-2">
+            <div className="flex flex-row gap-4">
                 {isGoogleEnabled && (
-                    <form action={signInWithGoogle} className="basis-full">
+                    <form action={signInWithGoogle} className="flex-1">
                         <Button variant="outline" aria-label="Sign in with Google" type="submit" className="w-full">
-                            <FaGoogle />
+                            <FaGoogle className="h-4 w-4" />
                         </Button>
                     </form>
                 )}
                 {isGithubEnabled && (
-                    <form action={signInWithGithub} className="basis-full">
-                        <Button variant="outline" aria-label="Sign in with Github" className="w-full">
-                            <FaGithub />
+                    <form action={signInWithGithub} className="flex-1">
+                        <Button variant="outline" aria-label="Sign in with Github" type="submit" className="w-full">
+                            <FaGithub className="h-4 w-4" />
                         </Button>
                     </form>
                 )}

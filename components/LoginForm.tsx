@@ -1,18 +1,19 @@
-
 "use client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useFormState } from 'react-dom'
 import { loginUser } from '@/app/auth/actions'
+
 export default function LoginForm() {
     const initialState = {
         message: ''
     }
     const [formState, formAction] = useFormState(loginUser, initialState)
-    return (<>
-        <form action={formAction}>
-            <div className="grid gap-2">
+
+    return (
+        <form action={formAction} className="space-y-4">
+            <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                     id="email"
@@ -22,7 +23,7 @@ export default function LoginForm() {
                     required
                 />
             </div>
-            <div className="grid gap-2 mt-2">
+            <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
                     id="password"
@@ -31,10 +32,10 @@ export default function LoginForm() {
                     required
                 />
             </div>
-            <Button className="w-full mt-4" type="submit">Sign In</Button>
+            <Button className="w-full" type="submit">Sign In</Button>
             {formState?.message && (
-                <p className="text-sm text-red-500 text-center py-2">{formState.message}</p>
+                <p className="text-sm text-destructive text-center">{formState.message}</p>
             )}
         </form>
-    </>)
+    )
 }

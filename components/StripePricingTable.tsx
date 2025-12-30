@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 declare global {
     namespace JSX {
@@ -8,8 +8,8 @@ declare global {
         }
     }
 }
-export default function StripePricingTable({ checkoutSessionSecret }: { checkoutSessionSecret: string }) {
 
+export default function StripePricingTable({ checkoutSessionSecret }: { checkoutSessionSecret: string }) {
     return (
         <stripe-pricing-table
             pricing-table-id={process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID}
@@ -18,6 +18,4 @@ export default function StripePricingTable({ checkoutSessionSecret }: { checkout
         >
         </stripe-pricing-table>
     )
-
-
-};
+}

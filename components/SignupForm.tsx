@@ -5,17 +5,25 @@ import { Label } from "@/components/ui/label"
 import { useFormState, useFormStatus } from 'react-dom'
 import { signup } from '@/app/auth/actions'
 
+function SubmitButton() {
+    const { pending } = useFormStatus()
+    return (
+        <Button className="w-full" type="submit" disabled={pending}>
+            {pending ? 'Signing up...' : 'Sign Up'}
+        </Button>
+    )
+}
+
 export default function SignupForm() {
     const initialState = {
         message: ''
     }
 
     const [formState, formAction] = useFormState(signup, initialState)
-    const { pending } = useFormStatus()
 
     return (
-        <form action={formAction}>
-            <div className="grid gap-2">
+        <form action={formAction} className="space-y-4">
+            <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
                 <Input
                     id="name"
@@ -25,7 +33,7 @@ export default function SignupForm() {
                     required
                 />
             </div>
-            <div className="grid gap-2 mt-2">
+            <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                     id="email"
@@ -35,18 +43,19 @@ export default function SignupForm() {
                     required
                 />
             </div>
-            <div className="grid gap-2 mt-2">
+            <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
                     id="password"
                     type="password"
                     name="password"
                     required
+                    minLength={6}
                 />
             </div>
-            <Button className="w-full mt-4" type="submit" aria-disabled={pending}>  {pending ? 'Submitting...' : 'Sign up'}</Button>
+            <SubmitButton />
             {formState?.message && (
-                <p className="text-sm text-red-500 text-center py-2">{formState.message}</p>
+                <p className="text-sm text-destructive text-center">{formState.message}</p>
             )}
         </form>
     )

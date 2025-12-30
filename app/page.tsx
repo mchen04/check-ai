@@ -41,7 +41,7 @@ export default async function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
-      <header className="px-4 lg:px-6 h-16 flex items-center  bg-white border-b fixed border-b-slate-200 w-full">
+      <header className="sticky top-0 z-50 w-full bg-background border-b px-4 lg:px-6 h-16 flex items-center">
         <Link className="flex items-center justify-center" href="#">
           <Image src="/logo.png" alt="logo" width={50} height={50} />
           <span className="sr-only">Acme Inc</span>
@@ -57,166 +57,202 @@ export default async function LandingPage() {
             Pricing
           </a>
         </nav>
-        <Button className="mx-2 md:mx-4 lg:mx-6 xl:mx-10" >
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="/login">
+        <Button asChild className="ml-4 md:ml-6 lg:ml-8">
+          <Link href="/login">
             Get Started
           </Link>
         </Button>
       </header>
+
       <main className="flex-1">
-        <section className="w-full py-20 lg:py-32 xl:py-40">
-          <div className="container px-4 md:px-6 flex flex-col md:flex-row ">
-            <div className="flex flex-col space-y-4 md:w-1/2 w-full ">
-              <div className="space-y-2">
-                <h1 className="text-2xl  tracking-tighter sm:text-3xl md:text-4xl lg:text-5xl/none">
-                  Saas Template with Supabase, Stripe, Databases
-                </h1>
-                <p className=" text-muted-foreground md:text-xl">
-                  NextJS Boilerplate with everything required to build your next SAAS Product
+        {/* Hero Section */}
+        <section className="w-full py-16 md:py-24 lg:py-32">
+          <div className="container">
+            <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center">
+              <div className="flex flex-col space-y-6 md:w-1/2 w-full">
+                <div className="space-y-4">
+                  <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+                    Saas Template with Supabase, Stripe, Databases
+                  </h1>
+                  <p className="text-lg text-muted-foreground md:text-xl leading-relaxed">
+                    NextJS Boilerplate with everything required to build your next SAAS Product
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button size="lg" asChild>
+                    <Link href="/signup">Get Started</Link>
+                  </Button>
+                  <Button variant="outline" size="lg" asChild>
+                    <Link href="#features">Learn More</Link>
+                  </Button>
+                </div>
+              </div>
+              <div className="w-full md:w-1/2 flex justify-center">
+                <Image src="/hero.png" alt="Hero" width={500} height={500} priority className="w-full max-w-md md:max-w-full" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="w-full py-16 md:py-24 lg:py-32 bg-muted" id="features">
+          <div className="container">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-center mb-8">
+              Our Features
+            </h2>
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 mt-12">
+              <div className="flex flex-col items-center space-y-4 border border-muted-foreground/10 p-6 rounded-lg bg-card hover:shadow-lg transition-shadow">
+                <div className="p-3 bg-primary/10 rounded-full">
+                  <Coins className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold">Payments</h3>
+                <p className="text-muted-foreground text-center leading-relaxed">
+                  Seamlessly integrate Stripe Billing to capture subscription payments - Webhooks and all
                 </p>
               </div>
-              <div className="space-x-4">
-                <Button>Get Started</Button>
-                <Button variant="outline">Learn More</Button>
-              </div>
-            </div>
-            <div className="w-full md:w-1/2  flex justify-center">
-              <Image src="/hero.png" alt="Hero" width={500} height={500} priority />
-            </div>
-          </div>
-        </section>
-        <section className="w-full py-10 md:py-20 lg:py-32 bg-muted" id="features">
-          <div className="container px-4 md:px-6">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-center mb-4">Our Features</h2>
-            <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3">
-              <div className="flex flex-col items-center space-y-2 border-muted-foreground/10 p-4 rounded-lg">
-                <div className="p-2 bg-primary/10 rounded-full">
-                  <Coins className="h-6 w-6 text-primary" />
+              <div className="flex flex-col items-center space-y-4 border border-muted-foreground/10 p-6 rounded-lg bg-card hover:shadow-lg transition-shadow">
+                <div className="p-3 bg-primary/10 rounded-full">
+                  <UserCheck className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold">Payments</h3>
-                <p className="text-muted-foreground text-center">Seamlesly integrate Stripe Billing to capture subscription payments - Webhooks and all</p>
+                <h3 className="text-xl font-semibold">Auth</h3>
+                <p className="text-muted-foreground text-center leading-relaxed">
+                  Utilize our preexisting Supabase integration to auth your users and secure your app
+                </p>
               </div>
-              <div className="flex flex-col items-center space-y-2 border-muted-foreground/10 p-4 rounded-lg">
-                <div className="p-2 bg-primary/10 rounded-full">
-                  <UserCheck className="h-6 w-6 text-primary" />
+              <div className="flex flex-col items-center space-y-4 border border-muted-foreground/10 p-6 rounded-lg bg-card hover:shadow-lg transition-shadow">
+                <div className="p-3 bg-primary/10 rounded-full">
+                  <Database className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold">Auth</h3>
-                <p className="text-muted-foreground text-center">Utilize our preexisting Superbase integration to auth your users and secure your app </p>
-              </div>
-              <div className="flex flex-col items-center space-y-2 border-muted-foreground/10 p-4 rounded-lg">
-                <div className="p-2 bg-primary/10 rounded-full">
-                  <Database className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-bold">Database</h3>
-                <p className="text-muted-foreground text-center">Hook into any PostgresDB instance</p>
+                <h3 className="text-xl font-semibold">Database</h3>
+                <p className="text-muted-foreground text-center leading-relaxed">
+                  Hook into any PostgresDB instance
+                </p>
               </div>
             </div>
           </div>
         </section>
-        <section className="w-full py-10 md:py-20 lg:py-32" id="testimonials">
-          <div className="container px-4 md:px-6">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-center mb-4">What Our Customers Say</h2>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-8">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-1 mb-2">
+
+        {/* Testimonials Section */}
+        <section className="w-full py-16 md:py-24 lg:py-32" id="testimonials">
+          <div className="container">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-center mb-8">
+              What Our Customers Say
+            </h2>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-12">
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="w-5 h-5 fill-primary text-primary" />
                     ))}
                   </div>
-                  <p className="text-muted-foreground mb-2">&quot;This product has revolutionized our workflow. Highly recommended!&quot;</p>
+                  <p className="text-muted-foreground mb-4 leading-relaxed">
+                    &quot;This product has revolutionized our workflow. Highly recommended!&quot;
+                  </p>
                   <p className="font-semibold">- Sarah J., CEO</p>
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-1 mb-2">
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="w-5 h-5 fill-primary text-primary" />
                     ))}
                   </div>
-                  <p className="text-muted-foreground mb-2">&quot;Wow everything is already integrated! Less time configuring, more time building!.&quot;</p>
+                  <p className="text-muted-foreground mb-4 leading-relaxed">
+                    &quot;Wow everything is already integrated! Less time configuring, more time building!&quot;
+                  </p>
                   <p className="font-semibold">- Mark T., CTO</p>
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-1 mb-2">
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="w-5 h-5 fill-primary text-primary" />
                     ))}
                   </div>
-                  <p className="text-muted-foreground mb-2">&quot;We&aposve seen a 200% increase in productivity since implementing this solution.&quot;</p>
+                  <p className="text-muted-foreground mb-4 leading-relaxed">
+                    &quot;We&apos;ve seen a 200% increase in productivity since implementing this solution.&quot;
+                  </p>
                   <p className="font-semibold">- Emily R., Operations Manager</p>
                 </CardContent>
               </Card>
             </div>
           </div>
         </section>
-        <section className="w-full py-10 md:py-20 lg:py-32 bg-muted" id="pricing">
-          <div className="container px-4 md:px-6">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-center mb-4">Pricing Plans</h2>
-            <p className="text-muted-foreground text-center mb-8 md:text-xl">Choose the perfect plan for your needs</p>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+        {/* Pricing Section */}
+        <section className="w-full py-16 md:py-24 lg:py-32 bg-muted" id="pricing">
+          <div className="container">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-center mb-4">
+              Pricing Plans
+            </h2>
+            <p className="text-muted-foreground text-center mb-12 text-lg md:text-xl leading-relaxed">
+              Choose the perfect plan for your needs
+            </p>
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
               {products.map((product) => (
-                <Card key={product.id}>
+                <Card key={product.id} className="flex flex-col hover:shadow-lg transition-shadow">
                   <CardHeader>
-                    <CardTitle>{product.name}</CardTitle>
-                    <CardDescription>{product.description}</CardDescription>
+                    <CardTitle className="text-2xl">{product.name}</CardTitle>
+                    <CardDescription className="text-base">{product.description}</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-3xl font-bold">
-                      {product.price.unit_amount 
+                  <CardContent className="flex-1">
+                    <p className="text-4xl font-bold mb-6">
+                      {product.price.unit_amount
                         ? `$${(product.price.unit_amount / 100).toFixed(2)}/${product.price.recurring?.interval}`
                         : 'Custom'}
                     </p>
-                    <ul className="mt-4 space-y-2">
+                    <ul className="space-y-3">
                       {product.features?.map((feature, index) => (
-                        <li key={index} className="flex items-center">
-                          <Check className="mr-2 h-4 w-4 text-primary" />
-                          {feature}
+                        <li key={index} className="flex items-start gap-2">
+                          <Check className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
+                          <span className="text-sm leading-relaxed">{feature}</span>
                         </li>
                       ))}
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Link 
-                      className="text-sm font-medium hover:underline underline-offset-4 w-full" 
-                      href={`/signup?plan=${product.id}`}
-                    >
-                      <Button className="w-full">Get Started</Button>
-                    </Link>
+                    <Button className="w-full" size="lg" asChild>
+                      <Link href={`/signup?plan=${product.id}`}>
+                        Get Started
+                      </Link>
+                    </Button>
                   </CardFooter>
                 </Card>
               ))}
             </div>
           </div>
         </section>
-        <section className="w-full py-10 md:py-20 lg:py-32 ">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Start Your Journey Today</h2>
-                <p className="max-w-[600px] text-muted-foreground md:text-xl">
+
+        {/* CTA Section */}
+        <section className="w-full py-16 md:py-24 lg:py-32">
+          <div className="container">
+            <div className="flex flex-col items-center justify-center space-y-6 text-center max-w-3xl mx-auto">
+              <div className="space-y-4">
+                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+                  Start Your Journey Today
+                </h2>
+                <p className="text-lg text-muted-foreground md:text-xl leading-relaxed">
                   Join thousands of satisfied customers and take your business to the next level.
                 </p>
               </div>
-              <div className="w-full max-w-sm space-y-2">
-                <Link className="btn" href="#">
-                  <Button className=" p-7" >Get Started</Button>
-                </Link>
-              </div>
+              <Button size="lg" className="px-8 py-6 text-lg" asChild>
+                <Link href="/signup">Get Started</Link>
+              </Button>
             </div>
           </div>
         </section>
       </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">© 2024 Acme Inc. All rights reserved.</p>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-xs hover:underline underline-offset-4" href="#">
+
+      <footer className="flex flex-col gap-4 sm:flex-row py-8 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <p className="text-sm text-muted-foreground">© 2024 Acme Inc. All rights reserved.</p>
+        <nav className="sm:ml-auto flex gap-6">
+          <Link className="text-sm hover:underline underline-offset-4" href="#">
             Terms of Service
           </Link>
-          <Link className="text-xs hover:underline underline-offset-4" href="#">
+          <Link className="text-sm hover:underline underline-offset-4" href="#">
             Privacy
           </Link>
         </nav>
