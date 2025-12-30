@@ -5,8 +5,9 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'SAAS Starter Kit',
-  description: 'SAAS Starter Kit with Stripe, Supabase, Postgres',
+  title: 'VerifyAI - Stop $2.4M Hallucination Incidents',
+  description:
+    'Multi-method AI verification platform. One API, seven research-backed approaches, custom weighting. Catch AI hallucinations before they cost millions.',
 };
 
 export default function RootLayout({
