@@ -33,6 +33,12 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
+    /* Section Background Variations - Stripe-inspired */
+    --section-bg-1: 0 0% 100%; /* Pure white */
+    --section-bg-2: 210 40% 98%; /* Very light blue-gray */
+    --section-bg-3: 222 47% 97%; /* Light slate */
+    --section-bg-accent: 222 47% 11.2%; /* Dark navy */
+
     /* Spacing Tokens - 8pt Grid System */
     --spacing-0: 0;
     --spacing-1: 0.25rem; /* 4px */
@@ -432,5 +438,79 @@
 
   .hover-lift:hover {
     transform: translateY(-4px);
+  }
+
+  /* Angled section dividers - Stripe style */
+  .section-angle {
+    position: relative;
+  }
+
+  .section-angle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: inherit;
+    transform: skewY(-1.5deg);
+    transform-origin: top left;
+    margin-top: -50px;
+  }
+
+  /* Radial gradient backgrounds */
+  .bg-radial-gradient {
+    background: radial-gradient(
+      ellipse 1200px 800px at 50% -20%,
+      hsl(var(--primary) / 0.08),
+      transparent 50%
+    );
+  }
+
+  .bg-radial-gradient-bottom {
+    background: radial-gradient(
+      ellipse 1000px 600px at 50% 120%,
+      hsl(var(--primary) / 0.12),
+      transparent 50%
+    );
+  }
+
+  /* Complex multi-stop gradients - Stripe Chroma style */
+  .bg-gradient-chroma {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary) / 0.03) 0%,
+      hsl(210 100% 97%) 25%,
+      hsl(var(--background)) 50%,
+      hsl(270 100% 98%) 75%,
+      hsl(var(--primary) / 0.03) 100%
+    );
+  }
+
+  /* Overlapping grid utility */
+  .overlap-next {
+    position: relative;
+    z-index: 10;
+    margin-bottom: -4rem;
+  }
+
+  /* Pill/badge component */
+  .status-badge {
+    @apply inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm;
+    background: linear-gradient(to bottom, hsl(var(--card)), hsl(var(--muted) / 0.5));
+  }
+
+  /* Subtle background patterns */
+  .bg-dot-pattern {
+    background-image: radial-gradient(circle, hsl(var(--border) / 0.3) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Visual separator bars */
+  .accent-bar {
+    height: 3px;
+    width: 48px;
+    background: linear-gradient(to right, hsl(var(--primary)), transparent);
+    border-radius: 2px;
   }
 }
