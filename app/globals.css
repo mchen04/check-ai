@@ -183,34 +183,7 @@
     padding-right: max(6rem, calc((100vw - 1100px) / 2));
   }
 
-  /* Show outer margin boundaries (desktop only) */
-  @media (min-width: 1024px) {
-    .content-wrapper::before,
-    .content-wrapper::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 1px;
-      background: linear-gradient(
-        to bottom,
-        transparent 0%,
-        hsl(var(--border) / 0.3) 3%,
-        hsl(var(--border) / 0.3) 97%,
-        transparent 100%
-      );
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .content-wrapper::before {
-      left: max(6rem, calc((100vw - 1100px) / 2));
-    }
-
-    .content-wrapper::after {
-      right: max(6rem, calc((100vw - 1100px) / 2));
-    }
-  }
+  /* Outer margin boundaries removed - only keeping the 5 main grid lines */
 
   /* Constrained content area */
   .content-constrained {

@@ -153,7 +153,7 @@ export default async function LandingPage() {
                 <div className="pointer-events-none absolute -inset-4 rounded-3xl bg-gradient-to-br from-primary/30 via-primary/10 to-transparent opacity-40 blur-3xl"></div>
 
                 {/* Main card */}
-                <div className="card-float depth-3 relative rounded-2xl border border-border/50 bg-card/95 p-8 backdrop-blur-md">
+                <div className="card-float depth-3 relative rounded-2xl bg-card/95 p-8 backdrop-blur-md">
                   {/* Terminal header */}
                   <div className="mb-6 flex items-center gap-3 border-b border-border/50 pb-4">
                     <div className="flex gap-2">
@@ -173,7 +173,7 @@ export default async function LandingPage() {
                           REQUEST
                         </span>
                       </div>
-                      <pre className="rounded-lg border border-border/50 bg-muted/30 p-6 font-mono text-sm leading-relaxed">
+                      <pre className="rounded-lg bg-muted/30 p-6 font-mono text-sm leading-relaxed">
                         <code className="text-foreground">{`{
   "content": "Patient should
     take 500mg aspirin
@@ -195,7 +195,7 @@ export default async function LandingPage() {
                           RESPONSE
                         </span>
                       </div>
-                      <pre className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 font-mono text-sm leading-relaxed">
+                      <pre className="rounded-lg bg-destructive/5 p-6 font-mono text-sm leading-relaxed">
                         <code className="text-foreground">{`{
   "verdict": "false",
   "confidence": 0.94,
@@ -233,7 +233,7 @@ export default async function LandingPage() {
 
               {/* Visual indicator - Column 4 */}
               <div className="col-4">
-                <div className="depth-2 relative rounded-xl border bg-card p-6">
+                <div className="depth-2 relative rounded-xl bg-card p-6">
                   <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Error Rate
                   </div>
@@ -277,7 +277,7 @@ export default async function LandingPage() {
 
               {/* Case study - Column 4 with distinct styling */}
               <div className="col-4">
-                <div className="depth-2 relative overflow-hidden rounded-xl border-l-4 border-primary bg-gradient-to-br from-primary/5 to-transparent p-6 hover-lift">
+                <div className="depth-2 relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/5 to-transparent p-6 hover-lift">
                   <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-primary/5 blur-2xl"></div>
                   <div className="relative">
                     <div className="mb-4 text-5xl font-bold leading-none text-primary/20">&ldquo;</div>
@@ -316,7 +316,7 @@ export default async function LandingPage() {
 
               {/* Traditional - Column 1 with visual meter */}
               <div className="col-1">
-                <div className="relative overflow-hidden rounded-xl border-2 border-destructive/30 bg-card p-6">
+                <div className="relative overflow-hidden rounded-xl bg-card p-6">
                   <div className="absolute right-0 top-0 h-full w-2 bg-gradient-to-b from-destructive/40 via-destructive/20 to-transparent"></div>
                   <div className="mb-5 flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-destructive"></div>
@@ -350,7 +350,7 @@ export default async function LandingPage() {
               </div>
 
               {/* VerifyAI - Columns 2-4 with icon grid */}
-              <div className="col-2-4 depth-3 spotlight relative overflow-hidden rounded-xl border-2 border-primary/40 bg-gradient-to-br from-primary/8 via-card to-accent-cyan/5 p-8 hover-lift">
+              <div className="col-2-4 depth-3 spotlight relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/8 via-card to-accent-cyan/5 p-8 hover-lift">
                 <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-gradient-to-br from-primary/20 to-accent-cyan/20 blur-3xl"></div>
                 <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-gradient-to-br from-accent-purple/10 to-transparent blur-3xl"></div>
 
@@ -364,7 +364,7 @@ export default async function LandingPage() {
                   </div>
 
                   {/* Visual method coverage meter */}
-                  <div className="mb-8 rounded-lg border border-primary/20 bg-primary/5 p-6">
+                  <div className="mb-8 rounded-lg bg-primary/5 p-6">
                     <div className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Method Coverage</div>
                     <div className="h-10 overflow-hidden rounded-full bg-muted">
                       <div className="flex h-full w-full items-center justify-center bg-gradient-to-r from-primary via-accent-cyan to-accent-purple text-sm font-bold text-white">
@@ -374,7 +374,7 @@ export default async function LandingPage() {
                   </div>
 
                   <div className="stagger-fade grid gap-6 sm:grid-cols-3">
-                    <div className="group flex flex-col gap-3 rounded-lg border border-primary/10 bg-card/50 p-4 backdrop-blur-sm transition-all hover:border-primary/30">
+                    <div className="group flex flex-col gap-3 rounded-lg bg-card/50 p-4 backdrop-blur-sm transition-all">
                       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-accent-cyan/20">
                         <Check className="h-6 w-6 text-primary" />
                       </div>
@@ -383,7 +383,7 @@ export default async function LandingPage() {
                         <p className="text-xs text-muted-foreground">Mix and match freely</p>
                       </div>
                     </div>
-                    <div className="group flex flex-col gap-3 rounded-lg border border-primary/10 bg-card/50 p-4 backdrop-blur-sm transition-all hover:border-primary/30">
+                    <div className="group flex flex-col gap-3 rounded-lg bg-card/50 p-4 backdrop-blur-sm transition-all">
                       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-accent-teal/20 to-accent-green/20">
                         <Check className="h-6 w-6 text-primary" />
                       </div>
@@ -392,7 +392,7 @@ export default async function LandingPage() {
                         <p className="text-xs text-muted-foreground">Fine-tune per use case</p>
                       </div>
                     </div>
-                    <div className="group flex flex-col gap-3 rounded-lg border border-primary/10 bg-card/50 p-4 backdrop-blur-sm transition-all hover:border-primary/30">
+                    <div className="group flex flex-col gap-3 rounded-lg bg-card/50 p-4 backdrop-blur-sm transition-all">
                       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-accent-purple/20 to-primary/20">
                         <Check className="h-6 w-6 text-primary" />
                       </div>
@@ -428,7 +428,7 @@ export default async function LandingPage() {
 
               {/* Stats preview - Columns 3-4 */}
               <div className="col-3-4">
-                <div className="depth-2 rounded-xl border bg-card p-6">
+                <div className="depth-2 rounded-xl bg-card p-6">
                   <div className="mb-4 text-sm font-semibold">Popular Configurations</div>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
@@ -456,7 +456,7 @@ export default async function LandingPage() {
 
               {/* Methods as icon grid - like Stripe's 4-card layout */}
               <div className="col-1">
-                <div className="depth-1 group rounded-xl border bg-card p-6 transition-all hover:border-primary/30">
+                <div className="depth-1 group rounded-xl bg-card p-6 transition-all">
                   <Zap className="mb-4 h-8 w-8 text-primary" />
                   <h3 className="mb-2 font-semibold">Semantic Similarity</h3>
                   <p className="mb-3 text-sm text-muted-foreground">
@@ -467,7 +467,7 @@ export default async function LandingPage() {
               </div>
 
               <div className="col-2">
-                <div className="depth-1 group rounded-xl border bg-card p-6 transition-all hover:border-primary/30">
+                <div className="depth-1 group rounded-xl bg-card p-6 transition-all">
                   <Activity className="mb-4 h-8 w-8 text-primary" />
                   <h3 className="mb-2 font-semibold">Reasoning-Based</h3>
                   <p className="mb-3 text-sm text-muted-foreground">
@@ -478,7 +478,7 @@ export default async function LandingPage() {
               </div>
 
               <div className="col-3">
-                <div className="depth-1 group rounded-xl border bg-card p-6 transition-all hover:border-primary/30">
+                <div className="depth-1 group rounded-xl bg-card p-6 transition-all">
                   <Code className="mb-4 h-8 w-8 text-primary" />
                   <h3 className="mb-2 font-semibold">Tool-Augmented</h3>
                   <p className="mb-3 text-sm text-muted-foreground">
@@ -489,7 +489,7 @@ export default async function LandingPage() {
               </div>
 
               <div className="col-4">
-                <div className="depth-1 group rounded-xl border bg-card p-6 transition-all hover:border-primary/30">
+                <div className="depth-1 group rounded-xl bg-card p-6 transition-all">
                   <Shield className="mb-4 h-8 w-8 text-primary" />
                   <h3 className="mb-2 font-semibold">BiPRM</h3>
                   <p className="mb-3 text-sm text-muted-foreground">
@@ -500,7 +500,7 @@ export default async function LandingPage() {
               </div>
 
               <div className="col-1">
-                <div className="depth-1 group rounded-xl border bg-card p-6 transition-all hover:border-primary/30">
+                <div className="depth-1 group rounded-xl bg-card p-6 transition-all">
                   <BarChart className="mb-4 h-8 w-8 text-primary" />
                   <h3 className="mb-2 font-semibold">Ensemble</h3>
                   <p className="mb-3 text-sm text-muted-foreground">
@@ -511,7 +511,7 @@ export default async function LandingPage() {
               </div>
 
               <div className="col-2">
-                <div className="depth-1 group rounded-xl border bg-card p-6 transition-all hover:border-primary/30">
+                <div className="depth-1 group rounded-xl bg-card p-6 transition-all">
                   <CheckCircle className="mb-4 h-8 w-8 text-primary" />
                   <h3 className="mb-2 font-semibold">Semantic Entropy</h3>
                   <p className="mb-3 text-sm text-muted-foreground">
@@ -522,7 +522,7 @@ export default async function LandingPage() {
               </div>
 
               <div className="col-3-4">
-                <div className="depth-2 group relative rounded-xl border-2 border-primary/20 bg-card p-6 transition-all hover:border-primary/30">
+                <div className="depth-2 group relative rounded-xl bg-card p-6 transition-all">
                   <div className="flex items-start gap-4">
                     <FileText className="h-8 w-8 flex-shrink-0 text-primary" />
                     <div>
@@ -565,7 +565,7 @@ export default async function LandingPage() {
               {/* Use cases as checklist displays - each unique */}
               {/* Medical AI - Columns 3-4 with checklist */}
               <div className="col-3-4">
-                <div className="depth-1 rounded-xl border bg-card p-8">
+                <div className="depth-1 rounded-xl bg-card p-8">
                   <h3 className="mb-6 text-2xl font-bold">Medical AI</h3>
                   <div className="space-y-4">
                     <div className="flex items-center gap-4 rounded-lg bg-muted/50 p-4">
@@ -605,11 +605,11 @@ export default async function LandingPage() {
                   <div>
                     <h3 className="mb-4 text-xl font-bold">Legal AI</h3>
                     <div className="flex flex-wrap gap-2">
-                      <div className="rounded-full border bg-muted px-4 py-2 text-sm">
+                      <div className="rounded-full bg-muted px-4 py-2 text-sm">
                         <span className="font-medium">Ensemble</span>
                         <span className="ml-2 text-xs text-muted-foreground">50%</span>
                       </div>
-                      <div className="rounded-full border bg-muted px-4 py-2 text-sm">
+                      <div className="rounded-full bg-muted px-4 py-2 text-sm">
                         <span className="font-medium">Tool</span>
                         <span className="ml-2 text-xs text-muted-foreground">50%</span>
                       </div>
@@ -618,11 +618,11 @@ export default async function LandingPage() {
                   <div className="border-t pt-6">
                     <h3 className="mb-4 text-xl font-bold">Support AI</h3>
                     <div className="flex flex-wrap gap-2">
-                      <div className="rounded-full border bg-muted px-4 py-2 text-sm">
+                      <div className="rounded-full bg-muted px-4 py-2 text-sm">
                         <span className="font-medium">Reasoning</span>
                         <span className="ml-2 text-xs text-muted-foreground">80%</span>
                       </div>
-                      <div className="rounded-full border bg-muted px-4 py-2 text-sm">
+                      <div className="rounded-full bg-muted px-4 py-2 text-sm">
                         <span className="font-medium">Semantic</span>
                         <span className="ml-2 text-xs text-muted-foreground">20%</span>
                       </div>
@@ -653,7 +653,7 @@ export default async function LandingPage() {
 
               {/* Research count - Columns 3-4 */}
               <div className="col-3-4">
-                <div className="depth-2 rounded-xl border bg-card p-6">
+                <div className="depth-2 rounded-xl bg-card p-6">
                   <div className="mb-2 text-5xl font-bold">5</div>
                   <p className="text-sm text-muted-foreground">
                     Papers cited • All peer-reviewed
@@ -664,7 +664,7 @@ export default async function LandingPage() {
               {/* Research papers - Simple card list with link emphasis */}
               <div className="col-1-4">
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  <div className="depth-1 rounded-lg border bg-card p-5 transition-all hover:border-primary/30">
+                  <div className="depth-1 rounded-lg bg-card p-5 transition-all">
                     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <FileText className="h-5 w-5 text-primary" />
                     </div>
@@ -682,7 +682,7 @@ export default async function LandingPage() {
                     </p>
                   </div>
 
-                  <div className="depth-1 rounded-lg border bg-card p-5 transition-all hover:border-primary/30">
+                  <div className="depth-1 rounded-lg bg-card p-5 transition-all">
                     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <FileText className="h-5 w-5 text-primary" />
                     </div>
@@ -700,7 +700,7 @@ export default async function LandingPage() {
                     </p>
                   </div>
 
-                  <div className="depth-1 rounded-lg border bg-card p-5 transition-all hover:border-primary/30">
+                  <div className="depth-1 rounded-lg bg-card p-5 transition-all">
                     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <FileText className="h-5 w-5 text-primary" />
                     </div>
@@ -718,7 +718,7 @@ export default async function LandingPage() {
                     </p>
                   </div>
 
-                  <div className="depth-1 rounded-lg border bg-card p-5 transition-all hover:border-primary/30">
+                  <div className="depth-1 rounded-lg bg-card p-5 transition-all">
                     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <FileText className="h-5 w-5 text-primary" />
                     </div>
@@ -729,7 +729,7 @@ export default async function LandingPage() {
                     </p>
                   </div>
 
-                  <div className="depth-1 rounded-lg border bg-card p-5 transition-all hover:border-primary/30">
+                  <div className="depth-1 rounded-lg bg-card p-5 transition-all">
                     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <FileText className="h-5 w-5 text-primary" />
                     </div>
@@ -772,7 +772,7 @@ export default async function LandingPage() {
 
               {/* Free - Column 1 */}
               <div className="col-1">
-                <div className="flex h-full flex-col rounded-xl border bg-card p-6">
+                <div className="flex h-full flex-col rounded-xl bg-card p-6">
                   <div className="mb-6">
                     <div className="mb-1 text-5xl font-bold">$0</div>
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Free</h3>
@@ -799,7 +799,7 @@ export default async function LandingPage() {
 
               {/* Pro - Columns 2-3 (Featured, clean) */}
               <div className="col-2-3">
-                <div className="depth-2 relative flex h-full flex-col rounded-xl border-2 border-primary/20 bg-card p-8">
+                <div className="depth-2 relative flex h-full flex-col rounded-xl bg-card p-8">
                   <div className="mb-8">
                     <div className="mb-4 inline-flex rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary">
                       Most Popular
@@ -840,7 +840,7 @@ export default async function LandingPage() {
 
               {/* Enterprise - Column 4 */}
               <div className="col-4">
-                <div className="flex h-full flex-col rounded-xl border bg-card p-6">
+                <div className="flex h-full flex-col rounded-xl bg-card p-6">
                   <div className="mb-6">
                     <div className="mb-1 text-5xl font-bold">Custom</div>
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Enterprise</h3>
