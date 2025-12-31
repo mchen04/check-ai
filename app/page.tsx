@@ -259,56 +259,71 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Why Different - Comparison with visual meters */}
+        {/* Why Different - Editorial Typography Comparison */}
         <section className="diagonal-divider-both bg-section-white relative w-full overflow-hidden">
-
           <div className="content-wrapper content-wrapper-with-guides">
-            <div className="content-constrained grid-4col gap-y-16">
-              {/* Heading - Full width */}
-              <div className="col-1-4">
+            <div className="content-constrained grid-4col gap-y-24">
+              {/* Heading - Spans 1-3 */}
+              <div className="col-1-3">
                 <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
                   One method doesn&apos;t fit all use cases
                 </h2>
-                <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">
+                <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">
                   Existing solutions lock you into a single approach. Medical AI needs different
                   verification than customer support. Legal AI needs different checks than
                   e-commerce.
                 </p>
               </div>
 
-              {/* Traditional - Column 1 */}
-              <div className="col-1">
-                <X className="mb-4 h-8 w-8 text-destructive" />
-                <h3 className="mb-2 font-semibold">Traditional</h3>
-                <p className="mb-3 text-sm text-muted-foreground">
-                  Locked approach limited to 1 method
-                </p>
-                <div className="text-xs text-muted-foreground">Domain-specific</div>
-              </div>
-
-              {/* VerifyAI - Columns 2-4 */}
-              <div className="col-2-4">
-                <div className="mb-8">
-                  <span className="text-xs font-bold uppercase tracking-widest text-primary">
-                    VerifyAI Platform
-                  </span>
+              {/* Traditional - Column 1 with dramatic typography */}
+              <div className="col-1 space-y-6">
+                {/* Huge number showing limitation */}
+                <div className="relative">
+                  <div className="text-[120px] font-bold leading-none tracking-tighter text-destructive/10">
+                    1
+                  </div>
+                  <div className="absolute bottom-2 left-0 text-xs font-bold uppercase tracking-widest text-destructive/60">
+                    Traditional
+                  </div>
                 </div>
 
-                <div className="mb-8 text-base font-semibold">7 Methods Available</div>
+                <div className="space-y-3">
+                  <h3 className="text-base font-semibold">Single method</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Fixed weights
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Domain-specific
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    One-size-fits-all
+                  </p>
+                </div>
+              </div>
 
-                <div className="grid gap-8 sm:grid-cols-3">
-                  <div>
-                    <div className="mb-1 font-semibold">7 Methods</div>
-                    <p className="text-xs text-muted-foreground">Mix and match freely</p>
+              {/* VerifyAI - Columns 2-4 with contrasting scale */}
+              <div className="col-2-4 space-y-6">
+                {/* Huge number showing capability */}
+                <div className="relative">
+                  <div className="text-[120px] font-bold leading-none tracking-tighter text-primary/15">
+                    7
                   </div>
-                  <div>
-                    <div className="mb-1 font-semibold">Custom Weights</div>
-                    <p className="text-xs text-muted-foreground">Fine-tune per use case</p>
+                  <div className="absolute bottom-2 left-0 text-xs font-bold uppercase tracking-widest text-primary">
+                    VerifyAI
                   </div>
-                  <div>
-                    <div className="mb-1 font-semibold">Universal</div>
-                    <p className="text-xs text-muted-foreground">Works everywhere</p>
-                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-base font-semibold">Seven methods</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Custom weights
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Universal coverage
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Configure per use case
+                  </p>
                 </div>
               </div>
             </div>
