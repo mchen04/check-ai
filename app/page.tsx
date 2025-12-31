@@ -231,7 +231,7 @@ export default async function LandingPage() {
 
               {/* Stats Grid - Simple clean numbers */}
               <div className="col-1">
-                <div className="mb-5 text-6xl font-bold tracking-tight md:text-7xl">
+                <div className="mb-5 text-4xl font-bold tracking-tight md:text-5xl">
                   $2.4M
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground">
@@ -240,7 +240,7 @@ export default async function LandingPage() {
               </div>
 
               <div className="col-2">
-                <div className="mb-5 text-6xl font-bold tracking-tight md:text-7xl">
+                <div className="mb-5 text-4xl font-bold tracking-tight md:text-5xl">
                   78%
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground">
@@ -249,7 +249,7 @@ export default async function LandingPage() {
               </div>
 
               <div className="col-3">
-                <div className="mb-5 text-6xl font-bold tracking-tight md:text-7xl">
+                <div className="mb-5 text-4xl font-bold tracking-tight md:text-5xl">
                   100%
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground">
@@ -484,7 +484,7 @@ export default async function LandingPage() {
                 <div className="mb-3 inline-block">
                   <div className="accent-bar"></div>
                 </div>
-                <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+                <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                   Configure for your domain
                 </h2>
                 <p className="text-lg leading-relaxed text-muted-foreground">
@@ -523,7 +523,7 @@ export default async function LandingPage() {
               {/* Legal & Support - Columns 1-2 */}
               <div className="col-1-2 space-y-8">
                 <div>
-                  <h3 className="mb-4 text-xl font-bold">Legal AI</h3>
+                  <h3 className="mb-4 text-2xl font-bold">Legal AI</h3>
                   <div className="flex flex-wrap gap-2">
                     <div className="rounded-full bg-muted px-4 py-2 text-sm">
                       <span className="font-medium">Ensemble</span>
@@ -536,7 +536,7 @@ export default async function LandingPage() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="mb-4 text-xl font-bold">Support AI</h3>
+                  <h3 className="mb-4 text-2xl font-bold">Support AI</h3>
                   <div className="flex flex-wrap gap-2">
                     <div className="rounded-full bg-muted px-4 py-2 text-sm">
                       <span className="font-medium">Reasoning</span>
