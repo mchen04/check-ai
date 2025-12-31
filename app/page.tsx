@@ -439,104 +439,107 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Research Foundation - Connected timeline */}
+        {/* Developer Experience - API & Documentation */}
         <section className="diagonal-divider-both bg-section-navy relative w-full overflow-hidden">
           <div className="content-wrapper content-wrapper-with-guides">
-            <div className="content-constrained grid-4col gap-y-12">
-              {/* Heading - Columns 1-2 */}
-              <div className="col-1-2">
-                <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-                  Backed by peer-reviewed research
-                </h2>
-                <p className="text-base leading-relaxed text-muted-foreground">
-                  Each method is grounded in published academic work, not speculation. Here are the key papers.
-                </p>
+            <div className="content-constrained grid-4col gap-y-16">
+              {/* Heading and Features - Columns 1-2 */}
+              <div className="col-1-2 space-y-12">
+                <div>
+                  <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+                    Developer-friendly API
+                  </h2>
+                  <p className="text-base leading-relaxed text-muted-foreground">
+                    Simple REST API that fits your workflow. Send a request, get a verdict—no complex setup required.
+                  </p>
+                </div>
+
+                {/* Features in 2 columns within col-1-2 */}
+                <div className="grid grid-cols-2 gap-8">
+                  <div>
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <Code className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="mb-2 text-sm font-semibold text-white">RESTful API</h3>
+                    <p className="text-xs text-white/70">
+                      Standard HTTP requests with JSON responses
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="mb-2 text-sm font-semibold text-white">Clear Documentation</h3>
+                    <p className="text-xs text-white/70">
+                      Code examples in Python, Node.js, and cURL
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <Zap className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="mb-2 text-sm font-semibold text-white">Fast Integration</h3>
+                    <p className="text-xs text-white/70">
+                      Add verification in under 10 lines of code
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <Shield className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="mb-2 text-sm font-semibold text-white">Type-Safe SDKs</h3>
+                    <p className="text-xs text-white/70">
+                      Full TypeScript support with autocomplete
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              {/* Research papers - Clean grid */}
-              <div className="col-1-4">
-                <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
+              {/* API Example - Columns 3-4 */}
+              <div className="col-3-4">
+                <div className="space-y-6">
+                  {/* Request */}
                   <div>
-                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <FileText className="h-5 w-5 text-primary" />
+                    <div className="mb-3">
+                      <span className="font-mono text-xs font-semibold uppercase tracking-wider text-white/60">
+                        REQUEST
+                      </span>
                     </div>
-                    <h3 className="mb-2 font-semibold text-white">Semantic Illusion Problem</h3>
-                    <a
-                      href="https://arxiv.org/abs/2512.15068"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mb-2 inline-block font-mono text-xs text-primary hover:underline"
-                    >
-                      arxiv:2512.15068
-                    </a>
-                    <p className="text-sm text-white/70">
-                      50-100% FPR validates multi-method approach
-                    </p>
+                    <pre className="rounded-lg bg-white/5 p-6 font-mono text-sm leading-relaxed">
+                      <code className="text-white">{`{
+  "content": "Patient should
+    take 500mg aspirin
+    daily",
+  "methods": {
+    "reasoning": 0.5,
+    "tool": 0.3,
+    "biprm": 0.2
+  }
+}`}</code>
+                    </pre>
                   </div>
 
+                  {/* Response */}
                   <div>
-                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <FileText className="h-5 w-5 text-primary" />
+                    <div className="mb-3 flex items-center gap-2">
+                      <div className="h-[3px] w-12 rounded-full bg-gradient-to-r from-destructive to-transparent"></div>
+                      <span className="font-mono text-xs font-semibold uppercase tracking-wider text-white/60">
+                        RESPONSE
+                      </span>
                     </div>
-                    <h3 className="mb-2 font-semibold text-white">FacTool</h3>
-                    <a
-                      href="https://arxiv.org/abs/2307.13528"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mb-2 inline-block font-mono text-xs text-primary hover:underline"
-                    >
-                      arxiv:2307.13528
-                    </a>
-                    <p className="text-sm text-white/70">
-                      98.97% F1 with tool verification
-                    </p>
-                  </div>
-
-                  <div>
-                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <FileText className="h-5 w-5 text-primary" />
-                    </div>
-                    <h3 className="mb-2 font-semibold text-white">BiPRM Research</h3>
-                    <a
-                      href="https://arxiv.org/abs/2508.01682"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mb-2 inline-block font-mono text-xs text-primary hover:underline"
-                    >
-                      arxiv:2508.01682
-                    </a>
-                    <p className="text-sm text-white/70">
-                      31.9% accuracy improvement
-                    </p>
-                  </div>
-
-                  <div>
-                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <FileText className="h-5 w-5 text-primary" />
-                    </div>
-                    <h3 className="mb-2 font-semibold text-white">Process Supervision</h3>
-                    <p className="mb-2 text-xs text-white/60">OpenAI, ICLR 2024</p>
-                    <p className="text-sm text-white/70">
-                      78.2% accuracy foundation
-                    </p>
-                  </div>
-
-                  <div>
-                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <FileText className="h-5 w-5 text-primary" />
-                    </div>
-                    <h3 className="mb-2 font-semibold text-white">Ensemble Methods</h3>
-                    <a
-                      href="https://arxiv.org/abs/2411.06535"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mb-2 inline-block font-mono text-xs text-primary hover:underline"
-                    >
-                      arxiv:2411.06535
-                    </a>
-                    <p className="text-sm text-white/70">
-                      73% → 95.6% precision boost
-                    </p>
+                    <pre className="rounded-lg bg-destructive/10 p-6 font-mono text-sm leading-relaxed">
+                      <code className="text-white">{`{
+  "verdict": "false",
+  "confidence": 0.94,
+  "decision": "reject",
+  "reasoning": "Dosage
+    exceeds safe limits
+    (max 325mg)"
+}`}</code>
+                    </pre>
                   </div>
                 </div>
               </div>
