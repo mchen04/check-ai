@@ -149,32 +149,17 @@ export default async function LandingPage() {
 
               {/* Right: API Example - Columns 3-4 + extends right */}
               <div className="relative z-20 col-3-4 extend-right">
-                {/* Glow effect */}
-                <div className="pointer-events-none absolute -inset-4 rounded-3xl bg-gradient-to-br from-primary/30 via-primary/10 to-transparent opacity-40 blur-3xl"></div>
-
-                {/* Main card */}
-                <div className="card-float depth-3 relative rounded-2xl bg-card/95 p-8 backdrop-blur-md">
-                  {/* Terminal header */}
-                  <div className="mb-6 flex items-center gap-3 border-b border-border/50 pb-4">
-                    <div className="flex gap-2">
-                      <div className="h-3 w-3 rounded-full bg-gradient-to-br from-red-400 to-red-500"></div>
-                      <div className="h-3 w-3 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500"></div>
-                      <div className="h-3 w-3 rounded-full bg-gradient-to-br from-green-400 to-green-500"></div>
+                <div className="space-y-6">
+                  {/* Request */}
+                  <div>
+                    <div className="mb-3 flex items-center gap-2">
+                      <div className="accent-bar"></div>
+                      <span className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        REQUEST
+                      </span>
                     </div>
-                    <span className="font-mono text-sm font-medium text-muted-foreground">POST /v1/verify</span>
-                  </div>
-
-                  <div className="space-y-6">
-                    {/* Request */}
-                    <div>
-                      <div className="mb-3 flex items-center gap-2">
-                        <div className="accent-bar"></div>
-                        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                          REQUEST
-                        </span>
-                      </div>
-                      <pre className="rounded-lg bg-muted/30 p-6 font-mono text-sm leading-relaxed">
-                        <code className="text-foreground">{`{
+                    <pre className="rounded-lg bg-muted/30 p-6 font-mono text-sm leading-relaxed">
+                      <code className="text-foreground">{`{
   "content": "Patient should
     take 500mg aspirin
     daily",
@@ -184,19 +169,19 @@ export default async function LandingPage() {
     "biprm": 0.2
   }
 }`}</code>
-                      </pre>
-                    </div>
+                    </pre>
+                  </div>
 
-                    {/* Response */}
-                    <div>
-                      <div className="mb-3 flex items-center gap-2">
-                        <div className="h-[3px] w-12 rounded-full bg-gradient-to-r from-destructive to-transparent"></div>
-                        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                          RESPONSE
-                        </span>
-                      </div>
-                      <pre className="rounded-lg bg-destructive/5 p-6 font-mono text-sm leading-relaxed">
-                        <code className="text-foreground">{`{
+                  {/* Response */}
+                  <div>
+                    <div className="mb-3 flex items-center gap-2">
+                      <div className="h-[3px] w-12 rounded-full bg-gradient-to-r from-destructive to-transparent"></div>
+                      <span className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        RESPONSE
+                      </span>
+                    </div>
+                    <pre className="rounded-lg bg-destructive/5 p-6 font-mono text-sm leading-relaxed">
+                      <code className="text-foreground">{`{
   "verdict": "false",
   "confidence": 0.94,
   "decision": "reject",
@@ -204,8 +189,7 @@ export default async function LandingPage() {
     exceeds safe limits
     (max 325mg)"
 }`}</code>
-                      </pre>
-                    </div>
+                    </pre>
                   </div>
                 </div>
               </div>
@@ -233,17 +217,15 @@ export default async function LandingPage() {
 
               {/* Visual indicator - Column 4 */}
               <div className="col-4">
-                <div className="depth-2 relative rounded-xl bg-card p-6">
-                  <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Error Rate
+                <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/60">
+                  Error Rate
+                </div>
+                <div className="mb-4 text-4xl font-bold">8%</div>
+                <div className="space-y-2">
+                  <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                    <div className="h-full w-[8%] rounded-full bg-gradient-to-r from-destructive to-destructive/60"></div>
                   </div>
-                  <div className="mb-4 text-4xl font-bold">8%</div>
-                  <div className="space-y-2">
-                    <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full w-[8%] rounded-full bg-gradient-to-r from-destructive to-destructive/60"></div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Even with GPT-5</p>
-                  </div>
+                  <p className="text-xs text-white/60">Even with GPT-5</p>
                 </div>
               </div>
 
@@ -275,20 +257,15 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              {/* Case study - Column 4 with distinct styling */}
+              {/* Case study - Column 4 */}
               <div className="col-4">
-                <div className="depth-2 relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/5 to-transparent p-6 hover-lift">
-                  <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-primary/5 blur-2xl"></div>
-                  <div className="relative">
-                    <div className="mb-4 text-5xl font-bold leading-none text-primary/20">&ldquo;</div>
-                    <p className="text-sm leading-relaxed">
-                      Air Canada was sued after their chatbot invented a refund policy.{' '}
-                      <span className="font-semibold text-foreground">
-                        Verification isn&apos;t optional anymore.
-                      </span>
-                    </p>
-                  </div>
-                </div>
+                <div className="mb-4 text-4xl font-bold leading-none text-primary/30">&ldquo;</div>
+                <p className="text-sm leading-relaxed text-white/80">
+                  Air Canada was sued after their chatbot invented a refund policy.{' '}
+                  <span className="font-semibold text-white">
+                    Verification isn&apos;t optional anymore.
+                  </span>
+                </p>
               </div>
             </div>
           </div>
@@ -314,92 +291,65 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              {/* Traditional - Column 1 with visual meter */}
+              {/* Traditional - Column 1 */}
               <div className="col-1">
-                <div className="relative overflow-hidden rounded-xl bg-card p-6">
-                  <div className="absolute right-0 top-0 h-full w-2 bg-gradient-to-b from-destructive/40 via-destructive/20 to-transparent"></div>
-                  <div className="mb-5 flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-destructive"></div>
-                    <span className="text-xs font-bold uppercase tracking-widest text-destructive">
-                      Traditional
-                    </span>
-                  </div>
-
-                  {/* Visual limitation meter */}
-                  <div className="mb-6 rounded-lg bg-destructive/5 p-4">
-                    <div className="mb-3 text-xs font-semibold text-muted-foreground">Method Coverage</div>
-                    <div className="h-8 overflow-hidden rounded-full bg-muted">
-                      <div className="flex h-full w-[14%] items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
-                        1
-                      </div>
-                    </div>
-                    <p className="mt-2 text-xs text-muted-foreground">Limited to 1 method</p>
-                  </div>
-
-                  <ul className="stagger-fade space-y-3">
-                    <li className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                      <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
-                      <span>Locked approach</span>
-                    </li>
-                    <li className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                      <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
-                      <span>Domain-specific</span>
-                    </li>
-                  </ul>
+                <div className="mb-5 flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-destructive"></div>
+                  <span className="text-xs font-bold uppercase tracking-widest text-destructive">
+                    Traditional
+                  </span>
                 </div>
+
+                <div className="mb-6 text-sm text-muted-foreground">Limited to 1 method</div>
+
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                    <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
+                    <span>Locked approach</span>
+                  </li>
+                  <li className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                    <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
+                    <span>Domain-specific</span>
+                  </li>
+                </ul>
               </div>
 
-              {/* VerifyAI - Columns 2-4 with icon grid */}
-              <div className="col-2-4 depth-3 spotlight relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/8 via-card to-accent-cyan/5 p-8 hover-lift">
-                <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-gradient-to-br from-primary/20 to-accent-cyan/20 blur-3xl"></div>
-                <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-gradient-to-br from-accent-purple/10 to-transparent blur-3xl"></div>
+              {/* VerifyAI - Columns 2-4 */}
+              <div className="col-2-4">
+                <div className="mb-8">
+                  <span className="text-xs font-bold uppercase tracking-widest text-primary">
+                    VerifyAI Platform
+                  </span>
+                </div>
 
-                <div className="relative">
-                  <div className="mb-8 flex items-center gap-3">
-                    <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent"></div>
-                    <span className="text-xs font-bold uppercase tracking-widest text-primary">
-                      VerifyAI Platform
-                    </span>
-                    <div className="h-px flex-1 bg-gradient-to-l from-primary/40 to-transparent"></div>
-                  </div>
+                <div className="mb-8 text-lg font-semibold">7 Methods Available</div>
 
-                  {/* Visual method coverage meter */}
-                  <div className="mb-8 rounded-lg bg-primary/5 p-6">
-                    <div className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Method Coverage</div>
-                    <div className="h-10 overflow-hidden rounded-full bg-muted">
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-r from-primary via-accent-cyan to-accent-purple text-sm font-bold text-white">
-                        7 Methods Available
-                      </div>
+                <div className="grid gap-8 sm:grid-cols-3">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-accent-cyan/20">
+                      <Check className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <div className="mb-1 font-semibold">7 Methods</div>
+                      <p className="text-xs text-muted-foreground">Mix and match freely</p>
                     </div>
                   </div>
-
-                  <div className="stagger-fade grid gap-6 sm:grid-cols-3">
-                    <div className="group flex flex-col gap-3 rounded-lg bg-card/50 p-4 backdrop-blur-sm transition-all">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-accent-cyan/20">
-                        <Check className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <div className="mb-1 font-semibold">7 Methods</div>
-                        <p className="text-xs text-muted-foreground">Mix and match freely</p>
-                      </div>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-accent-teal/20 to-accent-green/20">
+                      <Check className="h-6 w-6 text-primary" />
                     </div>
-                    <div className="group flex flex-col gap-3 rounded-lg bg-card/50 p-4 backdrop-blur-sm transition-all">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-accent-teal/20 to-accent-green/20">
-                        <Check className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <div className="mb-1 font-semibold">Custom Weights</div>
-                        <p className="text-xs text-muted-foreground">Fine-tune per use case</p>
-                      </div>
+                    <div>
+                      <div className="mb-1 font-semibold">Custom Weights</div>
+                      <p className="text-xs text-muted-foreground">Fine-tune per use case</p>
                     </div>
-                    <div className="group flex flex-col gap-3 rounded-lg bg-card/50 p-4 backdrop-blur-sm transition-all">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-accent-purple/20 to-primary/20">
-                        <Check className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <div className="mb-1 font-semibold">Universal</div>
-                        <p className="text-xs text-muted-foreground">Works everywhere</p>
-                      </div>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-accent-purple/20 to-primary/20">
+                      <Check className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <div className="mb-1 font-semibold">Universal</div>
+                      <p className="text-xs text-muted-foreground">Works everywhere</p>
                     </div>
                   </div>
                 </div>
@@ -428,115 +378,95 @@ export default async function LandingPage() {
 
               {/* Stats preview - Columns 3-4 */}
               <div className="col-3-4">
-                <div className="depth-2 rounded-xl bg-card p-6">
-                  <div className="mb-4 text-sm font-semibold">Popular Configurations</div>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <div className="mb-1 text-xs text-muted-foreground">Medical</div>
-                        <div className="flex h-2 gap-1">
-                          <div className="flex-[6] rounded-full bg-primary"></div>
-                          <div className="flex-[3] rounded-full bg-primary/40"></div>
-                          <div className="flex-[1] rounded-full bg-primary/20"></div>
-                        </div>
-                      </div>
+                <div className="mb-4 text-sm font-semibold">Popular Configurations</div>
+                <div className="space-y-4">
+                  <div>
+                    <div className="mb-2 text-xs text-muted-foreground">Medical</div>
+                    <div className="flex h-2 gap-1">
+                      <div className="flex-[6] rounded-full bg-primary"></div>
+                      <div className="flex-[3] rounded-full bg-primary/40"></div>
+                      <div className="flex-[1] rounded-full bg-primary/20"></div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <div className="mb-1 text-xs text-muted-foreground">Legal</div>
-                        <div className="flex h-2 gap-1">
-                          <div className="flex-1 rounded-full bg-primary"></div>
-                          <div className="flex-1 rounded-full bg-primary"></div>
-                        </div>
-                      </div>
+                  </div>
+                  <div>
+                    <div className="mb-2 text-xs text-muted-foreground">Legal</div>
+                    <div className="flex h-2 gap-1">
+                      <div className="flex-1 rounded-full bg-primary"></div>
+                      <div className="flex-1 rounded-full bg-primary"></div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Methods as icon grid - like Stripe's 4-card layout */}
+              {/* Methods as simple list */}
               <div className="col-1">
-                <div className="depth-1 group rounded-xl bg-card p-6 transition-all">
-                  <Zap className="mb-4 h-8 w-8 text-primary" />
-                  <h3 className="mb-2 font-semibold">Semantic Similarity</h3>
-                  <p className="mb-3 text-sm text-muted-foreground">
-                    Quick embedding comparison for initial filtering
-                  </p>
-                  <div className="text-xs text-muted-foreground">~100ms • FPR: 50-100%</div>
-                </div>
+                <Zap className="mb-4 h-8 w-8 text-primary" />
+                <h3 className="mb-2 font-semibold">Semantic Similarity</h3>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Quick embedding comparison for initial filtering
+                </p>
+                <div className="text-xs text-muted-foreground">~100ms • FPR: 50-100%</div>
               </div>
 
               <div className="col-2">
-                <div className="depth-1 group rounded-xl bg-card p-6 transition-all">
-                  <Activity className="mb-4 h-8 w-8 text-primary" />
-                  <h3 className="mb-2 font-semibold">Reasoning-Based</h3>
-                  <p className="mb-3 text-sm text-muted-foreground">
-                    Chain-of-thought analysis for general verification
-                  </p>
-                  <div className="text-xs text-muted-foreground">2-3s • FPR: 7%</div>
-                </div>
+                <Activity className="mb-4 h-8 w-8 text-primary" />
+                <h3 className="mb-2 font-semibold">Reasoning-Based</h3>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Chain-of-thought analysis for general verification
+                </p>
+                <div className="text-xs text-muted-foreground">2-3s • FPR: 7%</div>
               </div>
 
               <div className="col-3">
-                <div className="depth-1 group rounded-xl bg-card p-6 transition-all">
-                  <Code className="mb-4 h-8 w-8 text-primary" />
-                  <h3 className="mb-2 font-semibold">Tool-Augmented</h3>
-                  <p className="mb-3 text-sm text-muted-foreground">
-                    Web search and code execution for facts
-                  </p>
-                  <div className="text-xs text-muted-foreground">1-2s • FPR: ~2%</div>
-                </div>
+                <Code className="mb-4 h-8 w-8 text-primary" />
+                <h3 className="mb-2 font-semibold">Tool-Augmented</h3>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Web search and code execution for facts
+                </p>
+                <div className="text-xs text-muted-foreground">1-2s • FPR: ~2%</div>
               </div>
 
               <div className="col-4">
-                <div className="depth-1 group rounded-xl bg-card p-6 transition-all">
-                  <Shield className="mb-4 h-8 w-8 text-primary" />
-                  <h3 className="mb-2 font-semibold">BiPRM</h3>
-                  <p className="mb-3 text-sm text-muted-foreground">
-                    Bidirectional reasoning for high-stakes domains
-                  </p>
-                  <div className="text-xs text-muted-foreground">3-5s • FPR: ~10%</div>
-                </div>
+                <Shield className="mb-4 h-8 w-8 text-primary" />
+                <h3 className="mb-2 font-semibold">BiPRM</h3>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Bidirectional reasoning for high-stakes domains
+                </p>
+                <div className="text-xs text-muted-foreground">3-5s • FPR: ~10%</div>
               </div>
 
               <div className="col-1">
-                <div className="depth-1 group rounded-xl bg-card p-6 transition-all">
-                  <BarChart className="mb-4 h-8 w-8 text-primary" />
-                  <h3 className="mb-2 font-semibold">Ensemble</h3>
-                  <p className="mb-3 text-sm text-muted-foreground">
-                    Multiple model voting for precision
-                  </p>
-                  <div className="text-xs text-muted-foreground">5-10s • FPR: 20-40%</div>
-                </div>
+                <BarChart className="mb-4 h-8 w-8 text-primary" />
+                <h3 className="mb-2 font-semibold">Ensemble</h3>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Multiple model voting for precision
+                </p>
+                <div className="text-xs text-muted-foreground">5-10s • FPR: 20-40%</div>
               </div>
 
               <div className="col-2">
-                <div className="depth-1 group rounded-xl bg-card p-6 transition-all">
-                  <CheckCircle className="mb-4 h-8 w-8 text-primary" />
-                  <h3 className="mb-2 font-semibold">Semantic Entropy</h3>
-                  <p className="mb-3 text-sm text-muted-foreground">
-                    Consistency pattern detection
-                  </p>
-                  <div className="text-xs text-muted-foreground">~200ms • FPR: TBD</div>
-                </div>
+                <CheckCircle className="mb-4 h-8 w-8 text-primary" />
+                <h3 className="mb-2 font-semibold">Semantic Entropy</h3>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Consistency pattern detection
+                </p>
+                <div className="text-xs text-muted-foreground">~200ms • FPR: TBD</div>
               </div>
 
               <div className="col-3-4">
-                <div className="depth-2 group relative rounded-xl bg-card p-6 transition-all">
-                  <div className="flex items-start gap-4">
-                    <FileText className="h-8 w-8 flex-shrink-0 text-primary" />
-                    <div>
-                      <div className="mb-2 flex items-baseline gap-3">
-                        <h3 className="font-semibold">Formal Verification</h3>
-                        <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                          Coming Soon
-                        </span>
-                      </div>
-                      <p className="mb-2 text-sm text-muted-foreground">
-                        Mathematical proofs for cryptography and smart contracts
-                      </p>
-                      <div className="text-xs text-muted-foreground">Variable • FPR: 0%</div>
+                <div className="flex items-start gap-4">
+                  <FileText className="h-8 w-8 flex-shrink-0 text-primary" />
+                  <div>
+                    <div className="mb-2 flex items-baseline gap-3">
+                      <h3 className="font-semibold">Formal Verification</h3>
+                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                        Coming Soon
+                      </span>
                     </div>
+                    <p className="mb-2 text-sm text-muted-foreground">
+                      Mathematical proofs for cryptography and smart contracts
+                    </p>
+                    <div className="text-xs text-muted-foreground">Variable • FPR: 0%</div>
                   </div>
                 </div>
               </div>
@@ -562,70 +492,59 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              {/* Use cases as checklist displays - each unique */}
-              {/* Medical AI - Columns 3-4 with checklist */}
+              {/* Medical AI - Columns 3-4 */}
               <div className="col-3-4">
-                <div className="depth-1 rounded-xl bg-card p-8">
-                  <h3 className="mb-6 text-2xl font-bold">Medical AI</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4 rounded-lg bg-muted/50 p-4">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-success">
-                        <Check className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium">BiPRM verification</div>
-                        <div className="text-xs text-muted-foreground">60% weight</div>
-                      </div>
+                <h3 className="mb-6 text-2xl font-bold">Medical AI</h3>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-3">
+                    <Check className="h-5 w-5 text-success" />
+                    <div>
+                      <span className="font-medium">BiPRM verification</span>
+                      <span className="ml-2 text-xs text-muted-foreground">60% weight</span>
                     </div>
-                    <div className="flex items-center gap-4 rounded-lg bg-muted/50 p-4">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-success">
-                        <Check className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium">Tool-augmented check</div>
-                        <div className="text-xs text-muted-foreground">30% weight</div>
-                      </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="h-5 w-5 text-success" />
+                    <div>
+                      <span className="font-medium">Tool-augmented check</span>
+                      <span className="ml-2 text-xs text-muted-foreground">30% weight</span>
                     </div>
-                    <div className="flex items-center gap-4 rounded-lg bg-muted/50 p-4">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-success">
-                        <Check className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium">Semantic filter</div>
-                        <div className="text-xs text-muted-foreground">10% weight</div>
-                      </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="h-5 w-5 text-success" />
+                    <div>
+                      <span className="font-medium">Semantic filter</span>
+                      <span className="ml-2 text-xs text-muted-foreground">10% weight</span>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Legal & Support - Columns 1-2 */}
+              <div className="col-1-2 space-y-8">
+                <div>
+                  <h3 className="mb-4 text-xl font-bold">Legal AI</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="rounded-full bg-muted px-4 py-2 text-sm">
+                      <span className="font-medium">Ensemble</span>
+                      <span className="ml-2 text-xs text-muted-foreground">50%</span>
+                    </div>
+                    <div className="rounded-full bg-muted px-4 py-2 text-sm">
+                      <span className="font-medium">Tool</span>
+                      <span className="ml-2 text-xs text-muted-foreground">50%</span>
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Legal & Support - Columns 1-2 as pill badges */}
-              <div className="col-1-2">
-                <div className="depth-1 space-y-6 rounded-xl border bg-card p-8">
-                  <div>
-                    <h3 className="mb-4 text-xl font-bold">Legal AI</h3>
-                    <div className="flex flex-wrap gap-2">
-                      <div className="rounded-full bg-muted px-4 py-2 text-sm">
-                        <span className="font-medium">Ensemble</span>
-                        <span className="ml-2 text-xs text-muted-foreground">50%</span>
-                      </div>
-                      <div className="rounded-full bg-muted px-4 py-2 text-sm">
-                        <span className="font-medium">Tool</span>
-                        <span className="ml-2 text-xs text-muted-foreground">50%</span>
-                      </div>
+                <div>
+                  <h3 className="mb-4 text-xl font-bold">Support AI</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="rounded-full bg-muted px-4 py-2 text-sm">
+                      <span className="font-medium">Reasoning</span>
+                      <span className="ml-2 text-xs text-muted-foreground">80%</span>
                     </div>
-                  </div>
-                  <div className="border-t pt-6">
-                    <h3 className="mb-4 text-xl font-bold">Support AI</h3>
-                    <div className="flex flex-wrap gap-2">
-                      <div className="rounded-full bg-muted px-4 py-2 text-sm">
-                        <span className="font-medium">Reasoning</span>
-                        <span className="ml-2 text-xs text-muted-foreground">80%</span>
-                      </div>
-                      <div className="rounded-full bg-muted px-4 py-2 text-sm">
-                        <span className="font-medium">Semantic</span>
-                        <span className="ml-2 text-xs text-muted-foreground">20%</span>
-                      </div>
+                    <div className="rounded-full bg-muted px-4 py-2 text-sm">
+                      <span className="font-medium">Semantic</span>
+                      <span className="ml-2 text-xs text-muted-foreground">20%</span>
                     </div>
                   </div>
                 </div>
@@ -653,22 +572,20 @@ export default async function LandingPage() {
 
               {/* Research count - Columns 3-4 */}
               <div className="col-3-4">
-                <div className="depth-2 rounded-xl bg-card p-6">
-                  <div className="mb-2 text-5xl font-bold">5</div>
-                  <p className="text-sm text-muted-foreground">
-                    Papers cited • All peer-reviewed
-                  </p>
-                </div>
+                <div className="mb-2 text-5xl font-bold text-white">5</div>
+                <p className="text-sm text-white/70">
+                  Papers cited • All peer-reviewed
+                </p>
               </div>
 
-              {/* Research papers - Simple card list with link emphasis */}
+              {/* Research papers - Simple list */}
               <div className="col-1-4">
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  <div className="depth-1 rounded-lg bg-card p-5 transition-all">
+                <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                  <div>
                     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <FileText className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="mb-2 font-semibold">Semantic Illusion Problem</h3>
+                    <h3 className="mb-2 font-semibold text-white">Semantic Illusion Problem</h3>
                     <a
                       href="https://arxiv.org/abs/2512.15068"
                       target="_blank"
@@ -677,16 +594,16 @@ export default async function LandingPage() {
                     >
                       arxiv:2512.15068
                     </a>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-white/70">
                       50-100% FPR validates multi-method approach
                     </p>
                   </div>
 
-                  <div className="depth-1 rounded-lg bg-card p-5 transition-all">
+                  <div>
                     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <FileText className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="mb-2 font-semibold">FacTool</h3>
+                    <h3 className="mb-2 font-semibold text-white">FacTool</h3>
                     <a
                       href="https://arxiv.org/abs/2307.13528"
                       target="_blank"
@@ -695,16 +612,16 @@ export default async function LandingPage() {
                     >
                       arxiv:2307.13528
                     </a>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-white/70">
                       98.97% F1 with tool verification
                     </p>
                   </div>
 
-                  <div className="depth-1 rounded-lg bg-card p-5 transition-all">
+                  <div>
                     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <FileText className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="mb-2 font-semibold">BiPRM Research</h3>
+                    <h3 className="mb-2 font-semibold text-white">BiPRM Research</h3>
                     <a
                       href="https://arxiv.org/abs/2508.01682"
                       target="_blank"
@@ -713,27 +630,27 @@ export default async function LandingPage() {
                     >
                       arxiv:2508.01682
                     </a>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-white/70">
                       31.9% accuracy improvement
                     </p>
                   </div>
 
-                  <div className="depth-1 rounded-lg bg-card p-5 transition-all">
+                  <div>
                     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <FileText className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="mb-2 font-semibold">Process Supervision</h3>
-                    <p className="mb-2 text-xs text-muted-foreground">OpenAI, ICLR 2024</p>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="mb-2 font-semibold text-white">Process Supervision</h3>
+                    <p className="mb-2 text-xs text-white/60">OpenAI, ICLR 2024</p>
+                    <p className="text-sm text-white/70">
                       78.2% accuracy foundation
                     </p>
                   </div>
 
-                  <div className="depth-1 rounded-lg bg-card p-5 transition-all">
+                  <div>
                     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <FileText className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="mb-2 font-semibold">Ensemble Methods</h3>
+                    <h3 className="mb-2 font-semibold text-white">Ensemble Methods</h3>
                     <a
                       href="https://arxiv.org/abs/2411.06535"
                       target="_blank"
@@ -742,7 +659,7 @@ export default async function LandingPage() {
                     >
                       arxiv:2411.06535
                     </a>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-white/70">
                       73% → 95.6% precision boost
                     </p>
                   </div>
