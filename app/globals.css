@@ -38,9 +38,10 @@
     --ring: 250 100% 62%;
     --radius: 0.75rem;
 
-    /* Dark navy for dark sections */
+    /* Navy colors for sections */
     --navy-dark: 220 65% 8%; /* #0a2540 */
     --navy-medium: 220 50% 15%; /* #0d2e4f */
+    --navy-light: 220 40% 25%; /* Lighter navy for sections */
 
     /* Spacing Tokens - 8pt Grid System */
     --spacing-0: 0;
@@ -433,39 +434,25 @@
     transform: translateY(-4px);
   }
 
-  /* Diagonal section dividers - Stripe style */
+  /* Diagonal section dividers - using clip-path for clean slanted edges */
   .diagonal-divider-top {
-    position: relative;
-    padding-top: 6rem;
-  }
-
-  .diagonal-divider-top::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 120px;
-    background: inherit;
-    transform: skewY(-2deg);
-    transform-origin: top left;
+    clip-path: polygon(0 0, 100% 80px, 100% 100%, 0 100%);
+    margin-top: -80px;
+    padding-top: calc(80px + 6rem);
   }
 
   .diagonal-divider-bottom {
-    position: relative;
-    padding-bottom: 6rem;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 80px), 0 100%);
+    margin-bottom: -80px;
+    padding-bottom: calc(80px + 6rem);
   }
 
-  .diagonal-divider-bottom::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 120px;
-    background: inherit;
-    transform: skewY(-2deg);
-    transform-origin: bottom right;
+  .diagonal-divider-both {
+    clip-path: polygon(0 80px, 100% 0, 100% calc(100% - 80px), 0 100%);
+    margin-top: -80px;
+    margin-bottom: -80px;
+    padding-top: calc(80px + 6rem);
+    padding-bottom: calc(80px + 6rem);
   }
 
   /* Radial gradient backgrounds */
@@ -578,12 +565,20 @@
   }
 
   .bg-section-navy {
-    background-color: hsl(var(--navy-dark));
+    background-color: hsl(var(--navy-light));
     color: hsl(0 0% 100%);
   }
 
   .bg-section-navy * {
     border-color: hsl(0 0% 100% / 0.1);
+  }
+
+  .bg-section-navy .text-muted-foreground {
+    color: hsl(0 0% 100% / 0.7);
+  }
+
+  .bg-section-navy .text-foreground {
+    color: hsl(0 0% 100%);
   }
 
   /* Bento box grid - for unique content layouts */

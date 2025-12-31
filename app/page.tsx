@@ -91,7 +91,7 @@ export default async function LandingPage() {
       </header>
 
       <main className="flex-1">
-        {/* Hero Section - White with subtle gradient */}
+        {/* Hero Section - White */}
         <section className="bg-section-white relative w-full overflow-x-clip pb-32 pt-8 md:pb-40 md:pt-12 lg:pb-48 lg:pt-16">
           {/* Background gradient overlay */}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent"></div>
@@ -214,7 +214,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Problem - Stats section */}
-        <section className="diagonal-divider-top bg-section-gray relative w-full overflow-hidden py-24 md:py-32">
+        <section className="diagonal-divider-top bg-section-navy relative w-full overflow-hidden py-24 md:py-32">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-20">
               {/* Heading - Spans 1-3 for asymmetry */}
@@ -295,7 +295,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Why Different - Comparison with visual meters */}
-        <section className="bg-section-white relative w-full overflow-hidden py-24 md:py-32">
+        <section className="diagonal-divider-top bg-section-white relative w-full overflow-hidden py-24 md:py-32">
 
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-16">
@@ -545,7 +545,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Use Cases - Visual configuration display */}
-        <section className="bg-section-white relative w-full py-24 md:py-32">
+        <section className="bg-section-white relative w-full overflow-hidden py-24 md:py-32">
 
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-12">
@@ -635,7 +635,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Research Foundation - Connected timeline */}
-        <section className="diagonal-divider-top bg-section-gray relative w-full overflow-hidden py-24 md:py-32">
+        <section className="diagonal-divider-top bg-section-navy relative w-full overflow-hidden py-24 md:py-32">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-12">
               {/* Heading - Columns 1-2 */}
@@ -753,7 +753,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Pricing Section */}
-        <section className="bg-section-white relative w-full py-24 md:py-32" id="pricing">
+        <section className="diagonal-divider-top bg-section-white relative w-full overflow-hidden py-24 md:py-32" id="pricing">
 
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-16">
