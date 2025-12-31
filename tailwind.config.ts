@@ -29,6 +29,7 @@ const config = {
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
+        'background-alt': 'hsl(var(--background-alt))',
         foreground: 'hsl(var(--foreground))',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
@@ -53,6 +54,10 @@ const config = {
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
+          cyan: 'hsl(var(--accent-cyan))',
+          teal: 'hsl(var(--accent-teal))',
+          green: 'hsl(var(--accent-green))',
+          purple: 'hsl(var(--accent-purple))',
         },
         popover: {
           DEFAULT: 'hsl(var(--popover))',
@@ -61,6 +66,10 @@ const config = {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
+        },
+        navy: {
+          dark: 'hsl(var(--navy-dark))',
+          medium: 'hsl(var(--navy-medium))',
         },
       },
       spacing: {

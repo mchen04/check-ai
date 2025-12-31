@@ -91,10 +91,11 @@ export default async function LandingPage() {
       </header>
 
       <main className="flex-1">
-        {/* Hero Section - Radial gradient with overlapping elements */}
-        <section className="relative w-full overflow-x-clip pb-32 pt-8 md:pb-40 md:pt-12 lg:pb-48 lg:pt-16">
-          {/* Background gradient */}
-          <div className="bg-radial-gradient pointer-events-none absolute inset-0"></div>
+        {/* Hero Section - White with subtle gradient */}
+        <section className="bg-section-white relative w-full overflow-x-clip pb-32 pt-8 md:pb-40 md:pt-12 lg:pb-48 lg:pt-16">
+          {/* Background gradient overlay */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent"></div>
+          <div className="pointer-events-none absolute right-0 top-0 h-[600px] w-[600px] bg-gradient-to-br from-primary/10 via-accent-cyan/5 to-transparent blur-3xl"></div>
 
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col items-center gap-y-16">
@@ -212,8 +213,8 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Problem - Stats with visual mockup */}
-        <section className="section-angle relative w-full overflow-hidden bg-gradient-to-b from-muted/20 to-background py-24 md:py-32">
+        {/* Problem - Stats section */}
+        <section className="diagonal-divider-top bg-section-gray relative w-full overflow-hidden py-24 md:py-32">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-20">
               {/* Heading - Spans 1-3 for asymmetry */}
@@ -246,41 +247,32 @@ export default async function LandingPage() {
                 </div>
               </div>
 
-              {/* Stats Grid - Each takes 1 column */}
+              {/* Stats Grid - Simple clean numbers */}
               <div className="col-1">
-                <div className="group relative">
-                  <div className="stat-float mb-5 text-6xl font-bold tracking-tight md:text-7xl">
-                    $2.4M
-                  </div>
-                  <div className="mb-4 h-1 w-16 rounded-full bg-gradient-to-r from-primary via-primary/50 to-transparent"></div>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    Average cost per hallucination incident in regulated industries
-                  </p>
+                <div className="mb-5 text-6xl font-bold tracking-tight md:text-7xl">
+                  $2.4M
                 </div>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Average cost per hallucination incident in regulated industries
+                </p>
               </div>
 
               <div className="col-2">
-                <div className="group relative">
-                  <div className="stat-float mb-5 text-6xl font-bold tracking-tight md:text-7xl">
-                    78%
-                  </div>
-                  <div className="mb-4 h-1 w-16 rounded-full bg-gradient-to-r from-primary via-primary/50 to-transparent"></div>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    Of enterprises now deploy AI in production systems
-                  </p>
+                <div className="mb-5 text-6xl font-bold tracking-tight md:text-7xl">
+                  78%
                 </div>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Of enterprises now deploy AI in production systems
+                </p>
               </div>
 
               <div className="col-3">
-                <div className="group relative">
-                  <div className="stat-float mb-5 text-6xl font-bold tracking-tight md:text-7xl">
-                    100%
-                  </div>
-                  <div className="mb-4 h-1 w-16 rounded-full bg-gradient-to-r from-primary via-primary/50 to-transparent"></div>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    Legally liable for every AI output your product generates
-                  </p>
+                <div className="mb-5 text-6xl font-bold tracking-tight md:text-7xl">
+                  100%
                 </div>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Legally liable for every AI output your product generates
+                </p>
               </div>
 
               {/* Case study - Column 4 with distinct styling */}
@@ -302,10 +294,8 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Why Different - Split visual comparison */}
-        <section className="relative w-full overflow-hidden py-24 md:py-32">
-          {/* Subtle dot pattern background */}
-          <div className="bg-dot-pattern pointer-events-none absolute inset-0 opacity-40"></div>
+        {/* Why Different - Comparison with visual meters */}
+        <section className="bg-section-white relative w-full overflow-hidden py-24 md:py-32">
 
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-16">
@@ -324,76 +314,91 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              {/* Traditional - Column 1 (narrow) */}
+              {/* Traditional - Column 1 with visual meter */}
               <div className="col-1">
-                <div className="relative rounded-xl border-2 border-destructive/30 bg-gradient-to-br from-destructive/10 to-destructive/5 p-6">
-                  <div className="absolute -left-2 -top-2 h-12 w-12 rounded-full bg-destructive/20 blur-xl"></div>
-                  <div className="mb-5 text-xs font-bold uppercase tracking-widest text-destructive">
-                    Traditional
+                <div className="relative overflow-hidden rounded-xl border-2 border-destructive/30 bg-card p-6">
+                  <div className="absolute right-0 top-0 h-full w-2 bg-gradient-to-b from-destructive/40 via-destructive/20 to-transparent"></div>
+                  <div className="mb-5 flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-destructive"></div>
+                    <span className="text-xs font-bold uppercase tracking-widest text-destructive">
+                      Traditional
+                    </span>
                   </div>
-                  <ul className="space-y-3">
-                    <li className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                      <div className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-destructive/20">
-                        <X className="h-2.5 w-2.5 text-destructive" />
+
+                  {/* Visual limitation meter */}
+                  <div className="mb-6 rounded-lg bg-destructive/5 p-4">
+                    <div className="mb-3 text-xs font-semibold text-muted-foreground">Method Coverage</div>
+                    <div className="h-8 overflow-hidden rounded-full bg-muted">
+                      <div className="flex h-full w-[14%] items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
+                        1
                       </div>
-                      <span>Single method</span>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">Limited to 1 method</p>
+                  </div>
+
+                  <ul className="stagger-fade space-y-3">
+                    <li className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                      <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
+                      <span>Locked approach</span>
                     </li>
                     <li className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                      <div className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-destructive/20">
-                        <X className="h-2.5 w-2.5 text-destructive" />
-                      </div>
-                      <span>One-size-fits-all</span>
-                    </li>
-                    <li className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                      <div className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-destructive/20">
-                        <X className="h-2.5 w-2.5 text-destructive" />
-                      </div>
-                      <span>Domain-limited</span>
+                      <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
+                      <span>Domain-specific</span>
                     </li>
                   </ul>
                 </div>
               </div>
 
-              {/* VerifyAI - Columns 2-4 (wider for emphasis) */}
-              <div className="col-2-4 depth-3 glow-primary relative overflow-hidden rounded-xl border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-card to-primary/5 p-8 hover-lift">
-                <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl"></div>
-                <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-primary/5 blur-3xl"></div>
+              {/* VerifyAI - Columns 2-4 with icon grid */}
+              <div className="col-2-4 depth-3 spotlight relative overflow-hidden rounded-xl border-2 border-primary/40 bg-gradient-to-br from-primary/8 via-card to-accent-cyan/5 p-8 hover-lift">
+                <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-gradient-to-br from-primary/20 to-accent-cyan/20 blur-3xl"></div>
+                <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-gradient-to-br from-accent-purple/10 to-transparent blur-3xl"></div>
 
                 <div className="relative">
-                  <div className="mb-6 flex items-center gap-3">
-                    <div className="h-px flex-1 bg-gradient-to-r from-primary/60 to-transparent"></div>
+                  <div className="mb-8 flex items-center gap-3">
+                    <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent"></div>
                     <span className="text-xs font-bold uppercase tracking-widest text-primary">
-                      VerifyAI
+                      VerifyAI Platform
                     </span>
-                    <div className="h-px flex-1 bg-gradient-to-l from-primary/60 to-transparent"></div>
+                    <div className="h-px flex-1 bg-gradient-to-l from-primary/40 to-transparent"></div>
                   </div>
 
-                  <div className="grid gap-6 sm:grid-cols-3">
-                    <div className="flex flex-col gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                        <Check className="h-5 w-5 text-primary" />
+                  {/* Visual method coverage meter */}
+                  <div className="mb-8 rounded-lg border border-primary/20 bg-primary/5 p-6">
+                    <div className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Method Coverage</div>
+                    <div className="h-10 overflow-hidden rounded-full bg-muted">
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-r from-primary via-accent-cyan to-accent-purple text-sm font-bold text-white">
+                        7 Methods Available
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="stagger-fade grid gap-6 sm:grid-cols-3">
+                    <div className="group flex flex-col gap-3 rounded-lg border border-primary/10 bg-card/50 p-4 backdrop-blur-sm transition-all hover:border-primary/30">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-accent-cyan/20">
+                        <Check className="h-6 w-6 text-primary" />
                       </div>
                       <div>
                         <div className="mb-1 font-semibold">7 Methods</div>
-                        <p className="text-xs text-muted-foreground">Research-backed verification</p>
+                        <p className="text-xs text-muted-foreground">Mix and match freely</p>
                       </div>
                     </div>
-                    <div className="flex flex-col gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                        <Check className="h-5 w-5 text-primary" />
+                    <div className="group flex flex-col gap-3 rounded-lg border border-primary/10 bg-card/50 p-4 backdrop-blur-sm transition-all hover:border-primary/30">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-accent-teal/20 to-accent-green/20">
+                        <Check className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <div className="mb-1 font-semibold">Custom Weighting</div>
-                        <p className="text-xs text-muted-foreground">Tailored to your domain</p>
+                        <div className="mb-1 font-semibold">Custom Weights</div>
+                        <p className="text-xs text-muted-foreground">Fine-tune per use case</p>
                       </div>
                     </div>
-                    <div className="flex flex-col gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                        <Check className="h-5 w-5 text-primary" />
+                    <div className="group flex flex-col gap-3 rounded-lg border border-primary/10 bg-card/50 p-4 backdrop-blur-sm transition-all hover:border-primary/30">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-accent-purple/20 to-primary/20">
+                        <Check className="h-6 w-6 text-primary" />
                       </div>
                       <div>
                         <div className="mb-1 font-semibold">Universal</div>
-                        <p className="text-xs text-muted-foreground">Works across all domains</p>
+                        <p className="text-xs text-muted-foreground">Works everywhere</p>
                       </div>
                     </div>
                   </div>
@@ -403,8 +408,8 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* The 7 Methods - Grid card layout */}
-        <section className="bg-gradient-chroma relative w-full overflow-hidden py-24 md:py-32" id="methods">
+        {/* The 7 Methods - Icon grid like Stripe */}
+        <section className="diagonal-divider-top bg-section-gray relative w-full overflow-hidden py-24 md:py-32" id="methods">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-16">
               {/* Heading - Columns 1-2 */}
@@ -449,113 +454,88 @@ export default async function LandingPage() {
                 </div>
               </div>
 
-              {/* Method 1 - Semantic - Column 1 */}
+              {/* Methods as icon grid - like Stripe's 4-card layout */}
               <div className="col-1">
-                <div className="depth-1 group rounded-xl border bg-card p-5 transition-all hover:border-primary/30 hover-lift">
-                  <Zap className="mb-4 h-6 w-6 text-primary/60" />
-                  <h3 className="mb-2 text-lg font-semibold">Semantic Similarity</h3>
-                  <p className="mb-3 font-mono text-xs text-muted-foreground">FPR: 50-100% • ~100ms</p>
-                  <p className="mb-2 text-sm leading-relaxed text-muted-foreground">
-                    Quick filtering via embeddings
+                <div className="depth-1 group rounded-xl border bg-card p-6 transition-all hover:border-primary/30">
+                  <Zap className="mb-4 h-8 w-8 text-primary" />
+                  <h3 className="mb-2 font-semibold">Semantic Similarity</h3>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Quick embedding comparison for initial filtering
                   </p>
-                  <span className="text-xs font-medium text-primary">Pre-filtering</span>
+                  <div className="text-xs text-muted-foreground">~100ms • FPR: 50-100%</div>
                 </div>
               </div>
 
-              {/* Method 2 - Reasoning - Column 2 */}
               <div className="col-2">
-                <div className="depth-1 group rounded-xl border bg-card p-5 transition-all hover:border-primary/30 hover-lift">
-                  <Activity className="mb-4 h-6 w-6 text-primary/60" />
-                  <h3 className="mb-2 text-lg font-semibold">Reasoning-Based</h3>
-                  <p className="mb-3 font-mono text-xs text-muted-foreground">FPR: 7% • 2-3s</p>
-                  <p className="mb-2 text-sm leading-relaxed text-muted-foreground">
-                    Chain-of-thought analysis
+                <div className="depth-1 group rounded-xl border bg-card p-6 transition-all hover:border-primary/30">
+                  <Activity className="mb-4 h-8 w-8 text-primary" />
+                  <h3 className="mb-2 font-semibold">Reasoning-Based</h3>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Chain-of-thought analysis for general verification
                   </p>
-                  <span className="text-xs font-medium text-primary">General use</span>
+                  <div className="text-xs text-muted-foreground">2-3s • FPR: 7%</div>
                 </div>
               </div>
 
-              {/* Method 3 - Tool - Columns 3-4 (Featured) */}
-              <div className="col-3-4">
-                <div className="depth-2 group relative overflow-hidden rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-card p-6 transition-all hover:border-primary/50 hover-lift">
-                  <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/10 blur-2xl"></div>
-                  <div className="relative flex items-start gap-6">
-                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                      <Code className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="mb-2 text-xl font-semibold">Tool-Augmented</h3>
-                      <p className="mb-3 font-mono text-xs text-muted-foreground">FPR: ~2% • 1-2s</p>
-                      <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
-                        Web search and code execution. Highest accuracy for verifiable facts.
-                      </p>
-                      <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                        Best for factual claims
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Method 4 - BiPRM - Columns 1-2 */}
-              <div className="col-1-2">
-                <div className="depth-1 group rounded-xl border bg-card p-5 transition-all hover:border-primary/30 hover-lift">
-                  <Shield className="mb-4 h-6 w-6 text-primary/60" />
-                  <h3 className="mb-2 text-lg font-semibold">BiPRM</h3>
-                  <p className="mb-3 font-mono text-xs text-muted-foreground">FPR: ~10% • 3-5s</p>
-                  <p className="mb-2 text-sm leading-relaxed text-muted-foreground">
-                    Bidirectional reasoning. 31.9% more accurate than unidirectional.
-                  </p>
-                  <span className="text-xs font-medium text-primary">Medical & legal</span>
-                </div>
-              </div>
-
-              {/* Method 5 - Ensemble - Column 3 */}
               <div className="col-3">
-                <div className="depth-1 group rounded-xl border bg-card p-5 transition-all hover:border-primary/30 hover-lift">
-                  <BarChart className="mb-4 h-6 w-6 text-primary/60" />
-                  <h3 className="mb-2 text-lg font-semibold">Ensemble</h3>
-                  <p className="mb-3 font-mono text-xs text-muted-foreground">FPR: 20-40% • 5-10s</p>
-                  <p className="mb-2 text-sm leading-relaxed text-muted-foreground">
-                    Multiple models voting
+                <div className="depth-1 group rounded-xl border bg-card p-6 transition-all hover:border-primary/30">
+                  <Code className="mb-4 h-8 w-8 text-primary" />
+                  <h3 className="mb-2 font-semibold">Tool-Augmented</h3>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Web search and code execution for facts
                   </p>
-                  <span className="text-xs font-medium text-primary">High-stakes</span>
+                  <div className="text-xs text-muted-foreground">1-2s • FPR: ~2%</div>
                 </div>
               </div>
 
-              {/* Method 6 - Entropy - Column 4 */}
               <div className="col-4">
-                <div className="depth-1 group rounded-xl border bg-card p-5 transition-all hover:border-primary/30 hover-lift">
-                  <CheckCircle className="mb-4 h-6 w-6 text-primary/60" />
-                  <h3 className="mb-2 text-lg font-semibold">Semantic Entropy</h3>
-                  <p className="mb-3 font-mono text-xs text-muted-foreground">FPR: TBD • ~200ms</p>
-                  <p className="mb-2 text-sm leading-relaxed text-muted-foreground">
-                    Consistency detection
+                <div className="depth-1 group rounded-xl border bg-card p-6 transition-all hover:border-primary/30">
+                  <Shield className="mb-4 h-8 w-8 text-primary" />
+                  <h3 className="mb-2 font-semibold">BiPRM</h3>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Bidirectional reasoning for high-stakes domains
                   </p>
-                  <span className="text-xs font-medium text-primary">Patterns</span>
+                  <div className="text-xs text-muted-foreground">3-5s • FPR: ~10%</div>
                 </div>
               </div>
 
-              {/* Method 7 - Formal - Full width featured */}
-              <div className="col-1-4">
-                <div className="depth-2 group relative overflow-hidden rounded-xl border-2 border-primary/40 bg-gradient-to-r from-primary/8 via-card to-primary/5 p-8 hover-lift">
-                  <div className="absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-primary via-primary/50 to-transparent"></div>
-                  <div className="flex items-start gap-6">
-                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                      <FileText className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="mb-2 flex flex-wrap items-baseline gap-x-4 gap-y-2">
-                        <h3 className="text-xl font-semibold">Formal Verification</h3>
-                        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <div className="col-1">
+                <div className="depth-1 group rounded-xl border bg-card p-6 transition-all hover:border-primary/30">
+                  <BarChart className="mb-4 h-8 w-8 text-primary" />
+                  <h3 className="mb-2 font-semibold">Ensemble</h3>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Multiple model voting for precision
+                  </p>
+                  <div className="text-xs text-muted-foreground">5-10s • FPR: 20-40%</div>
+                </div>
+              </div>
+
+              <div className="col-2">
+                <div className="depth-1 group rounded-xl border bg-card p-6 transition-all hover:border-primary/30">
+                  <CheckCircle className="mb-4 h-8 w-8 text-primary" />
+                  <h3 className="mb-2 font-semibold">Semantic Entropy</h3>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Consistency pattern detection
+                  </p>
+                  <div className="text-xs text-muted-foreground">~200ms • FPR: TBD</div>
+                </div>
+              </div>
+
+              <div className="col-3-4">
+                <div className="depth-2 group relative rounded-xl border-2 border-primary/20 bg-card p-6 transition-all hover:border-primary/30">
+                  <div className="flex items-start gap-4">
+                    <FileText className="h-8 w-8 flex-shrink-0 text-primary" />
+                    <div>
+                      <div className="mb-2 flex items-baseline gap-3">
+                        <h3 className="font-semibold">Formal Verification</h3>
+                        <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                           Coming Soon
                         </span>
                       </div>
-                      <p className="mb-3 font-mono text-xs text-muted-foreground">FPR: 0% • Variable</p>
-                      <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                        Mathematical proofs for cryptography and smart contracts. Zero false positives
-                        when applicable.
+                      <p className="mb-2 text-sm text-muted-foreground">
+                        Mathematical proofs for cryptography and smart contracts
                       </p>
+                      <div className="text-xs text-muted-foreground">Variable • FPR: 0%</div>
                     </div>
                   </div>
                 </div>
@@ -564,9 +544,8 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Use Cases - Configuration Display - 1 intro + 3 cards */}
-        <section className="relative w-full overflow-hidden py-24 md:py-32">
-          <div className="bg-radial-gradient-bottom pointer-events-none absolute inset-0"></div>
+        {/* Use Cases - Visual configuration display */}
+        <section className="bg-section-white relative w-full py-24 md:py-32">
 
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-12">
@@ -583,104 +562,80 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              {/* Medical AI - Columns 3-4 */}
+              {/* Use cases as checklist displays - each unique */}
+              {/* Medical AI - Columns 3-4 with checklist */}
               <div className="col-3-4">
-                <div className="depth-2 relative overflow-hidden rounded-xl border bg-card p-8 hover-lift">
-                  <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-primary/5 blur-2xl"></div>
-                  <div className="relative">
-                    <div className="mb-6 flex items-baseline gap-4">
-                      <h3 className="text-2xl font-bold">Medical AI</h3>
-                      <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                        High Accuracy
-                      </span>
+                <div className="depth-1 rounded-xl border bg-card p-8">
+                  <h3 className="mb-6 text-2xl font-bold">Medical AI</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 rounded-lg bg-muted/50 p-4">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-success">
+                        <Check className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium">BiPRM verification</div>
+                        <div className="text-xs text-muted-foreground">60% weight</div>
+                      </div>
                     </div>
-                    <div className="mb-6 space-y-4">
-                      <div>
-                        <div className="mb-2 flex items-center justify-between text-sm">
-                          <span className="font-medium">BiPRM</span>
-                          <span className="font-mono text-xs text-muted-foreground">60%</span>
-                        </div>
-                        <div className="h-3 overflow-hidden rounded-full bg-muted">
-                          <div className="h-full w-[60%] rounded-full bg-gradient-to-r from-primary to-primary/80"></div>
-                        </div>
+                    <div className="flex items-center gap-4 rounded-lg bg-muted/50 p-4">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-success">
+                        <Check className="h-4 w-4 text-white" />
                       </div>
-                      <div>
-                        <div className="mb-2 flex items-center justify-between text-sm">
-                          <span className="font-medium">Tool</span>
-                          <span className="font-mono text-xs text-muted-foreground">30%</span>
-                        </div>
-                        <div className="h-3 overflow-hidden rounded-full bg-muted">
-                          <div className="h-full w-[30%] rounded-full bg-gradient-to-r from-primary/60 to-primary/40"></div>
-                        </div>
+                      <div className="flex-1">
+                        <div className="font-medium">Tool-augmented check</div>
+                        <div className="text-xs text-muted-foreground">30% weight</div>
                       </div>
-                      <div>
-                        <div className="mb-2 flex items-center justify-between text-sm">
-                          <span className="font-medium">Semantic</span>
-                          <span className="font-mono text-xs text-muted-foreground">10%</span>
-                        </div>
-                        <div className="h-3 overflow-hidden rounded-full bg-muted">
-                          <div className="h-full w-[10%] rounded-full bg-gradient-to-r from-primary/30 to-primary/20"></div>
-                        </div>
+                    </div>
+                    <div className="flex items-center gap-4 rounded-lg bg-muted/50 p-4">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-success">
+                        <Check className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium">Semantic filter</div>
+                        <div className="text-xs text-muted-foreground">10% weight</div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Legal AI - Column 1 */}
-              <div className="col-1">
-                <div className="depth-1 rounded-xl border bg-card p-6 hover-lift">
-                  <h3 className="mb-5 text-xl font-bold">Legal AI</h3>
-                  <div className="mb-5 space-y-3">
-                    <div>
-                      <div className="mb-2 text-xs text-muted-foreground">Ensemble</div>
-                      <div className="h-2.5 rounded-full bg-primary"></div>
-                    </div>
-                    <div>
-                      <div className="mb-2 text-xs text-muted-foreground">Tool</div>
-                      <div className="h-2.5 rounded-full bg-primary"></div>
-                    </div>
-                  </div>
-                  <p className="text-xs font-medium text-primary">50/50 split</p>
-                </div>
-              </div>
-
-              {/* Support AI - Column 2 */}
-              <div className="col-2">
-                <div className="depth-1 rounded-xl border bg-card p-6 hover-lift">
-                  <h3 className="mb-5 text-xl font-bold">Support AI</h3>
-                  <div className="mb-5 space-y-3">
-                    <div>
-                      <div className="mb-2 text-xs text-muted-foreground">Reasoning</div>
-                      <div className="h-2.5 rounded-full bg-primary" style={{width: '80%'}}></div>
-                    </div>
-                    <div>
-                      <div className="mb-2 text-xs text-muted-foreground">Semantic</div>
-                      <div className="h-2.5 rounded-full bg-primary/50" style={{width: '20%'}}></div>
+              {/* Legal & Support - Columns 1-2 as pill badges */}
+              <div className="col-1-2">
+                <div className="depth-1 space-y-6 rounded-xl border bg-card p-8">
+                  <div>
+                    <h3 className="mb-4 text-xl font-bold">Legal AI</h3>
+                    <div className="flex flex-wrap gap-2">
+                      <div className="rounded-full border bg-muted px-4 py-2 text-sm">
+                        <span className="font-medium">Ensemble</span>
+                        <span className="ml-2 text-xs text-muted-foreground">50%</span>
+                      </div>
+                      <div className="rounded-full border bg-muted px-4 py-2 text-sm">
+                        <span className="font-medium">Tool</span>
+                        <span className="ml-2 text-xs text-muted-foreground">50%</span>
+                      </div>
                     </div>
                   </div>
-                  <p className="text-xs font-medium text-primary">Speed focused</p>
-                </div>
-              </div>
-
-              {/* CTA - Columns 3-4 */}
-              <div className="col-3-4">
-                <div className="depth-2 rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-card p-6">
-                  <p className="mb-4 text-sm font-semibold">Need a custom configuration?</p>
-                  <p className="mb-5 text-sm text-muted-foreground">
-                    Work with our team to design the optimal verification mix for your specific use case.
-                  </p>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="#waitlist">Get in touch</Link>
-                  </Button>
+                  <div className="border-t pt-6">
+                    <h3 className="mb-4 text-xl font-bold">Support AI</h3>
+                    <div className="flex flex-wrap gap-2">
+                      <div className="rounded-full border bg-muted px-4 py-2 text-sm">
+                        <span className="font-medium">Reasoning</span>
+                        <span className="ml-2 text-xs text-muted-foreground">80%</span>
+                      </div>
+                      <div className="rounded-full border bg-muted px-4 py-2 text-sm">
+                        <span className="font-medium">Semantic</span>
+                        <span className="ml-2 text-xs text-muted-foreground">20%</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Research Foundation - Asymmetric with visual papers */}
-        <section className="section-angle relative w-full overflow-hidden bg-gradient-to-b from-muted/40 to-muted/10 py-24 md:py-32">
+        {/* Research Foundation - Connected timeline */}
+        <section className="diagonal-divider-top bg-section-gray relative w-full overflow-hidden py-24 md:py-32">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-12">
               {/* Heading - Columns 1-2 */}
@@ -706,96 +661,99 @@ export default async function LandingPage() {
                 </div>
               </div>
 
-              {/* Research papers grid - Creative spans */}
-              <div className="col-1-2">
-                <div className="depth-1 group rounded-xl border bg-card p-5 transition-all hover:border-primary/30 hover-lift">
-                  <FileText className="mb-3 h-5 w-5 text-primary/60" />
-                  <h3 className="mb-2 text-sm font-semibold">Semantic Illusion Problem</h3>
-                  <a
-                    href="https://arxiv.org/abs/2512.15068"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mb-2 inline-block font-mono text-xs text-primary hover:underline"
-                  >
-                    arxiv:2512.15068
-                  </a>
-                  <p className="text-xs leading-relaxed text-muted-foreground">
-                    50-100% FPR validates multi-method approach
-                  </p>
-                </div>
-              </div>
+              {/* Research papers - Simple card list with link emphasis */}
+              <div className="col-1-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="depth-1 rounded-lg border bg-card p-5 transition-all hover:border-primary/30">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="mb-2 font-semibold">Semantic Illusion Problem</h3>
+                    <a
+                      href="https://arxiv.org/abs/2512.15068"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mb-2 inline-block font-mono text-xs text-primary hover:underline"
+                    >
+                      arxiv:2512.15068
+                    </a>
+                    <p className="text-sm text-muted-foreground">
+                      50-100% FPR validates multi-method approach
+                    </p>
+                  </div>
 
-              <div className="col-3">
-                <div className="depth-1 group rounded-xl border bg-card p-5 transition-all hover:border-primary/30 hover-lift">
-                  <FileText className="mb-3 h-5 w-5 text-primary/60" />
-                  <h3 className="mb-2 text-sm font-semibold">FacTool</h3>
-                  <a
-                    href="https://arxiv.org/abs/2307.13528"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mb-2 inline-block font-mono text-xs text-primary hover:underline"
-                  >
-                    arxiv:2307.13528
-                  </a>
-                  <p className="text-xs leading-relaxed text-muted-foreground">
-                    98.97% F1 score
-                  </p>
-                </div>
-              </div>
+                  <div className="depth-1 rounded-lg border bg-card p-5 transition-all hover:border-primary/30">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="mb-2 font-semibold">FacTool</h3>
+                    <a
+                      href="https://arxiv.org/abs/2307.13528"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mb-2 inline-block font-mono text-xs text-primary hover:underline"
+                    >
+                      arxiv:2307.13528
+                    </a>
+                    <p className="text-sm text-muted-foreground">
+                      98.97% F1 with tool verification
+                    </p>
+                  </div>
 
-              <div className="col-4">
-                <div className="depth-1 group rounded-xl border bg-card p-5 transition-all hover:border-primary/30 hover-lift">
-                  <FileText className="mb-3 h-5 w-5 text-primary/60" />
-                  <h3 className="mb-2 text-sm font-semibold">BiPRM Research</h3>
-                  <a
-                    href="https://arxiv.org/abs/2508.01682"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mb-2 inline-block font-mono text-xs text-primary hover:underline"
-                  >
-                    arxiv:2508.01682
-                  </a>
-                  <p className="text-xs leading-relaxed text-muted-foreground">
-                    31.9% improvement
-                  </p>
-                </div>
-              </div>
+                  <div className="depth-1 rounded-lg border bg-card p-5 transition-all hover:border-primary/30">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="mb-2 font-semibold">BiPRM Research</h3>
+                    <a
+                      href="https://arxiv.org/abs/2508.01682"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mb-2 inline-block font-mono text-xs text-primary hover:underline"
+                    >
+                      arxiv:2508.01682
+                    </a>
+                    <p className="text-sm text-muted-foreground">
+                      31.9% accuracy improvement
+                    </p>
+                  </div>
 
-              <div className="col-1-2">
-                <div className="depth-1 group rounded-xl border bg-card p-5 transition-all hover:border-primary/30 hover-lift">
-                  <FileText className="mb-3 h-5 w-5 text-primary/60" />
-                  <h3 className="mb-2 text-sm font-semibold">Process Supervision</h3>
-                  <p className="mb-2 text-xs text-muted-foreground">OpenAI, ICLR 2024</p>
-                  <p className="text-xs leading-relaxed text-muted-foreground">
-                    78.2% accuracy foundation
-                  </p>
-                </div>
-              </div>
+                  <div className="depth-1 rounded-lg border bg-card p-5 transition-all hover:border-primary/30">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="mb-2 font-semibold">Process Supervision</h3>
+                    <p className="mb-2 text-xs text-muted-foreground">OpenAI, ICLR 2024</p>
+                    <p className="text-sm text-muted-foreground">
+                      78.2% accuracy foundation
+                    </p>
+                  </div>
 
-              <div className="col-3-4">
-                <div className="depth-1 group rounded-xl border bg-card p-5 transition-all hover:border-primary/30 hover-lift">
-                  <FileText className="mb-3 h-5 w-5 text-primary/60" />
-                  <h3 className="mb-2 text-sm font-semibold">Ensemble Methods</h3>
-                  <a
-                    href="https://arxiv.org/abs/2411.06535"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mb-2 inline-block font-mono text-xs text-primary hover:underline"
-                  >
-                    arxiv:2411.06535
-                  </a>
-                  <p className="text-xs leading-relaxed text-muted-foreground">
-                    Raises precision from 73% to 95.6%
-                  </p>
+                  <div className="depth-1 rounded-lg border bg-card p-5 transition-all hover:border-primary/30">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="mb-2 font-semibold">Ensemble Methods</h3>
+                    <a
+                      href="https://arxiv.org/abs/2411.06535"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mb-2 inline-block font-mono text-xs text-primary hover:underline"
+                    >
+                      arxiv:2411.06535
+                    </a>
+                    <p className="text-sm text-muted-foreground">
+                      73% → 95.6% precision boost
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Pricing Section - Enhanced visual hierarchy */}
-        <section className="relative w-full overflow-hidden py-24 md:py-32" id="pricing">
-          <div className="bg-dot-pattern pointer-events-none absolute inset-0 opacity-30"></div>
+        {/* Pricing Section */}
+        <section className="bg-section-white relative w-full py-24 md:py-32" id="pricing">
 
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-16">
@@ -814,28 +772,22 @@ export default async function LandingPage() {
 
               {/* Free - Column 1 */}
               <div className="col-1">
-                <div className="depth-1 flex h-full flex-col rounded-xl border bg-card p-6 hover-lift">
+                <div className="flex h-full flex-col rounded-xl border bg-card p-6">
                   <div className="mb-6">
                     <div className="mb-1 text-5xl font-bold">$0</div>
-                    <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Free</h3>
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Free</h3>
                   </div>
                   <ul className="mb-8 flex-1 space-y-3 text-sm">
                     <li className="flex items-start gap-2.5">
-                      <div className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <Check className="h-3 w-3 text-primary" />
-                      </div>
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
                       <span>100 verifications</span>
                     </li>
                     <li className="flex items-start gap-2.5">
-                      <div className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <Check className="h-3 w-3 text-primary" />
-                      </div>
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
                       <span>Semantic method</span>
                     </li>
                     <li className="flex items-start gap-2.5">
-                      <div className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <Check className="h-3 w-3 text-primary" />
-                      </div>
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
                       <span>API access</span>
                     </li>
                   </ul>
@@ -845,77 +797,58 @@ export default async function LandingPage() {
                 </div>
               </div>
 
-              {/* Pro - Columns 2-3 (Featured, emphasized) */}
+              {/* Pro - Columns 2-3 (Featured, clean) */}
               <div className="col-2-3">
-                <div className="depth-3 glow-primary relative flex h-full flex-col overflow-hidden rounded-xl border-2 border-primary bg-gradient-to-br from-card via-primary/5 to-primary/10 p-8 hover-lift">
-                  <div className="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-primary/20 blur-3xl"></div>
-                  <div className="absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-primary/10 blur-3xl"></div>
-
-                  <div className="relative">
-                    <div className="mb-8">
-                      <div className="mb-4 inline-flex rounded-full bg-primary px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-primary-foreground">
-                        Most Popular
-                      </div>
-                      <div className="mb-2 text-6xl font-bold">$99-299</div>
-                      <div className="mb-1 text-sm text-muted-foreground">/month</div>
-                      <h3 className="text-base font-semibold uppercase tracking-widest text-muted-foreground">Pro</h3>
+                <div className="depth-2 relative flex h-full flex-col rounded-xl border-2 border-primary/20 bg-card p-8">
+                  <div className="mb-8">
+                    <div className="mb-4 inline-flex rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary">
+                      Most Popular
                     </div>
-
-                    <ul className="mb-8 grid flex-1 grid-cols-2 gap-x-6 gap-y-4 text-sm">
-                      <li className="flex items-start gap-2.5">
-                        <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <Check className="h-3.5 w-3.5 text-primary" />
-                        </div>
-                        <span><strong>Unlimited</strong> verifications</span>
-                      </li>
-                      <li className="flex items-start gap-2.5">
-                        <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <Check className="h-3.5 w-3.5 text-primary" />
-                        </div>
-                        <span>All 7 methods</span>
-                      </li>
-                      <li className="flex items-start gap-2.5">
-                        <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <Check className="h-3.5 w-3.5 text-primary" />
-                        </div>
-                        <span>Custom weighting</span>
-                      </li>
-                      <li className="flex items-start gap-2.5">
-                        <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <Check className="h-3.5 w-3.5 text-primary" />
-                        </div>
-                        <span><strong>BYOK</strong> (no markup)</span>
-                      </li>
-                      <li className="col-span-2 flex items-start gap-2.5">
-                        <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <Check className="h-3.5 w-3.5 text-primary" />
-                        </div>
-                        <span>Priority support</span>
-                      </li>
-                    </ul>
-
-                    <Button asChild className="w-full shadow-lg shadow-primary/20" size="lg">
-                      <Link href="#waitlist">Join beta</Link>
-                    </Button>
-
-                    <p className="mt-6 text-center text-xs italic text-muted-foreground">
-                      One avoided incident pays for years of platform access
-                    </p>
+                    <div className="mb-2 text-6xl font-bold">$99-299</div>
+                    <div className="mb-1 text-sm text-muted-foreground">/month</div>
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Pro</h3>
                   </div>
+
+                  <ul className="mb-8 flex-1 space-y-3 text-sm">
+                    <li className="flex items-start gap-3">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span><strong>Unlimited</strong> verifications</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>All 7 verification methods</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Custom weight configuration</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Bring your own API keys (no markup)</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Priority support</span>
+                    </li>
+                  </ul>
+
+                  <Button asChild className="w-full" size="lg">
+                    <Link href="#waitlist">Join beta</Link>
+                  </Button>
                 </div>
               </div>
 
               {/* Enterprise - Column 4 */}
               <div className="col-4">
-                <div className="depth-1 flex h-full flex-col rounded-xl border bg-card p-6 hover-lift">
+                <div className="flex h-full flex-col rounded-xl border bg-card p-6">
                   <div className="mb-6">
                     <div className="mb-1 text-5xl font-bold">Custom</div>
-                    <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Enterprise</h3>
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Enterprise</h3>
                   </div>
                   <ul className="mb-8 flex-1 space-y-3 text-sm text-muted-foreground">
                     <li>Everything in Pro</li>
                     <li>Custom SLAs</li>
-                    <li>White-label</li>
+                    <li>White-label options</li>
                     <li>Custom methods</li>
                     <li>Dedicated support</li>
                   </ul>
@@ -928,61 +861,49 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* CTA Section / Waitlist - Centered with visual emphasis */}
-        <section className="relative w-full overflow-hidden bg-gradient-to-b from-background via-muted/20 to-background py-28 md:py-36" id="waitlist">
-          <div className="bg-radial-gradient pointer-events-none absolute inset-0"></div>
+        {/* CTA Section / Waitlist - Dark navy Stripe style */}
+        <section className="bg-section-navy relative w-full overflow-hidden py-32 md:py-40" id="waitlist">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-accent-cyan/10 via-transparent to-accent-purple/10"></div>
+          <div className="parallax-slow pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl"></div>
+          <div className="parallax-slow pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-accent-cyan/20 blur-3xl" style={{animationDelay: '-10s'}}></div>
 
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-12">
               {/* Main CTA - Columns 2-3 (centered) */}
               <div className="col-2-3">
-                <div className="depth-3 relative overflow-hidden rounded-2xl border-2 border-primary/20 bg-card p-10">
-                  <div className="absolute -right-16 top-0 h-48 w-48 rounded-full bg-primary/10 blur-3xl"></div>
-                  <div className="absolute -left-16 bottom-0 h-48 w-48 rounded-full bg-primary/5 blur-3xl"></div>
+                <div className="relative text-center">
+                  <h2 className="mb-6 text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
+                    Join the beta
+                  </h2>
+                  <p className="mb-12 text-lg text-white/60">
+                    We&apos;re working with design partners in healthcare, legal, and finance to
+                    validate our approach.
+                  </p>
 
-                  <div className="relative text-center">
-                    <h2 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                      Join the beta
-                    </h2>
-                    <p className="mb-10 text-lg text-muted-foreground">
-                      We&apos;re working with design partners in healthcare, legal, and finance to
-                      validate our approach.
-                    </p>
+                  <div className="mb-10 flex flex-col gap-4 sm:flex-row">
+                    <input
+                      type="email"
+                      placeholder="you@company.com"
+                      className="flex-1 rounded-lg border border-white/10 bg-white/5 px-6 py-4 text-base text-white backdrop-blur-sm placeholder:text-white/40 focus-visible:border-white/30 focus-visible:outline-none focus-visible:ring-0"
+                    />
+                    <Button size="lg" className="bg-white text-foreground hover:bg-white/90 sm:w-auto">
+                      Join waitlist
+                    </Button>
+                  </div>
 
-                    <div className="mb-10 flex flex-col gap-3 sm:flex-row">
-                      <input
-                        type="email"
-                        placeholder="you@company.com"
-                        className="flex-1 rounded-lg border border-input bg-background px-5 py-4 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      />
-                      <Button size="lg" className="shadow-lg shadow-primary/20 sm:w-auto">
-                        Join waitlist
-                      </Button>
+                  {/* Benefits - Simple horizontal badges */}
+                  <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-white/80">
+                    <div className="flex items-center gap-2">
+                      <Check className="h-4 w-4" />
+                      <span>Extended free tier</span>
                     </div>
-
-                    {/* Benefits */}
-                    <div className="space-y-4 border-t border-border/50 pt-8">
-                      <div className="flex items-start gap-3 text-left">
-                        <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-                        <div className="flex-1">
-                          <span className="font-semibold">Extended free tier</span>
-                          <span className="text-sm text-muted-foreground"> for early adopters</span>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 text-left">
-                        <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-                        <div className="flex-1">
-                          <span className="font-semibold">Shape the product</span>
-                          <span className="text-sm text-muted-foreground"> with direct input</span>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 text-left">
-                        <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-                        <div className="flex-1">
-                          <span className="font-semibold">Lock in beta pricing</span>
-                          <span className="text-sm text-muted-foreground"> when we launch</span>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="h-4 w-4" />
+                      <span>Shape the product</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="h-4 w-4" />
+                      <span>Lock in beta pricing</span>
                     </div>
                   </div>
                 </div>
