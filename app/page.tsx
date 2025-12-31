@@ -92,7 +92,7 @@ export default async function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section - White */}
-        <section className="bg-section-white relative w-full overflow-x-clip pb-32 pt-8 md:pb-40 md:pt-12 lg:pb-48 lg:pt-16">
+        <section className="bg-section-white relative w-full overflow-x-clip">
           {/* Background gradient overlay */}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent"></div>
           <div className="pointer-events-none absolute right-0 top-0 h-[600px] w-[600px] bg-gradient-to-br from-primary/10 via-accent-cyan/5 to-transparent blur-3xl"></div>
@@ -197,7 +197,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Problem - Stats section */}
-        <section className="diagonal-divider-top bg-section-navy relative w-full overflow-hidden py-24 md:py-32">
+        <section className="diagonal-divider-both bg-section-navy relative w-full overflow-hidden">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-20">
               {/* Heading - Spans 1-3 for asymmetry */}
@@ -245,7 +245,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Why Different - Comparison with visual meters */}
-        <section className="diagonal-divider-top bg-section-white relative w-full overflow-hidden py-24 md:py-32">
+        <section className="diagonal-divider-both bg-section-white relative w-full overflow-hidden">
 
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-16">
@@ -301,7 +301,7 @@ export default async function LandingPage() {
         </section>
 
         {/* The 7 Methods - Icon grid like Stripe */}
-        <section className="diagonal-divider-top bg-section-gray relative w-full overflow-hidden py-24 md:py-32" id="methods">
+        <section className="diagonal-divider-both bg-section-gray relative w-full overflow-hidden" id="methods">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-16">
               {/* Heading - Columns 1-2 */}
@@ -389,7 +389,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Use Cases - Configuration sticky scroll */}
-        <section className="bg-section-white relative w-full overflow-hidden py-24 md:py-32">
+        <section className="bg-section-white relative w-full overflow-hidden">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-12">
               {/* Heading - Columns 1-2 (Sticky) */}
@@ -479,7 +479,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Research Foundation - Connected timeline */}
-        <section className="diagonal-divider-top bg-section-navy relative w-full overflow-hidden py-24 md:py-32">
+        <section className="diagonal-divider-both bg-section-navy relative w-full overflow-hidden">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-12">
               {/* Heading - Columns 1-2 */}
@@ -584,7 +584,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Pricing Section */}
-        <section className="diagonal-divider-top bg-section-white relative w-full overflow-hidden py-24 md:py-32" id="pricing">
+        <section className="diagonal-divider-both bg-section-white relative w-full overflow-hidden" id="pricing">
 
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-16">
@@ -690,7 +690,7 @@ export default async function LandingPage() {
         </section>
 
         {/* CTA Section / Waitlist - Dark navy Stripe style */}
-        <section className="bg-section-navy relative w-full overflow-hidden py-32 md:py-40" id="waitlist">
+        <section className="bg-section-navy relative w-full overflow-hidden" id="waitlist">
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-accent-cyan/10 via-transparent to-accent-purple/10"></div>
           <div className="parallax-slow pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl"></div>
           <div className="parallax-slow pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-accent-cyan/20 blur-3xl" style={{animationDelay: '-10s'}}></div>

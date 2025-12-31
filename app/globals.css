@@ -64,6 +64,10 @@
     --spacing-24: 6rem; /* 96px */
     --spacing-32: 8rem; /* 128px */
 
+    /* Section Padding - Stripe-inspired responsive values */
+    --section-padding-mobile: 4.5rem; /* 72px */
+    --section-padding-desktop: 8rem; /* 128px */
+
     /* Typography Tokens */
     --font-size-xs: 0.75rem; /* 12px */
     --font-size-sm: 0.875rem; /* 14px */
@@ -439,21 +443,37 @@
   .diagonal-divider-top {
     clip-path: polygon(0 0, 100% 80px, 100% 100%, 0 100%);
     margin-top: -80px;
-    padding-top: calc(80px + 6rem);
+    padding-top: calc(80px + var(--section-padding-mobile)) !important;
   }
 
   .diagonal-divider-bottom {
     clip-path: polygon(0 0, 100% 0, 100% calc(100% - 80px), 0 100%);
     margin-bottom: -80px;
-    padding-bottom: calc(80px + 6rem);
+    padding-bottom: calc(80px + var(--section-padding-mobile)) !important;
   }
 
   .diagonal-divider-both {
     clip-path: polygon(0 80px, 100% 0, 100% calc(100% - 80px), 0 100%);
     margin-top: -80px;
     margin-bottom: -80px;
-    padding-top: calc(80px + 6rem);
-    padding-bottom: calc(80px + 6rem);
+    padding-top: calc(80px + var(--section-padding-mobile)) !important;
+    padding-bottom: calc(80px + var(--section-padding-mobile)) !important;
+  }
+
+  /* Desktop diagonal divider padding */
+  @media (min-width: 1024px) {
+    .diagonal-divider-top {
+      padding-top: calc(80px + var(--section-padding-desktop)) !important;
+    }
+
+    .diagonal-divider-bottom {
+      padding-bottom: calc(80px + var(--section-padding-desktop)) !important;
+    }
+
+    .diagonal-divider-both {
+      padding-top: calc(80px + var(--section-padding-desktop)) !important;
+      padding-bottom: calc(80px + var(--section-padding-desktop)) !important;
+    }
   }
 
   /* Radial gradient backgrounds */
@@ -566,16 +586,20 @@
     }
   }
 
-  /* Section background variations */
+  /* Section background variations with Stripe padding */
   .bg-section-white {
     position: relative;
     background-color: hsl(var(--background));
+    padding-top: var(--section-padding-mobile);
+    padding-bottom: var(--section-padding-mobile);
     z-index: 0;
   }
 
   .bg-section-gray {
     position: relative;
     background-color: hsl(var(--background-alt));
+    padding-top: var(--section-padding-mobile);
+    padding-bottom: var(--section-padding-mobile);
     z-index: 0;
   }
 
@@ -583,6 +607,8 @@
     position: relative;
     background-color: hsl(var(--navy-light));
     color: hsl(0 0% 100%);
+    padding-top: var(--section-padding-mobile);
+    padding-bottom: var(--section-padding-mobile);
     z-index: 0;
   }
 
@@ -596,6 +622,16 @@
 
   .bg-section-navy .text-foreground {
     color: hsl(0 0% 100%);
+  }
+
+  /* Desktop section padding */
+  @media (min-width: 1024px) {
+    .bg-section-white,
+    .bg-section-gray,
+    .bg-section-navy {
+      padding-top: var(--section-padding-desktop);
+      padding-bottom: var(--section-padding-desktop);
+    }
   }
 
   /* Bento box grid - for unique content layouts */
