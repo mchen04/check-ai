@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import Stripe from 'stripe';
 import NeuralNetwork from '@/components/neural-network';
+import UseCaseCarousel from '@/components/use-case-carousel';
 
 // Types
 interface StripeProduct {
@@ -416,12 +417,12 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Use Cases - Configuration sticky scroll */}
+        {/* Use Cases - Configuration carousel */}
         <section className="bg-section-white relative w-full overflow-hidden">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-12">
-              {/* Heading - Columns 1-2 (Sticky) */}
-              <div className="col-1-2 lg:sticky lg:top-32 lg:self-start">
+              {/* Heading - Columns 1-2 */}
+              <div className="col-1-2">
                 <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
                   Configure for your domain
                 </h2>
@@ -430,77 +431,9 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              {/* Scrolling configs - Columns 3-4 */}
-              <div className="col-3-4 space-y-32">
-                {/* Medical AI */}
-                <div>
-                  <h3 className="mb-6 text-xl font-bold">Medical AI</h3>
-                  <ul className="space-y-3">
-                    <li className="flex items-center gap-3">
-                      <Check className="h-5 w-5 text-success" />
-                      <div>
-                        <span className="font-medium">BiPRM verification</span>
-                        <span className="ml-2 text-xs text-muted-foreground">60% weight</span>
-                      </div>
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <Check className="h-5 w-5 text-success" />
-                      <div>
-                        <span className="font-medium">Tool-augmented check</span>
-                        <span className="ml-2 text-xs text-muted-foreground">30% weight</span>
-                      </div>
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <Check className="h-5 w-5 text-success" />
-                      <div>
-                        <span className="font-medium">Semantic filter</span>
-                        <span className="ml-2 text-xs text-muted-foreground">10% weight</span>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Legal AI */}
-                <div>
-                  <h3 className="mb-6 text-xl font-bold">Legal AI</h3>
-                  <ul className="space-y-3">
-                    <li className="flex items-center gap-3">
-                      <Check className="h-5 w-5 text-success" />
-                      <div>
-                        <span className="font-medium">Ensemble</span>
-                        <span className="ml-2 text-xs text-muted-foreground">50% weight</span>
-                      </div>
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <Check className="h-5 w-5 text-success" />
-                      <div>
-                        <span className="font-medium">Tool</span>
-                        <span className="ml-2 text-xs text-muted-foreground">50% weight</span>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Support AI */}
-                <div>
-                  <h3 className="mb-6 text-xl font-bold">Support AI</h3>
-                  <ul className="space-y-3">
-                    <li className="flex items-center gap-3">
-                      <Check className="h-5 w-5 text-success" />
-                      <div>
-                        <span className="font-medium">Reasoning</span>
-                        <span className="ml-2 text-xs text-muted-foreground">80% weight</span>
-                      </div>
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <Check className="h-5 w-5 text-success" />
-                      <div>
-                        <span className="font-medium">Semantic</span>
-                        <span className="ml-2 text-xs text-muted-foreground">20% weight</span>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
+              {/* Carousel - Columns 3-4 */}
+              <div className="col-3-4">
+                <UseCaseCarousel />
               </div>
             </div>
           </div>
