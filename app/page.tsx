@@ -59,7 +59,7 @@ export default async function LandingPage() {
   const products = await getStripeProducts();
 
   return (
-    <div className="flex min-h-[100dvh] flex-col">
+    <div className="relative flex min-h-[100dvh] flex-col">
       <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="content-wrapper">
           <div className="content-constrained flex h-20 items-center px-6">

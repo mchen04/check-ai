@@ -190,7 +190,13 @@
   .content-constrained {
     @apply relative mx-auto w-full;
     max-width: 1100px;
-    z-index: 2;
+    z-index: 10;
+  }
+
+  /* Ensure all content is above grid lines */
+  .content-constrained > * {
+    position: relative;
+    z-index: 10;
   }
 
   /* 4-Column Grid Lines - 5 dotted lines creating 4 columns (desktop only) */
@@ -534,16 +540,22 @@
 
   /* Section background variations */
   .bg-section-white {
+    position: relative;
     background-color: hsl(var(--background));
+    z-index: 0;
   }
 
   .bg-section-gray {
+    position: relative;
     background-color: hsl(var(--background-alt));
+    z-index: 0;
   }
 
   .bg-section-navy {
+    position: relative;
     background-color: hsl(var(--navy-light));
     color: hsl(0 0% 100%);
+    z-index: 0;
   }
 
   .bg-section-navy * {
