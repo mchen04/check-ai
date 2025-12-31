@@ -110,7 +110,7 @@ export default async function LandingPage() {
                 </div>
 
                 <div className="space-y-6">
-                  <h1 className="text-5xl font-bold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl">
+                  <h1 className="text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
                     Your AI outputs cost you{' '}
                     <span className="relative inline-block">
                       <span className="relative z-10">$2.4M</span>
@@ -118,7 +118,7 @@ export default async function LandingPage() {
                     </span>{' '}
                     when they&apos;re wrong
                   </h1>
-                  <p className="max-w-xl text-lg leading-relaxed text-muted-foreground lg:text-xl">
+                  <p className="max-w-xl text-base leading-relaxed text-muted-foreground lg:text-lg">
                     Catch hallucinations before deployment with seven research-backed verification
                     methods. Configure the mix that fits your use case—medical, legal, or anything in
                     between.
@@ -202,10 +202,10 @@ export default async function LandingPage() {
             <div className="content-constrained grid-4col gap-y-20">
               {/* Heading - Spans 1-3 for asymmetry */}
               <div className="col-1-3">
-                <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+                <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
                   The stakes are higher than you think
                 </h2>
-                <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
+                <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">
                   Even GPT-5 will have an 8% error rate. Zero hallucinations is mathematically
                   impossible—but you&apos;re legally liable for every output.
                 </p>
@@ -214,7 +214,7 @@ export default async function LandingPage() {
 
               {/* Stats Grid - Simple clean numbers */}
               <div className="col-1">
-                <div className="mb-5 text-4xl font-bold tracking-tight md:text-5xl">
+                <div className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
                   $2.4M
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground">
@@ -223,7 +223,7 @@ export default async function LandingPage() {
               </div>
 
               <div className="col-2">
-                <div className="mb-5 text-4xl font-bold tracking-tight md:text-5xl">
+                <div className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
                   78%
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground">
@@ -232,7 +232,7 @@ export default async function LandingPage() {
               </div>
 
               <div className="col-3">
-                <div className="mb-5 text-4xl font-bold tracking-tight md:text-5xl">
+                <div className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
                   100%
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground">
@@ -251,10 +251,10 @@ export default async function LandingPage() {
             <div className="content-constrained grid-4col gap-y-16">
               {/* Heading - Full width */}
               <div className="col-1-4">
-                <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+                <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
                   One method doesn&apos;t fit all use cases
                 </h2>
-                <p className="max-w-3xl text-lg leading-relaxed text-muted-foreground">
+                <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">
                   Existing solutions lock you into a single approach. Medical AI needs different
                   verification than customer support. Legal AI needs different checks than
                   e-commerce.
@@ -279,7 +279,7 @@ export default async function LandingPage() {
                   </span>
                 </div>
 
-                <div className="mb-8 text-lg font-semibold">7 Methods Available</div>
+                <div className="mb-8 text-base font-semibold">7 Methods Available</div>
 
                 <div className="grid gap-8 sm:grid-cols-3">
                   <div>
@@ -306,10 +306,10 @@ export default async function LandingPage() {
             <div className="content-constrained grid-4col gap-y-16">
               {/* Heading - Columns 1-2 */}
               <div className="col-1-2">
-                <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+                <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
                   Seven verification methods
                 </h2>
-                <p className="text-lg leading-relaxed text-muted-foreground">
+                <p className="text-base leading-relaxed text-muted-foreground">
                   Mix and match based on your use case. Each method has different speed-accuracy
                   tradeoffs.
                 </p>
@@ -394,10 +394,10 @@ export default async function LandingPage() {
             <div className="content-constrained grid-4col gap-y-12">
               {/* Heading - Columns 1-2 (Sticky) */}
               <div className="col-1-2 lg:sticky lg:top-32 lg:self-start">
-                <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+                <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
                   Configure for your domain
                 </h2>
-                <p className="text-lg leading-relaxed text-muted-foreground">
+                <p className="text-base leading-relaxed text-muted-foreground">
                   Different industries need different verification mixes. Here&apos;s how teams configure VerifyAI.
                 </p>
               </div>
@@ -406,7 +406,7 @@ export default async function LandingPage() {
               <div className="col-3-4 space-y-32">
                 {/* Medical AI */}
                 <div>
-                  <h3 className="mb-6 text-2xl font-bold">Medical AI</h3>
+                  <h3 className="mb-6 text-xl font-bold">Medical AI</h3>
                   <ul className="space-y-3">
                     <li className="flex items-center gap-3">
                       <Check className="h-5 w-5 text-success" />
@@ -434,7 +434,7 @@ export default async function LandingPage() {
 
                 {/* Legal AI */}
                 <div>
-                  <h3 className="mb-6 text-2xl font-bold">Legal AI</h3>
+                  <h3 className="mb-6 text-xl font-bold">Legal AI</h3>
                   <ul className="space-y-3">
                     <li className="flex items-center gap-3">
                       <Check className="h-5 w-5 text-success" />
@@ -455,7 +455,7 @@ export default async function LandingPage() {
 
                 {/* Support AI */}
                 <div>
-                  <h3 className="mb-6 text-2xl font-bold">Support AI</h3>
+                  <h3 className="mb-6 text-xl font-bold">Support AI</h3>
                   <ul className="space-y-3">
                     <li className="flex items-center gap-3">
                       <Check className="h-5 w-5 text-success" />
@@ -484,10 +484,10 @@ export default async function LandingPage() {
             <div className="content-constrained grid-4col gap-y-12">
               {/* Heading - Columns 1-2 */}
               <div className="col-1-2">
-                <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+                <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
                   Backed by peer-reviewed research
                 </h2>
-                <p className="text-lg leading-relaxed text-muted-foreground">
+                <p className="text-base leading-relaxed text-muted-foreground">
                   Each method is grounded in published academic work, not speculation. Here are the key papers.
                 </p>
               </div>
@@ -590,10 +590,10 @@ export default async function LandingPage() {
             <div className="content-constrained grid-4col gap-y-16">
               {/* Heading - Full width */}
               <div className="col-1-4">
-                <h2 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+                <h2 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
                   Transparent pricing
                 </h2>
-                <p className="mb-8 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+                <p className="mb-8 max-w-2xl text-base leading-relaxed text-muted-foreground">
                   Bring your own API keys. No token markups. Just platform access.
                 </p>
               </div>
@@ -602,7 +602,7 @@ export default async function LandingPage() {
               <div className="col-1">
                 <div className="flex h-full flex-col rounded-xl bg-white p-6">
                   <div className="mb-6">
-                    <div className="mb-1 text-5xl font-bold">$0</div>
+                    <div className="mb-1 text-4xl font-bold">$0</div>
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Free</h3>
                   </div>
                   <ul className="mb-8 flex-1 space-y-3 text-sm">
@@ -632,7 +632,7 @@ export default async function LandingPage() {
                     <div className="mb-4 inline-flex rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary">
                       Most Popular
                     </div>
-                    <div className="mb-2 text-6xl font-bold">$99-299</div>
+                    <div className="mb-2 text-5xl font-bold">$99-299</div>
                     <div className="mb-1 text-sm text-muted-foreground">/month</div>
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Pro</h3>
                   </div>
@@ -670,7 +670,7 @@ export default async function LandingPage() {
               <div className="col-4">
                 <div className="flex h-full flex-col rounded-xl bg-white p-6">
                   <div className="mb-6">
-                    <div className="mb-1 text-5xl font-bold">Custom</div>
+                    <div className="mb-1 text-4xl font-bold">Custom</div>
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Enterprise</h3>
                   </div>
                   <ul className="mb-8 flex-1 space-y-3 text-sm text-muted-foreground">
@@ -700,10 +700,10 @@ export default async function LandingPage() {
               {/* Main CTA - Columns 2-3 (centered) */}
               <div className="col-2-3">
                 <div className="relative text-center">
-                  <h2 className="mb-6 text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
+                  <h2 className="mb-6 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
                     Join the beta
                   </h2>
-                  <p className="mb-12 text-lg text-white/60">
+                  <p className="mb-12 text-base text-white/60">
                     We&apos;re working with design partners in healthcare, legal, and finance to
                     validate our approach.
                   </p>

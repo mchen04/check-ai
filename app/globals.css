@@ -36,7 +36,12 @@
     --border: 210 20% 92%;
     --input: 210 20% 92%;
     --ring: 250 100% 62%;
-    --radius: 0.75rem;
+    --radius: 0.5rem; /* 8px - Stripe card radius */
+    --radius-button: 1.03125rem; /* 16.5px - Stripe button radius */
+
+    /* Transitions - Stripe timing */
+    --transition-base: 150ms cubic-bezier(0.215, 0.61, 0.355, 1);
+    --transition-slow: 300ms cubic-bezier(0.215, 0.61, 0.355, 1);
 
     /* Navy colors for sections */
     --navy-dark: 220 65% 8%; /* #0a2540 */
@@ -80,11 +85,17 @@
     --leading-relaxed: 1.625;
     --leading-loose: 2;
 
-    /* Font Weights */
+    /* Font Weights - Stripe-inspired lighter scale */
+    --font-light: 300;
     --font-normal: 400;
     --font-medium: 500;
     --font-semibold: 600;
     --font-bold: 700;
+
+    /* Letter Spacing */
+    --tracking-tight: -0.02em;
+    --tracking-normal: 0;
+    --tracking-wide: 0.2px;
   }
 
   .dark {
@@ -126,6 +137,7 @@
     font-size: var(--font-size-base);
     line-height: var(--leading-normal);
     font-weight: var(--font-normal);
+    letter-spacing: var(--tracking-normal);
   }
 
   /* Typography Base Styles */
@@ -140,17 +152,17 @@
   }
 
   h1 {
-    font-size: var(--font-size-5xl);
+    font-size: var(--font-size-4xl); /* 36px default, scale up with utility classes */
     margin-bottom: var(--spacing-6);
   }
 
   h2 {
-    font-size: var(--font-size-4xl);
+    font-size: var(--font-size-3xl); /* 30px */
     margin-bottom: var(--spacing-5);
   }
 
   h3 {
-    font-size: var(--font-size-3xl);
+    font-size: var(--font-size-2xl); /* 24px */
     margin-bottom: var(--spacing-4);
   }
 
@@ -377,25 +389,23 @@
     }
   }
 
-  /* Depth and shadow utilities */
+  /* Depth and shadow utilities - Stripe-inspired layered shadows */
   .depth-1 {
     box-shadow:
-      0 1px 3px rgba(0, 0, 0, 0.05),
-      0 4px 12px rgba(0, 0, 0, 0.04);
+      0 2px 5px -1px rgba(50, 50, 93, 0.25),
+      0 1px 3px -1px rgba(0, 0, 0, 0.3);
   }
 
   .depth-2 {
     box-shadow:
-      0 4px 6px rgba(0, 0, 0, 0.05),
-      0 12px 24px rgba(0, 0, 0, 0.08),
-      0 24px 48px rgba(0, 0, 0, 0.06);
+      0 13px 27px -5px rgba(50, 50, 93, 0.25),
+      0 8px 16px -8px rgba(0, 0, 0, 0.3);
   }
 
   .depth-3 {
     box-shadow:
-      0 10px 20px rgba(0, 0, 0, 0.08),
-      0 20px 40px rgba(0, 0, 0, 0.1),
-      0 40px 80px rgba(0, 0, 0, 0.08);
+      0 30px 60px -12px rgba(50, 50, 93, 0.25),
+      0 18px 36px -18px rgba(0, 0, 0, 0.3);
   }
 
   /* Align card to grid boundaries - extends to column edges */
@@ -408,13 +418,21 @@
     }
   }
 
-  /* Interactive hover states */
+  /* Interactive hover states - Stripe timing */
   .hover-lift {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
   }
 
   .hover-lift:hover {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
+  }
+
+  /* Stripe-style button transitions */
+  .btn-transition {
+    transition:
+      background-color var(--transition-base),
+      opacity var(--transition-base),
+      transform var(--transition-base);
   }
 
   /* Diagonal section dividers - using clip-path for clean slanted edges */
@@ -474,10 +492,20 @@
     margin-bottom: -4rem;
   }
 
-  /* Pill/badge component */
+  /* Pill/badge component - Stripe style */
   .status-badge {
     @apply inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm;
     background: linear-gradient(to bottom, hsl(var(--card)), hsl(var(--muted) / 0.5));
+    letter-spacing: var(--tracking-wide);
+  }
+
+  /* Card padding - Stripe standard */
+  .card-padding {
+    padding: 24px;
+  }
+
+  .card-padding-lg {
+    padding: 32px;
   }
 
   /* Subtle background patterns */
