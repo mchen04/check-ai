@@ -152,8 +152,7 @@ export default async function LandingPage() {
                 <div className="space-y-6">
                   {/* Request */}
                   <div>
-                    <div className="mb-3 flex items-center gap-2">
-                      <div className="accent-bar"></div>
+                    <div className="mb-3">
                       <span className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         REQUEST
                       </span>
@@ -203,9 +202,6 @@ export default async function LandingPage() {
             <div className="content-constrained grid-4col gap-y-20">
               {/* Heading - Spans 1-3 for asymmetry */}
               <div className="col-1-3">
-                <div className="mb-3 inline-block">
-                  <div className="accent-bar"></div>
-                </div>
                 <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                   The stakes are higher than you think
                 </h2>
@@ -255,9 +251,6 @@ export default async function LandingPage() {
             <div className="content-constrained grid-4col gap-y-16">
               {/* Heading - Full width */}
               <div className="col-1-4">
-                <div className="mb-3 inline-block">
-                  <div className="accent-bar"></div>
-                </div>
                 <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                   One method doesn&apos;t fit all use cases
                 </h2>
@@ -313,9 +306,6 @@ export default async function LandingPage() {
             <div className="content-constrained grid-4col gap-y-16">
               {/* Heading - Columns 1-2 */}
               <div className="col-1-2">
-                <div className="mb-3 inline-block">
-                  <div className="accent-bar"></div>
-                </div>
                 <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                   Seven verification methods
                 </h2>
@@ -404,9 +394,6 @@ export default async function LandingPage() {
             <div className="content-constrained grid-4col gap-y-12">
               {/* Heading - Columns 1-2 (Sticky) */}
               <div className="col-1-2 lg:sticky lg:top-32 lg:self-start">
-                <div className="mb-3 inline-block">
-                  <div className="accent-bar"></div>
-                </div>
                 <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                   Configure for your domain
                 </h2>
@@ -497,9 +484,6 @@ export default async function LandingPage() {
             <div className="content-constrained grid-4col gap-y-12">
               {/* Heading - Columns 1-2 */}
               <div className="col-1-2">
-                <div className="mb-3 inline-block">
-                  <div className="accent-bar"></div>
-                </div>
                 <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
                   Backed by peer-reviewed research
                 </h2>
@@ -606,9 +590,6 @@ export default async function LandingPage() {
             <div className="content-constrained grid-4col gap-y-16">
               {/* Heading - Full width */}
               <div className="col-1-4">
-                <div className="mb-3 inline-block">
-                  <div className="accent-bar"></div>
-                </div>
                 <h2 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
                   Transparent pricing
                 </h2>
