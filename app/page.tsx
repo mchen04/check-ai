@@ -23,6 +23,7 @@ import {
   X,
 } from 'lucide-react';
 import Stripe from 'stripe';
+import NeuralNetwork from '@/components/neural-network';
 
 // Types
 interface StripeProduct {
@@ -200,8 +201,8 @@ export default async function LandingPage() {
         <section className="diagonal-divider-both bg-section-navy relative w-full overflow-hidden">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-20">
-              {/* Heading - Spans 1-3 for asymmetry */}
-              <div className="col-1-3">
+              {/* Heading - Spans 1-2 */}
+              <div className="col-1-2">
                 <h2 className="mb-6 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
                   The stakes are higher than you think
                 </h2>
@@ -211,33 +212,47 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-
-              {/* Stats Grid - Simple clean numbers */}
-              <div className="col-1">
-                <div className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
-                  $2.4M
+              {/* Visual element - Neural network particle animation */}
+              <div className="col-3-4 relative row-span-2 min-h-[400px]">
+                <div className="absolute inset-0 h-full w-full">
+                  <NeuralNetwork
+                    particleCount={80}
+                    linkDistance={120}
+                    particleColor="rgba(99, 91, 255, 0.6)"
+                    linkColor="99, 91, 255"
+                    particleSize={2.5}
+                  />
                 </div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Average cost per hallucination incident in regulated industries
-                </p>
               </div>
 
-              <div className="col-2">
-                <div className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
-                  78%
+              {/* Stats Grid - Aligned at same level with margin from heading */}
+              <div className="col-1-3 mt-6 grid grid-cols-3 gap-8">
+                <div>
+                  <div className="mb-2 text-2xl font-bold tracking-tight">
+                    $2.4M
+                  </div>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Average cost per hallucination incident in regulated industries
+                  </p>
                 </div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Of enterprises now deploy AI in production systems
-                </p>
-              </div>
 
-              <div className="col-3">
-                <div className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
-                  100%
+                <div>
+                  <div className="mb-2 text-2xl font-bold tracking-tight">
+                    78%
+                  </div>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Of enterprises now deploy AI in production systems
+                  </p>
                 </div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Legally liable for every AI output your product generates
-                </p>
+
+                <div>
+                  <div className="mb-2 text-2xl font-bold tracking-tight">
+                    100%
+                  </div>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Legally liable for every AI output your product generates
+                  </p>
+                </div>
               </div>
 
             </div>
