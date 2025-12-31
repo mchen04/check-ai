@@ -215,19 +215,6 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              {/* Visual indicator - Column 4 */}
-              <div className="col-4">
-                <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/60">
-                  Error Rate
-                </div>
-                <div className="mb-4 text-4xl font-bold">8%</div>
-                <div className="space-y-2">
-                  <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                    <div className="h-full w-[8%] rounded-full bg-gradient-to-r from-destructive to-destructive/60"></div>
-                  </div>
-                  <p className="text-xs text-white/60">Even with GPT-5</p>
-                </div>
-              </div>
 
               {/* Stats Grid - Simple clean numbers */}
               <div className="col-1">
@@ -257,16 +244,6 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              {/* Case study - Column 4 */}
-              <div className="col-4">
-                <div className="mb-4 text-4xl font-bold leading-none text-primary/30">&ldquo;</div>
-                <p className="text-sm leading-relaxed text-white/80">
-                  Air Canada was sued after their chatbot invented a refund policy.{' '}
-                  <span className="font-semibold text-white">
-                    Verification isn&apos;t optional anymore.
-                  </span>
-                </p>
-              </div>
             </div>
           </div>
         </section>
@@ -293,25 +270,12 @@ export default async function LandingPage() {
 
               {/* Traditional - Column 1 */}
               <div className="col-1">
-                <div className="mb-5 flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-destructive"></div>
-                  <span className="text-xs font-bold uppercase tracking-widest text-destructive">
-                    Traditional
-                  </span>
-                </div>
-
-                <div className="mb-6 text-sm text-muted-foreground">Limited to 1 method</div>
-
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                    <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
-                    <span>Locked approach</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                    <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
-                    <span>Domain-specific</span>
-                  </li>
-                </ul>
+                <X className="mb-4 h-8 w-8 text-destructive" />
+                <h3 className="mb-2 font-semibold">Traditional</h3>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Locked approach limited to 1 method
+                </p>
+                <div className="text-xs text-muted-foreground">Domain-specific</div>
               </div>
 
               {/* VerifyAI - Columns 2-4 */}
@@ -325,32 +289,17 @@ export default async function LandingPage() {
                 <div className="mb-8 text-lg font-semibold">7 Methods Available</div>
 
                 <div className="grid gap-8 sm:grid-cols-3">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-accent-cyan/20">
-                      <Check className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <div className="mb-1 font-semibold">7 Methods</div>
-                      <p className="text-xs text-muted-foreground">Mix and match freely</p>
-                    </div>
+                  <div>
+                    <div className="mb-1 font-semibold">7 Methods</div>
+                    <p className="text-xs text-muted-foreground">Mix and match freely</p>
                   </div>
-                  <div className="flex flex-col gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-accent-teal/20 to-accent-green/20">
-                      <Check className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <div className="mb-1 font-semibold">Custom Weights</div>
-                      <p className="text-xs text-muted-foreground">Fine-tune per use case</p>
-                    </div>
+                  <div>
+                    <div className="mb-1 font-semibold">Custom Weights</div>
+                    <p className="text-xs text-muted-foreground">Fine-tune per use case</p>
                   </div>
-                  <div className="flex flex-col gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-accent-purple/20 to-primary/20">
-                      <Check className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <div className="mb-1 font-semibold">Universal</div>
-                      <p className="text-xs text-muted-foreground">Works everywhere</p>
-                    </div>
+                  <div>
+                    <div className="mb-1 font-semibold">Universal</div>
+                    <p className="text-xs text-muted-foreground">Works everywhere</p>
                   </div>
                 </div>
               </div>
@@ -376,27 +325,6 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              {/* Stats preview - Columns 3-4 */}
-              <div className="col-3-4">
-                <div className="mb-4 text-sm font-semibold">Popular Configurations</div>
-                <div className="space-y-4">
-                  <div>
-                    <div className="mb-2 text-xs text-muted-foreground">Medical</div>
-                    <div className="flex h-2 gap-1">
-                      <div className="flex-[6] rounded-full bg-primary"></div>
-                      <div className="flex-[3] rounded-full bg-primary/40"></div>
-                      <div className="flex-[1] rounded-full bg-primary/20"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="mb-2 text-xs text-muted-foreground">Legal</div>
-                    <div className="flex h-2 gap-1">
-                      <div className="flex-1 rounded-full bg-primary"></div>
-                      <div className="flex-1 rounded-full bg-primary"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* Methods as simple list */}
               <div className="col-1">
@@ -454,33 +382,28 @@ export default async function LandingPage() {
               </div>
 
               <div className="col-3-4">
-                <div className="flex items-start gap-4">
-                  <FileText className="h-8 w-8 flex-shrink-0 text-primary" />
-                  <div>
-                    <div className="mb-2 flex items-baseline gap-3">
-                      <h3 className="font-semibold">Formal Verification</h3>
-                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                        Coming Soon
-                      </span>
-                    </div>
-                    <p className="mb-2 text-sm text-muted-foreground">
-                      Mathematical proofs for cryptography and smart contracts
-                    </p>
-                    <div className="text-xs text-muted-foreground">Variable • FPR: 0%</div>
-                  </div>
+                <FileText className="mb-4 h-8 w-8 text-primary" />
+                <div className="mb-2 flex items-baseline gap-3">
+                  <h3 className="font-semibold">Formal Verification</h3>
+                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                    Coming Soon
+                  </span>
                 </div>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Mathematical proofs for cryptography and smart contracts
+                </p>
+                <div className="text-xs text-muted-foreground">Variable • FPR: 0%</div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Use Cases - Visual configuration display */}
+        {/* Use Cases - Configuration sticky scroll */}
         <section className="bg-section-white relative w-full overflow-hidden py-24 md:py-32">
-
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-12">
-              {/* Heading - Columns 1-2 */}
-              <div className="col-1-2">
+              {/* Heading - Columns 1-2 (Sticky) */}
+              <div className="col-1-2 lg:sticky lg:top-32 lg:self-start">
                 <div className="mb-3 inline-block">
                   <div className="accent-bar"></div>
                 </div>
@@ -492,61 +415,76 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              {/* Medical AI - Columns 3-4 */}
-              <div className="col-3-4">
-                <h3 className="mb-6 text-2xl font-bold">Medical AI</h3>
-                <ul className="space-y-3">
-                  <li className="flex items-center gap-3">
-                    <Check className="h-5 w-5 text-success" />
-                    <div>
-                      <span className="font-medium">BiPRM verification</span>
-                      <span className="ml-2 text-xs text-muted-foreground">60% weight</span>
-                    </div>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="h-5 w-5 text-success" />
-                    <div>
-                      <span className="font-medium">Tool-augmented check</span>
-                      <span className="ml-2 text-xs text-muted-foreground">30% weight</span>
-                    </div>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="h-5 w-5 text-success" />
-                    <div>
-                      <span className="font-medium">Semantic filter</span>
-                      <span className="ml-2 text-xs text-muted-foreground">10% weight</span>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Legal & Support - Columns 1-2 */}
-              <div className="col-1-2 space-y-8">
+              {/* Scrolling configs - Columns 3-4 */}
+              <div className="col-3-4 space-y-32">
+                {/* Medical AI */}
                 <div>
-                  <h3 className="mb-4 text-2xl font-bold">Legal AI</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <div className="rounded-full bg-muted px-4 py-2 text-sm">
-                      <span className="font-medium">Ensemble</span>
-                      <span className="ml-2 text-xs text-muted-foreground">50%</span>
-                    </div>
-                    <div className="rounded-full bg-muted px-4 py-2 text-sm">
-                      <span className="font-medium">Tool</span>
-                      <span className="ml-2 text-xs text-muted-foreground">50%</span>
-                    </div>
-                  </div>
+                  <h3 className="mb-6 text-2xl font-bold">Medical AI</h3>
+                  <ul className="space-y-3">
+                    <li className="flex items-center gap-3">
+                      <Check className="h-5 w-5 text-success" />
+                      <div>
+                        <span className="font-medium">BiPRM verification</span>
+                        <span className="ml-2 text-xs text-muted-foreground">60% weight</span>
+                      </div>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <Check className="h-5 w-5 text-success" />
+                      <div>
+                        <span className="font-medium">Tool-augmented check</span>
+                        <span className="ml-2 text-xs text-muted-foreground">30% weight</span>
+                      </div>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <Check className="h-5 w-5 text-success" />
+                      <div>
+                        <span className="font-medium">Semantic filter</span>
+                        <span className="ml-2 text-xs text-muted-foreground">10% weight</span>
+                      </div>
+                    </li>
+                  </ul>
                 </div>
+
+                {/* Legal AI */}
                 <div>
-                  <h3 className="mb-4 text-2xl font-bold">Support AI</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <div className="rounded-full bg-muted px-4 py-2 text-sm">
-                      <span className="font-medium">Reasoning</span>
-                      <span className="ml-2 text-xs text-muted-foreground">80%</span>
-                    </div>
-                    <div className="rounded-full bg-muted px-4 py-2 text-sm">
-                      <span className="font-medium">Semantic</span>
-                      <span className="ml-2 text-xs text-muted-foreground">20%</span>
-                    </div>
-                  </div>
+                  <h3 className="mb-6 text-2xl font-bold">Legal AI</h3>
+                  <ul className="space-y-3">
+                    <li className="flex items-center gap-3">
+                      <Check className="h-5 w-5 text-success" />
+                      <div>
+                        <span className="font-medium">Ensemble</span>
+                        <span className="ml-2 text-xs text-muted-foreground">50% weight</span>
+                      </div>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <Check className="h-5 w-5 text-success" />
+                      <div>
+                        <span className="font-medium">Tool</span>
+                        <span className="ml-2 text-xs text-muted-foreground">50% weight</span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Support AI */}
+                <div>
+                  <h3 className="mb-6 text-2xl font-bold">Support AI</h3>
+                  <ul className="space-y-3">
+                    <li className="flex items-center gap-3">
+                      <Check className="h-5 w-5 text-success" />
+                      <div>
+                        <span className="font-medium">Reasoning</span>
+                        <span className="ml-2 text-xs text-muted-foreground">80% weight</span>
+                      </div>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <Check className="h-5 w-5 text-success" />
+                      <div>
+                        <span className="font-medium">Semantic</span>
+                        <span className="ml-2 text-xs text-muted-foreground">20% weight</span>
+                      </div>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -570,17 +508,9 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              {/* Research count - Columns 3-4 */}
-              <div className="col-3-4">
-                <div className="mb-2 text-5xl font-bold text-white">5</div>
-                <p className="text-sm text-white/70">
-                  Papers cited • All peer-reviewed
-                </p>
-              </div>
-
-              {/* Research papers - Simple list */}
+              {/* Research papers - Clean grid */}
               <div className="col-1-4">
-                <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
                   <div>
                     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <FileText className="h-5 w-5 text-primary" />
@@ -689,7 +619,7 @@ export default async function LandingPage() {
 
               {/* Free - Column 1 */}
               <div className="col-1">
-                <div className="flex h-full flex-col rounded-xl bg-card p-6">
+                <div className="flex h-full flex-col rounded-xl bg-white p-6">
                   <div className="mb-6">
                     <div className="mb-1 text-5xl font-bold">$0</div>
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Free</h3>
@@ -757,7 +687,7 @@ export default async function LandingPage() {
 
               {/* Enterprise - Column 4 */}
               <div className="col-4">
-                <div className="flex h-full flex-col rounded-xl bg-card p-6">
+                <div className="flex h-full flex-col rounded-xl bg-white p-6">
                   <div className="mb-6">
                     <div className="mb-1 text-5xl font-bold">Custom</div>
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Enterprise</h3>
