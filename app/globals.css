@@ -254,6 +254,8 @@
     .grid-4col {
       grid-template-columns: repeat(4, 1fr);
       gap: 2rem; /* Gap between columns */
+      padding-left: 1rem; /* Margin before first column */
+      padding-right: 1rem; /* Margin after last column */
     }
 
     /* Single columns */
