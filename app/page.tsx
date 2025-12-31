@@ -348,71 +348,69 @@ export default async function LandingPage() {
 
               {/* Methods as simple list */}
               <div className="col-1">
-                <Zap className="mb-4 h-8 w-8 text-primary" />
-                <h3 className="mb-2 font-semibold">Semantic Similarity</h3>
-                <p className="mb-3 text-sm text-muted-foreground">
+                <Zap className="mb-3 h-5 w-5 text-primary" />
+                <h3 className="mb-2 text-sm font-semibold">Semantic Similarity</h3>
+                <p className="mb-3 text-xs text-muted-foreground">
                   Quick embedding comparison for initial filtering
                 </p>
                 <div className="text-xs text-muted-foreground">~100ms • FPR: 50-100%</div>
               </div>
 
               <div className="col-2">
-                <Activity className="mb-4 h-8 w-8 text-primary" />
-                <h3 className="mb-2 font-semibold">Reasoning-Based</h3>
-                <p className="mb-3 text-sm text-muted-foreground">
+                <Activity className="mb-3 h-5 w-5 text-primary" />
+                <h3 className="mb-2 text-sm font-semibold">Reasoning-Based</h3>
+                <p className="mb-3 text-xs text-muted-foreground">
                   Chain-of-thought analysis for general verification
                 </p>
                 <div className="text-xs text-muted-foreground">2-3s • FPR: 7%</div>
               </div>
 
               <div className="col-3">
-                <Code className="mb-4 h-8 w-8 text-primary" />
-                <h3 className="mb-2 font-semibold">Tool-Augmented</h3>
-                <p className="mb-3 text-sm text-muted-foreground">
+                <Code className="mb-3 h-5 w-5 text-primary" />
+                <h3 className="mb-2 text-sm font-semibold">Tool-Augmented</h3>
+                <p className="mb-3 text-xs text-muted-foreground">
                   Web search and code execution for facts
                 </p>
                 <div className="text-xs text-muted-foreground">1-2s • FPR: ~2%</div>
               </div>
 
               <div className="col-4">
-                <Shield className="mb-4 h-8 w-8 text-primary" />
-                <h3 className="mb-2 font-semibold">BiPRM</h3>
-                <p className="mb-3 text-sm text-muted-foreground">
+                <Shield className="mb-3 h-5 w-5 text-primary" />
+                <h3 className="mb-2 text-sm font-semibold">BiPRM</h3>
+                <p className="mb-3 text-xs text-muted-foreground">
                   Bidirectional reasoning for high-stakes domains
                 </p>
                 <div className="text-xs text-muted-foreground">3-5s • FPR: ~10%</div>
               </div>
 
               <div className="col-1">
-                <BarChart className="mb-4 h-8 w-8 text-primary" />
-                <h3 className="mb-2 font-semibold">Ensemble</h3>
-                <p className="mb-3 text-sm text-muted-foreground">
+                <BarChart className="mb-3 h-5 w-5 text-primary" />
+                <h3 className="mb-2 text-sm font-semibold">Ensemble</h3>
+                <p className="mb-3 text-xs text-muted-foreground">
                   Multiple model voting for precision
                 </p>
                 <div className="text-xs text-muted-foreground">5-10s • FPR: 20-40%</div>
               </div>
 
               <div className="col-2">
-                <CheckCircle className="mb-4 h-8 w-8 text-primary" />
-                <h3 className="mb-2 font-semibold">Semantic Entropy</h3>
-                <p className="mb-3 text-sm text-muted-foreground">
+                <CheckCircle className="mb-3 h-5 w-5 text-primary" />
+                <h3 className="mb-2 text-sm font-semibold">Semantic Entropy</h3>
+                <p className="mb-3 text-xs text-muted-foreground">
                   Consistency pattern detection
                 </p>
                 <div className="text-xs text-muted-foreground">~200ms • FPR: TBD</div>
               </div>
 
               <div className="col-3">
-                <FileText className="mb-4 h-8 w-8 text-primary" />
-                <h3 className="mb-2 font-semibold">Formal Verification</h3>
-                <div className="mb-3">
-                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                    Coming Soon
-                  </span>
-                </div>
-                <p className="mb-3 text-sm text-muted-foreground">
+                <FileText className="mb-3 h-5 w-5 text-primary" />
+                <h3 className="mb-2 text-sm font-semibold">Formal Verification</h3>
+                <p className="mb-3 text-xs text-muted-foreground">
                   Mathematical proofs for cryptography and smart contracts
                 </p>
-                <div className="text-xs text-muted-foreground">Variable • FPR: 0%</div>
+                <div className="mb-2 text-xs text-muted-foreground">Variable • FPR: 0%</div>
+                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                  Coming Soon
+                </span>
               </div>
             </div>
           </div>
