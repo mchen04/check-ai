@@ -381,10 +381,10 @@ export default async function LandingPage() {
                 <div className="text-xs text-muted-foreground">~200ms • FPR: TBD</div>
               </div>
 
-              <div className="col-3-4">
+              <div className="col-3">
                 <FileText className="mb-4 h-8 w-8 text-primary" />
-                <div className="mb-2 flex items-baseline gap-3">
-                  <h3 className="font-semibold">Formal Verification</h3>
+                <h3 className="mb-2 font-semibold">Formal Verification</h3>
+                <div className="mb-3">
                   <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                     Coming Soon
                   </span>
