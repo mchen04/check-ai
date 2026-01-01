@@ -562,9 +562,10 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              {/* Free - Column 1 */}
-              <div className="col-1">
-                <div className="flex h-full flex-col rounded-xl bg-white p-6">
+              {/* Pricing cards - evenly split across 4 columns */}
+              <div className="col-1-4 grid grid-cols-1 gap-6 lg:grid-cols-3">
+                {/* Free */}
+                <div className="flex flex-col rounded-xl border border-border bg-card p-6">
                   <div className="mb-6">
                     <div className="mb-1 text-4xl font-bold">$0</div>
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Free</h3>
@@ -587,16 +588,14 @@ export default async function LandingPage() {
                     <Link href="#waitlist">Join beta</Link>
                   </Button>
                 </div>
-              </div>
 
-              {/* Pro - Columns 2-3 (Featured, clean) */}
-              <div className="col-2-3">
-                <div className="depth-2 relative flex h-full flex-col rounded-xl bg-card p-8">
-                  <div className="mb-8">
+                {/* Pro */}
+                <div className="flex flex-col rounded-xl border border-border bg-card p-6">
+                  <div className="mb-6">
                     <div className="mb-4 inline-flex rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary">
                       Most Popular
                     </div>
-                    <div className="mb-2 text-5xl font-bold">$99-299</div>
+                    <div className="mb-1 text-4xl font-bold">$99-299</div>
                     <div className="mb-1 text-sm text-muted-foreground">/month</div>
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Pro</h3>
                   </div>
@@ -624,25 +623,38 @@ export default async function LandingPage() {
                     </li>
                   </ul>
 
-                  <Button asChild className="w-full" size="lg">
+                  <Button asChild className="w-full" size="default">
                     <Link href="#waitlist">Join beta</Link>
                   </Button>
                 </div>
-              </div>
 
-              {/* Enterprise - Column 4 */}
-              <div className="col-4">
-                <div className="flex h-full flex-col rounded-xl bg-white p-6">
+                {/* Enterprise */}
+                <div className="flex flex-col rounded-xl border border-border bg-card p-6">
                   <div className="mb-6">
                     <div className="mb-1 text-4xl font-bold">Custom</div>
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Enterprise</h3>
                   </div>
-                  <ul className="mb-8 flex-1 space-y-3 text-sm text-muted-foreground">
-                    <li>Everything in Pro</li>
-                    <li>Custom SLAs</li>
-                    <li>White-label options</li>
-                    <li>Custom methods</li>
-                    <li>Dedicated support</li>
+                  <ul className="mb-8 flex-1 space-y-3 text-sm">
+                    <li className="flex items-start gap-2.5">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Everything in Pro</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Custom SLAs</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>White-label options</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Custom methods</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>Dedicated support</span>
+                    </li>
                   </ul>
                   <Button variant="outline" size="default" asChild className="w-full">
                     <Link href="#waitlist">Contact sales</Link>
