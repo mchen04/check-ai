@@ -33,8 +33,8 @@ export default function NeuralNetwork({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let w = canvas.width = canvas.offsetWidth;
-    let h = canvas.height = canvas.offsetHeight;
+    let w = (canvas.width = canvas.offsetWidth);
+    let h = (canvas.height = canvas.offsetHeight);
     let particles: Particle[] = [];
     let animationId: number;
 
@@ -84,12 +84,7 @@ export default function NeuralNetwork({
     const drawConnections = () => {
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
-          const dist = distance(
-            particles[i].x,
-            particles[i].y,
-            particles[j].x,
-            particles[j].y
-          );
+          const dist = distance(particles[i].x, particles[i].y, particles[j].x, particles[j].y);
 
           if (dist < linkDistance) {
             const opacity = (1 - dist / linkDistance) * 0.5;

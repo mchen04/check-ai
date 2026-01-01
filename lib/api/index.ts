@@ -10,12 +10,12 @@ export * from './errors';
 
 // Middleware
 export {
-    withApiAuth,
-    withQuotaCheck,
-    withRateLimit,
-    withMethodCheck,
-    withErrorHandler,
-    withLogging,
-    withApiMiddleware,
-    compose,
+  withApiAuth,
+  withQuotaCheck,
+  withRateLimit,
+  withMethodCheck,
+  withErrorHandler,
+  withLogging,
+  withApiMiddleware,
+  compose,
 } from './middleware';

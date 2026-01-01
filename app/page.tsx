@@ -103,7 +103,7 @@ export default async function LandingPage() {
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col items-center gap-y-16">
               {/* Left: Text Content - Columns 1-2 */}
-              <div className="relative z-10 col-1-2 space-y-8">
+              <div className="col-1-2 relative z-10 space-y-8">
                 <div className="status-badge">
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
@@ -123,8 +123,8 @@ export default async function LandingPage() {
                   </h1>
                   <p className="max-w-xl text-base leading-relaxed text-muted-foreground lg:text-lg">
                     Catch hallucinations before deployment with seven research-backed verification
-                    methods. Configure the mix that fits your use case—medical, legal, or anything in
-                    between.
+                    methods. Configure the mix that fits your use case—medical, legal, or anything
+                    in between.
                   </p>
                 </div>
 
@@ -151,8 +151,8 @@ export default async function LandingPage() {
               </div>
 
               {/* Right: Animated Dashboard - Starts halfway through column 3 */}
-              <div className="relative z-20 col-3-4 extend-right flex items-center min-h-[450px]">
-                <div className="absolute left-[25%] top-1/2 -translate-y-1/2 w-[140%]">
+              <div className="col-3-4 extend-right relative z-20 flex min-h-[450px] items-center">
+                <div className="absolute left-[25%] top-1/2 w-[140%] -translate-y-1/2">
                   <HeroDashboard />
                 </div>
               </div>
@@ -191,33 +191,26 @@ export default async function LandingPage() {
               {/* Stats Grid - Aligned at same level with margin from heading */}
               <div className="col-1-3 mt-6 grid grid-cols-3 gap-8">
                 <div>
-                  <div className="mb-2 text-2xl font-bold tracking-tight">
-                    $2.4M
-                  </div>
+                  <div className="mb-2 text-2xl font-bold tracking-tight">$2.4M</div>
                   <p className="text-xs leading-relaxed text-muted-foreground">
                     Average cost per hallucination incident in regulated industries
                   </p>
                 </div>
 
                 <div>
-                  <div className="mb-2 text-2xl font-bold tracking-tight">
-                    78%
-                  </div>
+                  <div className="mb-2 text-2xl font-bold tracking-tight">78%</div>
                   <p className="text-xs leading-relaxed text-muted-foreground">
                     Of enterprises now deploy AI in production systems
                   </p>
                 </div>
 
                 <div>
-                  <div className="mb-2 text-2xl font-bold tracking-tight">
-                    100%
-                  </div>
+                  <div className="mb-2 text-2xl font-bold tracking-tight">100%</div>
                   <p className="text-xs leading-relaxed text-muted-foreground">
                     Legally liable for every AI output your product generates
                   </p>
                 </div>
               </div>
-
             </div>
           </div>
         </section>
@@ -252,15 +245,9 @@ export default async function LandingPage() {
 
                 <div className="space-y-3">
                   <h3 className="text-base font-semibold">Single method</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Fixed weights
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Domain-specific
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    One-size-fits-all
-                  </p>
+                  <p className="text-sm text-muted-foreground">Fixed weights</p>
+                  <p className="text-sm text-muted-foreground">Domain-specific</p>
+                  <p className="text-sm text-muted-foreground">One-size-fits-all</p>
                 </div>
               </div>
 
@@ -278,15 +265,9 @@ export default async function LandingPage() {
 
                 <div className="space-y-3">
                   <h3 className="text-base font-semibold">Seven methods</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Custom weights
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Universal coverage
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Configure per use case
-                  </p>
+                  <p className="text-sm text-muted-foreground">Custom weights</p>
+                  <p className="text-sm text-muted-foreground">Universal coverage</p>
+                  <p className="text-sm text-muted-foreground">Configure per use case</p>
                 </div>
               </div>
             </div>
@@ -307,7 +288,6 @@ export default async function LandingPage() {
                   tradeoffs.
                 </p>
               </div>
-
 
               {/* Methods as simple list */}
               <div className="col-1">
@@ -358,9 +338,7 @@ export default async function LandingPage() {
               <div className="col-2">
                 <CheckCircle className="mb-3 h-5 w-5 text-primary" />
                 <h3 className="mb-2 text-sm font-semibold">Semantic Entropy</h3>
-                <p className="mb-3 text-xs text-muted-foreground">
-                  Consistency pattern detection
-                </p>
+                <p className="mb-3 text-xs text-muted-foreground">Consistency pattern detection</p>
                 <div className="text-xs text-muted-foreground">~200ms • FPR: TBD</div>
               </div>
 
@@ -389,7 +367,8 @@ export default async function LandingPage() {
                   Configure for your domain
                 </h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  Different industries need different verification mixes. Here&apos;s how teams configure VerifyAI.
+                  Different industries need different verification mixes. Here&apos;s how teams
+                  configure VerifyAI.
                 </p>
               </div>
 
@@ -412,7 +391,8 @@ export default async function LandingPage() {
                     Developer-friendly API
                   </h2>
                   <p className="text-base leading-relaxed text-muted-foreground">
-                    Simple REST API that fits your workflow. Send a request, get a verdict—no complex setup required.
+                    Simple REST API that fits your workflow. Send a request, get a verdict—no
+                    complex setup required.
                   </p>
                 </div>
 
@@ -510,8 +490,10 @@ export default async function LandingPage() {
         </section>
 
         {/* Pricing Section */}
-        <section className="diagonal-divider-both bg-section-white relative w-full overflow-hidden" id="pricing">
-
+        <section
+          className="diagonal-divider-both bg-section-white relative w-full overflow-hidden"
+          id="pricing"
+        >
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-16">
               {/* Heading - Full width */}
@@ -530,7 +512,9 @@ export default async function LandingPage() {
                 <div className="flex flex-col rounded-xl border border-border bg-card p-6">
                   <div className="mb-6">
                     <div className="mb-1 text-4xl font-bold">$0</div>
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Free</h3>
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                      Free
+                    </h3>
                   </div>
                   <ul className="mb-8 flex-1 space-y-3 text-sm">
                     <li className="flex items-start gap-2.5">
@@ -559,13 +543,17 @@ export default async function LandingPage() {
                     </div>
                     <div className="mb-1 text-4xl font-bold">$99-299</div>
                     <div className="mb-1 text-sm text-muted-foreground">/month</div>
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Pro</h3>
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                      Pro
+                    </h3>
                   </div>
 
                   <ul className="mb-8 flex-1 space-y-3 text-sm">
                     <li className="flex items-start gap-3">
                       <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-                      <span><strong>Unlimited</strong> verifications</span>
+                      <span>
+                        <strong>Unlimited</strong> verifications
+                      </span>
                     </li>
                     <li className="flex items-start gap-3">
                       <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
@@ -594,7 +582,9 @@ export default async function LandingPage() {
                 <div className="flex flex-col rounded-xl border border-border bg-card p-6">
                   <div className="mb-6">
                     <div className="mb-1 text-4xl font-bold">Custom</div>
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Enterprise</h3>
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                      Enterprise
+                    </h3>
                   </div>
                   <ul className="mb-8 flex-1 space-y-3 text-sm">
                     <li className="flex items-start gap-2.5">
@@ -631,7 +621,10 @@ export default async function LandingPage() {
         <section className="bg-section-navy relative w-full overflow-hidden" id="waitlist">
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-accent-cyan/10 via-transparent to-accent-purple/10"></div>
           <div className="parallax-slow pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl"></div>
-          <div className="parallax-slow pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-accent-cyan/20 blur-3xl" style={{animationDelay: '-10s'}}></div>
+          <div
+            className="parallax-slow pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-accent-cyan/20 blur-3xl"
+            style={{ animationDelay: '-10s' }}
+          ></div>
 
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-12">
@@ -652,7 +645,10 @@ export default async function LandingPage() {
                       placeholder="you@company.com"
                       className="flex-1 rounded-lg border border-white/10 bg-white/5 px-6 py-4 text-base text-white backdrop-blur-sm placeholder:text-white/40 focus-visible:border-white/30 focus-visible:outline-none focus-visible:ring-0"
                     />
-                    <Button size="lg" className="bg-white text-foreground hover:bg-white/90 sm:w-auto">
+                    <Button
+                      size="lg"
+                      className="bg-white text-foreground hover:bg-white/90 sm:w-auto"
+                    >
                       Join waitlist
                     </Button>
                   </div>

@@ -17,7 +17,8 @@ interface Config {
 const configs: Config[] = [
   {
     title: 'Medical AI',
-    description: 'High-stakes healthcare applications require maximum accuracy with bidirectional reasoning.',
+    description:
+      'High-stakes healthcare applications require maximum accuracy with bidirectional reasoning.',
     items: [
       { method: 'BiPRM verification', weight: '60% weight' },
       { method: 'Tool-augmented check', weight: '30% weight' },
@@ -84,7 +85,8 @@ export default function ScrollConfig() {
               Configure for your domain
             </h2>
             <p className="text-base leading-relaxed text-muted-foreground">
-              Different industries need different verification mixes. Here&apos;s how teams configure VerifyAI.
+              Different industries need different verification mixes. Here&apos;s how teams
+              configure VerifyAI.
             </p>
           </div>
 
@@ -98,7 +100,7 @@ export default function ScrollConfig() {
               style={{
                 margin: '50vh 0',
                 opacity: activeIndex === index ? 1 : 0.3,
-                transition: 'opacity 0.3s ease'
+                transition: 'opacity 0.3s ease',
               }}
             >
               <h3 className="mb-4 text-xl font-bold">{config.title}</h3>
@@ -117,7 +119,7 @@ export default function ScrollConfig() {
                   <li key={i} className="flex items-center gap-3">
                     <Check className="h-5 w-5 flex-shrink-0 text-success" />
                     <div className="flex-1">
-                      <span className="font-medium text-sm">{item.method}</span>
+                      <span className="text-sm font-medium">{item.method}</span>
                       <span className="ml-2 text-xs text-muted-foreground">{item.weight}</span>
                     </div>
                   </li>

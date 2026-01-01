@@ -9,70 +9,64 @@
 
 import { LLMClient } from '@/lib/llm/client';
 import { ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm/types';
-import {
-    ParadigmExecutor,
-    ParadigmResult,
-    ParadigmOptions,
-} from '../types';
-import {
-    BIPRM_SYSTEM_PROMPT,
-    BIPRM_USER_PROMPT,
-} from '../prompts';
+import { ParadigmExecutor, ParadigmResult, ParadigmOptions } from '../types';
+import { BIPRM_SYSTEM_PROMPT, BIPRM_USER_PROMPT } from '../prompts';
 
 // =============================================================================
 // BIPRM RESPONSE PARSING
 // =============================================================================
 
 interface BiPRMResponse {
-    verdict: 'true' | 'false' | 'uncertain';
-    confidence: number;
-    forwardAnalysis: string;
-    backwardAnalysis: string;
-    reasoning: string;
+  verdict: 'true' | 'false' | 'uncertain';
+  confidence: number;
+  forwardAnalysis: string;
+  backwardAnalysis: string;
+  reasoning: string;
 }
 
 function parseBiPRMResponse(response: string): BiPRMResponse {
-    try {
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-            throw new Error('No JSON found in response');
-        }
-
-        const parsed = JSON.parse(jsonMatch[0]);
-
-        // Normalize verdict
-        let verdict: 'true' | 'false' | 'uncertain' = 'uncertain';
-        if (parsed.verdict) {
-            const v = parsed.verdict.toString().toLowerCase();
-            if (v === 'true' || v === 'yes' || v === 'accurate' || v === 'correct') {
-                verdict = 'true';
-            } else if (v === 'false' || v === 'no' || v === 'inaccurate' || v === 'incorrect') {
-                verdict = 'false';
-            }
-        }
-
-        // Normalize confidence
-        let confidence = 0.5;
-        if (typeof parsed.confidence === 'number') {
-            confidence = Math.max(0, Math.min(1, parsed.confidence));
-        }
-
-        return {
-            verdict,
-            confidence,
-            forwardAnalysis: parsed.forward_analysis || parsed.forwardAnalysis || 'No forward analysis',
-            backwardAnalysis: parsed.backward_analysis || parsed.backwardAnalysis || 'No backward analysis',
-            reasoning: parsed.reasoning || 'No reasoning provided',
-        };
-    } catch {
-        return {
-            verdict: 'uncertain',
-            confidence: 0.5,
-            forwardAnalysis: 'Failed to parse response',
-            backwardAnalysis: 'Failed to parse response',
-            reasoning: response.slice(0, 500),
-        };
+  try {
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found in response');
     }
+
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    // Normalize verdict
+    let verdict: 'true' | 'false' | 'uncertain' = 'uncertain';
+    if (parsed.verdict) {
+      const v = parsed.verdict.toString().toLowerCase();
+      if (v === 'true' || v === 'yes' || v === 'accurate' || v === 'correct') {
+        verdict = 'true';
+      } else if (v === 'false' || v === 'no' || v === 'inaccurate' || v === 'incorrect') {
+        verdict = 'false';
+      }
+    }
+
+    // Normalize confidence
+    let confidence = 0.5;
+    if (typeof parsed.confidence === 'number') {
+      confidence = Math.max(0, Math.min(1, parsed.confidence));
+    }
+
+    return {
+      verdict,
+      confidence,
+      forwardAnalysis: parsed.forward_analysis || parsed.forwardAnalysis || 'No forward analysis',
+      backwardAnalysis:
+        parsed.backward_analysis || parsed.backwardAnalysis || 'No backward analysis',
+      reasoning: parsed.reasoning || 'No reasoning provided',
+    };
+  } catch {
+    return {
+      verdict: 'uncertain',
+      confidence: 0.5,
+      forwardAnalysis: 'Failed to parse response',
+      backwardAnalysis: 'Failed to parse response',
+      reasoning: response.slice(0, 500),
+    };
+  }
 }
 
 // =============================================================================
@@ -80,43 +74,47 @@ function parseBiPRMResponse(response: string): BiPRMResponse {
 // =============================================================================
 
 export class BiPRMParadigm implements ParadigmExecutor {
-    name = 'biprm' as const;
-    private llmClient: LLMClient;
+  name = 'biprm' as const;
+  private llmClient: LLMClient;
 
-    constructor(keys: ProviderKeys) {
-        this.llmClient = new LLMClient(keys);
-    }
+  constructor(keys: ProviderKeys) {
+    this.llmClient = new LLMClient(keys);
+  }
 
-    async execute(
-        content: string,
-        context: Record<string, unknown>,
-        options: ParadigmOptions
-    ): Promise<ParadigmResult> {
-        const startTime = Date.now();
+  async execute(
+    content: string,
+    context: Record<string, unknown>,
+    options: ParadigmOptions
+  ): Promise<ParadigmResult> {
+    const startTime = Date.now();
 
-        const provider: LLMProvider = options.provider || this.selectBestProvider();
-        const model = options.model || this.getDefaultModel(provider);
+    const provider: LLMProvider = options.provider || this.selectBestProvider();
+    const model = options.model || this.getDefaultModel(provider);
 
-        try {
-            const response = await this.llmClient.complete(provider, [
-                { role: 'system', content: BIPRM_SYSTEM_PROMPT },
-                { role: 'user', content: BIPRM_USER_PROMPT(content, context) },
-            ], {
-                model,
-                temperature: 0.2, // Slightly higher for diverse reasoning paths
-                maxTokens: 2048, // More tokens for bidirectional analysis
-                timeout: options.timeout || 45000,
-            });
+    try {
+      const response = await this.llmClient.complete(
+        provider,
+        [
+          { role: 'system', content: BIPRM_SYSTEM_PROMPT },
+          { role: 'user', content: BIPRM_USER_PROMPT(content, context) },
+        ],
+        {
+          model,
+          temperature: 0.2, // Slightly higher for diverse reasoning paths
+          maxTokens: 2048, // More tokens for bidirectional analysis
+          timeout: options.timeout || 45000,
+        }
+      );
 
-            const parsed = parseBiPRMResponse(response.content);
-            const costCents = calculateCostCents(
-                model,
-                response.usage.inputTokens,
-                response.usage.outputTokens
-            );
+      const parsed = parseBiPRMResponse(response.content);
+      const costCents = calculateCostCents(
+        model,
+        response.usage.inputTokens,
+        response.usage.outputTokens
+      );
 
-            // Combine forward and backward analysis in reasoning
-            const combinedReasoning = `
+      // Combine forward and backward analysis in reasoning
+      const combinedReasoning = `
 FORWARD ANALYSIS:
 ${parsed.forwardAnalysis}
 
@@ -127,73 +125,73 @@ CONCLUSION:
 ${parsed.reasoning}
             `.trim();
 
-            return {
-                paradigm: 'biprm',
-                weight: options.weight,
-                provider,
-                model: response.model,
-                verdict: parsed.verdict,
-                confidence: parsed.confidence,
-                reasoning: combinedReasoning,
-                processingTimeMs: Date.now() - startTime,
-                costCents,
-                tokenUsage: {
-                    inputTokens: response.usage.inputTokens,
-                    outputTokens: response.usage.outputTokens,
-                },
-            };
-        } catch (error) {
-            return {
-                paradigm: 'biprm',
-                weight: options.weight,
-                provider,
-                model,
-                verdict: null,
-                confidence: 0,
-                reasoning: null,
-                processingTimeMs: Date.now() - startTime,
-                costCents: 0,
-                error: error instanceof Error ? error.message : 'Unknown error',
-            };
-        }
+      return {
+        paradigm: 'biprm',
+        weight: options.weight,
+        provider,
+        model: response.model,
+        verdict: parsed.verdict,
+        confidence: parsed.confidence,
+        reasoning: combinedReasoning,
+        processingTimeMs: Date.now() - startTime,
+        costCents,
+        tokenUsage: {
+          inputTokens: response.usage.inputTokens,
+          outputTokens: response.usage.outputTokens,
+        },
+      };
+    } catch (error) {
+      return {
+        paradigm: 'biprm',
+        weight: options.weight,
+        provider,
+        model,
+        verdict: null,
+        confidence: 0,
+        reasoning: null,
+        processingTimeMs: Date.now() - startTime,
+        costCents: 0,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  private selectBestProvider(): LLMProvider {
+    // BiPRM benefits from strong reasoning models
+    const preferredOrder: LLMProvider[] = [
+      'anthropic', // Claude excellent at reasoning
+      'openai', // GPT-4 good at logical analysis
+      'deepseek', // DeepSeek strong at reasoning
+      'google',
+      'groq',
+    ];
+
+    for (const provider of preferredOrder) {
+      if (this.llmClient.hasProvider(provider)) {
+        return provider;
+      }
     }
 
-    private selectBestProvider(): LLMProvider {
-        // BiPRM benefits from strong reasoning models
-        const preferredOrder: LLMProvider[] = [
-            'anthropic', // Claude excellent at reasoning
-            'openai',    // GPT-4 good at logical analysis
-            'deepseek',  // DeepSeek strong at reasoning
-            'google',
-            'groq',
-        ];
+    return 'openai';
+  }
 
-        for (const provider of preferredOrder) {
-            if (this.llmClient.hasProvider(provider)) {
-                return provider;
-            }
-        }
-
-        return 'openai';
-    }
-
-    private getDefaultModel(provider: LLMProvider): string {
-        // Use more capable models for BiPRM
-        const models: Record<LLMProvider, string> = {
-            openai: 'gpt-4o',
-            anthropic: 'claude-3-5-sonnet-20241022',
-            google: 'gemini-2.0-flash',
-            deepseek: 'deepseek-chat',
-            groq: 'llama-3.3-70b-versatile',
-            together: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
-            mistral: 'mistral-large-latest',
-            cohere: 'command-r-plus',
-            replicate: 'meta/llama-2-70b-chat',
-            azure: 'gpt-4o',
-            bedrock: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
-        };
-        return models[provider] || 'gpt-4o';
-    }
+  private getDefaultModel(provider: LLMProvider): string {
+    // Use more capable models for BiPRM
+    const models: Record<LLMProvider, string> = {
+      openai: 'gpt-4o',
+      anthropic: 'claude-3-5-sonnet-20241022',
+      google: 'gemini-2.0-flash',
+      deepseek: 'deepseek-chat',
+      groq: 'llama-3.3-70b-versatile',
+      together: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+      mistral: 'mistral-large-latest',
+      cohere: 'command-r-plus',
+      replicate: 'meta/llama-2-70b-chat',
+      azure: 'gpt-4o',
+      bedrock: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+    };
+    return models[provider] || 'gpt-4o';
+  }
 }
 
 // =============================================================================
@@ -201,5 +199,5 @@ ${parsed.reasoning}
 // =============================================================================
 
 export function createBiPRMParadigm(keys: ProviderKeys): BiPRMParadigm {
-    return new BiPRMParadigm(keys);
+  return new BiPRMParadigm(keys);
 }

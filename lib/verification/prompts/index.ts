@@ -103,9 +103,9 @@ Guidelines:
 - "uncertain" if sources are insufficient or contradictory`;
 
 export const TOOL_USER_PROMPT = (
-    content: string,
-    searchResults: string,
-    context?: Record<string, unknown>
+  content: string,
+  searchResults: string,
+  context?: Record<string, unknown>
 ) => `
 Verify the following claim using the provided search results:
 
@@ -212,74 +212,71 @@ Respond in JSON format.`;
 // =============================================================================
 
 export interface ParsedVerificationResponse {
-    verdict: 'true' | 'false' | 'uncertain';
-    confidence: number;
-    reasoning: string;
+  verdict: 'true' | 'false' | 'uncertain';
+  confidence: number;
+  reasoning: string;
 }
 
 /**
  * Parse LLM response into structured verification result
  */
 export function parseVerificationResponse(response: string): ParsedVerificationResponse {
-    try {
-        // Try to extract JSON from the response
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-            throw new Error('No JSON found in response');
-        }
-
-        const parsed = JSON.parse(jsonMatch[0]);
-
-        // Validate and normalize verdict
-        let verdict: 'true' | 'false' | 'uncertain' = 'uncertain';
-        if (parsed.verdict) {
-            const v = parsed.verdict.toString().toLowerCase();
-            if (v === 'true' || v === 'yes' || v === 'accurate' || v === 'correct') {
-                verdict = 'true';
-            } else if (v === 'false' || v === 'no' || v === 'inaccurate' || v === 'incorrect') {
-                verdict = 'false';
-            }
-        }
-
-        // Normalize confidence
-        let confidence = 0.5;
-        if (typeof parsed.confidence === 'number') {
-            confidence = Math.max(0, Math.min(1, parsed.confidence));
-        }
-
-        // Extract reasoning
-        const reasoning =
-            parsed.reasoning ||
-            parsed.analysis ||
-            parsed.explanation ||
-            'No reasoning provided';
-
-        return { verdict, confidence, reasoning };
-    } catch (error) {
-        // If JSON parsing fails, try to extract verdict from text
-        const lowerResponse = response.toLowerCase();
-
-        let verdict: 'true' | 'false' | 'uncertain' = 'uncertain';
-        if (
-            lowerResponse.includes('verdict: true') ||
-            lowerResponse.includes('"true"') ||
-            lowerResponse.includes('is accurate') ||
-            lowerResponse.includes('is correct')
-        ) {
-            verdict = 'true';
-        } else if (
-            lowerResponse.includes('verdict: false') ||
-            lowerResponse.includes('"false"') ||
-            lowerResponse.includes('is inaccurate') ||
-            lowerResponse.includes('is incorrect')
-        ) {
-            verdict = 'false';
-        }
-
-        return {
-            verdict,
-            confidence: 0.5,
-            reasoning: response.slice(0, 500),
-        };
+  try {
+    // Try to extract JSON from the response
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found in response');
     }
+
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    // Validate and normalize verdict
+    let verdict: 'true' | 'false' | 'uncertain' = 'uncertain';
+    if (parsed.verdict) {
+      const v = parsed.verdict.toString().toLowerCase();
+      if (v === 'true' || v === 'yes' || v === 'accurate' || v === 'correct') {
+        verdict = 'true';
+      } else if (v === 'false' || v === 'no' || v === 'inaccurate' || v === 'incorrect') {
+        verdict = 'false';
+      }
+    }
+
+    // Normalize confidence
+    let confidence = 0.5;
+    if (typeof parsed.confidence === 'number') {
+      confidence = Math.max(0, Math.min(1, parsed.confidence));
+    }
+
+    // Extract reasoning
+    const reasoning =
+      parsed.reasoning || parsed.analysis || parsed.explanation || 'No reasoning provided';
+
+    return { verdict, confidence, reasoning };
+  } catch (error) {
+    // If JSON parsing fails, try to extract verdict from text
+    const lowerResponse = response.toLowerCase();
+
+    let verdict: 'true' | 'false' | 'uncertain' = 'uncertain';
+    if (
+      lowerResponse.includes('verdict: true') ||
+      lowerResponse.includes('"true"') ||
+      lowerResponse.includes('is accurate') ||
+      lowerResponse.includes('is correct')
+    ) {
+      verdict = 'true';
+    } else if (
+      lowerResponse.includes('verdict: false') ||
+      lowerResponse.includes('"false"') ||
+      lowerResponse.includes('is inaccurate') ||
+      lowerResponse.includes('is incorrect')
+    ) {
+      verdict = 'false';
+    }
+
+    return {
+      verdict,
+      confidence: 0.5,
+      reasoning: response.slice(0, 500),
+    };
+  }
 }

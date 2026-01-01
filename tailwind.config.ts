@@ -133,8 +133,8 @@ const config = {
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
       maxWidth: {
-        'content': '1280px', // Main content constraint similar to Stripe
-        'prose': '900px', // For long-form text content
+        content: '1280px', // Main content constraint similar to Stripe
+        prose: '900px', // For long-form text content
       },
     },
   },

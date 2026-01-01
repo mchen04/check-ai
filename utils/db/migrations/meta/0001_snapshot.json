@@ -84,12 +84,8 @@
           "name": "api_keys_org_id_organizations_id_fk",
           "tableFrom": "api_keys",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -178,12 +174,8 @@
           "name": "escalations_verification_id_verifications_id_fk",
           "tableFrom": "escalations",
           "tableTo": "verifications",
-          "columnsFrom": [
-            "verification_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["verification_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -191,12 +183,8 @@
           "name": "escalations_resolved_by_users_table_id_fk",
           "tableFrom": "escalations",
           "tableTo": "users_table",
-          "columnsFrom": [
-            "resolved_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["resolved_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -242,12 +230,8 @@
           "name": "org_members_org_id_organizations_id_fk",
           "tableFrom": "org_members",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -255,12 +239,8 @@
           "name": "org_members_user_id_users_table_id_fk",
           "tableFrom": "org_members",
           "tableTo": "users_table",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -268,10 +248,7 @@
       "compositePrimaryKeys": {
         "org_members_org_id_user_id_pk": {
           "name": "org_members_org_id_user_id_pk",
-          "columns": [
-            "org_id",
-            "user_id"
-          ]
+          "columns": ["org_id", "user_id"]
         }
       },
       "uniqueConstraints": {}
@@ -367,9 +344,7 @@
         "organizations_slug_unique": {
           "name": "organizations_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       }
     },
@@ -477,12 +452,8 @@
           "name": "paradigm_results_verification_id_verifications_id_fk",
           "tableFrom": "paradigm_results",
           "tableTo": "verifications",
-          "columnsFrom": [
-            "verification_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["verification_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -557,12 +528,8 @@
           "name": "usage_org_id_organizations_id_fk",
           "tableFrom": "usage",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -570,12 +537,8 @@
           "name": "usage_verification_id_verifications_id_fk",
           "tableFrom": "usage",
           "tableTo": "verifications",
-          "columnsFrom": [
-            "verification_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["verification_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -625,9 +588,7 @@
         "users_table_email_unique": {
           "name": "users_table_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       }
     },
@@ -743,12 +704,8 @@
           "name": "verifications_org_id_organizations_id_fk",
           "tableFrom": "verifications",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -758,9 +715,7 @@
         "verifications_idempotency_key_unique": {
           "name": "verifications_idempotency_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "idempotency_key"
-          ]
+          "columns": ["idempotency_key"]
         }
       }
     }
@@ -780,45 +735,22 @@
     "public.org_role": {
       "name": "org_role",
       "schema": "public",
-      "values": [
-        "owner",
-        "admin",
-        "member",
-        "viewer"
-      ]
+      "values": ["owner", "admin", "member", "viewer"]
     },
     "public.paradigm_type": {
       "name": "paradigm_type",
       "schema": "public",
-      "values": [
-        "semantic",
-        "reasoning",
-        "tool",
-        "biprm",
-        "ensemble",
-        "entropy",
-        "formal"
-      ]
+      "values": ["semantic", "reasoning", "tool", "biprm", "ensemble", "entropy", "formal"]
     },
     "public.plan_type": {
       "name": "plan_type",
       "schema": "public",
-      "values": [
-        "free",
-        "pro",
-        "enterprise"
-      ]
+      "values": ["free", "pro", "enterprise"]
     },
     "public.verification_status": {
       "name": "verification_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "processing",
-        "completed",
-        "failed",
-        "escalated"
-      ]
+      "values": ["pending", "processing", "completed", "failed", "escalated"]
     }
   },
   "schemas": {},

@@ -84,9 +84,7 @@ export default function UseCaseCarousel() {
               key={index}
               onClick={() => setCurrentIndex(index)}
               className={`h-1.5 rounded-full transition-all ${
-                index === currentIndex
-                  ? 'w-6 bg-primary'
-                  : 'w-1.5 bg-border hover:bg-border/60'
+                index === currentIndex ? 'w-6 bg-primary' : 'w-1.5 bg-border hover:bg-border/60'
               }`}
               aria-label={`Go to ${configs[index].title}`}
             />

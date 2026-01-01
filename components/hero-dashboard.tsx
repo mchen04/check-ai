@@ -55,7 +55,7 @@ export default function HeroDashboard() {
   const isRejected = current.verdict === 'rejected';
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 depth-3">
+    <div className="depth-3 rounded-xl border border-border bg-card p-6">
       {/* Header with stats */}
       <div className="mb-5 flex items-center justify-between border-b border-border pb-5">
         <div>
@@ -91,9 +91,7 @@ export default function HeroDashboard() {
           </div>
           <div
             className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 ${
-              isRejected
-                ? 'bg-destructive/10'
-                : 'bg-success/10'
+              isRejected ? 'bg-destructive/10' : 'bg-success/10'
             }`}
           >
             {isRejected ? (
@@ -119,9 +117,7 @@ export default function HeroDashboard() {
         {/* Reasoning */}
         <div
           className={`rounded-lg border p-4 ${
-            isRejected
-              ? 'border-destructive/20 bg-destructive/5'
-              : 'border-success/20 bg-success/5'
+            isRejected ? 'border-destructive/20 bg-destructive/5' : 'border-success/20 bg-success/5'
           }`}
         >
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">

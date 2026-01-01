@@ -11,10 +11,10 @@ export { LLMClient, LLMError, createLLMClient, createLLMClientFromEnv } from './
 
 // Key Manager
 export {
-    KeyManager,
-    getKeyManager,
-    encrypt,
-    decrypt,
-    hashApiKey,
-    generatePlatformApiKey,
+  KeyManager,
+  getKeyManager,
+  encrypt,
+  decrypt,
+  hashApiKey,
+  generatePlatformApiKey,
 } from './key-manager';
