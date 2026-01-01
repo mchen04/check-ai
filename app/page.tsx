@@ -94,7 +94,7 @@ export default async function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section - White */}
-        <section className="bg-section-white relative w-full overflow-x-clip">
+        <section className="bg-section-white relative w-full overflow-x-clip !pt-8 lg:!pt-12">
           {/* Background gradient overlay */}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent"></div>
           <div className="pointer-events-none absolute right-0 top-0 h-[600px] w-[600px] bg-gradient-to-br from-primary/10 via-accent-cyan/5 to-transparent blur-3xl"></div>
