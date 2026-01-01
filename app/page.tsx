@@ -418,7 +418,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Use Cases - Configuration carousel */}
-        <section className="bg-section-white relative w-full overflow-hidden">
+        <section className="diagonal-divider-both bg-section-white relative w-full overflow-hidden">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-12">
               {/* Heading - Columns 1-2 */}
