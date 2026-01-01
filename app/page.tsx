@@ -25,6 +25,7 @@ import {
 import Stripe from 'stripe';
 import NeuralNetwork from '@/components/neural-network';
 import UseCaseCarousel from '@/components/use-case-carousel';
+import HeroDashboard from '@/components/hero-dashboard';
 
 // Types
 interface StripeProduct {
@@ -149,49 +150,10 @@ export default async function LandingPage() {
                 </div>
               </div>
 
-              {/* Right: API Example - Columns 3-4 + extends right */}
-              <div className="relative z-20 col-3-4 extend-right">
-                <div className="space-y-6">
-                  {/* Request */}
-                  <div>
-                    <div className="mb-3">
-                      <span className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        REQUEST
-                      </span>
-                    </div>
-                    <pre className="rounded-lg bg-muted/30 p-6 font-mono text-sm leading-relaxed">
-                      <code className="text-foreground">{`{
-  "content": "Patient should
-    take 500mg aspirin
-    daily",
-  "methods": {
-    "reasoning": 0.5,
-    "tool": 0.3,
-    "biprm": 0.2
-  }
-}`}</code>
-                    </pre>
-                  </div>
-
-                  {/* Response */}
-                  <div>
-                    <div className="mb-3 flex items-center gap-2">
-                      <div className="h-[3px] w-12 rounded-full bg-gradient-to-r from-destructive to-transparent"></div>
-                      <span className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        RESPONSE
-                      </span>
-                    </div>
-                    <pre className="rounded-lg bg-destructive/5 p-6 font-mono text-sm leading-relaxed">
-                      <code className="text-foreground">{`{
-  "verdict": "false",
-  "confidence": 0.94,
-  "decision": "reject",
-  "reasoning": "Dosage
-    exceeds safe limits
-    (max 325mg)"
-}`}</code>
-                    </pre>
-                  </div>
+              {/* Right: Animated Dashboard - Starts halfway through column 3 */}
+              <div className="relative z-20 col-3-4 extend-right flex items-center min-h-[450px]">
+                <div className="absolute left-[25%] top-1/2 -translate-y-1/2 w-[140%]">
+                  <HeroDashboard />
                 </div>
               </div>
             </div>
