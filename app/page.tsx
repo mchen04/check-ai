@@ -261,7 +261,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Why Different - Editorial Typography Comparison */}
-        <section className="diagonal-divider-both bg-section-white relative w-full overflow-hidden">
+        <section className="bg-section-white relative w-full overflow-hidden">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-24">
               {/* Heading - Spans 1-3 */}
@@ -332,7 +332,7 @@ export default async function LandingPage() {
         </section>
 
         {/* The 7 Methods - Icon grid like Stripe */}
-        <section className="diagonal-divider-both bg-section-gray relative w-full overflow-hidden" id="methods">
+        <section className="bg-section-gray relative w-full overflow-hidden" id="methods">
           <div className="content-wrapper content-wrapper-with-guides">
             <div className="content-constrained grid-4col gap-y-16">
               {/* Heading - Columns 1-2 */}
