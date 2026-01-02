@@ -217,8 +217,9 @@
 
   /* 4-Column Grid Lines - 5 dotted lines creating 4 columns (desktop only) */
   /* This creates a fixed overlay with grid lines that spans the entire viewport */
+  /* NOTE: Grid lines are disabled for dashboard pages via body.no-grid-guides class */
   @media (min-width: 1024px) {
-    body::before {
+    body:not(.no-grid-guides)::before {
       content: '';
       position: fixed;
       top: 0;

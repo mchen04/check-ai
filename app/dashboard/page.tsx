@@ -1,16 +1,71 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
+import { db } from '@/utils/db/db';
+import {
+  verificationsTable,
+  apiKeysTable,
+  usageTable,
+  organizationsTable,
+  orgMembersTable,
+} from '@/utils/db/schema';
+import { eq, and, gte, desc, count, sum } from 'drizzle-orm';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
-import { Activity, CreditCard, DollarSign, Users, ArrowUpRight, TrendingUp } from 'lucide-react';
+import {
+  Shield,
+  Key,
+  Activity,
+  TrendingUp,
+  ArrowUpRight,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  PlayCircle,
+  Clock,
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+
+// Get the start of the current month
+function getMonthStart() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1);
+}
+
+// Helper to get verdict icon
+function getVerdictIcon(verdict: string | null) {
+  switch (verdict) {
+    case 'true':
+      return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+    case 'false':
+      return <XCircle className="h-4 w-4 text-red-500" />;
+    case 'uncertain':
+      return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+    default:
+      return <Clock className="h-4 w-4 text-muted-foreground" />;
+  }
+}
+
+function getVerdictBadge(verdict: string | null) {
+  switch (verdict) {
+    case 'true':
+      return <Badge className="bg-green-100 text-green-800">Verified</Badge>;
+    case 'false':
+      return <Badge className="bg-red-100 text-red-800">False</Badge>;
+    case 'uncertain':
+      return <Badge className="bg-yellow-100 text-yellow-800">Uncertain</Badge>;
+    default:
+      return <Badge variant="outline">Pending</Badge>;
+  }
+}
 
 export default async function Dashboard() {
   const supabase = createClient();
@@ -20,253 +75,269 @@ export default async function Dashboard() {
     redirect('/login');
   }
 
-  // Mock data - replace with actual data from your database
-  const stats = [
-    {
-      title: 'Total Revenue',
-      value: '$45,231',
-      change: '+20.1%',
-      trend: 'up',
-      icon: DollarSign,
-      description: 'from last month',
-    },
-    {
-      title: 'Active Users',
-      value: '2,350',
-      change: '+15.3%',
-      trend: 'up',
-      icon: Users,
-      description: 'from last month',
-    },
-    {
-      title: 'Subscriptions',
-      value: '1,234',
-      change: '+12.5%',
-      trend: 'up',
-      icon: CreditCard,
-      description: 'active subscriptions',
-    },
-    {
-      title: 'Activity',
-      value: '573',
-      change: '+8.2%',
-      trend: 'up',
-      icon: Activity,
-      description: 'in the last 24h',
-    },
-  ];
+  // For now, we'll use mock data since the organization setup might not be complete
+  // In production, this would query the actual database
+  const monthStart = getMonthStart();
 
-  const recentActivity = [
-    {
-      user: 'olivia.martin@email.com',
-      action: 'New subscription',
-      time: '2 hours ago',
-      amount: '$99.00',
-    },
-    {
-      user: 'jackson.lee@email.com',
-      action: 'Subscription renewed',
-      time: '5 hours ago',
-      amount: '$49.00',
-    },
-    {
-      user: 'isabella.nguyen@email.com',
-      action: 'New subscription',
-      time: '1 day ago',
-      amount: '$149.00',
-    },
-    {
-      user: 'william.kim@email.com',
-      action: 'Subscription upgraded',
-      time: '2 days ago',
-      amount: '$199.00',
-    },
-  ];
+  // Mock stats - replace with real queries when organizations are set up
+  const stats = {
+    totalVerifications: 0,
+    monthlyVerifications: 0,
+    verificationsLimit: 100,
+    activeApiKeys: 0,
+    monthlyTokens: 0,
+    monthlyCost: 0,
+  };
+
+  // Try to get real data if organizations exist
+  // This is a graceful fallback approach
+  let recentVerifications: Array<{
+    id: string;
+    content: string;
+    status: string;
+    finalVerdict: string | null;
+    confidenceScore: string | null;
+    createdAt: Date;
+  }> = [];
+
+  try {
+    // Get recent verifications (last 5)
+    const verifications = await db
+      .select({
+        id: verificationsTable.id,
+        content: verificationsTable.content,
+        status: verificationsTable.status,
+        finalVerdict: verificationsTable.finalVerdict,
+        confidenceScore: verificationsTable.confidenceScore,
+        createdAt: verificationsTable.createdAt,
+      })
+      .from(verificationsTable)
+      .orderBy(desc(verificationsTable.createdAt))
+      .limit(5);
+
+    recentVerifications = verifications;
+    stats.totalVerifications = verifications.length;
+  } catch (e) {
+    // Database might not have data yet - that's okay
+    console.log('No verifications yet');
+  }
+
+  const usagePercentage = stats.verificationsLimit > 0
+    ? (stats.monthlyVerifications / stats.verificationsLimit) * 100
+    : 0;
 
   return (
-    <main className="flex-1 bg-muted/40">
-      <div className="container space-y-8 py-8">
-        {/* Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="mb-2 text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, {data.user.email}</p>
-          </div>
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <Button variant="outline" asChild>
-              <Link href="/dashboard/settings">Settings</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/subscribe">Upgrade Plan</Link>
-            </Button>
-          </div>
-        </div>
+    <div className="p-6 lg:p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="mb-2 text-2xl font-bold tracking-tight">Welcome back</h1>
+        <p className="text-muted-foreground">{data.user.email}</p>
+      </div>
 
-        {/* Stats Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <Card key={stat.title} className="transition-shadow hover:shadow-lg">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {stat.title}
-                  </CardTitle>
-                  <Icon className="h-5 w-5 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-1 text-3xl font-bold">{stat.value}</div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="flex items-center font-medium text-success">
-                      <TrendingUp className="mr-1 h-4 w-4" />
-                      {stat.change}
-                    </span>
-                    <span className="text-muted-foreground">{stat.description}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+      {/* Stats Grid */}
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Total Verifications */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Verifications
+            </CardTitle>
+            <Shield className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalVerifications}</div>
+            <p className="text-xs text-muted-foreground">All time</p>
+          </CardContent>
+        </Card>
 
-        {/* Main Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-7">
-          {/* Recent Activity */}
-          <Card className="lg:col-span-4">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-xl">Recent Activity</CardTitle>
-                  <CardDescription className="mt-1">
-                    Latest subscription activity from your users
-                  </CardDescription>
-                </div>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/dashboard/activity" className="flex items-center gap-1">
-                    View All
-                    <ArrowUpRight className="h-4 w-4" />
+        {/* Monthly Usage */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Monthly Usage
+            </CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="mb-2 text-2xl font-bold">
+              {stats.monthlyVerifications} / {stats.verificationsLimit === Infinity ? '∞' : stats.verificationsLimit}
+            </div>
+            <Progress value={usagePercentage} className="h-1.5" />
+          </CardContent>
+        </Card>
+
+        {/* API Keys */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              API Keys
+            </CardTitle>
+            <Key className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.activeApiKeys}</div>
+            <p className="text-xs text-muted-foreground">Active keys</p>
+          </CardContent>
+        </Card>
+
+        {/* Monthly Cost */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Monthly Cost
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${(stats.monthlyCost / 100).toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {stats.monthlyTokens.toLocaleString()} tokens
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Recent Verifications */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Recent Verifications</CardTitle>
+                <CardDescription className="mt-1">
+                  Your latest verification requests
+                </CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/dashboard/verify" className="flex items-center gap-1">
+                  View All
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {recentVerifications.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Shield className="mb-4 h-12 w-12 text-muted-foreground/30" />
+                <p className="mb-2 text-sm font-medium">No verifications yet</p>
+                <p className="mb-4 text-xs text-muted-foreground">
+                  Run your first verification in the playground
+                </p>
+                <Button size="sm" asChild>
+                  <Link href="/playground">
+                    <PlayCircle className="mr-2 h-4 w-4" />
+                    Try Playground
                   </Link>
                 </Button>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                      <Activity className="h-5 w-5 text-primary" />
+            ) : (
+              <div className="space-y-4">
+                {recentVerifications.map((v) => (
+                  <Link
+                    key={v.id}
+                    href={`/dashboard/verify/${v.id}`}
+                    className="flex items-center gap-4 rounded-lg border border-transparent p-3 transition-colors hover:border-border hover:bg-muted/50"
+                  >
+                    {getVerdictIcon(v.finalVerdict)}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
+                        {v.content.length > 60
+                          ? v.content.slice(0, 60) + '...'
+                          : v.content}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(v.createdAt), {
+                          addSuffix: true,
+                        })}
+                      </p>
                     </div>
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <p className="truncate text-sm font-medium leading-none">{activity.user}</p>
-                      <p className="text-sm text-muted-foreground">{activity.action}</p>
+                    <div className="flex items-center gap-2">
+                      {getVerdictBadge(v.finalVerdict)}
+                      {v.confidenceScore && (
+                        <span className="text-xs text-muted-foreground">
+                          {(parseFloat(v.confidenceScore) * 100).toFixed(0)}%
+                        </span>
+                      )}
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium">{activity.amount}</p>
-                      <p className="text-xs text-muted-foreground">{activity.time}</p>
-                    </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Quick Actions */}
-          <Card className="lg:col-span-3">
-            <CardHeader>
-              <CardTitle className="text-xl">Quick Actions</CardTitle>
-              <CardDescription className="mt-1">Common tasks and shortcuts</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button className="w-full justify-start" variant="outline" asChild>
-                <Link href="/dashboard/users">
-                  <Users className="mr-2 h-4 w-4" />
-                  Manage Users
-                </Link>
-              </Button>
-              <Button className="w-full justify-start" variant="outline" asChild>
-                <Link href="/subscribe">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  View Subscriptions
-                </Link>
-              </Button>
-              <Button className="w-full justify-start" variant="outline" asChild>
-                <Link href="/dashboard/analytics">
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  View Analytics
-                </Link>
-              </Button>
-              <Button className="w-full justify-start" variant="outline" asChild>
-                <Link href="/dashboard/settings">
-                  <Activity className="mr-2 h-4 w-4" />
-                  Settings
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Overview Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Getting Started</CardTitle>
-              <CardDescription className="mt-1">Complete your profile setup</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 flex-1 rounded-full bg-muted">
-                    <div className="h-2 w-3/4 rounded-full bg-primary" />
-                  </div>
-                  <span className="text-sm font-medium">75%</span>
-                </div>
-                <p className="text-sm text-muted-foreground">3 of 4 steps completed</p>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="/dashboard/onboarding">Continue Setup</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Documentation</CardTitle>
-              <CardDescription className="mt-1">Learn how to use the platform</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Access comprehensive guides, tutorials, and API documentation to help you get the
-                most out of your subscription.
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="/docs">View Docs</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Support</CardTitle>
-              <CardDescription className="mt-1">Get help when you need it</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Our support team is available 24/7 to help you with any questions or issues you may
-                have.
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="/support">Contact Support</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription className="mt-1">Common tasks</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button className="w-full justify-start" variant="outline" asChild>
+              <Link href="/playground">
+                <PlayCircle className="mr-2 h-4 w-4" />
+                Open Playground
+              </Link>
+            </Button>
+            <Button className="w-full justify-start" variant="outline" asChild>
+              <Link href="/dashboard/keys">
+                <Key className="mr-2 h-4 w-4" />
+                Manage API Keys
+              </Link>
+            </Button>
+            <Button className="w-full justify-start" variant="outline" asChild>
+              <Link href="/dashboard/usage">
+                <Activity className="mr-2 h-4 w-4" />
+                View Usage
+              </Link>
+            </Button>
+            <Button className="w-full justify-start" variant="outline" asChild>
+              <Link href="/dashboard/verify">
+                <Shield className="mr-2 h-4 w-4" />
+                Verification History
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
-    </main>
+
+      {/* Getting Started / Documentation */}
+      <div className="mt-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Getting Started</CardTitle>
+            <CardDescription className="mt-1">
+              Integrate VerifyAI into your application
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-lg bg-muted p-4">
+              <p className="mb-3 text-sm font-medium">Quick API Example</p>
+              <pre className="overflow-x-auto rounded bg-background p-3 font-mono text-xs">
+{`curl -X POST https://api.verifyai.dev/v1/verify \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "content": "The Eiffel Tower is in Paris",
+    "methods": { "reasoning": 1.0, "tool": 0.5 }
+  }'`}
+              </pre>
+            </div>
+            <div className="mt-4 flex gap-3">
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/docs">View Documentation</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/dashboard/keys">Get API Key</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

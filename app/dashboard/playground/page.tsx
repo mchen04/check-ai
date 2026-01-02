@@ -262,10 +262,10 @@ console.log(result);`;
   const enabledMethodsCount = Object.values(methods).filter((m) => m.enabled).length;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="p-6 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Playground</h1>
-        <p className="mt-1 text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-tight">Playground</h1>
+        <p className="text-muted-foreground">
           Test verification methods with different configurations
         </p>
       </div>
