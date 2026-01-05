@@ -30,6 +30,7 @@ import {
   withApiMiddleware,
   ApiRequest,
 } from '@/lib/api';
+import { createEscalation } from '@/lib/escalation';
 
 // =============================================================================
 // REQUEST VALIDATION
@@ -253,40 +254,10 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
       methods: body.methods,
     });
 
-    // Update verification record
-    await db
-      .update(verificationsTable)
-      .set({
-        status: 'completed',
-        finalVerdict: result.verdict,
-        confidenceScore: result.confidence.toFixed(4),
-        processingTimeMs: result.processingTimeMs,
-        costCents: Math.round(result.costCents),
-        completedAt: new Date(),
-      })
-      .where(eq(verificationsTable.id, verification.id));
+    // Check if verification should be escalated
+    const shouldEscalate = result.decision === 'escalate';
 
-    // Store paradigm results
-    if (result.paradigmResults.length > 0) {
-      await db.insert(paradigmResultsTable).values(
-        result.paradigmResults.map((pr) => ({
-          verificationId: verification.id,
-          paradigmType: pr.paradigm,
-          weight: pr.weight.toFixed(2),
-          provider: pr.provider,
-          model: pr.model,
-          verdict: pr.verdict,
-          confidence: pr.confidence.toFixed(4),
-          reasoning: pr.reasoning,
-          tokenUsage: pr.tokenUsage || null,
-          processingTimeMs: pr.processingTimeMs,
-          costCents: Math.round(pr.costCents),
-          errorMessage: pr.error || null,
-        }))
-      );
-    }
-
-    // Track usage
+    // Calculate token usage for tracking
     const totalInputTokens = result.paradigmResults.reduce(
       (sum, pr) => sum + (pr.tokenUsage?.inputTokens || 0),
       0
@@ -296,15 +267,64 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
       0
     );
 
-    await db.insert(usageTable).values({
-      orgId: organization.id,
-      verificationId: verification.id,
-      provider: 'mixed',
-      model: 'mixed',
-      inputTokens: totalInputTokens,
-      outputTokens: totalOutputTokens,
-      costCents: Math.round(result.costCents),
+    // Use transaction to ensure atomicity for verification update + escalation creation
+    await db.transaction(async (tx) => {
+      // Update verification record
+      await tx
+        .update(verificationsTable)
+        .set({
+          status: shouldEscalate ? 'escalated' : 'completed',
+          finalVerdict: result.verdict,
+          confidenceScore: result.confidence.toFixed(4),
+          decision: result.decision,
+          reasoning: result.reasoning,
+          processingTimeMs: result.processingTimeMs,
+          costCents: Math.round(result.costCents),
+          completedAt: new Date(),
+        })
+        .where(eq(verificationsTable.id, verification.id));
+
+      // Store paradigm results
+      if (result.paradigmResults.length > 0) {
+        await tx.insert(paradigmResultsTable).values(
+          result.paradigmResults.map((pr) => ({
+            verificationId: verification.id,
+            paradigmType: pr.paradigm,
+            weight: pr.weight.toFixed(2),
+            provider: pr.provider,
+            model: pr.model,
+            verdict: pr.verdict,
+            confidence: pr.confidence.toFixed(4),
+            reasoning: pr.reasoning,
+            tokenUsage: pr.tokenUsage || null,
+            processingTimeMs: pr.processingTimeMs,
+            costCents: Math.round(pr.costCents),
+            errorMessage: pr.error || null,
+          }))
+        );
+      }
+
+      // Track usage
+      await tx.insert(usageTable).values({
+        orgId: organization.id,
+        verificationId: verification.id,
+        provider: 'mixed',
+        model: 'mixed',
+        inputTokens: totalInputTokens,
+        outputTokens: totalOutputTokens,
+        costCents: Math.round(result.costCents),
+      });
     });
+
+    // Create escalation record if verification needs human review
+    // Note: This is outside the transaction as it's idempotent and has its own checks
+    if (shouldEscalate) {
+      await createEscalation({
+        verificationId: verification.id,
+        confidence: result.confidence,
+        paradigmResults: result.paradigmResults,
+      });
+    }
 
     // Cache the result for future requests
     await cacheVerification(body.content, body.methods, {
@@ -316,7 +336,7 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
     return NextResponse.json(
       {
         id: verification.id,
-        status: 'completed',
+        status: shouldEscalate ? 'escalated' : 'completed',
         verdict: result.verdict,
         confidence: result.confidence,
         decision: result.decision,
@@ -332,6 +352,7 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
         processingTimeMs: result.processingTimeMs,
         costCents: result.costCents,
         cached: false,
+        escalated: shouldEscalate,
       },
       { status: 200 }
     );
