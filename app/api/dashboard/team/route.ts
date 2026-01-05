@@ -5,6 +5,7 @@ import { orgMembersTable, usersTable, orgInvitesTable } from '@/utils/db/schema'
 import { eq, and, desc } from 'drizzle-orm';
 import { getUserOrgContext, checkPermission } from '@/lib/rbac/get-user-org';
 import { randomBytes } from 'crypto';
+import { sendInviteEmail } from '@/lib/email/send-invite';
 
 // =============================================================================
 // GET - List team members and pending invites
@@ -170,8 +171,13 @@ export async function POST(req: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'http://localhost:3001';
     const inviteUrl = `${baseUrl}/invite/${token}`;
 
-    // TODO: Send email with invite link using Resend or similar
-    // await sendInviteEmail(email, inviteUrl, context.organization.name);
+    // Send invite email (non-blocking - invite is still created if email fails)
+    await sendInviteEmail({
+      to: email,
+      inviteUrl,
+      organizationName: context.organization.name,
+      role,
+    });
 
     return NextResponse.json({
       id: invite.id,
