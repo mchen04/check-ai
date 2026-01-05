@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/utils/supabase/server';
+import { getUserOrgContext } from '@/lib/rbac/get-user-org';
 import { db } from '@/utils/db/db';
 import { usageTable, verificationsTable } from '@/utils/db/schema';
-import { eq, desc, gte, sql } from 'drizzle-orm';
+import { eq, and, desc, gte, sql, count } from 'drizzle-orm';
 import {
   Card,
   CardContent,
@@ -20,7 +20,6 @@ import {
   Zap,
   CreditCard,
   Calendar,
-  ArrowUpRight,
   BarChart3,
 } from 'lucide-react';
 import { formatDistanceToNow, format, startOfMonth, endOfMonth } from 'date-fns';
@@ -34,22 +33,28 @@ function getMonthEnd() {
   return endOfMonth(new Date());
 }
 
-export default async function UsagePage() {
-  const supabase = createClient();
+// Capitalize first letter helper
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data?.user) {
+export default async function UsagePage() {
+  // Get authenticated user's organization context
+  const context = await getUserOrgContext();
+
+  if (!context) {
     redirect('/login');
   }
 
+  const { orgId, organization } = context;
   const monthStart = getMonthStart();
   const monthEnd = getMonthEnd();
 
-  // Mock stats - replace with real queries when organizations are set up
-  const stats = {
+  // Initialize stats with org data
+  let stats = {
     totalVerifications: 0,
     monthlyVerifications: 0,
-    verificationsLimit: 100,
+    verificationsLimit: organization.verificationsLimit,
     totalTokens: 0,
     totalCost: 0,
     monthlyTokens: 0,
@@ -83,18 +88,79 @@ export default async function UsagePage() {
   }> = [];
 
   try {
-    // Get usage by provider
-    const providerUsage = await db
-      .select({
-        provider: usageTable.provider,
-        totalInputTokens: sql<number>`SUM(${usageTable.inputTokens})`,
-        totalOutputTokens: sql<number>`SUM(${usageTable.outputTokens})`,
-        totalCost: sql<number>`SUM(${usageTable.costCents})`,
-        count: sql<number>`COUNT(*)`,
-      })
-      .from(usageTable)
-      .where(gte(usageTable.createdAt, monthStart))
-      .groupBy(usageTable.provider);
+    // Execute queries in parallel
+    const [
+      monthlyVerificationsResult,
+      providerUsage,
+      modelUsage,
+      recent,
+    ] = await Promise.all([
+      // Monthly verifications count
+      db
+        .select({ count: count() })
+        .from(verificationsTable)
+        .where(
+          and(
+            eq(verificationsTable.orgId, orgId),
+            gte(verificationsTable.createdAt, monthStart)
+          )
+        ),
+
+      // Get usage by provider (org-scoped)
+      db
+        .select({
+          provider: usageTable.provider,
+          totalInputTokens: sql<number>`COALESCE(SUM(${usageTable.inputTokens}), 0)`,
+          totalOutputTokens: sql<number>`COALESCE(SUM(${usageTable.outputTokens}), 0)`,
+          totalCost: sql<number>`COALESCE(SUM(${usageTable.costCents}), 0)`,
+          count: sql<number>`COUNT(*)`,
+        })
+        .from(usageTable)
+        .where(
+          and(
+            eq(usageTable.orgId, orgId),
+            gte(usageTable.createdAt, monthStart)
+          )
+        )
+        .groupBy(usageTable.provider),
+
+      // Get usage by model (org-scoped)
+      db
+        .select({
+          model: usageTable.model,
+          provider: usageTable.provider,
+          totalInputTokens: sql<number>`COALESCE(SUM(${usageTable.inputTokens}), 0)`,
+          totalOutputTokens: sql<number>`COALESCE(SUM(${usageTable.outputTokens}), 0)`,
+          totalCost: sql<number>`COALESCE(SUM(${usageTable.costCents}), 0)`,
+          count: sql<number>`COUNT(*)`,
+        })
+        .from(usageTable)
+        .where(
+          and(
+            eq(usageTable.orgId, orgId),
+            gte(usageTable.createdAt, monthStart)
+          )
+        )
+        .groupBy(usageTable.model, usageTable.provider),
+
+      // Get recent usage (org-scoped)
+      db
+        .select({
+          id: usageTable.id,
+          provider: usageTable.provider,
+          model: usageTable.model,
+          inputTokens: usageTable.inputTokens,
+          outputTokens: usageTable.outputTokens,
+          costCents: usageTable.costCents,
+          createdAt: usageTable.createdAt,
+        })
+        .from(usageTable)
+        .where(eq(usageTable.orgId, orgId))
+        .orderBy(desc(usageTable.createdAt))
+        .limit(10),
+    ]);
+
+    stats.monthlyVerifications = Number(monthlyVerificationsResult[0]?.count ?? 0);
 
     usageByProvider = providerUsage.map((p) => ({
       provider: p.provider,
@@ -102,20 +168,6 @@ export default async function UsagePage() {
       totalCost: Number(p.totalCost),
       count: Number(p.count),
     }));
-
-    // Get usage by model
-    const modelUsage = await db
-      .select({
-        model: usageTable.model,
-        provider: usageTable.provider,
-        totalInputTokens: sql<number>`SUM(${usageTable.inputTokens})`,
-        totalOutputTokens: sql<number>`SUM(${usageTable.outputTokens})`,
-        totalCost: sql<number>`SUM(${usageTable.costCents})`,
-        count: sql<number>`COUNT(*)`,
-      })
-      .from(usageTable)
-      .where(gte(usageTable.createdAt, monthStart))
-      .groupBy(usageTable.model, usageTable.provider);
 
     usageByModel = modelUsage.map((m) => ({
       model: m.model,
@@ -125,28 +177,13 @@ export default async function UsagePage() {
       count: Number(m.count),
     }));
 
-    // Get recent usage
-    const recent = await db
-      .select({
-        id: usageTable.id,
-        provider: usageTable.provider,
-        model: usageTable.model,
-        inputTokens: usageTable.inputTokens,
-        outputTokens: usageTable.outputTokens,
-        costCents: usageTable.costCents,
-        createdAt: usageTable.createdAt,
-      })
-      .from(usageTable)
-      .orderBy(desc(usageTable.createdAt))
-      .limit(10);
-
     recentUsage = recent;
 
-    // Calculate totals
+    // Calculate totals from provider usage
     stats.monthlyTokens = usageByProvider.reduce((sum, p) => sum + p.totalTokens, 0);
     stats.monthlyCost = usageByProvider.reduce((sum, p) => sum + p.totalCost, 0);
   } catch (e) {
-    console.log('Error fetching usage:', e);
+    console.error('Error fetching usage:', e);
   }
 
   const usagePercentage =
@@ -252,14 +289,16 @@ export default async function UsagePage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold">Free</span>
+              <span className="text-2xl font-bold">{capitalize(organization.planType)}</span>
               <Badge variant="outline">Active</Badge>
             </div>
-            <p className="text-xs text-muted-foreground">
-              <Link href="/subscribe" className="text-primary hover:underline">
-                Upgrade to Pro
-              </Link>
-            </p>
+            {organization.planType === 'free' && (
+              <p className="text-xs text-muted-foreground">
+                <Link href="/subscribe" className="text-primary hover:underline">
+                  Upgrade to Pro
+                </Link>
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -321,7 +360,7 @@ export default async function UsagePage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {usageByModel.slice(0, 5).map((m, i) => (
+                {usageByModel.slice(0, 5).map((m) => (
                   <div
                     key={`${m.provider}-${m.model}`}
                     className="flex items-center justify-between rounded-lg border p-3"

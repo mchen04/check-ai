@@ -1,14 +1,12 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/utils/supabase/server';
+import { getUserOrgContext } from '@/lib/rbac/get-user-org';
 import { db } from '@/utils/db/db';
 import {
   verificationsTable,
   apiKeysTable,
   usageTable,
-  organizationsTable,
-  orgMembersTable,
 } from '@/utils/db/schema';
-import { eq, and, gte, desc, count, sum } from 'drizzle-orm';
+import { eq, and, gte, desc, count, sql } from 'drizzle-orm';
 import {
   Card,
   CardContent,
@@ -68,29 +66,26 @@ function getVerdictBadge(verdict: string | null) {
 }
 
 export default async function Dashboard() {
-  const supabase = createClient();
+  // Get authenticated user's organization context
+  const context = await getUserOrgContext();
 
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data?.user) {
+  if (!context) {
     redirect('/login');
   }
 
-  // For now, we'll use mock data since the organization setup might not be complete
-  // In production, this would query the actual database
+  const { orgId, userEmail, organization } = context;
   const monthStart = getMonthStart();
 
-  // Mock stats - replace with real queries when organizations are set up
-  const stats = {
+  // Initialize with defaults
+  let stats = {
     totalVerifications: 0,
     monthlyVerifications: 0,
-    verificationsLimit: 100,
+    verificationsLimit: organization.verificationsLimit,
     activeApiKeys: 0,
     monthlyTokens: 0,
     monthlyCost: 0,
   };
 
-  // Try to get real data if organizations exist
-  // This is a graceful fallback approach
   let recentVerifications: Array<{
     id: string;
     content: string;
@@ -101,25 +96,84 @@ export default async function Dashboard() {
   }> = [];
 
   try {
-    // Get recent verifications (last 5)
-    const verifications = await db
-      .select({
-        id: verificationsTable.id,
-        content: verificationsTable.content,
-        status: verificationsTable.status,
-        finalVerdict: verificationsTable.finalVerdict,
-        confidenceScore: verificationsTable.confidenceScore,
-        createdAt: verificationsTable.createdAt,
-      })
-      .from(verificationsTable)
-      .orderBy(desc(verificationsTable.createdAt))
-      .limit(5);
+    // Execute all queries in parallel for better performance
+    const [
+      totalResult,
+      monthlyResult,
+      keysResult,
+      usageResult,
+      recentResult,
+    ] = await Promise.all([
+      // Total verifications (all time)
+      db
+        .select({ count: count() })
+        .from(verificationsTable)
+        .where(eq(verificationsTable.orgId, orgId)),
 
-    recentVerifications = verifications;
-    stats.totalVerifications = verifications.length;
-  } catch (e) {
-    // Database might not have data yet - that's okay
-    console.log('No verifications yet');
+      // Monthly verifications
+      db
+        .select({ count: count() })
+        .from(verificationsTable)
+        .where(
+          and(
+            eq(verificationsTable.orgId, orgId),
+            gte(verificationsTable.createdAt, monthStart)
+          )
+        ),
+
+      // Active API keys
+      db
+        .select({ count: count() })
+        .from(apiKeysTable)
+        .where(
+          and(
+            eq(apiKeysTable.orgId, orgId),
+            eq(apiKeysTable.isActive, true)
+          )
+        ),
+
+      // Monthly tokens + cost
+      db
+        .select({
+          tokens: sql<number>`COALESCE(SUM(${usageTable.inputTokens} + ${usageTable.outputTokens}), 0)`,
+          cost: sql<number>`COALESCE(SUM(${usageTable.costCents}), 0)`,
+        })
+        .from(usageTable)
+        .where(
+          and(
+            eq(usageTable.orgId, orgId),
+            gte(usageTable.createdAt, monthStart)
+          )
+        ),
+
+      // Recent verifications (last 5, org-scoped)
+      db
+        .select({
+          id: verificationsTable.id,
+          content: verificationsTable.content,
+          status: verificationsTable.status,
+          finalVerdict: verificationsTable.finalVerdict,
+          confidenceScore: verificationsTable.confidenceScore,
+          createdAt: verificationsTable.createdAt,
+        })
+        .from(verificationsTable)
+        .where(eq(verificationsTable.orgId, orgId))
+        .orderBy(desc(verificationsTable.createdAt))
+        .limit(5),
+    ]);
+
+    stats = {
+      totalVerifications: Number(totalResult[0]?.count ?? 0),
+      monthlyVerifications: Number(monthlyResult[0]?.count ?? 0),
+      verificationsLimit: organization.verificationsLimit,
+      activeApiKeys: Number(keysResult[0]?.count ?? 0),
+      monthlyTokens: Number(usageResult[0]?.tokens ?? 0),
+      monthlyCost: Number(usageResult[0]?.cost ?? 0),
+    };
+
+    recentVerifications = recentResult;
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
   }
 
   const usagePercentage = stats.verificationsLimit > 0
@@ -131,7 +185,7 @@ export default async function Dashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="mb-2 text-2xl font-bold tracking-tight">Welcome back</h1>
-        <p className="text-muted-foreground">{data.user.email}</p>
+        <p className="text-muted-foreground">{userEmail}</p>
       </div>
 
       {/* Stats Grid */}
