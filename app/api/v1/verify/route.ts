@@ -31,6 +31,7 @@ import {
   ApiRequest,
 } from '@/lib/api';
 import { createEscalation } from '@/lib/escalation';
+import { fireWebhooks } from '@/lib/webhooks/service';
 
 // =============================================================================
 // REQUEST VALIDATION
@@ -323,6 +324,24 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
         verificationId: verification.id,
         confidence: result.confidence,
         paradigmResults: result.paradigmResults,
+      });
+
+      // Fire verification.escalated webhook
+      fireWebhooks(organization.id, 'verification.escalated', {
+        verificationId: verification.id,
+        verdict: result.verdict,
+        confidence: result.confidence,
+        decision: result.decision,
+      });
+    } else {
+      // Fire verification.completed webhook
+      fireWebhooks(organization.id, 'verification.completed', {
+        verificationId: verification.id,
+        verdict: result.verdict,
+        confidence: result.confidence,
+        decision: result.decision,
+        processingTimeMs: result.processingTimeMs,
+        cached: false,
       });
     }
 

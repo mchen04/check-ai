@@ -1,33 +1,17 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import {
-  User,
-  Building2,
-  Bell,
-  Shield,
-  Webhook,
-  Code,
-  ExternalLink,
-  Users,
-} from 'lucide-react';
-import Link from 'next/link';
 import { getUserOrgContext } from '@/lib/rbac/get-user-org';
 import { db } from '@/utils/db/db';
-import { orgMembersTable } from '@/utils/db/schema';
+import { orgMembersTable, organizationsTable, userPreferencesTable } from '@/utils/db/schema';
 import { eq, sql } from 'drizzle-orm';
+
+// Client Components
+import { ProfileSettingsCard } from './ProfileSettingsCard';
+import { OrganizationSettingsCard } from './OrganizationSettingsCard';
+import { NotificationSettingsCard } from './NotificationSettingsCard';
+import { SecuritySettingsCard } from './SecuritySettingsCard';
+import { WebhooksCard } from './WebhooksCard';
+import { DangerZoneCard } from './DangerZoneCard';
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -41,16 +25,44 @@ export default async function SettingsPage() {
 
   // Get org context
   const orgContext = await getUserOrgContext();
-
-  // Get member count if org exists
-  let memberCount = 1;
-  if (orgContext) {
-    const [{ count }] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(orgMembersTable)
-      .where(eq(orgMembersTable.orgId, orgContext.orgId));
-    memberCount = Number(count);
+  if (!orgContext) {
+    redirect('/login');
   }
+
+  // Get full organization settings
+  const [org] = await db
+    .select({
+      id: organizationsTable.id,
+      name: organizationsTable.name,
+      slug: organizationsTable.slug,
+      planType: organizationsTable.planType,
+      defaultVerificationMethod: organizationsTable.defaultVerificationMethod,
+      autoEscalateThreshold: organizationsTable.autoEscalateThreshold,
+      cacheEnabled: organizationsTable.cacheEnabled,
+      storeVerificationContent: organizationsTable.storeVerificationContent,
+    })
+    .from(organizationsTable)
+    .where(eq(organizationsTable.id, orgContext.orgId))
+    .limit(1);
+
+  // Get member count
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(orgMembersTable)
+    .where(eq(orgMembersTable.orgId, orgContext.orgId));
+
+  // Get user notification preferences
+  const [preferences] = await db
+    .select({
+      emailNotifications: userPreferencesTable.emailNotifications,
+      weeklyReport: userPreferencesTable.weeklyReport,
+      escalationAlerts: userPreferencesTable.escalationAlerts,
+    })
+    .from(userPreferencesTable)
+    .where(eq(userPreferencesTable.userId, orgContext.userId))
+    .limit(1);
+
+  const canEdit = orgContext.role === 'owner' || orgContext.role === 'admin';
 
   return (
     <div className="p-6 lg:p-8">
@@ -64,287 +76,47 @@ export default async function SettingsPage() {
 
       <div className="space-y-6">
         {/* Profile Settings */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-muted-foreground" />
-              <CardTitle>Profile</CardTitle>
-            </div>
-            <CardDescription>Your personal account settings</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  defaultValue={user.user_metadata?.full_name || ''}
-                  placeholder="Your name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  defaultValue={user.email || ''}
-                  disabled
-                />
-              </div>
-            </div>
-            <Button>Save Changes</Button>
-          </CardContent>
-        </Card>
+        <ProfileSettingsCard
+          initialName={user.user_metadata?.full_name || ''}
+          email={user.email || ''}
+        />
 
         {/* Organization Settings */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-muted-foreground" />
-              <CardTitle>Organization</CardTitle>
-            </div>
-            <CardDescription>Manage your organization and team members</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {orgContext ? (
-              <>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="orgName">Organization Name</Label>
-                    <Input
-                      id="orgName"
-                      defaultValue={orgContext.organization.name}
-                      placeholder="Organization name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="orgSlug">URL Slug</Label>
-                    <Input id="orgSlug" defaultValue={orgContext.organization.slug} disabled />
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 rounded-lg bg-muted p-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">Current Plan:</p>
-                      <Badge
-                        variant={
-                          orgContext.organization.planType === 'free' ? 'outline' : 'default'
-                        }
-                      >
-                        {orgContext.organization.planType.charAt(0).toUpperCase() +
-                          orgContext.organization.planType.slice(1)}
-                      </Badge>
-                    </div>
-                    <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                      <Users className="h-3 w-3" />
-                      {memberCount} team member{memberCount !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-                  <Button variant="outline" asChild>
-                    <Link href="/dashboard/team">Manage Team</Link>
-                  </Button>
-                </div>
-                {orgContext.organization.planType === 'free' && (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-sm text-amber-800">
-                      Upgrade to Pro to invite team members and access all verification methods.
-                    </p>
-                    <Button variant="outline" size="sm" className="mt-2" asChild>
-                      <Link href="/subscribe">
-                        Upgrade to Pro
-                        <ExternalLink className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </div>
-                )}
-                <Button>Save Changes</Button>
-              </>
-            ) : (
-              <>
-                <div className="rounded-lg bg-muted p-4">
-                  <p className="text-sm text-muted-foreground">
-                    No organization found. Contact support if this seems incorrect.
-                  </p>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <OrganizationSettingsCard
+          organization={{
+            name: org.name,
+            slug: org.slug,
+            planType: org.planType,
+            defaultVerificationMethod: org.defaultVerificationMethod,
+            autoEscalateThreshold: parseFloat(org.autoEscalateThreshold || '0.50'),
+            cacheEnabled: org.cacheEnabled,
+            storeVerificationContent: org.storeVerificationContent,
+          }}
+          memberCount={Number(count)}
+          canEdit={canEdit}
+        />
 
         {/* Notification Settings */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-muted-foreground" />
-              <CardTitle>Notifications</CardTitle>
-            </div>
-            <CardDescription>
-              Configure how you receive alerts and updates
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Email Notifications</Label>
-                <p className="text-sm text-muted-foreground">
-                  Receive email alerts for escalations and usage limits
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Weekly Usage Report</Label>
-                <p className="text-sm text-muted-foreground">
-                  Get a weekly summary of your API usage
-                </p>
-              </div>
-              <Switch />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Escalation Alerts</Label>
-                <p className="text-sm text-muted-foreground">
-                  Get notified when verifications are escalated
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-          </CardContent>
-        </Card>
+        <NotificationSettingsCard
+          initialPreferences={
+            preferences || {
+              emailNotifications: true,
+              weeklyReport: false,
+              escalationAlerts: true,
+            }
+          }
+        />
 
         {/* Security Settings */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-muted-foreground" />
-              <CardTitle>Security</CardTitle>
-            </div>
-            <CardDescription>
-              Manage your security preferences
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Two-Factor Authentication</Label>
-                <p className="text-sm text-muted-foreground">
-                  Add an extra layer of security to your account
-                </p>
-              </div>
-              <Badge variant="outline">Coming Soon</Badge>
-            </div>
-            <Separator />
-            <div className="space-y-2">
-              <Label>Password</Label>
-              <p className="text-sm text-muted-foreground">
-                Change your password or reset it via email
-              </p>
-              <Button variant="outline" asChild>
-                <Link href="/forgot-password">Change Password</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <SecuritySettingsCard />
 
         {/* Webhooks */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Webhook className="h-5 w-5 text-muted-foreground" />
-              <CardTitle>Webhooks</CardTitle>
-            </div>
-            <CardDescription>
-              Configure webhooks to receive real-time verification events
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-lg bg-muted p-4">
-              <p className="mb-4 text-sm text-muted-foreground">
-                Set up webhooks to receive POST requests when verifications complete.
-                Useful for integrating VerifyAI into your existing workflows.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">verification.completed</Badge>
-                <Badge variant="secondary">verification.escalated</Badge>
-                <Badge variant="secondary">usage.limit.reached</Badge>
-              </div>
-            </div>
-            <Button className="mt-4" variant="outline">
-              <Webhook className="mr-2 h-4 w-4" />
-              Add Webhook
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* API Settings */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Code className="h-5 w-5 text-muted-foreground" />
-              <CardTitle>API Configuration</CardTitle>
-            </div>
-            <CardDescription>
-              Default settings for API requests
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Default Verification Method</Label>
-                <p className="text-sm text-muted-foreground">
-                  Method used when not specified in API calls
-                </p>
-              </div>
-              <Badge>ensemble</Badge>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Auto-escalate High Uncertainty</Label>
-                <p className="text-sm text-muted-foreground">
-                  Automatically flag verifications with low confidence
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Store Verification Content</Label>
-                <p className="text-sm text-muted-foreground">
-                  Keep original prompts and responses for debugging
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-          </CardContent>
-        </Card>
+        <WebhooksCard orgId={orgContext.orgId} canEdit={canEdit} />
 
         {/* Danger Zone */}
-        <Card className="border-destructive/50">
-          <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
-            <CardDescription>
-              Irreversible actions that affect your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Delete Account</Label>
-                <p className="text-sm text-muted-foreground">
-                  Permanently delete your account and all associated data
-                </p>
-              </div>
-              <Button variant="destructive" size="sm">
-                Delete Account
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {orgContext.role === 'owner' && (
+          <DangerZoneCard organizationName={org.name} />
+        )}
       </div>
     </div>
   );

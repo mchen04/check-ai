@@ -21,6 +21,7 @@ import {
   dismissEscalation,
   REASON_DISPLAY_MAP,
 } from '@/lib/escalation';
+import { fireWebhooks } from '@/lib/webhooks/service';
 
 // =============================================================================
 // REQUEST VALIDATION
@@ -274,6 +275,16 @@ export async function PATCH(
         { status: 500 }
       );
     }
+
+    // Fire escalation.resolved webhook
+    fireWebhooks(escalation[0].orgId, 'escalation.resolved', {
+      escalationId: id,
+      verificationId: escalation[0].verificationId,
+      action: action,
+      humanVerdict: humanVerdict || null,
+      resolution: resolution || null,
+      resolvedAt: updated.resolvedAt?.toISOString(),
+    });
 
     return NextResponse.json({
       id: updated.id,

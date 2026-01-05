@@ -36,6 +36,18 @@ export const PERMISSIONS = {
   // Usage & Billing
   'billing:manage': ['owner'],
   'usage:view': ['owner', 'admin', 'member', 'viewer'],
+
+  // Settings
+  'settings:view': ['owner', 'admin', 'member', 'viewer'],
+  'settings:update_profile': ['owner', 'admin', 'member', 'viewer'],
+  'settings:update_org': ['owner', 'admin'],
+  'settings:update_notifications': ['owner', 'admin', 'member', 'viewer'],
+
+  // Webhooks
+  'webhooks:create': ['owner', 'admin'],
+  'webhooks:update': ['owner', 'admin'],
+  'webhooks:delete': ['owner', 'admin'],
+  'webhooks:view': ['owner', 'admin', 'member'],
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

@@ -83,6 +83,11 @@ export const organizationsTable = pgTable('organizations', {
   verificationsLimit: integer('verifications_limit').default(100).notNull(), // Free tier default
   billingCycleStart: timestamp('billing_cycle_start'),
   billingCycleEnd: timestamp('billing_cycle_end'),
+  // Settings columns
+  defaultVerificationMethod: text('default_verification_method').default('ensemble').notNull(),
+  autoEscalateThreshold: decimal('auto_escalate_threshold', { precision: 3, scale: 2 }).default('0.50').notNull(),
+  cacheEnabled: boolean('cache_enabled').default(true).notNull(),
+  storeVerificationContent: boolean('store_verification_content').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -261,6 +266,74 @@ export type InsertUsage = typeof usageTable.$inferInsert;
 export type SelectUsage = typeof usageTable.$inferSelect;
 
 // =============================================================================
+// WEBHOOKS (Organization webhook configurations)
+// =============================================================================
+
+export const webhooksTable = pgTable('webhooks', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orgId: uuid('org_id')
+    .references(() => organizationsTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  url: text('url').notNull(),
+  signingSecret: text('signing_secret').notNull(), // For HMAC-SHA256 signature
+  events: text('events').array().notNull(), // Array of event types
+  description: text('description'),
+  isActive: boolean('is_active').default(true).notNull(),
+  lastTriggeredAt: timestamp('last_triggered_at'),
+  lastStatus: integer('last_status'), // HTTP status from last delivery
+  failureCount: integer('failure_count').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type InsertWebhook = typeof webhooksTable.$inferInsert;
+export type SelectWebhook = typeof webhooksTable.$inferSelect;
+
+// =============================================================================
+// WEBHOOK DELIVERIES (Delivery logs for debugging)
+// =============================================================================
+
+export const webhookDeliveriesTable = pgTable('webhook_deliveries', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  webhookId: uuid('webhook_id')
+    .references(() => webhooksTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  event: text('event').notNull(),
+  payload: jsonb('payload').notNull(),
+  responseStatus: integer('response_status'),
+  responseBody: text('response_body'),
+  deliveredAt: timestamp('delivered_at').defaultNow().notNull(),
+  durationMs: integer('duration_ms'),
+  success: boolean('success').notNull(),
+});
+
+export type InsertWebhookDelivery = typeof webhookDeliveriesTable.$inferInsert;
+export type SelectWebhookDelivery = typeof webhookDeliveriesTable.$inferSelect;
+
+// =============================================================================
+// USER PREFERENCES (Notification settings per user)
+// =============================================================================
+
+export const userPreferencesTable = pgTable('user_preferences', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: text('user_id')
+    .references(() => usersTable.id, { onDelete: 'cascade' })
+    .notNull()
+    .unique(),
+  orgId: uuid('org_id')
+    .references(() => organizationsTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  emailNotifications: boolean('email_notifications').default(true).notNull(),
+  weeklyReport: boolean('weekly_report').default(false).notNull(),
+  escalationAlerts: boolean('escalation_alerts').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type InsertUserPreferences = typeof userPreferencesTable.$inferInsert;
+export type SelectUserPreferences = typeof userPreferencesTable.$inferSelect;
+
+// =============================================================================
 // RELATIONS
 // =============================================================================
 
@@ -270,6 +343,8 @@ export const organizationsRelations = relations(organizationsTable, ({ many }) =
   apiKeys: many(apiKeysTable),
   verifications: many(verificationsTable),
   usage: many(usageTable),
+  webhooks: many(webhooksTable),
+  userPreferences: many(userPreferencesTable),
 }));
 
 export const orgMembersRelations = relations(orgMembersTable, ({ one }) => ({
@@ -336,6 +411,32 @@ export const usageRelations = relations(usageTable, ({ one }) => ({
   verification: one(verificationsTable, {
     fields: [usageTable.verificationId],
     references: [verificationsTable.id],
+  }),
+}));
+
+export const webhooksRelations = relations(webhooksTable, ({ one, many }) => ({
+  organization: one(organizationsTable, {
+    fields: [webhooksTable.orgId],
+    references: [organizationsTable.id],
+  }),
+  deliveries: many(webhookDeliveriesTable),
+}));
+
+export const webhookDeliveriesRelations = relations(webhookDeliveriesTable, ({ one }) => ({
+  webhook: one(webhooksTable, {
+    fields: [webhookDeliveriesTable.webhookId],
+    references: [webhooksTable.id],
+  }),
+}));
+
+export const userPreferencesRelations = relations(userPreferencesTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [userPreferencesTable.userId],
+    references: [usersTable.id],
+  }),
+  organization: one(organizationsTable, {
+    fields: [userPreferencesTable.orgId],
+    references: [organizationsTable.id],
   }),
 }));
 
