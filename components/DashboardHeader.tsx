@@ -7,13 +7,22 @@ import DashboardHeaderProfileDropdown from './DashboardHeaderProfileDropdown';
 import { Badge } from '@/components/ui/badge';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getUserOrgContext } from '@/lib/rbac/get-user-org';
 
-async function UserPlanBadge({ email }: { email: string }) {
-  // TODO: Fetch from organizations table based on user email
-  // For now, return a placeholder
+async function UserPlanBadge() {
+  const context = await getUserOrgContext();
+
+  if (!context) {
+    return null;
+  }
+
+  const { planType } = context.organization;
+  const label = planType.charAt(0).toUpperCase() + planType.slice(1);
+  const variant = planType === 'free' ? 'outline' : 'default';
+
   return (
-    <Badge variant="outline" className="font-medium">
-      Free
+    <Badge variant={variant} className="font-medium">
+      {label}
     </Badge>
   );
 }
@@ -47,7 +56,7 @@ export default async function DashboardHeader() {
               </Badge>
             }
           >
-            {user?.email && <UserPlanBadge email={user.email} />}
+            <UserPlanBadge />
           </Suspense>
         </div>
 
