@@ -5,6 +5,7 @@ import { createStripeCustomer } from '@/utils/stripe/api';
 import { db } from '@/utils/db/db';
 import { usersTable } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
+import { createDefaultOrganization } from '@/lib/org/create-org';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -41,6 +42,13 @@ export async function GET(request: Request) {
           stripe_id: stripeID,
           plan: 'none',
         });
+
+        // Create default organization for the new user
+        await createDefaultOrganization(
+          user!.id,
+          user!.user_metadata.full_name,
+          user!.email!
+        );
       }
 
       const forwardedHost = request.headers.get('x-forwarded-host'); // original origin before load balancer

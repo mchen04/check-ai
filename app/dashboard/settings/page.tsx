@@ -21,11 +21,16 @@ import {
   Webhook,
   Code,
   ExternalLink,
+  Users,
 } from 'lucide-react';
 import Link from 'next/link';
+import { getUserOrgContext } from '@/lib/rbac/get-user-org';
+import { db } from '@/utils/db/db';
+import { orgMembersTable } from '@/utils/db/schema';
+import { eq, sql } from 'drizzle-orm';
 
 export default async function SettingsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase.auth.getUser();
   if (error || !data?.user) {
@@ -33,6 +38,19 @@ export default async function SettingsPage() {
   }
 
   const user = data.user;
+
+  // Get org context
+  const orgContext = await getUserOrgContext();
+
+  // Get member count if org exists
+  let memberCount = 1;
+  if (orgContext) {
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(orgMembersTable)
+      .where(eq(orgMembersTable.orgId, orgContext.orgId));
+    memberCount = Number(count);
+  }
 
   return (
     <div className="p-6 lg:p-8">
@@ -85,23 +103,71 @@ export default async function SettingsPage() {
               <Building2 className="h-5 w-5 text-muted-foreground" />
               <CardTitle>Organization</CardTitle>
             </div>
-            <CardDescription>
-              Manage your organization and team members
-            </CardDescription>
+            <CardDescription>Manage your organization and team members</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-lg bg-muted p-4">
-              <p className="text-sm text-muted-foreground">
-                Organization features are available on the Pro plan.
-                Upgrade to invite team members and manage roles.
-              </p>
-            </div>
-            <Button variant="outline" asChild>
-              <Link href="/subscribe">
-                Upgrade to Pro
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            {orgContext ? (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="orgName">Organization Name</Label>
+                    <Input
+                      id="orgName"
+                      defaultValue={orgContext.organization.name}
+                      placeholder="Organization name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="orgSlug">URL Slug</Label>
+                    <Input id="orgSlug" defaultValue={orgContext.organization.slug} disabled />
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 rounded-lg bg-muted p-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium">Current Plan:</p>
+                      <Badge
+                        variant={
+                          orgContext.organization.planType === 'free' ? 'outline' : 'default'
+                        }
+                      >
+                        {orgContext.organization.planType.charAt(0).toUpperCase() +
+                          orgContext.organization.planType.slice(1)}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                      <Users className="h-3 w-3" />
+                      {memberCount} team member{memberCount !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <Button variant="outline" asChild>
+                    <Link href="/dashboard/team">Manage Team</Link>
+                  </Button>
+                </div>
+                {orgContext.organization.planType === 'free' && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-sm text-amber-800">
+                      Upgrade to Pro to invite team members and access all verification methods.
+                    </p>
+                    <Button variant="outline" size="sm" className="mt-2" asChild>
+                      <Link href="/subscribe">
+                        Upgrade to Pro
+                        <ExternalLink className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+                <Button>Save Changes</Button>
+              </>
+            ) : (
+              <>
+                <div className="rounded-lg bg-muted p-4">
+                  <p className="text-sm text-muted-foreground">
+                    No organization found. Contact support if this seems incorrect.
+                  </p>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 

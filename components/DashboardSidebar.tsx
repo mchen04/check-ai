@@ -11,6 +11,7 @@ import {
   PlayCircle,
   Settings,
   AlertCircle,
+  Users,
 } from 'lucide-react';
 
 const navigation = [
@@ -42,6 +43,11 @@ const navigation = [
 ];
 
 const secondaryNavigation = [
+  {
+    name: 'Team',
+    href: '/dashboard/team',
+    icon: Users,
+  },
   {
     name: 'Escalations',
     href: '/dashboard/escalations',

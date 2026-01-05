@@ -46,6 +46,13 @@ export const orgRoleEnum = pgEnum('org_role', ['owner', 'admin', 'member', 'view
 
 export const planTypeEnum = pgEnum('plan_type', ['free', 'pro', 'enterprise']);
 
+export const inviteStatusEnum = pgEnum('invite_status', [
+  'pending',
+  'accepted',
+  'expired',
+  'revoked',
+]);
+
 // =============================================================================
 // EXISTING TABLES (kept for backward compatibility)
 // =============================================================================
@@ -106,6 +113,28 @@ export const orgMembersTable = pgTable(
 
 export type InsertOrgMember = typeof orgMembersTable.$inferInsert;
 export type SelectOrgMember = typeof orgMembersTable.$inferSelect;
+
+// =============================================================================
+// ORGANIZATION INVITES (Email-based team invitations)
+// =============================================================================
+
+export const orgInvitesTable = pgTable('org_invites', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orgId: uuid('org_id')
+    .references(() => organizationsTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  email: text('email').notNull(),
+  role: orgRoleEnum('role').default('member').notNull(),
+  token: text('token').notNull().unique(),
+  invitedBy: text('invited_by').references(() => usersTable.id, { onDelete: 'set null' }),
+  status: inviteStatusEnum('status').default('pending').notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  acceptedAt: timestamp('accepted_at'),
+});
+
+export type InsertOrgInvite = typeof orgInvitesTable.$inferInsert;
+export type SelectOrgInvite = typeof orgInvitesTable.$inferSelect;
 
 // =============================================================================
 // API KEYS (BYOK + Platform keys)
@@ -237,6 +266,7 @@ export type SelectUsage = typeof usageTable.$inferSelect;
 
 export const organizationsRelations = relations(organizationsTable, ({ many }) => ({
   members: many(orgMembersTable),
+  invites: many(orgInvitesTable),
   apiKeys: many(apiKeysTable),
   verifications: many(verificationsTable),
   usage: many(usageTable),
@@ -249,6 +279,17 @@ export const orgMembersRelations = relations(orgMembersTable, ({ one }) => ({
   }),
   user: one(usersTable, {
     fields: [orgMembersTable.userId],
+    references: [usersTable.id],
+  }),
+}));
+
+export const orgInvitesRelations = relations(orgInvitesTable, ({ one }) => ({
+  organization: one(organizationsTable, {
+    fields: [orgInvitesTable.orgId],
+    references: [organizationsTable.id],
+  }),
+  inviter: one(usersTable, {
+    fields: [orgInvitesTable.invitedBy],
     references: [usersTable.id],
   }),
 }));
