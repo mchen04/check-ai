@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "verifyai-llamaindex"
+version = "0.1.0"
+description = "LlamaIndex integration for VerifyAI - Verify retrieved nodes before synthesis"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [
+    { name = "VerifyAI", email = "support@verifyai.dev" }
+]
+keywords = [
+    "verifyai",
+    "llamaindex",
+    "llm",
+    "verification",
+    "hallucination",
+    "rag",
+    "postprocessor"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = [
+    "verifyai>=0.1.0",
+    "llama-index-core>=0.10.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "mypy>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://verifyai.dev"
+Documentation = "https://verifyai.dev/docs/integrations/llamaindex"
+Repository = "https://github.com/verifyai/verifyai-llamaindex"
+
+[tool.hatch.build.targets.wheel]
+packages = ["verifyai_llamaindex"]
+
+[tool.mypy]
+python_version = "3.9"
+strict = true

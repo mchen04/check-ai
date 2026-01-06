@@ -42,6 +42,7 @@ async function handleGetVerification(
     verdict: verification.finalVerdict,
     confidence: verification.confidenceScore ? parseFloat(verification.confidenceScore) : null,
     decision: getDecision(verification.status, verification.confidenceScore),
+    reasoning: verification.reasoning,
     paradigmResults: verification.paradigmResults.map((pr) => ({
       paradigm: pr.paradigmType,
       provider: pr.provider,

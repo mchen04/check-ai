@@ -1,0 +1,48 @@
+{
+  "name": "@verifyai/langchain",
+  "version": "0.1.0",
+  "description": "LangChain integration for VerifyAI - Auto-verify LLM outputs",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "verifyai",
+    "langchain",
+    "llm",
+    "verification",
+    "hallucination",
+    "callback"
+  ],
+  "author": "VerifyAI",
+  "license": "MIT",
+  "peerDependencies": {
+    "@langchain/core": ">=0.1.0 <1.0.0"
+  },
+  "dependencies": {
+    "@verifyai/sdk": "*"
+  },
+  "devDependencies": {
+    "@langchain/core": "^0.3.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
