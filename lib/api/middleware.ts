@@ -17,6 +17,7 @@ import {
 } from './errors';
 import { hashApiKey } from '@/lib/llm/key-manager';
 import { PLAN_LIMITS, type PlanType } from '@/utils/db/schema';
+import { checkRateLimit, cleanupInMemoryRateLimits } from '@/lib/cache/ratelimit';
 
 // =============================================================================
 // REQUEST ID GENERATION
@@ -159,70 +160,58 @@ export function withQuotaCheck(handler: ApiHandler): ApiHandler {
 }
 
 // =============================================================================
-// RATE LIMITING MIDDLEWARE (In-Memory for MVP)
+// RATE LIMITING MIDDLEWARE (Redis-based with In-Memory Fallback)
 // =============================================================================
 
-// Simple in-memory rate limiter (replace with Redis in production)
-const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
-
-/**
- * Clean up expired rate limit entries
- */
-function cleanupRateLimitStore() {
+// Lazy cleanup for in-memory fallback (no setInterval in serverless)
+let lastCleanup = 0;
+function maybeCleanupRateLimits() {
   const now = Date.now();
-  const keysToDelete: string[] = [];
-  rateLimitStore.forEach((value, key) => {
-    if (value.resetAt < now) {
-      keysToDelete.push(key);
-    }
-  });
-  keysToDelete.forEach((key) => rateLimitStore.delete(key));
+  if (now - lastCleanup > 60000) {
+    lastCleanup = now;
+    cleanupInMemoryRateLimits();
+  }
 }
 
-// Clean up every minute
-setInterval(cleanupRateLimitStore, 60000);
-
 /**
- * Middleware that enforces rate limits based on plan
+ * Middleware that enforces rate limits based on plan using Redis
+ * Falls back to in-memory when Redis is unavailable
  */
 export function withRateLimit(handler: ApiHandler): ApiHandler {
   return async (req, context) => {
+    // Lazy cleanup of in-memory fallback store
+    maybeCleanupRateLimits();
+
     const org = req.organization;
-    const planLimits = PLAN_LIMITS[org.planType as PlanType];
-    const { windowMs, maxRequests } = planLimits.rateLimit;
+    const result = await checkRateLimit(org.id, org.planType as PlanType);
 
-    const key = `ratelimit:${org.id}`;
-    const now = Date.now();
+    // Build rate limit headers
+    const rateLimitHeaders = {
+      'X-RateLimit-Limit': result.limit.toString(),
+      'X-RateLimit-Remaining': result.remaining.toString(),
+      'X-RateLimit-Reset': result.reset.toString(),
+    };
 
-    let entry = rateLimitStore.get(key);
+    // If rate limited, return 429 response
+    if (!result.success) {
+      const response = new RateLimitError(result.retryAfter).toResponse();
 
-    if (!entry || entry.resetAt < now) {
-      // Create new window
-      entry = { count: 0, resetAt: now + windowMs };
-      rateLimitStore.set(key, entry);
-    }
+      // Add rate limit headers
+      Object.entries(rateLimitHeaders).forEach(([key, value]) => {
+        response.headers.set(key, value);
+      });
+      response.headers.set('Retry-After', result.retryAfter.toString());
 
-    entry.count++;
-
-    const remaining = Math.max(0, maxRequests - entry.count);
-    const resetAt = entry.resetAt;
-
-    if (entry.count > maxRequests) {
-      const retryAfter = Math.ceil((resetAt - now) / 1000);
-      const response = new RateLimitError(retryAfter).toResponse();
-      response.headers.set('X-RateLimit-Limit', maxRequests.toString());
-      response.headers.set('X-RateLimit-Remaining', '0');
-      response.headers.set('X-RateLimit-Reset', resetAt.toString());
-      response.headers.set('Retry-After', retryAfter.toString());
       return response;
     }
 
+    // Continue to handler
     const response = await handler(req, context);
 
-    // Add rate limit headers
-    response.headers.set('X-RateLimit-Limit', maxRequests.toString());
-    response.headers.set('X-RateLimit-Remaining', remaining.toString());
-    response.headers.set('X-RateLimit-Reset', resetAt.toString());
+    // Add rate limit headers to successful response
+    Object.entries(rateLimitHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
 
     return response;
   };

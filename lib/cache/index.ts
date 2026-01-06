@@ -24,3 +24,10 @@ export {
   CACHE_PREFIX,
   MIN_CONFIDENCE_TO_CACHE,
 } from './verification-cache';
+
+export {
+  checkRateLimit,
+  cleanupInMemoryRateLimits,
+  isRedisConfigured,
+  type RateLimitResult,
+} from './ratelimit';
