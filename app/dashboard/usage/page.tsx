@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { getUserOrgContext } from '@/lib/rbac/get-user-org';
 import { db } from '@/utils/db/db';
@@ -13,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import {
   Activity,
@@ -23,6 +25,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { formatDistanceToNow, format, startOfMonth, endOfMonth } from 'date-fns';
+import { AnalyticsSection } from './analytics-section';
 
 // Get the start of the current month
 function getMonthStart() {
@@ -386,6 +389,24 @@ export default async function UsagePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Analytics Section */}
+      <Suspense
+        fallback={
+          <div className="mt-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <Skeleton className="h-7 w-24" />
+                <Skeleton className="mt-1 h-4 w-48" />
+              </div>
+              <Skeleton className="h-10 w-[140px]" />
+            </div>
+            <Skeleton className="h-[400px] w-full" />
+          </div>
+        }
+      >
+        <AnalyticsSection />
+      </Suspense>
 
       {/* Recent Usage */}
       <Card className="mt-6">
