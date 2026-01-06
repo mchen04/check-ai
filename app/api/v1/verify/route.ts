@@ -13,7 +13,12 @@ import {
   PLAN_LIMITS,
 } from '@/utils/db/schema';
 import { eq, and, gte, sql } from 'drizzle-orm';
-import { createOrchestrator, MethodsConfig, ParadigmType } from '@/lib/verification';
+import {
+  StreamingVerificationOrchestrator,
+  MethodsConfig,
+  ParadigmType,
+  VerificationUpdate,
+} from '@/lib/verification';
 import { ProviderKeys } from '@/lib/llm/types';
 import { getDecryptedApiKeys } from '@/lib/llm/key-manager';
 import {
@@ -32,6 +37,11 @@ import {
 } from '@/lib/api';
 import { createEscalation } from '@/lib/escalation';
 import { fireWebhooks } from '@/lib/webhooks/service';
+import {
+  broadcastStatusUpdate,
+  broadcastParadigmComplete,
+  broadcastFinalResult,
+} from '@/utils/supabase/realtime';
 
 // =============================================================================
 // REQUEST VALIDATION
@@ -244,13 +254,47 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
     .returning();
 
   try {
-    // Create orchestrator and run verification
-    const orchestrator = createOrchestrator({
+    // Calculate total methods for progress tracking
+    const methodsCount = Object.values(body.methods).filter(
+      (w) => w !== undefined && w > 0
+    ).length;
+
+    // Create streaming orchestrator with real-time broadcasts
+    const orchestrator = new StreamingVerificationOrchestrator({
       keys,
       defaultTimeout: 30000,
     });
 
-    const result = await orchestrator.verify(body.content, {
+    // Set the verification ID so broadcasts use the correct ID
+    orchestrator.setVerificationId(verification.id);
+
+    // Wire up real-time broadcasts via callback
+    orchestrator.setUpdateCallback((update: VerificationUpdate) => {
+      switch (update.type) {
+        case 'started':
+          broadcastStatusUpdate(verification.id, 'processing', {
+            completed: 0,
+            total: methodsCount,
+          });
+          break;
+        case 'paradigm_completed':
+          if (update.data.result && update.data.progress) {
+            broadcastParadigmComplete(
+              verification.id,
+              update.data.paradigm!,
+              update.data.result.verdict,
+              update.data.result.confidence,
+              update.data.progress
+            );
+          }
+          break;
+        case 'error':
+          broadcastStatusUpdate(verification.id, 'failed');
+          break;
+      }
+    });
+
+    const result = await orchestrator.verifyWithUpdates(body.content, {
       context: body.context,
       methods: body.methods,
     });
@@ -315,6 +359,15 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
         outputTokens: totalOutputTokens,
         costCents: Math.round(result.costCents),
       });
+    });
+
+    // Broadcast final result to real-time subscribers
+    broadcastFinalResult(verification.id, {
+      verdict: result.verdict,
+      confidence: result.confidence,
+      decision: result.decision,
+      processingTimeMs: result.processingTimeMs,
+      costCents: Math.round(result.costCents),
     });
 
     // Create escalation record if verification needs human review

@@ -37,15 +37,45 @@ export interface VerificationUpdate {
 // =============================================================================
 
 let serverClient: SupabaseClient | null = null;
+let realtimeConfigured: boolean | null = null;
 
-function getServerClient(): SupabaseClient {
+/**
+ * Check if realtime broadcasting is properly configured
+ * Returns false if SUPABASE_SERVICE_ROLE_KEY is missing
+ */
+function isRealtimeConfigured(): boolean {
+  if (realtimeConfigured !== null) {
+    return realtimeConfigured;
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  realtimeConfigured = !!(supabaseUrl && supabaseServiceKey);
+
+  if (!realtimeConfigured) {
+    console.warn(
+      '[Realtime] SUPABASE_SERVICE_ROLE_KEY not configured. ' +
+        'Real-time verification updates will be disabled. ' +
+        'Clients will fall back to polling.'
+    );
+  }
+
+  return realtimeConfigured;
+}
+
+/**
+ * Get or create the server-side Supabase client for broadcasting
+ * Returns null if not properly configured
+ */
+function getServerClient(): SupabaseClient | null {
+  if (!isRealtimeConfigured()) {
+    return null;
+  }
+
   if (!serverClient) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Supabase environment variables not configured');
-    }
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
     serverClient = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
@@ -64,6 +94,7 @@ function getServerClient(): SupabaseClient {
 
 /**
  * Broadcast a verification update to subscribers
+ * Gracefully skips if realtime is not configured (clients will use polling fallback)
  */
 export async function broadcastVerificationUpdate(
   verificationId: string,
@@ -71,6 +102,12 @@ export async function broadcastVerificationUpdate(
 ): Promise<void> {
   try {
     const client = getServerClient();
+
+    // Gracefully skip if realtime is not configured
+    if (!client) {
+      return;
+    }
+
     const channel = client.channel(`verification:${verificationId}`);
 
     await channel.send({
@@ -83,7 +120,7 @@ export async function broadcastVerificationUpdate(
     await client.removeChannel(channel);
   } catch (error) {
     console.error('Failed to broadcast verification update:', error);
-    // Don't throw - broadcasting is non-critical
+    // Don't throw - broadcasting is non-critical, clients will fall back to polling
   }
 }
 
