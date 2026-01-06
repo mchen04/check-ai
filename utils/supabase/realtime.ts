@@ -191,6 +191,131 @@ export async function broadcastFinalResult(
 }
 
 // =============================================================================
+// BATCH BROADCAST FUNCTIONS (SERVER-SIDE)
+// =============================================================================
+
+export interface BatchUpdate {
+  type: 'status_update' | 'item_complete' | 'complete';
+  timestamp: number;
+  status?: string;
+  errorMessage?: string;
+  itemId?: string;
+  itemIndex?: number;
+  success?: boolean;
+  verdict?: string;
+  confidence?: number;
+  processedItems?: number;
+  successCount?: number;
+  failureCount?: number;
+  totalItems?: number;
+  totalCostCents?: number;
+}
+
+/**
+ * Broadcast a batch update to subscribers
+ * Gracefully skips if realtime is not configured (clients will use polling fallback)
+ */
+export async function broadcastBatchUpdate(
+  batchId: string,
+  update: BatchUpdate
+): Promise<void> {
+  try {
+    const client = getServerClient();
+
+    // Gracefully skip if realtime is not configured
+    if (!client) {
+      return;
+    }
+
+    const channel = client.channel(`batch:${batchId}`);
+
+    await channel.send({
+      type: 'broadcast',
+      event: update.type,
+      payload: update,
+    });
+
+    // Clean up channel after broadcast
+    await client.removeChannel(channel);
+  } catch (error) {
+    console.error('Failed to broadcast batch update:', error);
+    // Don't throw - broadcasting is non-critical, clients will fall back to polling
+  }
+}
+
+/**
+ * Broadcast batch item completion
+ */
+export async function broadcastBatchItemComplete(
+  batchId: string,
+  itemId: string,
+  itemIndex: number,
+  success: boolean,
+  progress: {
+    processed: number;
+    success: number;
+    failed: number;
+    total: number;
+  },
+  verdict?: string,
+  confidence?: number
+): Promise<void> {
+  await broadcastBatchUpdate(batchId, {
+    type: 'item_complete',
+    timestamp: Date.now(),
+    itemId,
+    itemIndex,
+    success,
+    verdict,
+    confidence,
+    processedItems: progress.processed,
+    successCount: progress.success,
+    failureCount: progress.failed,
+    totalItems: progress.total,
+  });
+}
+
+/**
+ * Broadcast batch status update
+ */
+export async function broadcastBatchStatusUpdate(
+  batchId: string,
+  status: string,
+  errorMessage?: string
+): Promise<void> {
+  await broadcastBatchUpdate(batchId, {
+    type: 'status_update',
+    timestamp: Date.now(),
+    status,
+    errorMessage,
+  });
+}
+
+/**
+ * Broadcast batch completion
+ */
+export async function broadcastBatchComplete(
+  batchId: string,
+  status: string,
+  summary: {
+    totalItems: number;
+    successCount: number;
+    failureCount: number;
+    totalCostCents: number;
+  }
+): Promise<void> {
+  await broadcastBatchUpdate(batchId, {
+    type: 'complete',
+    timestamp: Date.now(),
+    status,
+    totalItems: summary.totalItems,
+    successCount: summary.successCount,
+    failureCount: summary.failureCount,
+    totalCostCents: summary.totalCostCents,
+  });
+}
+
+// =============================================================================
 // SUBSCRIPTION HOOK (CLIENT-SIDE)
 // =============================================================================
 

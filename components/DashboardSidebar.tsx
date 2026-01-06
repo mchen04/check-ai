@@ -12,6 +12,7 @@ import {
   Settings,
   AlertCircle,
   Users,
+  Layers,
 } from 'lucide-react';
 
 const navigation = [
@@ -24,6 +25,11 @@ const navigation = [
     name: 'Verifications',
     href: '/dashboard/verify',
     icon: Shield,
+  },
+  {
+    name: 'Batch Jobs',
+    href: '/dashboard/batch',
+    icon: Layers,
   },
   {
     name: 'API Keys',

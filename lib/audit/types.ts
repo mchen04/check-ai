@@ -43,6 +43,10 @@ export const AUDIT_EVENT_DESCRIPTIONS: Record<AuditEventType, string> = {
   'org.settings_updated': 'Organization settings updated',
   'escalation.resolved': 'Escalation resolved',
   'escalation.dismissed': 'Escalation dismissed',
+  'batch.created': 'Batch job created',
+  'batch.completed': 'Batch job completed',
+  'batch.failed': 'Batch job failed',
+  'batch.cancelled': 'Batch job cancelled',
 };
 
 // Resource type display names

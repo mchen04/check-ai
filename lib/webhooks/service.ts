@@ -21,6 +21,10 @@ export type WebhookEvent =
   | 'escalation.resolved'
   | 'usage.limit.warning'
   | 'usage.limit.reached'
+  | 'batch.created'
+  | 'batch.completed'
+  | 'batch.failed'
+  | 'batch.cancelled'
   | 'test';
 
 export interface WebhookPayload {

@@ -5,3 +5,6 @@ export * from './verdict-distribution-chart';
 export * from './paradigm-performance-chart';
 export * from './cost-breakdown-chart';
 export * from './processing-time-chart';
+export * from './fpr-chart';
+export * from './cost-efficiency-chart';
+export * from './calibration-chart';

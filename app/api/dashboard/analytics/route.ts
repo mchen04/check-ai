@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserOrgContext } from '@/lib/rbac/get-user-org';
 import { getAnalyticsData, getDateRange } from '@/lib/analytics/queries';
+import { getAdvancedAnalyticsData } from '@/lib/analytics/advanced-queries';
 import type { TimeRange } from '@/lib/analytics/types';
 
 export async function GET(req: NextRequest) {
@@ -13,6 +14,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const range = (searchParams.get('range') || '7d') as TimeRange;
+    const includeAdvanced = searchParams.get('advanced') === 'true';
 
     // Validate range parameter
     if (!['7d', '30d', '90d'].includes(range)) {
@@ -22,16 +24,25 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Fetch basic analytics
     const data = await getAnalyticsData(context.orgId, range);
     const { startDate, endDate } = getDateRange(range);
+
+    // Optionally include advanced analytics
+    let advancedData = null;
+    if (includeAdvanced) {
+      advancedData = await getAdvancedAnalyticsData(context.orgId, range);
+    }
 
     return NextResponse.json({
       success: true,
       data,
+      ...(advancedData && { advanced: advancedData }),
       meta: {
         range,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
+        includesAdvanced: includeAdvanced,
       },
     });
   } catch (error) {

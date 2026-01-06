@@ -80,6 +80,33 @@ export const auditEventTypeEnum = pgEnum('audit_event_type', [
   // Escalation events
   'escalation.resolved',
   'escalation.dismissed',
+  // Batch events
+  'batch.created',
+  'batch.completed',
+  'batch.failed',
+  'batch.cancelled',
+]);
+
+// =============================================================================
+// BATCH PROCESSING ENUMS
+// =============================================================================
+
+export const batchStatusEnum = pgEnum('batch_status', [
+  'pending',     // Created, not yet started
+  'validating',  // Parsing/validating input
+  'processing',  // Items being processed
+  'completed',   // All items finished
+  'failed',      // Batch-level failure
+  'cancelled',   // User cancelled
+]);
+
+export const batchItemStatusEnum = pgEnum('batch_item_status', [
+  'pending',     // Awaiting processing
+  'queued',      // Sent to QStash
+  'processing',  // Currently verifying
+  'completed',   // Verification done
+  'failed',      // Item-level failure
+  'skipped',     // Skipped (e.g., duplicate)
 ]);
 
 export type AuditEventType = (typeof auditEventTypeEnum.enumValues)[number];
@@ -434,6 +461,166 @@ export type InsertAuditLog = typeof auditLogsTable.$inferInsert;
 export type SelectAuditLog = typeof auditLogsTable.$inferSelect;
 
 // =============================================================================
+// BATCH JOBS (Bulk verification jobs)
+// =============================================================================
+
+// Type for validation errors in batch processing
+export interface BatchValidationError {
+  row: number;
+  error: string;
+}
+
+export const batchJobsTable = pgTable('batch_jobs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orgId: uuid('org_id')
+    .references(() => organizationsTable.id, { onDelete: 'cascade' })
+    .notNull(),
+
+  // Job metadata
+  name: text('name'), // User-friendly name
+  inputFormat: text('input_format').notNull(), // 'json' | 'csv'
+  originalFileName: text('original_file_name'),
+
+  // Configuration
+  methodsConfig: jsonb('methods_config').notNull(), // Same as verification
+  context: jsonb('context'), // Shared context for all items
+
+  // Processing state
+  status: batchStatusEnum('status').default('pending').notNull(),
+  totalItems: integer('total_items').default(0).notNull(),
+  processedItems: integer('processed_items').default(0).notNull(),
+  successCount: integer('success_count').default(0).notNull(),
+  failureCount: integer('failure_count').default(0).notNull(),
+
+  // QStash tracking
+  qstashMessageIds: text('qstash_message_ids').array(),
+
+  // Error handling
+  errorMessage: text('error_message'),
+  validationErrors: jsonb('validation_errors').$type<BatchValidationError[]>(),
+
+  // Cost/usage tracking
+  totalCostCents: integer('total_cost_cents').default(0).notNull(),
+  totalInputTokens: integer('total_input_tokens').default(0).notNull(),
+  totalOutputTokens: integer('total_output_tokens').default(0).notNull(),
+
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  startedAt: timestamp('started_at'),
+  completedAt: timestamp('completed_at'),
+  expiresAt: timestamp('expires_at'), // Auto-cleanup
+});
+
+export type InsertBatchJob = typeof batchJobsTable.$inferInsert;
+export type SelectBatchJob = typeof batchJobsTable.$inferSelect;
+
+// =============================================================================
+// BATCH ITEMS (Individual items within a batch)
+// =============================================================================
+
+export const batchItemsTable = pgTable('batch_items', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  batchId: uuid('batch_id')
+    .references(() => batchJobsTable.id, { onDelete: 'cascade' })
+    .notNull(),
+
+  // Item position and identification
+  itemIndex: integer('item_index').notNull(), // 0-based index in batch
+  idempotencyKey: text('idempotency_key'), // Optional per-item key
+
+  // Input data
+  content: text('content').notNull(),
+  itemContext: jsonb('item_context'), // Per-item context overrides
+
+  // Processing state
+  status: batchItemStatusEnum('status').default('pending').notNull(),
+  verificationId: uuid('verification_id') // Link to verification record
+    .references(() => verificationsTable.id, { onDelete: 'set null' }),
+
+  // Results (denormalized for quick access)
+  verdict: text('verdict'),
+  confidence: decimal('confidence', { precision: 5, scale: 4 }),
+  decision: text('decision'),
+
+  // Error handling
+  errorMessage: text('error_message'),
+  retryCount: integer('retry_count').default(0).notNull(),
+
+  // Cost tracking
+  costCents: integer('cost_cents'),
+  processingTimeMs: integer('processing_time_ms'),
+
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  startedAt: timestamp('started_at'),
+  completedAt: timestamp('completed_at'),
+});
+
+export type InsertBatchItem = typeof batchItemsTable.$inferInsert;
+export type SelectBatchItem = typeof batchItemsTable.$inferSelect;
+
+// =============================================================================
+// ANALYTICS DAILY SNAPSHOTS (Pre-aggregated metrics)
+// =============================================================================
+
+// Type for confidence calibration buckets
+export interface ConfidenceCalibrationBucket {
+  count: number;
+  correct: number;
+  incorrect: number;
+  avgConfidence: number;
+}
+
+export interface ConfidenceCalibrationBuckets {
+  '0.0-0.1': ConfidenceCalibrationBucket;
+  '0.1-0.2': ConfidenceCalibrationBucket;
+  '0.2-0.3': ConfidenceCalibrationBucket;
+  '0.3-0.4': ConfidenceCalibrationBucket;
+  '0.4-0.5': ConfidenceCalibrationBucket;
+  '0.5-0.6': ConfidenceCalibrationBucket;
+  '0.6-0.7': ConfidenceCalibrationBucket;
+  '0.7-0.8': ConfidenceCalibrationBucket;
+  '0.8-0.9': ConfidenceCalibrationBucket;
+  '0.9-1.0': ConfidenceCalibrationBucket;
+}
+
+export const analyticsDailySnapshotsTable = pgTable('analytics_daily_snapshots', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orgId: uuid('org_id')
+    .references(() => organizationsTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  date: timestamp('date').notNull(), // Date of the snapshot (midnight UTC)
+
+  // Per-paradigm metrics
+  paradigmType: paradigmTypeEnum('paradigm_type').notNull(),
+
+  // Counts for FPR calculation
+  totalVerifications: integer('total_verifications').default(0).notNull(),
+  escalatedCount: integer('escalated_count').default(0).notNull(),
+  resolvedCount: integer('resolved_count').default(0).notNull(),
+  falsePositives: integer('false_positives').default(0).notNull(), // Human corrected AI verdict
+  truePositives: integer('true_positives').default(0).notNull(), // Human agreed with AI
+
+  // Confidence calibration buckets
+  confidenceBuckets: jsonb('confidence_buckets').$type<ConfidenceCalibrationBuckets>(),
+
+  // Cost metrics
+  totalCostCents: integer('total_cost_cents').default(0).notNull(),
+  avgCostPerVerification: decimal('avg_cost_per_verification', { precision: 10, scale: 4 }),
+  avgCostPerAccurate: decimal('avg_cost_per_accurate', { precision: 10, scale: 4 }), // Cost efficiency
+
+  // Performance metrics
+  avgConfidence: decimal('avg_confidence', { precision: 5, scale: 4 }),
+  avgProcessingTimeMs: integer('avg_processing_time_ms'),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type InsertAnalyticsDailySnapshot = typeof analyticsDailySnapshotsTable.$inferInsert;
+export type SelectAnalyticsDailySnapshot = typeof analyticsDailySnapshotsTable.$inferSelect;
+
+// =============================================================================
 // RELATIONS
 // =============================================================================
 
@@ -446,6 +633,8 @@ export const organizationsRelations = relations(organizationsTable, ({ many }) =
   webhooks: many(webhooksTable),
   userPreferences: many(userPreferencesTable),
   auditLogs: many(auditLogsTable),
+  batchJobs: many(batchJobsTable),
+  analyticsDailySnapshots: many(analyticsDailySnapshotsTable),
 }));
 
 export const orgMembersRelations = relations(orgMembersTable, ({ one }) => ({
@@ -552,6 +741,32 @@ export const auditLogsRelations = relations(auditLogsTable, ({ one }) => ({
   }),
 }));
 
+export const batchJobsRelations = relations(batchJobsTable, ({ one, many }) => ({
+  organization: one(organizationsTable, {
+    fields: [batchJobsTable.orgId],
+    references: [organizationsTable.id],
+  }),
+  items: many(batchItemsTable),
+}));
+
+export const batchItemsRelations = relations(batchItemsTable, ({ one }) => ({
+  batch: one(batchJobsTable, {
+    fields: [batchItemsTable.batchId],
+    references: [batchJobsTable.id],
+  }),
+  verification: one(verificationsTable, {
+    fields: [batchItemsTable.verificationId],
+    references: [verificationsTable.id],
+  }),
+}));
+
+export const analyticsDailySnapshotsRelations = relations(analyticsDailySnapshotsTable, ({ one }) => ({
+  organization: one(organizationsTable, {
+    fields: [analyticsDailySnapshotsTable.orgId],
+    references: [organizationsTable.id],
+  }),
+}));
+
 // =============================================================================
 // PLAN LIMITS CONFIGURATION
 // =============================================================================
@@ -592,3 +807,5 @@ export const PLAN_LIMITS = {
 
 export type PlanType = keyof typeof PLAN_LIMITS;
 export type ParadigmType = (typeof paradigmTypeEnum.enumValues)[number];
+export type BatchStatus = (typeof batchStatusEnum.enumValues)[number];
+export type BatchItemStatus = (typeof batchItemStatusEnum.enumValues)[number];

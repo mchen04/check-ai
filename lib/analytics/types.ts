@@ -63,3 +63,18 @@ export interface AnalyticsResponse {
     endDate: string;
   };
 }
+
+// =============================================================================
+// ADVANCED ANALYTICS TYPES (re-exported from advanced-queries.ts)
+// =============================================================================
+
+export type {
+  ParadigmFPRData,
+  FPRTrendDataPoint,
+  CostEfficiencyData,
+  ProviderCostComparison,
+  ConfidenceBucket,
+  ParadigmCalibration,
+  AdvancedAnalyticsSummary,
+  AdvancedAnalyticsData,
+} from './advanced-queries';

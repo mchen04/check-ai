@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow, format, startOfMonth, endOfMonth } from 'date-fns';
 import { AnalyticsSection } from './analytics-section';
+import { AdvancedAnalyticsSection } from './advanced-analytics-section';
 
 // Get the start of the current month
 function getMonthStart() {
@@ -407,6 +408,9 @@ export default async function UsagePage() {
       >
         <AnalyticsSection />
       </Suspense>
+
+      {/* Advanced Analytics Section */}
+      <AdvancedAnalyticsSection />
 
       {/* Recent Usage */}
       <Card className="mt-6">
