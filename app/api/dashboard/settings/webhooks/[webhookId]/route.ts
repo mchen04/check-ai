@@ -4,6 +4,7 @@ import { db } from '@/utils/db/db';
 import { webhooksTable, webhookDeliveriesTable } from '@/utils/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { getUserOrgContext, checkPermission } from '@/lib/rbac/get-user-org';
+import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
 
 // =============================================================================
 // GET - Get single webhook with recent deliveries
@@ -181,6 +182,18 @@ export async function PATCH(
         isActive: webhooksTable.isActive,
       });
 
+    // Log audit event
+    logAuditEvent({
+      orgId: context.orgId,
+      userId: context.userId,
+      eventType: 'webhook.updated',
+      description: `Webhook updated`,
+      resourceType: 'webhook',
+      resourceId: webhookId,
+      changes: { after: parsed.data },
+      metadata: extractRequestMetadata(req),
+    });
+
     return NextResponse.json({
       success: true,
       webhook: updated,
@@ -228,6 +241,17 @@ export async function DELETE(
     }
 
     await db.delete(webhooksTable).where(eq(webhooksTable.id, webhookId));
+
+    // Log audit event
+    logAuditEvent({
+      orgId: context.orgId,
+      userId: context.userId,
+      eventType: 'webhook.deleted',
+      description: `Webhook deleted`,
+      resourceType: 'webhook',
+      resourceId: webhookId,
+      metadata: extractRequestMetadata(req),
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

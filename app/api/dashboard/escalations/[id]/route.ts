@@ -22,6 +22,7 @@ import {
   REASON_DISPLAY_MAP,
 } from '@/lib/escalation';
 import { fireWebhooks } from '@/lib/webhooks/service';
+import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
 
 // =============================================================================
 // REQUEST VALIDATION
@@ -284,6 +285,24 @@ export async function PATCH(
       humanVerdict: humanVerdict || null,
       resolution: resolution || null,
       resolvedAt: updated.resolvedAt?.toISOString(),
+    });
+
+    // Log audit event
+    logAuditEvent({
+      orgId: escalation[0].orgId,
+      userId: user.id,
+      eventType: action === 'resolve' ? 'escalation.resolved' : 'escalation.dismissed',
+      description: `Escalation ${action === 'resolve' ? 'resolved' : 'dismissed'}${humanVerdict ? ` with verdict: ${humanVerdict}` : ''}`,
+      resourceType: 'escalation',
+      resourceId: id,
+      changes: {
+        after: {
+          action,
+          humanVerdict: humanVerdict || null,
+          resolution: resolution || null,
+        },
+      },
+      metadata: extractRequestMetadata(req),
     });
 
     return NextResponse.json({

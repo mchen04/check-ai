@@ -4,6 +4,7 @@ import { db } from '@/utils/db/db';
 import { apiKeysTable } from '@/utils/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { createHash, randomBytes } from 'crypto';
+import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
 
 // Generate a new API key
 function generateApiKey(): { key: string; prefix: string; hash: string } {
@@ -97,6 +98,18 @@ export async function POST(request: NextRequest) {
         createdAt: apiKeysTable.createdAt,
       });
 
+    // Log audit event
+    logAuditEvent({
+      orgId,
+      userId: user.id,
+      eventType: 'api_key.created',
+      description: `API key "${name.trim()}" created`,
+      resourceType: 'api_key',
+      resourceId: newKey.id,
+      changes: { after: { name: name.trim(), keyPrefix: prefix, provider: 'platform' } },
+      metadata: extractRequestMetadata(request),
+    });
+
     // Return the full key - this is the only time it will be shown
     return NextResponse.json({
       key,
@@ -131,11 +144,30 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Key ID is required' }, { status: 400 });
     }
 
+    // Get the key details first for audit log
+    const [keyToDelete] = await db
+      .select({ orgId: apiKeysTable.orgId, name: apiKeysTable.name })
+      .from(apiKeysTable)
+      .where(eq(apiKeysTable.id, keyId));
+
     // Soft delete by setting isActive to false
     await db
       .update(apiKeysTable)
       .set({ isActive: false })
       .where(eq(apiKeysTable.id, keyId));
+
+    // Log audit event
+    if (keyToDelete) {
+      logAuditEvent({
+        orgId: keyToDelete.orgId,
+        userId: user.id,
+        eventType: 'api_key.deleted',
+        description: `API key "${keyToDelete.name}" deleted`,
+        resourceType: 'api_key',
+        resourceId: keyId,
+        metadata: extractRequestMetadata(request),
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

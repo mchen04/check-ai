@@ -5,6 +5,7 @@ import { webhooksTable } from '@/utils/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { getUserOrgContext, checkPermission } from '@/lib/rbac/get-user-org';
 import { generateSigningSecret } from '@/lib/webhooks/service';
+import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
 
 // =============================================================================
 // GET - List all webhooks for organization
@@ -112,6 +113,18 @@ export async function POST(req: NextRequest) {
         isActive: webhooksTable.isActive,
         createdAt: webhooksTable.createdAt,
       });
+
+    // Log audit event
+    logAuditEvent({
+      orgId: context.orgId,
+      userId: context.userId,
+      eventType: 'webhook.created',
+      description: `Webhook created for ${url}`,
+      resourceType: 'webhook',
+      resourceId: webhook.id,
+      changes: { after: { url, events, description } },
+      metadata: extractRequestMetadata(req),
+    });
 
     return NextResponse.json({
       success: true,

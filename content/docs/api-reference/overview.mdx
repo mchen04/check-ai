@@ -1,0 +1,115 @@
+---
+title: API Overview
+description: An overview of the Verifact REST API endpoints and conventions.
+order: 1
+---
+
+# API Overview
+
+The Verifact API is a RESTful API that allows you to programmatically verify content, retrieve verification results, and manage your account.
+
+## Base URL
+
+All API requests should be made to:
+
+```
+https://api.verifact.ai/v1
+```
+
+## Authentication
+
+All requests require an API key passed in the `Authorization` header:
+
+```
+Authorization: Bearer vfy_your_api_key
+```
+
+See [Authentication](/docs/authentication) for details on obtaining and managing API keys.
+
+## Request Format
+
+- Use `Content-Type: application/json` for all POST/PUT/PATCH requests
+- Request bodies should be valid JSON
+- All timestamps use ISO 8601 format
+
+## Response Format
+
+All responses return JSON with a consistent structure:
+
+### Success Response
+
+```json
+{
+  "id": "ver_abc123",
+  "status": "completed",
+  // ... additional fields
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": {
+    "code": "invalid_request",
+    "message": "Content is required",
+    "details": [
+      {
+        "field": "content",
+        "message": "Required field is missing"
+      }
+    ]
+  }
+}
+```
+
+## Available Endpoints
+
+### Verification
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/v1/verify` | Submit content for verification |
+| `GET` | `/v1/verify/:id` | Get verification result by ID |
+
+### Status
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/v1/status` | API health check |
+
+## HTTP Status Codes
+
+| Code | Meaning |
+|------|---------|
+| `200` | Success |
+| `201` | Created |
+| `400` | Bad Request - Invalid parameters |
+| `401` | Unauthorized - Invalid or missing API key |
+| `403` | Forbidden - Insufficient permissions |
+| `404` | Not Found - Resource doesn't exist |
+| `429` | Too Many Requests - Rate limited |
+| `500` | Internal Server Error |
+
+## Pagination
+
+List endpoints support pagination with these query parameters:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `limit` | integer | Number of items to return (default: 20, max: 100) |
+| `offset` | integer | Number of items to skip |
+
+## Idempotency
+
+For POST requests that create resources, you can include an `Idempotency-Key` header:
+
+```
+Idempotency-Key: unique-request-id
+```
+
+Requests with the same idempotency key within 24 hours will return the same response.
+
+## Versioning
+
+The API version is included in the URL path (`/v1`). We maintain backwards compatibility within major versions. Breaking changes will be released under new version numbers.

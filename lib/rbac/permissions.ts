@@ -48,6 +48,9 @@ export const PERMISSIONS = {
   'webhooks:update': ['owner', 'admin'],
   'webhooks:delete': ['owner', 'admin'],
   'webhooks:view': ['owner', 'admin', 'member'],
+
+  // Audit Logs
+  'audit_logs:view': ['owner', 'admin'],
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

@@ -11,6 +11,7 @@ import { OrganizationSettingsCard } from './OrganizationSettingsCard';
 import { NotificationSettingsCard } from './NotificationSettingsCard';
 import { SecuritySettingsCard } from './SecuritySettingsCard';
 import { WebhooksCard } from './WebhooksCard';
+import { AuditLogsCard } from './AuditLogsCard';
 import { DangerZoneCard } from './DangerZoneCard';
 
 export default async function SettingsPage() {
@@ -112,6 +113,9 @@ export default async function SettingsPage() {
 
         {/* Webhooks */}
         <WebhooksCard orgId={orgContext.orgId} canEdit={canEdit} />
+
+        {/* Audit Logs - Only visible to owner/admin */}
+        {canEdit && <AuditLogsCard />}
 
         {/* Danger Zone */}
         {orgContext.role === 'owner' && (

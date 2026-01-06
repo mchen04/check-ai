@@ -3,6 +3,7 @@ import { db } from '@/utils/db/db';
 import { orgInvitesTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getUserOrgContext, checkPermission } from '@/lib/rbac/get-user-org';
+import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
 
 // =============================================================================
 // DELETE - Revoke pending invite
@@ -36,11 +37,22 @@ export async function DELETE(
           eq(orgInvitesTable.status, 'pending')
         )
       )
-      .returning({ id: orgInvitesTable.id });
+      .returning({ id: orgInvitesTable.id, email: orgInvitesTable.email });
 
     if (result.length === 0) {
       return NextResponse.json({ error: 'Invite not found' }, { status: 404 });
     }
+
+    // Log audit event
+    logAuditEvent({
+      orgId: context.orgId,
+      userId: context.userId,
+      eventType: 'team_member.invite_revoked',
+      description: `Invite revoked for ${result[0].email}`,
+      resourceType: 'invite',
+      resourceId: inviteId,
+      metadata: extractRequestMetadata(req),
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,0 +1,249 @@
+---
+title: Rate Limiting
+description: Understanding rate limits and how to handle them.
+order: 6
+---
+
+# Rate Limiting
+
+Rate limits protect the API from abuse and ensure fair usage for all customers. Limits vary by plan and are applied per organization.
+
+## Rate Limits by Plan
+
+| Plan | Requests/Minute | Requests/Day | Monthly Quota |
+|------|-----------------|--------------|---------------|
+| Free | 10 | 100 | 100 |
+| Starter | 60 | 1,000 | 1,000 |
+| Pro | 300 | 10,000 | 10,000 |
+| Enterprise | Custom | Custom | Custom |
+
+## Response Headers
+
+Every API response includes rate limit information in the headers:
+
+```
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 45
+X-RateLimit-Reset: 1705317060
+```
+
+| Header | Description |
+|--------|-------------|
+| `X-RateLimit-Limit` | Maximum requests per minute |
+| `X-RateLimit-Remaining` | Requests remaining in current window |
+| `X-RateLimit-Reset` | Unix timestamp when the limit resets |
+
+## Handling Rate Limits
+
+When you exceed the rate limit, the API returns a `429 Too Many Requests` response:
+
+```json
+{
+  "error": {
+    "code": "rate_limited",
+    "message": "Rate limit exceeded. Try again in 45 seconds.",
+    "retryAfter": 45
+  }
+}
+```
+
+### Implementation Example
+
+<CodeTabs
+  examples={[
+    {
+      language: 'javascript',
+      label: 'Node.js',
+      code: `class RateLimitedClient {
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+    this.queue = [];
+    this.processing = false;
+  }
+
+  async verify(content) {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ content, resolve, reject });
+      this.processQueue();
+    });
+  }
+
+  async processQueue() {
+    if (this.processing || this.queue.length === 0) return;
+    this.processing = true;
+
+    while (this.queue.length > 0) {
+      const { content, resolve, reject } = this.queue.shift();
+
+      try {
+        const response = await fetch('https://api.verifact.ai/v1/verify', {
+          method: 'POST',
+          headers: {
+            'Authorization': \`Bearer \${this.apiKey}\`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ content }),
+        });
+
+        if (response.status === 429) {
+          // Put back in queue and wait
+          this.queue.unshift({ content, resolve, reject });
+          const retryAfter = parseInt(
+            response.headers.get('Retry-After') || '60'
+          );
+          await this.sleep(retryAfter * 1000);
+          continue;
+        }
+
+        resolve(await response.json());
+      } catch (error) {
+        reject(error);
+      }
+
+      // Small delay between requests to stay under limit
+      await this.sleep(100);
+    }
+
+    this.processing = false;
+  }
+
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `import time
+from collections import deque
+import requests
+
+class RateLimitedClient:
+    def __init__(self, api_key):
+        self.api_key = api_key
+        self.min_interval = 0.1  # 100ms between requests
+
+    def verify(self, content, max_retries=5):
+        for attempt in range(max_retries):
+            response = requests.post(
+                'https://api.verifact.ai/v1/verify',
+                headers={'Authorization': f'Bearer {self.api_key}'},
+                json={'content': content}
+            )
+
+            if response.status_code == 429:
+                retry_after = int(
+                    response.headers.get('Retry-After', 60)
+                )
+                print(f'Rate limited, waiting {retry_after}s...')
+                time.sleep(retry_after)
+                continue
+
+            response.raise_for_status()
+            return response.json()
+
+        raise Exception('Max retries exceeded')
+
+    def verify_batch(self, contents):
+        results = []
+        for content in contents:
+            result = self.verify(content)
+            results.append(result)
+            time.sleep(self.min_interval)
+        return results`
+    },
+  ]}
+/>
+
+## Best Practices
+
+### 1. Implement Exponential Backoff
+
+When rate limited, wait progressively longer between retries:
+
+```javascript
+async function withBackoff(fn, maxRetries = 5) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (error.status !== 429 || i === maxRetries - 1) {
+        throw error;
+      }
+      const delay = Math.min(1000 * Math.pow(2, i), 30000);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+}
+```
+
+### 2. Monitor Rate Limit Headers
+
+Track your usage and slow down proactively:
+
+```javascript
+function checkRateLimits(response) {
+  const remaining = parseInt(response.headers.get('X-RateLimit-Remaining'));
+  const limit = parseInt(response.headers.get('X-RateLimit-Limit'));
+
+  // If under 20% remaining, start throttling
+  if (remaining / limit < 0.2) {
+    console.warn(`Low rate limit: ${remaining}/${limit}`);
+    // Implement throttling logic
+  }
+}
+```
+
+### 3. Use Webhooks for Async Results
+
+Instead of polling, use webhooks to receive results. This reduces API calls significantly:
+
+```javascript
+// Instead of polling...
+const response = await fetch('/v1/verify', {
+  body: JSON.stringify({
+    content: 'Your content',
+    webhookUrl: 'https://your-app.com/webhooks/verifact',
+  }),
+});
+
+// Results delivered via webhook - no polling needed!
+```
+
+### 4. Cache Results
+
+Cache verification results when possible to avoid redundant API calls:
+
+```javascript
+const cache = new Map();
+
+async function verifyCached(content) {
+  const hash = hashContent(content);
+
+  if (cache.has(hash)) {
+    return cache.get(hash);
+  }
+
+  const result = await verify(content);
+  cache.set(hash, result);
+  return result;
+}
+```
+
+<Callout type="info" title="Need Higher Limits?">
+Enterprise plans offer custom rate limits. [Contact sales](mailto:sales@verifact.ai) to discuss your requirements.
+</Callout>
+
+## Usage Quotas
+
+In addition to rate limits (requests per minute), each plan has a monthly verification quota:
+
+| Plan | Monthly Verifications |
+|------|----------------------|
+| Free | 100 |
+| Starter | 1,000 |
+| Pro | 10,000 |
+| Enterprise | Custom |
+
+Track your usage in the [Dashboard](/dashboard/usage). You'll receive webhook notifications at 80% and 100% usage.

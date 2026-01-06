@@ -61,6 +61,29 @@ export const webhookDeliveryStatusEnum = pgEnum('webhook_delivery_status', [
   'failed', // All retries exhausted (in DLQ)
 ]);
 
+export const auditEventTypeEnum = pgEnum('audit_event_type', [
+  // API Key events
+  'api_key.created',
+  'api_key.deleted',
+  // Team member events
+  'team_member.invited',
+  'team_member.invite_revoked',
+  'team_member.joined',
+  'team_member.removed',
+  'team_member.role_changed',
+  // Webhook events
+  'webhook.created',
+  'webhook.updated',
+  'webhook.deleted',
+  // Organization settings events
+  'org.settings_updated',
+  // Escalation events
+  'escalation.resolved',
+  'escalation.dismissed',
+]);
+
+export type AuditEventType = (typeof auditEventTypeEnum.enumValues)[number];
+
 // =============================================================================
 // EXISTING TABLES (kept for backward compatibility)
 // =============================================================================
@@ -376,6 +399,41 @@ export type InsertUserPreferences = typeof userPreferencesTable.$inferInsert;
 export type SelectUserPreferences = typeof userPreferencesTable.$inferSelect;
 
 // =============================================================================
+// AUDIT LOGS (Immutable activity trail)
+// =============================================================================
+
+// Type for audit log changes (before/after)
+export interface AuditChanges {
+  before?: Record<string, unknown>;
+  after?: Record<string, unknown>;
+}
+
+// Type for audit log metadata
+export interface AuditMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+  [key: string]: unknown;
+}
+
+export const auditLogsTable = pgTable('audit_logs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orgId: uuid('org_id')
+    .references(() => organizationsTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  userId: text('user_id').references(() => usersTable.id, { onDelete: 'set null' }),
+  eventType: auditEventTypeEnum('event_type').notNull(),
+  description: text('description').notNull(),
+  resourceType: text('resource_type').notNull(),
+  resourceId: text('resource_id'),
+  changes: jsonb('changes').$type<AuditChanges>(),
+  metadata: jsonb('metadata').$type<AuditMetadata>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type InsertAuditLog = typeof auditLogsTable.$inferInsert;
+export type SelectAuditLog = typeof auditLogsTable.$inferSelect;
+
+// =============================================================================
 // RELATIONS
 // =============================================================================
 
@@ -387,6 +445,7 @@ export const organizationsRelations = relations(organizationsTable, ({ many }) =
   usage: many(usageTable),
   webhooks: many(webhooksTable),
   userPreferences: many(userPreferencesTable),
+  auditLogs: many(auditLogsTable),
 }));
 
 export const orgMembersRelations = relations(orgMembersTable, ({ one }) => ({
@@ -479,6 +538,17 @@ export const userPreferencesRelations = relations(userPreferencesTable, ({ one }
   organization: one(organizationsTable, {
     fields: [userPreferencesTable.orgId],
     references: [organizationsTable.id],
+  }),
+}));
+
+export const auditLogsRelations = relations(auditLogsTable, ({ one }) => ({
+  organization: one(organizationsTable, {
+    fields: [auditLogsTable.orgId],
+    references: [organizationsTable.id],
+  }),
+  user: one(usersTable, {
+    fields: [auditLogsTable.userId],
+    references: [usersTable.id],
   }),
 }));
 

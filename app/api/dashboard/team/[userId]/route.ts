@@ -5,6 +5,7 @@ import { orgMembersTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getUserOrgContext, checkPermission } from '@/lib/rbac/get-user-org';
 import { canModifyRole, canRemoveMember, OrgRole } from '@/lib/rbac/permissions';
+import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
 
 // =============================================================================
 // PATCH - Update member role
@@ -86,6 +87,18 @@ export async function PATCH(
         )
       );
 
+    // Log audit event
+    logAuditEvent({
+      orgId: context.orgId,
+      userId: context.userId,
+      eventType: 'team_member.role_changed',
+      description: `Member role changed from ${targetMember.role} to ${newRole}`,
+      resourceType: 'team_member',
+      resourceId: targetUserId,
+      changes: { before: { role: targetMember.role }, after: { role: newRole } },
+      metadata: extractRequestMetadata(req),
+    });
+
     return NextResponse.json({ success: true, role: newRole });
   } catch (error) {
     console.error('Error updating member role:', error);
@@ -155,6 +168,18 @@ export async function DELETE(
           eq(orgMembersTable.userId, targetUserId)
         )
       );
+
+    // Log audit event
+    logAuditEvent({
+      orgId: context.orgId,
+      userId: context.userId,
+      eventType: 'team_member.removed',
+      description: `Team member removed`,
+      resourceType: 'team_member',
+      resourceId: targetUserId,
+      changes: { before: { role: targetMember.role } },
+      metadata: extractRequestMetadata(req),
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

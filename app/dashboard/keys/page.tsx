@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { db } from '@/utils/db/db';
 import { apiKeysTable } from '@/utils/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { desc } from 'drizzle-orm';
 import {
   Card,
   CardContent,
@@ -10,11 +10,10 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Key, Plus, Copy, Trash2, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Key, AlertCircle } from 'lucide-react';
 import CreateApiKeyDialog from './CreateApiKeyDialog';
+import { ApiKeysList } from './ApiKeysList';
 
 export default async function ApiKeysPage() {
   const supabase = createClient();
@@ -103,63 +102,7 @@ export default async function ApiKeysPage() {
               <CreateApiKeyDialog />
             </div>
           ) : (
-            <div className="space-y-4">
-              {apiKeys.map((key) => (
-                <div
-                  key={key.id}
-                  className="flex items-center justify-between rounded-lg border p-4"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                      <Key className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{key.name}</p>
-                        {!key.isActive && (
-                          <Badge variant="outline" className="text-muted-foreground">
-                            Inactive
-                          </Badge>
-                        )}
-                        {key.expiresAt && new Date(key.expiresAt) < new Date() && (
-                          <Badge variant="destructive">Expired</Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
-                          {key.keyPrefix}...
-                        </code>
-                        <span>•</span>
-                        <span className="capitalize">{key.provider}</span>
-                        <span>•</span>
-                        <span>
-                          Created{' '}
-                          {formatDistanceToNow(new Date(key.createdAt), {
-                            addSuffix: true,
-                          })}
-                        </span>
-                        {key.lastUsedAt && (
-                          <>
-                            <span>•</span>
-                            <span>
-                              Last used{' '}
-                              {formatDistanceToNow(new Date(key.lastUsedAt), {
-                                addSuffix: true,
-                              })}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ApiKeysList initialKeys={apiKeys} />
           )}
         </CardContent>
       </Card>

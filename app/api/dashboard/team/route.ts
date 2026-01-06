@@ -6,6 +6,7 @@ import { eq, and, desc } from 'drizzle-orm';
 import { getUserOrgContext, checkPermission } from '@/lib/rbac/get-user-org';
 import { randomBytes } from 'crypto';
 import { sendInviteEmail } from '@/lib/email/send-invite';
+import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
 
 // =============================================================================
 // GET - List team members and pending invites
@@ -170,6 +171,18 @@ export async function POST(req: NextRequest) {
     // Generate invite URL for response
     const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'http://localhost:3001';
     const inviteUrl = `${baseUrl}/invite/${token}`;
+
+    // Log audit event
+    logAuditEvent({
+      orgId: context.orgId,
+      userId: context.userId,
+      eventType: 'team_member.invited',
+      description: `Invited ${email} as ${role}`,
+      resourceType: 'invite',
+      resourceId: invite.id,
+      changes: { after: { email, role } },
+      metadata: extractRequestMetadata(req),
+    });
 
     // Send invite email (non-blocking - invite is still created if email fails)
     await sendInviteEmail({

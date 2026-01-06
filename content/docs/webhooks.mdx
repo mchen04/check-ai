@@ -1,0 +1,248 @@
+---
+title: Webhooks
+description: Receive real-time notifications when events occur in your Verifact account.
+order: 4
+---
+
+# Webhooks
+
+Webhooks allow you to receive real-time HTTP callbacks when events occur in your account. Instead of polling the API, webhooks push data to your server as events happen.
+
+## Setting Up Webhooks
+
+### Via Dashboard
+
+1. Navigate to **Dashboard → Settings → Webhooks**
+2. Click **Add Webhook**
+3. Enter your endpoint URL
+4. Select the events you want to subscribe to
+5. Save the webhook
+
+### Webhook Events
+
+| Event | Description |
+|-------|-------------|
+| `verification.completed` | A verification has finished processing |
+| `verification.escalated` | A verification was escalated for human review |
+| `escalation.resolved` | An escalation was resolved by a reviewer |
+| `usage.limit.warning` | Approaching monthly usage limit (80%) |
+| `usage.limit.reached` | Monthly usage limit reached |
+
+## Webhook Payload
+
+All webhooks send a POST request with a JSON payload:
+
+```json
+{
+  "id": "evt_abc123",
+  "type": "verification.completed",
+  "createdAt": "2024-01-15T10:30:02Z",
+  "data": {
+    "verificationId": "ver_xyz789",
+    "status": "completed",
+    "verdict": "true",
+    "confidence": 0.95,
+    "decision": "accept"
+  }
+}
+```
+
+### Payload Fields
+
+<ParameterTable
+  parameters={[
+    {
+      name: 'id',
+      type: 'string',
+      description: 'Unique event identifier',
+    },
+    {
+      name: 'type',
+      type: 'string',
+      description: 'The event type that triggered the webhook',
+    },
+    {
+      name: 'createdAt',
+      type: 'string',
+      description: 'ISO 8601 timestamp of when the event occurred',
+    },
+    {
+      name: 'data',
+      type: 'object',
+      description: 'Event-specific payload data',
+    },
+  ]}
+/>
+
+## Verifying Signatures
+
+Every webhook request includes a signature header that you should verify to ensure the request came from Verifact.
+
+### Signature Header
+
+```
+X-Verifact-Signature: t=1705317002,v1=5257a869e7ecebeda32affa62cdca3fa51c
+```
+
+### Verification Steps
+
+1. Extract the timestamp (`t`) and signature (`v1`) from the header
+2. Construct the signed payload: `${timestamp}.${rawBody}`
+3. Compute HMAC-SHA256 using your webhook signing secret
+4. Compare with the provided signature
+
+<CodeTabs
+  examples={[
+    {
+      language: 'javascript',
+      label: 'Node.js',
+      code: `import crypto from 'crypto';
+
+function verifyWebhookSignature(payload, signature, secret) {
+  const parts = signature.split(',');
+  const timestamp = parts[0].split('=')[1];
+  const providedSig = parts[1].split('=')[1];
+
+  // Check timestamp is recent (within 5 minutes)
+  const age = Date.now() / 1000 - parseInt(timestamp);
+  if (age > 300) {
+    throw new Error('Webhook timestamp too old');
+  }
+
+  // Compute expected signature
+  const signedPayload = \`\${timestamp}.\${payload}\`;
+  const expectedSig = crypto
+    .createHmac('sha256', secret)
+    .update(signedPayload)
+    .digest('hex');
+
+  // Constant-time comparison
+  if (!crypto.timingSafeEqual(
+    Buffer.from(expectedSig),
+    Buffer.from(providedSig)
+  )) {
+    throw new Error('Invalid webhook signature');
+  }
+
+  return true;
+}`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `import hmac
+import hashlib
+import time
+
+def verify_webhook_signature(payload: str, signature: str, secret: str) -> bool:
+    parts = dict(p.split('=') for p in signature.split(','))
+    timestamp = parts['t']
+    provided_sig = parts['v1']
+
+    # Check timestamp is recent (within 5 minutes)
+    age = time.time() - int(timestamp)
+    if age > 300:
+        raise ValueError('Webhook timestamp too old')
+
+    # Compute expected signature
+    signed_payload = f'{timestamp}.{payload}'
+    expected_sig = hmac.new(
+        secret.encode(),
+        signed_payload.encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    # Constant-time comparison
+    if not hmac.compare_digest(expected_sig, provided_sig):
+        raise ValueError('Invalid webhook signature')
+
+    return True`
+    },
+  ]}
+/>
+
+## Handling Webhooks
+
+### Example Endpoint
+
+```javascript
+// Next.js API route example
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(request: NextRequest) {
+  const signature = request.headers.get('X-Verifact-Signature');
+  const body = await request.text();
+
+  // Verify signature
+  try {
+    verifyWebhookSignature(body, signature, process.env.WEBHOOK_SECRET);
+  } catch (error) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+  }
+
+  // Parse and handle event
+  const event = JSON.parse(body);
+
+  switch (event.type) {
+    case 'verification.completed':
+      await handleVerificationComplete(event.data);
+      break;
+    case 'verification.escalated':
+      await handleEscalation(event.data);
+      break;
+    // ... handle other events
+  }
+
+  // Return 200 to acknowledge receipt
+  return NextResponse.json({ received: true });
+}
+```
+
+## Best Practices
+
+### Respond Quickly
+
+Return a `200` status code immediately after receiving the webhook. Process the event asynchronously if needed.
+
+```javascript
+// Queue for async processing
+await queue.add('process-webhook', event);
+return NextResponse.json({ received: true });
+```
+
+### Handle Duplicates
+
+Webhooks may occasionally be delivered more than once. Use the `id` field to deduplicate:
+
+```javascript
+const processed = await db.webhookEvents.findUnique({
+  where: { eventId: event.id }
+});
+
+if (processed) {
+  return NextResponse.json({ received: true }); // Already processed
+}
+```
+
+### Retry Logic
+
+Verifact retries failed webhooks with exponential backoff:
+
+- 1st retry: 1 minute
+- 2nd retry: 5 minutes
+- 3rd retry: 30 minutes
+- 4th retry: 2 hours
+- 5th retry: 24 hours
+
+After 5 failed attempts, the webhook is marked as failed.
+
+<Callout type="warning" title="Endpoint Requirements">
+Your webhook endpoint must:
+- Accept HTTPS connections (HTTP not supported in production)
+- Respond within 30 seconds
+- Return a 2xx status code on success
+</Callout>
+
+## Testing Webhooks
+
+Use the **Test** button in the Dashboard to send a test event to your endpoint. You can also use tools like [ngrok](https://ngrok.com) to expose your local development server.

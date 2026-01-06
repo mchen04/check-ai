@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -87,13 +87,7 @@ export function WebhookDeliveriesDialog({
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, totalPages: 0 });
 
-  useEffect(() => {
-    if (open) {
-      fetchDeliveries();
-    }
-  }, [open, filter, page]);
-
-  const fetchDeliveries = async () => {
+  const fetchDeliveries = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page), limit: '20' });
@@ -115,7 +109,13 @@ export function WebhookDeliveriesDialog({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [webhookId, filter, page]);
+
+  useEffect(() => {
+    if (open) {
+      fetchDeliveries();
+    }
+  }, [open, fetchDeliveries]);
 
   const retryDelivery = async (deliveryId: string) => {
     setRetryingId(deliveryId);

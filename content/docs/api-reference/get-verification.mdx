@@ -1,0 +1,200 @@
+---
+title: Get Verification
+description: Retrieve a verification result by ID using the GET /v1/verify/:id endpoint.
+order: 3
+---
+
+# Get Verification
+
+Retrieve the details of a previously submitted verification.
+
+<EndpointHeader
+  method="GET"
+  path="/v1/verify/:id"
+  description="Fetch verification result by its unique identifier."
+/>
+
+## Path Parameters
+
+<ParameterTable
+  parameters={[
+    {
+      name: 'id',
+      type: 'string',
+      required: true,
+      description: 'The verification ID (e.g., ver_abc123def456)',
+    },
+  ]}
+/>
+
+## Example Request
+
+<CodeTabs
+  examples={[
+    {
+      language: 'curl',
+      label: 'cURL',
+      code: `curl https://api.verifact.ai/v1/verify/ver_abc123def456 \\
+  -H "Authorization: Bearer vfy_your_api_key"`
+    },
+    {
+      language: 'javascript',
+      label: 'Node.js',
+      code: `const verificationId = 'ver_abc123def456';
+
+const response = await fetch(\`https://api.verifact.ai/v1/verify/\${verificationId}\`, {
+  headers: {
+    'Authorization': 'Bearer vfy_your_api_key',
+  },
+});
+
+const result = await response.json();
+console.log(result);`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `import requests
+
+verification_id = 'ver_abc123def456'
+
+response = requests.get(
+    f'https://api.verifact.ai/v1/verify/{verification_id}',
+    headers={
+        'Authorization': 'Bearer vfy_your_api_key',
+    }
+)
+
+print(response.json())`
+    },
+  ]}
+/>
+
+## Response
+
+### Success Response (200)
+
+```json
+{
+  "id": "ver_abc123def456",
+  "status": "completed",
+  "content": "The original content that was verified...",
+  "verdict": "true",
+  "confidence": 0.95,
+  "decision": "accept",
+  "reasoning": "The claim is factually accurate based on multiple authoritative sources.",
+  "paradigmResults": [
+    {
+      "id": "pr_111",
+      "paradigm": "llm_analysis",
+      "verdict": "true",
+      "confidence": 0.94,
+      "reasoning": "Analysis indicates factual accuracy",
+      "provider": "anthropic",
+      "model": "claude-3-sonnet",
+      "processingTimeMs": 850
+    },
+    {
+      "id": "pr_222",
+      "paradigm": "search_verification",
+      "verdict": "true",
+      "confidence": 0.97,
+      "reasoning": "Confirmed by 3 authoritative sources",
+      "processingTimeMs": 1200
+    }
+  ],
+  "processingTimeMs": 2100,
+  "costCents": 5,
+  "metadata": {
+    "source": "article-123"
+  },
+  "createdAt": "2024-01-15T10:30:00Z",
+  "completedAt": "2024-01-15T10:30:02Z"
+}
+```
+
+### Pending Verification
+
+If the verification is still processing:
+
+```json
+{
+  "id": "ver_abc123def456",
+  "status": "processing",
+  "content": "The content being verified...",
+  "createdAt": "2024-01-15T10:30:00Z"
+}
+```
+
+### Escalated Verification
+
+If the verification was escalated for human review:
+
+```json
+{
+  "id": "ver_abc123def456",
+  "status": "escalated",
+  "content": "The content being verified...",
+  "verdict": "uncertain",
+  "confidence": 0.45,
+  "escalation": {
+    "id": "esc_xyz789",
+    "reason": "low_confidence",
+    "priority": "high",
+    "deadline": "2024-01-16T10:30:00Z",
+    "status": "pending"
+  },
+  "createdAt": "2024-01-15T10:30:00Z"
+}
+```
+
+### Error Responses
+
+**404 Not Found**
+```json
+{
+  "error": {
+    "code": "not_found",
+    "message": "Verification not found"
+  }
+}
+```
+
+**403 Forbidden**
+```json
+{
+  "error": {
+    "code": "forbidden",
+    "message": "This verification belongs to a different organization"
+  }
+}
+```
+
+## Polling for Results
+
+For long-running verifications, you can poll this endpoint:
+
+```javascript
+async function waitForVerification(id, maxAttempts = 30) {
+  for (let i = 0; i < maxAttempts; i++) {
+    const response = await fetch(`https://api.verifact.ai/v1/verify/${id}`, {
+      headers: { 'Authorization': `Bearer ${apiKey}` },
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'completed' || result.status === 'escalated') {
+      return result;
+    }
+
+    // Wait 1 second before next attempt
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+
+  throw new Error('Verification timed out');
+}
+```
+
+<Callout type="info" title="Use Webhooks Instead">
+For production applications, we recommend using [webhooks](/docs/webhooks) instead of polling. Webhooks provide instant notifications and reduce unnecessary API calls.
+</Callout>
