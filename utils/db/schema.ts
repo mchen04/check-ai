@@ -53,6 +53,14 @@ export const inviteStatusEnum = pgEnum('invite_status', [
   'revoked',
 ]);
 
+export const webhookDeliveryStatusEnum = pgEnum('webhook_delivery_status', [
+  'pending', // Queued, not yet attempted
+  'processing', // Currently being delivered
+  'delivered', // Successfully delivered (2xx)
+  'retrying', // Failed, scheduled for retry
+  'failed', // All retries exhausted (in DLQ)
+]);
+
 // =============================================================================
 // EXISTING TABLES (kept for backward compatibility)
 // =============================================================================
@@ -290,8 +298,18 @@ export type InsertWebhook = typeof webhooksTable.$inferInsert;
 export type SelectWebhook = typeof webhooksTable.$inferSelect;
 
 // =============================================================================
-// WEBHOOK DELIVERIES (Delivery logs for debugging)
+// WEBHOOK DELIVERIES (Delivery logs with retry tracking)
 // =============================================================================
+
+// Type for attempt history records
+export interface WebhookAttemptRecord {
+  attemptNumber: number;
+  timestamp: string;
+  responseStatus?: number;
+  responseBody?: string;
+  durationMs: number;
+  error?: string;
+}
 
 export const webhookDeliveriesTable = pgTable('webhook_deliveries', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -300,11 +318,35 @@ export const webhookDeliveriesTable = pgTable('webhook_deliveries', {
     .notNull(),
   event: text('event').notNull(),
   payload: jsonb('payload').notNull(),
+
+  // Delivery status tracking
+  status: webhookDeliveryStatusEnum('status').default('pending').notNull(),
+  qstashMessageId: text('qstash_message_id'), // QStash tracking ID
+
+  // Retry tracking
+  attemptNumber: integer('attempt_number').default(1).notNull(),
+  maxAttempts: integer('max_attempts').default(6).notNull(),
+  nextRetryAt: timestamp('next_retry_at'),
+
+  // Response data (from latest attempt)
   responseStatus: integer('response_status'),
   responseBody: text('response_body'),
-  deliveredAt: timestamp('delivered_at').defaultNow().notNull(),
   durationMs: integer('duration_ms'),
-  success: boolean('success').notNull(),
+  lastError: text('last_error'),
+
+  // DLQ support for manual replay
+  dlqId: text('dlq_id'),
+
+  // Attempt history (array of WebhookAttemptRecord)
+  attemptHistory: jsonb('attempt_history').$type<WebhookAttemptRecord[]>(),
+
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  deliveredAt: timestamp('delivered_at'),
+  failedAt: timestamp('failed_at'), // When moved to DLQ
+
+  // Legacy field for backward compatibility
+  success: boolean('success').default(false).notNull(),
 });
 
 export type InsertWebhookDelivery = typeof webhookDeliveriesTable.$inferInsert;

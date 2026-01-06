@@ -23,6 +23,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -45,8 +46,10 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
+  History,
 } from 'lucide-react';
 import { AddWebhookDialog } from './AddWebhookDialog';
+import { WebhookDeliveriesDialog } from './WebhookDeliveriesDialog';
 
 interface WebhookData {
   id: string;
@@ -72,6 +75,7 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<{ id: string; success: boolean } | null>(null);
+  const [deliveriesWebhook, setDeliveriesWebhook] = useState<WebhookData | null>(null);
 
   useEffect(() => {
     fetchWebhooks();
@@ -102,7 +106,7 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
 
       if (response.ok) {
         setWebhooks((prev) =>
-          prev.map((w) => (w.id === webhookId ? { ...w, isActive: !isActive } : w))
+          prev.map((w) => (w.id === webhookId ? { ...w, isActive: !isActive, failureCount: 0 } : w))
         );
       }
     } catch (error) {
@@ -162,6 +166,44 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
     });
   };
 
+  const getStatusBadge = (webhook: WebhookData) => {
+    // Show test result if available
+    if (testResult?.id === webhook.id) {
+      return testResult.success ? (
+        <Badge variant="default" className="bg-green-500">
+          <CheckCircle className="mr-1 h-3 w-3" />
+          Success
+        </Badge>
+      ) : (
+        <Badge variant="destructive">
+          <XCircle className="mr-1 h-3 w-3" />
+          Failed
+        </Badge>
+      );
+    }
+
+    // Inactive webhook
+    if (!webhook.isActive) {
+      return <Badge variant="secondary">Paused</Badge>;
+    }
+
+    // Active with failures
+    if (webhook.failureCount > 0) {
+      return (
+        <Badge variant="destructive" className="cursor-pointer" onClick={() => setDeliveriesWebhook(webhook)}>
+          {webhook.failureCount} failure{webhook.failureCount > 1 ? 's' : ''}
+        </Badge>
+      );
+    }
+
+    // Active and healthy
+    return (
+      <Badge variant="default" className="bg-green-500">
+        Active
+      </Badge>
+    );
+  };
+
   return (
     <>
       <Card>
@@ -176,7 +218,7 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
             )}
           </div>
           <CardDescription>
-            Receive real-time notifications when verification events occur
+            Receive real-time notifications when verification events occur. Webhooks automatically retry on failure.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -229,31 +271,7 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {testResult?.id === webhook.id ? (
-                        testResult.success ? (
-                          <Badge variant="default" className="bg-green-500">
-                            <CheckCircle className="mr-1 h-3 w-3" />
-                            Success
-                          </Badge>
-                        ) : (
-                          <Badge variant="destructive">
-                            <XCircle className="mr-1 h-3 w-3" />
-                            Failed
-                          </Badge>
-                        )
-                      ) : webhook.isActive ? (
-                        webhook.failureCount > 0 ? (
-                          <Badge variant="destructive">
-                            {webhook.failureCount} failures
-                          </Badge>
-                        ) : (
-                          <Badge variant="default" className="bg-green-500">
-                            Active
-                          </Badge>
-                        )
-                      ) : (
-                        <Badge variant="secondary">Paused</Badge>
-                      )}
+                      {getStatusBadge(webhook)}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {formatDate(webhook.lastTriggeredAt)}
@@ -275,10 +293,15 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setDeliveriesWebhook(webhook)}>
+                              <History className="mr-2 h-4 w-4" />
+                              View Deliveries
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => testWebhook(webhook.id)}>
                               <TestTube className="mr-2 h-4 w-4" />
                               Send Test
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem
                               onClick={() => toggleWebhook(webhook.id, webhook.isActive)}
                             >
@@ -313,6 +336,17 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
         </CardContent>
       </Card>
 
+      {/* Deliveries Dialog */}
+      {deliveriesWebhook && (
+        <WebhookDeliveriesDialog
+          webhookId={deliveriesWebhook.id}
+          webhookUrl={deliveriesWebhook.url}
+          open={!!deliveriesWebhook}
+          onOpenChange={(open) => !open && setDeliveriesWebhook(null)}
+          canEdit={canEdit}
+        />
+      )}
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
@@ -320,6 +354,7 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
             <AlertDialogTitle>Delete Webhook</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this webhook? This action cannot be undone.
+              All delivery history will also be deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
