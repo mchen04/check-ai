@@ -126,6 +126,23 @@ interface VerifyResponse {
     completedAt?: string;
 }
 /**
+ * Retry configuration for automatic retries with exponential backoff
+ */
+interface RetryConfig {
+    /** Maximum number of retry attempts (default: 3) */
+    maxRetries?: number;
+    /** Initial delay between retries in milliseconds (default: 1000) */
+    initialDelay?: number;
+    /** Maximum delay between retries in milliseconds (default: 30000) */
+    maxDelay?: number;
+    /** Multiplier for exponential backoff (default: 2) */
+    multiplier?: number;
+    /** Add randomization to delay to avoid thundering herd (default: true) */
+    jitter?: boolean;
+    /** HTTP status codes that should trigger a retry (default: [429, 500, 502, 503, 504]) */
+    retryableStatuses?: number[];
+}
+/**
  * Options for initializing the VerifyAI client
  */
 interface VerifyAIOptions {
@@ -137,6 +154,8 @@ interface VerifyAIOptions {
     timeout?: number;
     /** Custom fetch implementation */
     fetch?: typeof fetch;
+    /** Retry configuration for failed requests */
+    retry?: RetryConfig | false;
 }
 /**
  * Options for verifyAndWait method
@@ -159,6 +178,182 @@ interface ApiErrorResponse {
     details?: Record<string, unknown>;
     /** Request ID for debugging */
     requestId?: string;
+}
+/**
+ * Batch job status
+ */
+type BatchStatus = 'pending' | 'validating' | 'processing' | 'completed' | 'failed' | 'cancelled';
+/**
+ * Individual item in a batch request
+ */
+interface BatchItem {
+    /** Content to verify */
+    content: string;
+    /** Optional context for verification */
+    context?: Record<string, unknown>;
+    /** Optional idempotency key */
+    idempotencyKey?: string;
+}
+/**
+ * Request to create a batch job
+ */
+interface CreateBatchRequest {
+    /** Items to verify (mutually exclusive with fileId) */
+    items?: BatchItem[];
+    /** File ID from upload (mutually exclusive with items) */
+    fileId?: string;
+    /** Verification methods to use */
+    methods: MethodsConfig;
+    /** Optional webhook URL for completion notification */
+    webhookUrl?: string;
+    /** Optional metadata */
+    metadata?: Record<string, unknown>;
+}
+/**
+ * Response from creating a batch job
+ */
+interface CreateBatchResponse {
+    /** Unique batch ID */
+    id: string;
+    /** Current status */
+    status: BatchStatus;
+    /** Total number of items */
+    totalItems: number;
+    /** Validation errors (if any) */
+    validationErrors?: Array<{
+        index: number;
+        message: string;
+    }>;
+    /** Status message */
+    message: string;
+}
+/**
+ * Batch job details
+ */
+interface BatchJob {
+    /** Unique batch ID */
+    id: string;
+    /** Current status */
+    status: BatchStatus;
+    /** Total number of items */
+    totalItems: number;
+    /** Number of completed items */
+    completedItems: number;
+    /** Number of failed items */
+    failedItems: number;
+    /** Progress percentage (0-100) */
+    progress: number;
+    /** Verification methods configuration */
+    methods: MethodsConfig;
+    /** ISO 8601 timestamp when created */
+    createdAt: string;
+    /** ISO 8601 timestamp when started processing */
+    startedAt?: string;
+    /** ISO 8601 timestamp when completed */
+    completedAt?: string;
+    /** Error message if failed */
+    error?: string;
+    /** Optional metadata */
+    metadata?: Record<string, unknown>;
+}
+/**
+ * Individual batch item result
+ */
+interface BatchItemResult {
+    /** Item index in batch */
+    index: number;
+    /** Verification ID */
+    verificationId?: string;
+    /** Current status */
+    status: VerificationStatus;
+    /** Overall verdict */
+    verdict?: Verdict;
+    /** Overall confidence score (0-1) */
+    confidence?: number;
+    /** Decision recommendation */
+    decision?: Decision;
+    /** Summary reasoning */
+    reasoning?: string;
+    /** Error if failed */
+    error?: string;
+    /** Original content */
+    content?: string;
+}
+/**
+ * Batch results response
+ */
+interface BatchResultsResponse {
+    /** Batch ID */
+    batchId: string;
+    /** Batch status */
+    status: BatchStatus;
+    /** Results for each item */
+    results: BatchItemResult[];
+    /** Pagination info */
+    pagination?: {
+        total: number;
+        limit: number;
+        offset: number;
+        hasMore: boolean;
+    };
+}
+/**
+ * Options for listing batches
+ */
+interface ListBatchesOptions {
+    /** Maximum number of batches to return (default: 20, max: 100) */
+    limit?: number;
+    /** Offset for pagination */
+    offset?: number;
+    /** Filter by status */
+    status?: BatchStatus;
+}
+/**
+ * Response from listing batches
+ */
+interface ListBatchesResponse {
+    /** List of batch jobs */
+    data: BatchJob[];
+    /** Pagination info */
+    pagination: {
+        total: number;
+        limit: number;
+        offset: number;
+        hasMore: boolean;
+    };
+}
+/**
+ * File upload response
+ */
+interface FileUploadResponse {
+    /** File ID to use when creating batch */
+    fileId: string;
+    /** Original file name */
+    originalFileName: string;
+    /** Detected format */
+    format: 'json' | 'csv';
+    /** Number of items parsed */
+    itemCount: number;
+    /** Validation errors (items were skipped) */
+    validationErrors?: Array<{
+        line: number;
+        message: string;
+    }>;
+    /** ISO 8601 timestamp when file expires */
+    expiresAt: string;
+    /** Status message */
+    message: string;
+}
+/**
+ * Options for waiting for batch completion
+ */
+interface BatchWaitOptions {
+    /** Polling interval in milliseconds (default: 5000) */
+    pollInterval?: number;
+    /** Maximum time to wait in milliseconds (default: 3600000 = 1 hour) */
+    timeout?: number;
+    /** Callback for progress updates */
+    onProgress?: (batch: BatchJob) => void;
 }
 
 /**
@@ -192,6 +387,7 @@ declare class VerifyAI {
     private readonly baseUrl;
     private readonly timeout;
     private readonly fetchFn;
+    private readonly retryConfig;
     constructor(options: VerifyAIOptions);
     /**
      * Start a verification request
@@ -251,13 +447,172 @@ declare class VerifyAI {
      */
     verifyAndWait(request: VerifyRequest, options?: WaitOptions): Promise<VerifyResponse>;
     /**
-     * Make an authenticated request to the API
+     * Make an authenticated request to the API with automatic retries
      */
     private request;
+    /**
+     * Execute a single request attempt
+     */
+    private executeRequest;
+    /**
+     * Determine if a request should be retried
+     */
+    private shouldRetry;
+    /**
+     * Calculate delay before next retry attempt using exponential backoff
+     */
+    private calculateRetryDelay;
     /**
      * Sleep for specified milliseconds
      */
     private sleep;
+    /**
+     * Create a batch verification job
+     *
+     * Batch processing allows you to verify multiple pieces of content in a single
+     * request. Items are processed asynchronously and results can be retrieved later.
+     *
+     * @param request - Batch creation request with items or fileId
+     * @returns Batch creation response with job ID
+     *
+     * @example
+     * ```typescript
+     * const batch = await client.createBatch({
+     *   items: [
+     *     { content: 'The Earth is round.' },
+     *     { content: 'Water freezes at 0°C.' },
+     *     { content: 'The sun is cold.' }
+     *   ],
+     *   methods: { reasoning: 1.0 }
+     * });
+     * console.log(batch.id); // Use to poll for results
+     * ```
+     */
+    createBatch(request: CreateBatchRequest): Promise<CreateBatchResponse>;
+    /**
+     * Get batch job status and details
+     *
+     * @param id - Batch job ID
+     * @returns Batch job details including progress
+     *
+     * @example
+     * ```typescript
+     * const batch = await client.getBatch('batch_abc123');
+     * console.log(`Progress: ${batch.progress}%`);
+     * console.log(`Status: ${batch.status}`);
+     * ```
+     */
+    getBatch(id: string): Promise<BatchJob>;
+    /**
+     * List batch jobs
+     *
+     * @param options - Pagination and filter options
+     * @returns Paginated list of batch jobs
+     *
+     * @example
+     * ```typescript
+     * const { data: batches, pagination } = await client.listBatches({
+     *   limit: 10,
+     *   status: 'completed'
+     * });
+     *
+     * for (const batch of batches) {
+     *   console.log(`${batch.id}: ${batch.status}`);
+     * }
+     * ```
+     */
+    listBatches(options?: ListBatchesOptions): Promise<ListBatchesResponse>;
+    /**
+     * Cancel a batch job
+     *
+     * Cancels a batch job that is pending or processing. Items that have already
+     * been processed will retain their results.
+     *
+     * @param id - Batch job ID
+     * @returns Updated batch job details
+     *
+     * @example
+     * ```typescript
+     * const batch = await client.cancelBatch('batch_abc123');
+     * console.log(batch.status); // 'cancelled'
+     * ```
+     */
+    cancelBatch(id: string): Promise<BatchJob>;
+    /**
+     * Get batch results
+     *
+     * Retrieves verification results for a batch job. For large batches,
+     * results are paginated.
+     *
+     * @param id - Batch job ID
+     * @param options - Pagination options
+     * @returns Batch results with individual item verdicts
+     *
+     * @example
+     * ```typescript
+     * const results = await client.getBatchResults('batch_abc123');
+     *
+     * for (const result of results.results) {
+     *   console.log(`Item ${result.index}: ${result.verdict} (${result.confidence})`);
+     * }
+     * ```
+     */
+    getBatchResults(id: string, options?: {
+        limit?: number;
+        offset?: number;
+    }): Promise<BatchResultsResponse>;
+    /**
+     * Upload a file for batch processing
+     *
+     * Uploads a CSV or JSON file containing items to verify. The returned fileId
+     * can be used when creating a batch job.
+     *
+     * @param file - File to upload (Blob, File, or Buffer)
+     * @param filename - Filename with extension (.csv or .json)
+     * @returns Upload response with fileId
+     *
+     * @example
+     * ```typescript
+     * // From a file input
+     * const file = document.getElementById('file').files[0];
+     * const upload = await client.uploadBatchFile(file, file.name);
+     *
+     * // Create batch using uploaded file
+     * const batch = await client.createBatch({
+     *   fileId: upload.fileId,
+     *   methods: { reasoning: 1.0 }
+     * });
+     * ```
+     */
+    uploadBatchFile(file: Blob | Buffer | ArrayBuffer, filename: string): Promise<FileUploadResponse>;
+    /**
+     * Create a batch and wait for completion
+     *
+     * This is the recommended method for batch processing when you want to wait
+     * for all results. It creates a batch and polls until completion.
+     *
+     * @param request - Batch creation request
+     * @param options - Wait options including timeout and progress callback
+     * @returns Completed batch job with all results
+     *
+     * @example
+     * ```typescript
+     * const batch = await client.createBatchAndWait(
+     *   {
+     *     items: items,
+     *     methods: { reasoning: 1.0 }
+     *   },
+     *   {
+     *     onProgress: (batch) => {
+     *       console.log(`Progress: ${batch.progress}%`);
+     *     }
+     *   }
+     * );
+     *
+     * const results = await client.getBatchResults(batch.id);
+     * ```
+     */
+    createBatchAndWait(request: CreateBatchRequest, options?: BatchWaitOptions): Promise<BatchJob>;
 }
 
 /**
@@ -388,4 +743,4 @@ declare class ServerError extends VerifyAIError {
     });
 }
 
-export { type ApiErrorResponse, AuthenticationError, AuthorizationError, type Decision, type MethodsConfig, NotFoundError, type ParadigmResult, type ParadigmType, QuotaExceededError, RateLimitError, ServerError, TimeoutError, VERSION, ValidationError, type Verdict, type VerificationStatus, VerifyAI, VerifyAIError, type VerifyAIOptions, type VerifyOptions, type VerifyRequest, type VerifyResponse, type WaitOptions };
+export { type ApiErrorResponse, AuthenticationError, AuthorizationError, type BatchItem, type BatchItemResult, type BatchJob, type BatchResultsResponse, type BatchStatus, type BatchWaitOptions, type CreateBatchRequest, type CreateBatchResponse, type Decision, type FileUploadResponse, type ListBatchesOptions, type ListBatchesResponse, type MethodsConfig, NotFoundError, type ParadigmResult, type ParadigmType, QuotaExceededError, RateLimitError, type RetryConfig, ServerError, TimeoutError, VERSION, ValidationError, type Verdict, type VerificationStatus, VerifyAI, VerifyAIError, type VerifyAIOptions, type VerifyOptions, type VerifyRequest, type VerifyResponse, type WaitOptions };

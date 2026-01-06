@@ -129,11 +129,22 @@ var DEFAULT_BASE_URL = "https://api.verifyai.dev";
 var DEFAULT_TIMEOUT = 3e4;
 var DEFAULT_POLL_INTERVAL = 1e3;
 var DEFAULT_WAIT_TIMEOUT = 6e4;
+var DEFAULT_BATCH_POLL_INTERVAL = 5e3;
+var DEFAULT_BATCH_WAIT_TIMEOUT = 36e5;
+var DEFAULT_RETRY_CONFIG = {
+  maxRetries: 3,
+  initialDelay: 1e3,
+  maxDelay: 3e4,
+  multiplier: 2,
+  jitter: true,
+  retryableStatuses: [429, 500, 502, 503, 504]
+};
 var VerifyAI = class {
   apiKey;
   baseUrl;
   timeout;
   fetchFn;
+  retryConfig;
   constructor(options) {
     if (!options.apiKey) {
       throw new VerifyAIError("API key is required", { code: "MISSING_API_KEY" });
@@ -142,6 +153,14 @@ var VerifyAI = class {
     this.baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, "");
     this.timeout = options.timeout ?? DEFAULT_TIMEOUT;
     this.fetchFn = options.fetch ?? globalThis.fetch;
+    if (options.retry === false) {
+      this.retryConfig = null;
+    } else {
+      this.retryConfig = {
+        ...DEFAULT_RETRY_CONFIG,
+        ...options.retry
+      };
+    }
     if (!this.fetchFn) {
       throw new VerifyAIError(
         "fetch is not available. Please provide a fetch implementation or use Node.js 18+",
@@ -237,9 +256,29 @@ var VerifyAI = class {
     return response;
   }
   /**
-   * Make an authenticated request to the API
+   * Make an authenticated request to the API with automatic retries
    */
   async request(path, options) {
+    const maxAttempts = this.retryConfig ? this.retryConfig.maxRetries + 1 : 1;
+    let lastError;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        return await this.executeRequest(path, options);
+      } catch (error) {
+        lastError = error;
+        if (!this.shouldRetry(error, attempt)) {
+          throw error;
+        }
+        const delay = this.calculateRetryDelay(attempt, error);
+        await this.sleep(delay);
+      }
+    }
+    throw lastError ?? new VerifyAIError("Request failed", { code: "UNKNOWN_ERROR" });
+  }
+  /**
+   * Execute a single request attempt
+   */
+  async executeRequest(path, options) {
     const url = `${this.baseUrl}${path}`;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
@@ -291,10 +330,303 @@ var VerifyAI = class {
     }
   }
   /**
+   * Determine if a request should be retried
+   */
+  shouldRetry(error, attempt) {
+    if (!this.retryConfig) {
+      return false;
+    }
+    if (attempt >= this.retryConfig.maxRetries) {
+      return false;
+    }
+    if (error instanceof RateLimitError) {
+      return true;
+    }
+    if (error instanceof VerifyAIError && error.status) {
+      return this.retryConfig.retryableStatuses.includes(error.status);
+    }
+    if (error instanceof VerifyAIError && error.code === "NETWORK_ERROR") {
+      return true;
+    }
+    if (error instanceof TimeoutError) {
+      return true;
+    }
+    return false;
+  }
+  /**
+   * Calculate delay before next retry attempt using exponential backoff
+   */
+  calculateRetryDelay(attempt, error) {
+    if (!this.retryConfig) {
+      return 0;
+    }
+    if (error instanceof RateLimitError && error.retryAfter) {
+      return error.retryAfter * 1e3;
+    }
+    let delay = this.retryConfig.initialDelay * Math.pow(this.retryConfig.multiplier, attempt);
+    delay = Math.min(delay, this.retryConfig.maxDelay);
+    if (this.retryConfig.jitter) {
+      const jitterFactor = 0.5 + Math.random() * 0.5;
+      delay = delay * jitterFactor;
+    }
+    return Math.round(delay);
+  }
+  /**
    * Sleep for specified milliseconds
    */
   sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+  // ===========================================================================
+  // BATCH PROCESSING METHODS
+  // ===========================================================================
+  /**
+   * Create a batch verification job
+   *
+   * Batch processing allows you to verify multiple pieces of content in a single
+   * request. Items are processed asynchronously and results can be retrieved later.
+   *
+   * @param request - Batch creation request with items or fileId
+   * @returns Batch creation response with job ID
+   *
+   * @example
+   * ```typescript
+   * const batch = await client.createBatch({
+   *   items: [
+   *     { content: 'The Earth is round.' },
+   *     { content: 'Water freezes at 0°C.' },
+   *     { content: 'The sun is cold.' }
+   *   ],
+   *   methods: { reasoning: 1.0 }
+   * });
+   * console.log(batch.id); // Use to poll for results
+   * ```
+   */
+  async createBatch(request) {
+    return this.request("/v1/batch", {
+      method: "POST",
+      body: JSON.stringify(request)
+    });
+  }
+  /**
+   * Get batch job status and details
+   *
+   * @param id - Batch job ID
+   * @returns Batch job details including progress
+   *
+   * @example
+   * ```typescript
+   * const batch = await client.getBatch('batch_abc123');
+   * console.log(`Progress: ${batch.progress}%`);
+   * console.log(`Status: ${batch.status}`);
+   * ```
+   */
+  async getBatch(id) {
+    if (!id) {
+      throw new VerifyAIError("Batch ID is required", { code: "MISSING_ID" });
+    }
+    return this.request(`/v1/batch/${encodeURIComponent(id)}`, {
+      method: "GET"
+    });
+  }
+  /**
+   * List batch jobs
+   *
+   * @param options - Pagination and filter options
+   * @returns Paginated list of batch jobs
+   *
+   * @example
+   * ```typescript
+   * const { data: batches, pagination } = await client.listBatches({
+   *   limit: 10,
+   *   status: 'completed'
+   * });
+   *
+   * for (const batch of batches) {
+   *   console.log(`${batch.id}: ${batch.status}`);
+   * }
+   * ```
+   */
+  async listBatches(options) {
+    const params = new URLSearchParams();
+    if (options?.limit) params.set("limit", String(options.limit));
+    if (options?.offset) params.set("offset", String(options.offset));
+    if (options?.status) params.set("status", options.status);
+    const query = params.toString();
+    const path = query ? `/v1/batch?${query}` : "/v1/batch";
+    return this.request(path, { method: "GET" });
+  }
+  /**
+   * Cancel a batch job
+   *
+   * Cancels a batch job that is pending or processing. Items that have already
+   * been processed will retain their results.
+   *
+   * @param id - Batch job ID
+   * @returns Updated batch job details
+   *
+   * @example
+   * ```typescript
+   * const batch = await client.cancelBatch('batch_abc123');
+   * console.log(batch.status); // 'cancelled'
+   * ```
+   */
+  async cancelBatch(id) {
+    if (!id) {
+      throw new VerifyAIError("Batch ID is required", { code: "MISSING_ID" });
+    }
+    return this.request(`/v1/batch/${encodeURIComponent(id)}/cancel`, {
+      method: "POST"
+    });
+  }
+  /**
+   * Get batch results
+   *
+   * Retrieves verification results for a batch job. For large batches,
+   * results are paginated.
+   *
+   * @param id - Batch job ID
+   * @param options - Pagination options
+   * @returns Batch results with individual item verdicts
+   *
+   * @example
+   * ```typescript
+   * const results = await client.getBatchResults('batch_abc123');
+   *
+   * for (const result of results.results) {
+   *   console.log(`Item ${result.index}: ${result.verdict} (${result.confidence})`);
+   * }
+   * ```
+   */
+  async getBatchResults(id, options) {
+    if (!id) {
+      throw new VerifyAIError("Batch ID is required", { code: "MISSING_ID" });
+    }
+    const params = new URLSearchParams();
+    if (options?.limit) params.set("limit", String(options.limit));
+    if (options?.offset) params.set("offset", String(options.offset));
+    const query = params.toString();
+    const path = query ? `/v1/batch/${encodeURIComponent(id)}/results?${query}` : `/v1/batch/${encodeURIComponent(id)}/results`;
+    return this.request(path, { method: "GET" });
+  }
+  /**
+   * Upload a file for batch processing
+   *
+   * Uploads a CSV or JSON file containing items to verify. The returned fileId
+   * can be used when creating a batch job.
+   *
+   * @param file - File to upload (Blob, File, or Buffer)
+   * @param filename - Filename with extension (.csv or .json)
+   * @returns Upload response with fileId
+   *
+   * @example
+   * ```typescript
+   * // From a file input
+   * const file = document.getElementById('file').files[0];
+   * const upload = await client.uploadBatchFile(file, file.name);
+   *
+   * // Create batch using uploaded file
+   * const batch = await client.createBatch({
+   *   fileId: upload.fileId,
+   *   methods: { reasoning: 1.0 }
+   * });
+   * ```
+   */
+  async uploadBatchFile(file, filename) {
+    const formData = new FormData();
+    if (file instanceof Blob) {
+      formData.append("file", file, filename);
+    } else {
+      const blob = new Blob([file]);
+      formData.append("file", blob, filename);
+    }
+    const url = `${this.baseUrl}/v1/batch/upload`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+    try {
+      const response = await this.fetchFn(url, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${this.apiKey}`,
+          "User-Agent": `@verifyai/sdk/${VERSION}`
+          // Note: Don't set Content-Type for FormData - browser sets it with boundary
+        },
+        body: formData,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      const data = await response.json();
+      if (!response.ok) {
+        throw VerifyAIError.fromResponse(data, response.status);
+      }
+      return data;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof VerifyAIError) {
+        throw error;
+      }
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new TimeoutError(`Upload timed out after ${this.timeout}ms`);
+      }
+      throw new VerifyAIError(
+        error instanceof Error ? error.message : "Upload failed",
+        { code: "UPLOAD_ERROR" }
+      );
+    }
+  }
+  /**
+   * Create a batch and wait for completion
+   *
+   * This is the recommended method for batch processing when you want to wait
+   * for all results. It creates a batch and polls until completion.
+   *
+   * @param request - Batch creation request
+   * @param options - Wait options including timeout and progress callback
+   * @returns Completed batch job with all results
+   *
+   * @example
+   * ```typescript
+   * const batch = await client.createBatchAndWait(
+   *   {
+   *     items: items,
+   *     methods: { reasoning: 1.0 }
+   *   },
+   *   {
+   *     onProgress: (batch) => {
+   *       console.log(`Progress: ${batch.progress}%`);
+   *     }
+   *   }
+   * );
+   *
+   * const results = await client.getBatchResults(batch.id);
+   * ```
+   */
+  async createBatchAndWait(request, options) {
+    const pollInterval = options?.pollInterval ?? DEFAULT_BATCH_POLL_INTERVAL;
+    const timeout = options?.timeout ?? DEFAULT_BATCH_WAIT_TIMEOUT;
+    const startTime = Date.now();
+    const createResponse = await this.createBatch(request);
+    if (createResponse.status === "failed") {
+      return this.getBatch(createResponse.id);
+    }
+    let batch = await this.getBatch(createResponse.id);
+    while (batch.status === "pending" || batch.status === "validating" || batch.status === "processing") {
+      if (Date.now() - startTime > timeout) {
+        throw new TimeoutError(
+          `Batch timed out after ${timeout}ms. Status: ${batch.status}, Progress: ${batch.progress}%`,
+          { details: { batchId: batch.id, progress: batch.progress } }
+        );
+      }
+      if (options?.onProgress) {
+        options.onProgress(batch);
+      }
+      await this.sleep(pollInterval);
+      batch = await this.getBatch(batch.id);
+    }
+    if (options?.onProgress) {
+      options.onProgress(batch);
+    }
+    return batch;
   }
 };
 

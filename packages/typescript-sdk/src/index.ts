@@ -43,8 +43,21 @@ export type {
   // Client options
   VerifyAIOptions,
   WaitOptions,
+  RetryConfig,
   // Error types
   ApiErrorResponse,
+  // Batch types
+  BatchStatus,
+  BatchItem,
+  CreateBatchRequest,
+  CreateBatchResponse,
+  BatchJob,
+  BatchItemResult,
+  BatchResultsResponse,
+  ListBatchesOptions,
+  ListBatchesResponse,
+  FileUploadResponse,
+  BatchWaitOptions,
 } from './types';
 
 // Errors

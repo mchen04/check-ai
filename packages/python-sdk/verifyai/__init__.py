@@ -29,6 +29,19 @@ from verifyai.types import (
     VerifyResponse,
     # Client options
     WaitOptions,
+    RetryConfig,
+    # Batch types
+    BatchStatus,
+    BatchItem,
+    CreateBatchRequest,
+    CreateBatchResponse,
+    BatchJob,
+    BatchItemResult,
+    BatchResultsResponse,
+    ListBatchesResponse,
+    FileUploadResponse,
+    BatchWaitOptions,
+    PaginationInfo,
 )
 from verifyai.errors import (
     VerifyAIError,
@@ -62,6 +75,19 @@ __all__ = [
     "VerifyResponse",
     # Client options
     "WaitOptions",
+    "RetryConfig",
+    # Batch types
+    "BatchStatus",
+    "BatchItem",
+    "CreateBatchRequest",
+    "CreateBatchResponse",
+    "BatchJob",
+    "BatchItemResult",
+    "BatchResultsResponse",
+    "ListBatchesResponse",
+    "FileUploadResponse",
+    "BatchWaitOptions",
+    "PaginationInfo",
     # Errors
     "VerifyAIError",
     "AuthenticationError",
