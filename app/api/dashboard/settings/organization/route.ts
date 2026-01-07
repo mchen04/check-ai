@@ -63,6 +63,10 @@ const OrgUpdateSchema = z.object({
   autoEscalateThreshold: z.number().min(0).max(1).optional(),
   cacheEnabled: z.boolean().optional(),
   storeVerificationContent: z.boolean().optional(),
+  // Data retention settings
+  dataRetentionEnabled: z.boolean().optional(),
+  verificationRetentionDays: z.number().min(7).max(365).optional(),
+  batchRetentionDays: z.number().min(7).max(365).optional(),
 });
 
 export async function PATCH(req: NextRequest) {
@@ -106,6 +110,15 @@ export async function PATCH(req: NextRequest) {
     if (parsed.data.storeVerificationContent !== undefined) {
       updates.storeVerificationContent = parsed.data.storeVerificationContent;
     }
+    if (parsed.data.dataRetentionEnabled !== undefined) {
+      updates.dataRetentionEnabled = parsed.data.dataRetentionEnabled;
+    }
+    if (parsed.data.verificationRetentionDays !== undefined) {
+      updates.verificationRetentionDays = parsed.data.verificationRetentionDays;
+    }
+    if (parsed.data.batchRetentionDays !== undefined) {
+      updates.batchRetentionDays = parsed.data.batchRetentionDays;
+    }
 
     const [updated] = await db
       .update(organizationsTable)
@@ -118,6 +131,9 @@ export async function PATCH(req: NextRequest) {
         autoEscalateThreshold: organizationsTable.autoEscalateThreshold,
         cacheEnabled: organizationsTable.cacheEnabled,
         storeVerificationContent: organizationsTable.storeVerificationContent,
+        dataRetentionEnabled: organizationsTable.dataRetentionEnabled,
+        verificationRetentionDays: organizationsTable.verificationRetentionDays,
+        batchRetentionDays: organizationsTable.batchRetentionDays,
       });
 
     return NextResponse.json({

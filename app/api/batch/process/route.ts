@@ -12,6 +12,7 @@ import {
   verificationsTable,
   paradigmResultsTable,
   usageTable,
+  organizationsTable,
 } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
 import {
@@ -118,6 +119,21 @@ async function processBatchItem(
 
     const processingTimeMs = Date.now() - startTime;
 
+    // Fetch organization retention settings
+    const [org] = await db
+      .select({
+        verificationRetentionDays: organizationsTable.verificationRetentionDays,
+        dataRetentionEnabled: organizationsTable.dataRetentionEnabled,
+      })
+      .from(organizationsTable)
+      .where(eq(organizationsTable.id, orgId))
+      .limit(1);
+
+    // Calculate expiresAt based on org retention settings
+    const expiresAt = org?.dataRetentionEnabled
+      ? new Date(Date.now() + (org?.verificationRetentionDays ?? 30) * 24 * 60 * 60 * 1000)
+      : null;
+
     // Store verification record
     const [verification] = await db
       .insert(verificationsTable)
@@ -134,6 +150,7 @@ async function processBatchItem(
         processingTimeMs,
         costCents: Math.round(result.costCents),
         completedAt: new Date(),
+        expiresAt,
       })
       .returning();
 

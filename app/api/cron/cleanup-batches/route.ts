@@ -12,7 +12,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   cleanupExpiredBatches,
-  getCleanupStats,
+  cleanupExpiredVerifications,
+  getFullCleanupStats,
 } from '@/lib/batch/cleanup-service';
 
 // Vercel Cron config
@@ -59,7 +60,7 @@ async function runCleanup(req: NextRequest): Promise<NextResponse> {
 
     // If stats only, return cleanup statistics
     if (statsOnly) {
-      const stats = await getCleanupStats();
+      const stats = await getFullCleanupStats();
       return NextResponse.json({
         success: true,
         mode: 'stats',
@@ -68,18 +69,20 @@ async function runCleanup(req: NextRequest): Promise<NextResponse> {
     }
 
     console.log(
-      `[Cron] Running batch cleanup (limit: ${limit}, dryRun: ${dryRun})`
+      `[Cron] Running data cleanup (limit: ${limit}, dryRun: ${dryRun})`
     );
 
-    const result = await cleanupExpiredBatches({
-      limit,
-      dryRun,
-    });
+    // Run both batch and verification cleanup
+    const [batchResult, verificationResult] = await Promise.all([
+      cleanupExpiredBatches({ limit, dryRun }),
+      cleanupExpiredVerifications({ limit, dryRun }),
+    ]);
 
     return NextResponse.json({
       success: true,
       mode: dryRun ? 'dry-run' : 'cleanup',
-      ...result,
+      batches: batchResult,
+      verifications: verificationResult,
     });
   } catch (error) {
     console.error('[Cron] Cleanup error:', error);
@@ -124,9 +127,10 @@ export async function GET(req: NextRequest) {
           'curl -H "Authorization: Bearer $CRON_SECRET" "https://your-app.vercel.app/api/cron/cleanup-batches?stats=true"',
       },
       retention: {
-        batchResultsRetentionDays: 30,
         description:
-          'Batch jobs and their results are automatically deleted 30 days after creation',
+          'Batches and verifications are automatically deleted based on organization retention settings (default: 30 days)',
+        configurable: true,
+        minimumDays: 7,
       },
     });
   }

@@ -146,6 +146,10 @@ export const organizationsTable = pgTable('organizations', {
   autoEscalateThreshold: decimal('auto_escalate_threshold', { precision: 3, scale: 2 }).default('0.50').notNull(),
   cacheEnabled: boolean('cache_enabled').default(true).notNull(),
   storeVerificationContent: boolean('store_verification_content').default(true).notNull(),
+  // Data retention settings
+  verificationRetentionDays: integer('verification_retention_days').default(30).notNull(),
+  batchRetentionDays: integer('batch_retention_days').default(30).notNull(),
+  dataRetentionEnabled: boolean('data_retention_enabled').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -245,6 +249,7 @@ export const verificationsTable = pgTable('verifications', {
   cachedResult: boolean('cached_result').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   completedAt: timestamp('completed_at'),
+  expiresAt: timestamp('expires_at'), // For data retention cleanup
 });
 
 export type InsertVerification = typeof verificationsTable.$inferInsert;

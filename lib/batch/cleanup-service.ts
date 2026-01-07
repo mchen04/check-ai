@@ -1,10 +1,10 @@
 /**
- * Batch Cleanup Service
- * Handles expiration of old batch jobs and their associated data
+ * Data Cleanup Service
+ * Handles expiration of old batch jobs, verifications, and their associated data
  */
 
 import { db } from '@/utils/db/db';
-import { batchJobsTable, batchItemsTable } from '@/utils/db/schema';
+import { batchJobsTable, batchItemsTable, verificationsTable, paradigmResultsTable } from '@/utils/db/schema';
 import { lt, and, inArray } from 'drizzle-orm';
 
 // =============================================================================
@@ -86,21 +86,25 @@ export async function cleanupExpiredBatches(
       return result;
     }
 
-    // Delete items first (foreign key constraint)
-    const deletedItems = await db
-      .delete(batchItemsTable)
-      .where(inArray(batchItemsTable.batchId, batchIds))
-      .returning({ id: batchItemsTable.id });
+    // Count items to be deleted
+    const itemsToDelete = await db
+      .select({ id: batchItemsTable.id })
+      .from(batchItemsTable)
+      .where(inArray(batchItemsTable.batchId, batchIds));
 
-    result.itemsDeleted = deletedItems.length;
+    result.itemsDeleted = itemsToDelete.length;
+
+    // Delete items first (foreign key constraint)
+    await db
+      .delete(batchItemsTable)
+      .where(inArray(batchItemsTable.batchId, batchIds));
 
     // Delete batch jobs
-    const deletedBatches = await db
+    await db
       .delete(batchJobsTable)
-      .where(inArray(batchJobsTable.id, batchIds))
-      .returning({ id: batchJobsTable.id });
+      .where(inArray(batchJobsTable.id, batchIds));
 
-    result.batchesDeleted = deletedBatches.length;
+    result.batchesDeleted = batchIds.length;
 
     console.log(
       `[Cleanup] Deleted ${result.batchesDeleted} batches and ${result.itemsDeleted} items`
@@ -161,5 +165,147 @@ export async function getCleanupStats(): Promise<{
     expiredCount: expired.length,
     expiringIn24Hours: expiring24h.length,
     expiringIn7Days: expiring7d.length,
+  };
+}
+
+// =============================================================================
+// Verification Cleanup
+// =============================================================================
+
+export interface VerificationCleanupResult {
+  verificationsDeleted: number;
+  paradigmResultsDeleted: number;
+  errors: string[];
+  durationMs: number;
+}
+
+export interface VerificationCleanupOptions {
+  /** Maximum verifications to process per run (default: 1000) */
+  limit?: number;
+  /** Dry run - don't actually delete, just report what would be deleted */
+  dryRun?: boolean;
+}
+
+/**
+ * Delete expired verifications and their paradigm results
+ *
+ * Uses the expiresAt field which is set based on organization's verificationRetentionDays
+ */
+export async function cleanupExpiredVerifications(
+  options: VerificationCleanupOptions = {}
+): Promise<VerificationCleanupResult> {
+  const startTime = Date.now();
+  const { limit = 1000, dryRun = false } = options;
+
+  const result: VerificationCleanupResult = {
+    verificationsDeleted: 0,
+    paradigmResultsDeleted: 0,
+    errors: [],
+    durationMs: 0,
+  };
+
+  const now = new Date();
+
+  try {
+    // Find expired verifications
+    const expiredVerifications = await db
+      .select({ id: verificationsTable.id })
+      .from(verificationsTable)
+      .where(lt(verificationsTable.expiresAt, now))
+      .limit(limit);
+
+    if (expiredVerifications.length === 0) {
+      result.durationMs = Date.now() - startTime;
+      return result;
+    }
+
+    const verificationIds = expiredVerifications.map((v) => v.id);
+
+    console.log(
+      `[Cleanup] Found ${verificationIds.length} expired verifications to delete${dryRun ? ' (dry run)' : ''}`
+    );
+
+    if (dryRun) {
+      result.verificationsDeleted = verificationIds.length;
+      result.durationMs = Date.now() - startTime;
+      return result;
+    }
+
+    // Count paradigm results to be deleted
+    const paradigmResultsToDelete = await db
+      .select({ id: paradigmResultsTable.id })
+      .from(paradigmResultsTable)
+      .where(inArray(paradigmResultsTable.verificationId, verificationIds));
+
+    result.paradigmResultsDeleted = paradigmResultsToDelete.length;
+
+    // Delete paradigm results first (foreign key constraint)
+    await db
+      .delete(paradigmResultsTable)
+      .where(inArray(paradigmResultsTable.verificationId, verificationIds));
+
+    // Delete verifications
+    await db
+      .delete(verificationsTable)
+      .where(inArray(verificationsTable.id, verificationIds));
+
+    result.verificationsDeleted = verificationIds.length;
+
+    console.log(
+      `[Cleanup] Deleted ${result.verificationsDeleted} verifications and ${result.paradigmResultsDeleted} paradigm results`
+    );
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    result.errors.push(errorMessage);
+    console.error('[Cleanup] Error during verification cleanup:', error);
+  }
+
+  result.durationMs = Date.now() - startTime;
+  return result;
+}
+
+/**
+ * Get combined cleanup statistics for batches and verifications
+ */
+export async function getFullCleanupStats(): Promise<{
+  batches: {
+    expiredCount: number;
+    expiringIn24Hours: number;
+    expiringIn7Days: number;
+  };
+  verifications: {
+    expiredCount: number;
+    expiringIn24Hours: number;
+    expiringIn7Days: number;
+  };
+}> {
+  const now = new Date();
+  const in24Hours = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const in7Days = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+  const [batchStats, verificationExpired, verificationExpiring24h, verificationExpiring7d] =
+    await Promise.all([
+      getCleanupStats(),
+      db
+        .select({ id: verificationsTable.id })
+        .from(verificationsTable)
+        .where(lt(verificationsTable.expiresAt, now)),
+      db
+        .select({ id: verificationsTable.id })
+        .from(verificationsTable)
+        .where(lt(verificationsTable.expiresAt, in24Hours)),
+      db
+        .select({ id: verificationsTable.id })
+        .from(verificationsTable)
+        .where(lt(verificationsTable.expiresAt, in7Days)),
+    ]);
+
+  return {
+    batches: batchStats,
+    verifications: {
+      expiredCount: verificationExpired.length,
+      expiringIn24Hours: verificationExpiring24h.length,
+      expiringIn7Days: verificationExpiring7d.length,
+    },
   };
 }

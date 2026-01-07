@@ -11,6 +11,8 @@ import { OrganizationSettingsCard } from './OrganizationSettingsCard';
 import { NotificationSettingsCard } from './NotificationSettingsCard';
 import { SecuritySettingsCard } from './SecuritySettingsCard';
 import { WebhooksCard } from './WebhooksCard';
+import { ProviderKeysCard } from './ProviderKeysCard';
+import { DataRetentionCard } from './DataRetentionCard';
 import { AuditLogsCard } from './AuditLogsCard';
 import { DangerZoneCard } from './DangerZoneCard';
 
@@ -41,6 +43,9 @@ export default async function SettingsPage() {
       autoEscalateThreshold: organizationsTable.autoEscalateThreshold,
       cacheEnabled: organizationsTable.cacheEnabled,
       storeVerificationContent: organizationsTable.storeVerificationContent,
+      verificationRetentionDays: organizationsTable.verificationRetentionDays,
+      batchRetentionDays: organizationsTable.batchRetentionDays,
+      dataRetentionEnabled: organizationsTable.dataRetentionEnabled,
     })
     .from(organizationsTable)
     .where(eq(organizationsTable.id, orgContext.orgId))
@@ -113,6 +118,19 @@ export default async function SettingsPage() {
 
         {/* Webhooks */}
         <WebhooksCard orgId={orgContext.orgId} canEdit={canEdit} />
+
+        {/* Provider Keys (BYOK) */}
+        <ProviderKeysCard canEdit={canEdit} />
+
+        {/* Data Retention */}
+        <DataRetentionCard
+          initialSettings={{
+            dataRetentionEnabled: org.dataRetentionEnabled,
+            verificationRetentionDays: org.verificationRetentionDays,
+            batchRetentionDays: org.batchRetentionDays,
+          }}
+          canEdit={canEdit}
+        />
 
         {/* Audit Logs - Only visible to owner/admin */}
         {canEdit && <AuditLogsCard />}

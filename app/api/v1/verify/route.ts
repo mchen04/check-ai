@@ -240,6 +240,11 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
     );
   }
 
+  // Calculate expiresAt based on org retention settings
+  const expiresAt = organization.dataRetentionEnabled
+    ? new Date(Date.now() + organization.verificationRetentionDays * 24 * 60 * 60 * 1000)
+    : null;
+
   // Create verification record
   const [verification] = await db
     .insert(verificationsTable)
@@ -250,6 +255,7 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
       context: body.context || null,
       methodsConfig: body.methods,
       status: 'processing',
+      expiresAt,
     })
     .returning();
 

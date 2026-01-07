@@ -18,6 +18,8 @@ export interface AuthenticatedRequest extends NextRequest {
     planType: 'free' | 'pro' | 'enterprise';
     verificationsUsed: number;
     verificationsLimit: number;
+    verificationRetentionDays: number;
+    dataRetentionEnabled: boolean;
   };
   apiKeyId: string;
 }

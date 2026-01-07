@@ -95,6 +95,8 @@ export function withApiAuth(handler: ApiHandler): PublicApiHandler {
           planType: organizationsTable.planType,
           verificationsUsed: organizationsTable.verificationsUsed,
           verificationsLimit: organizationsTable.verificationsLimit,
+          verificationRetentionDays: organizationsTable.verificationRetentionDays,
+          dataRetentionEnabled: organizationsTable.dataRetentionEnabled,
         })
         .from(organizationsTable)
         .where(eq(organizationsTable.id, keyRecord.orgId))
@@ -120,6 +122,8 @@ export function withApiAuth(handler: ApiHandler): PublicApiHandler {
         planType: org.planType as 'free' | 'pro' | 'enterprise',
         verificationsUsed: org.verificationsUsed,
         verificationsLimit: org.verificationsLimit,
+        verificationRetentionDays: org.verificationRetentionDays,
+        dataRetentionEnabled: org.dataRetentionEnabled,
       };
       authenticatedReq.apiKeyId = keyRecord.id;
 
