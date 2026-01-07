@@ -26,6 +26,7 @@ import Stripe from 'stripe';
 import NeuralNetwork from '@/components/neural-network';
 import UseCaseCarousel from '@/components/use-case-carousel';
 import HeroDashboard from '@/components/hero-dashboard';
+import { WaitlistForm } from '@/components/WaitlistForm';
 
 // Types
 interface StripeProduct {
@@ -639,19 +640,7 @@ export default async function LandingPage() {
                     validate our approach.
                   </p>
 
-                  <div className="mb-10 flex flex-col gap-4 sm:flex-row">
-                    <input
-                      type="email"
-                      placeholder="you@company.com"
-                      className="flex-1 rounded-lg border border-white/10 bg-white/5 px-6 py-4 text-base text-white backdrop-blur-sm placeholder:text-white/40 focus-visible:border-white/30 focus-visible:outline-none focus-visible:ring-0"
-                    />
-                    <Button
-                      size="lg"
-                      className="bg-white text-foreground hover:bg-white/90 sm:w-auto"
-                    >
-                      Join waitlist
-                    </Button>
-                  </div>
+                  <WaitlistForm />
 
                   {/* Benefits - Simple horizontal badges */}
                   <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-white/80">
@@ -690,13 +679,13 @@ export default async function LandingPage() {
               </a>
               <Link
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                href="#"
+                href="/terms"
               >
                 Terms
               </Link>
               <Link
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                href="#"
+                href="/privacy"
               >
                 Privacy
               </Link>

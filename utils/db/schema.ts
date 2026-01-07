@@ -418,6 +418,11 @@ export const userPreferencesTable = pgTable('user_preferences', {
   emailNotifications: boolean('email_notifications').default(true).notNull(),
   weeklyReport: boolean('weekly_report').default(false).notNull(),
   escalationAlerts: boolean('escalation_alerts').default(true).notNull(),
+  // Onboarding tracking
+  onboardingCompleted: boolean('onboarding_completed').default(false).notNull(),
+  hasCreatedApiKey: boolean('has_created_api_key').default(false).notNull(),
+  hasRunVerification: boolean('has_run_verification').default(false).notNull(),
+  hasVisitedPlayground: boolean('has_visited_playground').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -619,6 +624,21 @@ export const analyticsDailySnapshotsTable = pgTable('analytics_daily_snapshots',
 
 export type InsertAnalyticsDailySnapshot = typeof analyticsDailySnapshotsTable.$inferInsert;
 export type SelectAnalyticsDailySnapshot = typeof analyticsDailySnapshotsTable.$inferSelect;
+
+// =============================================================================
+// WAITLIST (Beta signups from landing page)
+// =============================================================================
+
+export const waitlistTable = pgTable('waitlist', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  email: text('email').notNull().unique(),
+  source: text('source').default('landing').notNull(),
+  referrer: text('referrer'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type InsertWaitlist = typeof waitlistTable.$inferInsert;
+export type SelectWaitlist = typeof waitlistTable.$inferSelect;
 
 // =============================================================================
 // RELATIONS

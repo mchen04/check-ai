@@ -177,3 +177,74 @@ export async function checkRateLimit(
     windowMs: config.windowMs,
   });
 }
+
+// =============================================================================
+// PUBLIC ENDPOINT RATE LIMITING
+// =============================================================================
+
+// Cache for public rate limiters
+const publicRateLimiterCache = new Map<string, Ratelimit>();
+
+/**
+ * Check rate limit for public endpoints (no auth required)
+ * Uses IP-based limiting with configurable limits
+ *
+ * @param identifier - Unique identifier (e.g., `waitlist:${ip}`)
+ * @param maxRequests - Maximum requests allowed in window (default: 5)
+ * @param windowMs - Window duration in milliseconds (default: 1 hour)
+ * @returns Rate limit result with success status and headers info
+ */
+export async function checkPublicRateLimit(
+  identifier: string,
+  maxRequests: number = 5,
+  windowMs: number = 60 * 60 * 1000 // 1 hour default
+): Promise<RateLimitResult> {
+  // Use in-memory fallback if Redis not configured
+  if (!isRedisConfigured()) {
+    return checkInMemoryRateLimit(identifier, {
+      requests: maxRequests,
+      windowMs,
+    });
+  }
+
+  // Create cache key based on limits
+  const cacheKey = `public:${maxRequests}:${windowMs}`;
+
+  try {
+    // Get or create rate limiter
+    let limiter = publicRateLimiterCache.get(cacheKey);
+
+    if (!limiter) {
+      const redis = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL!,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      });
+
+      limiter = new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(maxRequests, `${windowMs}ms`),
+        prefix: 'ratelimit:public',
+      });
+
+      publicRateLimiterCache.set(cacheKey, limiter);
+    }
+
+    const result = await limiter.limit(identifier);
+
+    return {
+      success: result.success,
+      limit: result.limit,
+      remaining: result.remaining,
+      reset: result.reset,
+      retryAfter: result.success
+        ? 0
+        : Math.ceil((result.reset - Date.now()) / 1000),
+    };
+  } catch (error) {
+    console.error('Redis rate limit error, falling back to in-memory:', error);
+    return checkInMemoryRateLimit(identifier, {
+      requests: maxRequests,
+      windowMs,
+    });
+  }
+}

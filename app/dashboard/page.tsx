@@ -5,6 +5,7 @@ import {
   verificationsTable,
   apiKeysTable,
   usageTable,
+  userPreferencesTable,
 } from '@/utils/db/schema';
 import { eq, and, gte, desc, count, sql } from 'drizzle-orm';
 import {
@@ -31,6 +32,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { OnboardingChecklist } from '@/components/OnboardingChecklist';
 
 // Get the start of the current month
 function getMonthStart() {
@@ -95,6 +97,13 @@ export default async function Dashboard() {
     createdAt: Date;
   }> = [];
 
+  let onboarding = {
+    completed: false,
+    hasCreatedApiKey: false,
+    hasVisitedPlayground: false,
+    hasRunVerification: false,
+  };
+
   try {
     // Execute all queries in parallel for better performance
     const [
@@ -103,6 +112,7 @@ export default async function Dashboard() {
       keysResult,
       usageResult,
       recentResult,
+      preferencesResult,
     ] = await Promise.all([
       // Total verifications (all time)
       db
@@ -160,6 +170,18 @@ export default async function Dashboard() {
         .where(eq(verificationsTable.orgId, orgId))
         .orderBy(desc(verificationsTable.createdAt))
         .limit(5),
+
+      // User preferences (onboarding state)
+      db
+        .select({
+          onboardingCompleted: userPreferencesTable.onboardingCompleted,
+          hasCreatedApiKey: userPreferencesTable.hasCreatedApiKey,
+          hasVisitedPlayground: userPreferencesTable.hasVisitedPlayground,
+          hasRunVerification: userPreferencesTable.hasRunVerification,
+        })
+        .from(userPreferencesTable)
+        .where(eq(userPreferencesTable.userId, context.userId))
+        .limit(1),
     ]);
 
     stats = {
@@ -172,6 +194,15 @@ export default async function Dashboard() {
     };
 
     recentVerifications = recentResult;
+
+    if (preferencesResult[0]) {
+      onboarding = {
+        completed: preferencesResult[0].onboardingCompleted,
+        hasCreatedApiKey: preferencesResult[0].hasCreatedApiKey,
+        hasVisitedPlayground: preferencesResult[0].hasVisitedPlayground,
+        hasRunVerification: preferencesResult[0].hasRunVerification,
+      };
+    }
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
   }
@@ -187,6 +218,15 @@ export default async function Dashboard() {
         <h1 className="mb-2 text-2xl font-bold tracking-tight">Welcome back</h1>
         <p className="text-muted-foreground">{userEmail}</p>
       </div>
+
+      {/* Onboarding Checklist */}
+      {!onboarding.completed && (
+        <OnboardingChecklist
+          hasCreatedApiKey={onboarding.hasCreatedApiKey}
+          hasVisitedPlayground={onboarding.hasVisitedPlayground}
+          hasRunVerification={onboarding.hasRunVerification}
+        />
+      )}
 
       {/* Stats Grid */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -282,7 +322,7 @@ export default async function Dashboard() {
                   Run your first verification in the playground
                 </p>
                 <Button size="sm" asChild>
-                  <Link href="/playground">
+                  <Link href="/dashboard/playground">
                     <PlayCircle className="mr-2 h-4 w-4" />
                     Try Playground
                   </Link>
@@ -332,7 +372,7 @@ export default async function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button className="w-full justify-start" variant="outline" asChild>
-              <Link href="/playground">
+              <Link href="/dashboard/playground">
                 <PlayCircle className="mr-2 h-4 w-4" />
                 Open Playground
               </Link>
