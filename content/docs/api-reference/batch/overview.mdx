@@ -1,0 +1,155 @@
+---
+title: Batch Processing
+description: Process multiple verifications efficiently with the Batch API.
+order: 1
+---
+
+# Batch Processing
+
+The Batch API allows you to verify multiple pieces of content in a single request. This is ideal for bulk content moderation, historical data verification, and automated pipelines.
+
+<Callout type="info">
+Batch processing is available on Pro and Enterprise plans only.
+</Callout>
+
+## How It Works
+
+1. **Upload** (optional) - Upload a CSV or JSON file via `/v1/batch/upload`
+2. **Create** - Create a batch job via `/v1/batch` with items or a file reference
+3. **Process** - Items are verified asynchronously in parallel
+4. **Retrieve** - Poll for status or fetch results when complete
+
+## Batch Lifecycle
+
+| Status | Description |
+|--------|-------------|
+| `pending` | Batch created, awaiting processing |
+| `validating` | Parsing and validating input items |
+| `processing` | Items actively being verified |
+| `completed` | All items processed successfully |
+| `failed` | Batch-level failure (validation errors) |
+| `cancelled` | User cancelled the batch |
+
+## Limits
+
+| Limit | Value |
+|-------|-------|
+| Maximum items per batch | 100 |
+| Maximum file upload size | 10 MB |
+| Maximum content length per item | 50,000 characters |
+| File reference expiry | 1 hour |
+| Results retention | 30 days |
+
+## Available Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/v1/batch`](/docs/api-reference/batch/create-batch) | Create a batch job |
+| `GET` | [`/v1/batch`](/docs/api-reference/batch/list-batches) | List batch jobs |
+| `GET` | [`/v1/batch/:id`](/docs/api-reference/batch/get-batch) | Get batch status |
+| `GET` | [`/v1/batch/:id/results`](/docs/api-reference/batch/get-results) | Get batch results |
+| `POST` | [`/v1/batch/:id/cancel`](/docs/api-reference/batch/cancel-batch) | Cancel a batch |
+| `POST` | [`/v1/batch/upload`](/docs/api-reference/batch/upload-file) | Upload batch file |
+
+## Quick Example
+
+<CodeTabs
+  examples={[
+    {
+      language: 'curl',
+      label: 'cURL',
+      code: `# Create a batch with inline items
+curl -X POST https://api.verifact.ai/v1/batch \\
+  -H "Authorization: Bearer vfy_your_api_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "name": "Article verification batch",
+    "items": [
+      { "content": "The Earth is approximately 4.5 billion years old." },
+      { "content": "Water freezes at 0 degrees Celsius at sea level." },
+      { "content": "The Great Wall of China is visible from space." }
+    ],
+    "methods": {
+      "reasoning": 1,
+      "tool": 1
+    }
+  }'`
+    },
+    {
+      language: 'javascript',
+      label: 'Node.js',
+      code: `import { VerifyAI } from '@verifyai/sdk';
+
+const client = new VerifyAI({ apiKey: 'vfy_your_api_key' });
+
+// Create and wait for batch completion
+const batch = await client.createBatchAndWait({
+  name: 'Article verification batch',
+  items: [
+    { content: 'The Earth is approximately 4.5 billion years old.' },
+    { content: 'Water freezes at 0 degrees Celsius at sea level.' },
+    { content: 'The Great Wall of China is visible from space.' }
+  ],
+  methods: { reasoning: 1, tool: 1 }
+});
+
+console.log(\`Completed: \${batch.successCount}/\${batch.totalItems}\`);`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `import requests
+
+response = requests.post(
+    'https://api.verifact.ai/v1/batch',
+    headers={
+        'Authorization': 'Bearer vfy_your_api_key',
+        'Content-Type': 'application/json',
+    },
+    json={
+        'name': 'Article verification batch',
+        'items': [
+            {'content': 'The Earth is approximately 4.5 billion years old.'},
+            {'content': 'Water freezes at 0 degrees Celsius at sea level.'},
+            {'content': 'The Great Wall of China is visible from space.'}
+        ],
+        'methods': {'reasoning': 1, 'tool': 1}
+    }
+)
+
+batch = response.json()
+print(f"Batch ID: {batch['id']}")`
+    },
+  ]}
+/>
+
+## Response
+
+```json
+{
+  "id": "batch_abc123def456",
+  "status": "processing",
+  "totalItems": 3,
+  "message": "Batch created successfully. Items are being processed."
+}
+```
+
+## Real-time Updates
+
+Subscribe to batch progress via Supabase Realtime:
+
+```javascript
+const channel = supabase.channel(`batch:${batchId}`);
+
+channel.on('broadcast', { event: 'progress' }, ({ payload }) => {
+  console.log(`Progress: ${payload.processedItems}/${payload.totalItems}`);
+});
+
+channel.subscribe();
+```
+
+## Next Steps
+
+- [Create a Batch](/docs/api-reference/batch/create-batch) - Full API reference
+- [File Formats](/docs/api-reference/batch/file-formats) - CSV and JSON specifications
+- [Get Results](/docs/api-reference/batch/get-results) - Retrieve batch results

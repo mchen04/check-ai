@@ -1,0 +1,250 @@
+---
+title: Get Batch
+description: Get batch status and details using GET /v1/batch/:id.
+order: 4
+---
+
+# Get Batch
+
+Retrieve the status and details of a specific batch job.
+
+<EndpointHeader
+  method="GET"
+  path="/v1/batch/:id"
+  description="Get detailed information about a batch job including progress."
+/>
+
+## Path Parameters
+
+<ParameterTable
+  title="Parameters"
+  parameters={[
+    {
+      name: 'id',
+      type: 'string',
+      required: true,
+      description: 'The batch ID (prefixed with batch_)',
+    },
+  ]}
+/>
+
+## Example Request
+
+<CodeTabs
+  examples={[
+    {
+      language: 'curl',
+      label: 'cURL',
+      code: `curl -X GET https://api.verifact.ai/v1/batch/batch_abc123def456 \\
+  -H "Authorization: Bearer vfy_your_api_key"`
+    },
+    {
+      language: 'javascript',
+      label: 'Node.js',
+      code: `import { VerifyAI } from '@verifyai/sdk';
+
+const client = new VerifyAI({ apiKey: 'vfy_your_api_key' });
+
+const batch = await client.getBatch('batch_abc123def456');
+
+console.log(\`Status: \${batch.status}\`);
+console.log(\`Progress: \${batch.processedItems}/\${batch.totalItems}\`);`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `import requests
+
+response = requests.get(
+    'https://api.verifact.ai/v1/batch/batch_abc123def456',
+    headers={'Authorization': 'Bearer vfy_your_api_key'}
+)
+
+batch = response.json()
+print(f"Status: {batch['status']}")`
+    },
+  ]}
+/>
+
+## Response
+
+### Success Response (200)
+
+```json
+{
+  "id": "batch_abc123def456",
+  "name": "Daily fact check",
+  "inputFormat": "json",
+  "originalFileName": null,
+  "status": "completed",
+  "totalItems": 50,
+  "processedItems": 50,
+  "successCount": 48,
+  "failureCount": 2,
+  "methodsConfig": {
+    "reasoning": 1,
+    "tool": 0.5
+  },
+  "context": {
+    "source": "news-aggregator"
+  },
+  "totalCostCents": 250,
+  "totalInputTokens": 12500,
+  "totalOutputTokens": 8700,
+  "errorMessage": null,
+  "validationErrors": null,
+  "createdAt": "2024-01-15T10:00:00Z",
+  "startedAt": "2024-01-15T10:00:01Z",
+  "completedAt": "2024-01-15T10:02:30Z",
+  "expiresAt": "2024-02-14T10:00:00Z"
+}
+```
+
+### Processing Batch
+
+```json
+{
+  "id": "batch_xyz789",
+  "name": "Article verification",
+  "status": "processing",
+  "totalItems": 100,
+  "processedItems": 45,
+  "successCount": 44,
+  "failureCount": 1,
+  "completedAt": null
+  // ... other fields
+}
+```
+
+### Failed Batch (Validation Errors)
+
+```json
+{
+  "id": "batch_failed123",
+  "status": "failed",
+  "totalItems": 10,
+  "processedItems": 0,
+  "errorMessage": "3 validation error(s)",
+  "validationErrors": [
+    { "row": 1, "error": "Content is required" },
+    { "row": 5, "error": "Content exceeds maximum length" },
+    { "row": 8, "error": "Content is required" }
+  ]
+  // ... other fields
+}
+```
+
+### Response Fields
+
+<ParameterTable
+  parameters={[
+    {
+      name: 'id',
+      type: 'string',
+      description: 'Unique batch identifier',
+    },
+    {
+      name: 'name',
+      type: 'string | null',
+      description: 'Human-readable batch name',
+    },
+    {
+      name: 'inputFormat',
+      type: 'string',
+      description: 'Input format: "json" or "csv"',
+    },
+    {
+      name: 'originalFileName',
+      type: 'string | null',
+      description: 'Original filename if uploaded via file',
+    },
+    {
+      name: 'status',
+      type: 'string',
+      description: 'Current batch status',
+    },
+    {
+      name: 'totalItems',
+      type: 'integer',
+      description: 'Total items in the batch',
+    },
+    {
+      name: 'processedItems',
+      type: 'integer',
+      description: 'Items processed so far',
+    },
+    {
+      name: 'successCount',
+      type: 'integer',
+      description: 'Items verified successfully',
+    },
+    {
+      name: 'failureCount',
+      type: 'integer',
+      description: 'Items that failed',
+    },
+    {
+      name: 'methodsConfig',
+      type: 'object',
+      description: 'Verification methods and weights used',
+    },
+    {
+      name: 'context',
+      type: 'object | null',
+      description: 'Global context applied to all items',
+    },
+    {
+      name: 'totalCostCents',
+      type: 'integer',
+      description: 'Total cost in cents',
+    },
+    {
+      name: 'errorMessage',
+      type: 'string | null',
+      description: 'Error message if batch failed',
+    },
+    {
+      name: 'validationErrors',
+      type: 'array | null',
+      description: 'Validation errors if items failed validation',
+    },
+    {
+      name: 'expiresAt',
+      type: 'string | null',
+      description: 'When results will be deleted (ISO 8601)',
+    },
+  ]}
+/>
+
+### Error Responses
+
+**404 Not Found**
+```json
+{
+  "error": {
+    "code": "not_found",
+    "message": "Batch not found"
+  }
+}
+```
+
+## Polling for Completion
+
+```javascript
+async function waitForBatch(client, batchId, intervalMs = 2000) {
+  while (true) {
+    const batch = await client.getBatch(batchId);
+
+    if (batch.status === 'completed' || batch.status === 'failed' || batch.status === 'cancelled') {
+      return batch;
+    }
+
+    console.log(`Progress: ${batch.processedItems}/${batch.totalItems}`);
+    await new Promise(resolve => setTimeout(resolve, intervalMs));
+  }
+}
+```
+
+<Callout type="tip">
+Use the SDK's `createBatchAndWait()` method for automatic polling with exponential backoff.
+</Callout>

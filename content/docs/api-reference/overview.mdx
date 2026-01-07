@@ -72,6 +72,17 @@ All responses return JSON with a consistent structure:
 | `POST` | `/v1/verify` | Submit content for verification |
 | `GET` | `/v1/verify/:id` | Get verification result by ID |
 
+### Batch Processing
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/v1/batch` | Create a batch job |
+| `GET` | `/v1/batch` | List batch jobs |
+| `GET` | `/v1/batch/:id` | Get batch status |
+| `GET` | `/v1/batch/:id/results` | Get batch results |
+| `POST` | `/v1/batch/:id/cancel` | Cancel a batch |
+| `POST` | `/v1/batch/upload` | Upload batch file |
+
 ### Status
 
 | Method | Endpoint | Description |

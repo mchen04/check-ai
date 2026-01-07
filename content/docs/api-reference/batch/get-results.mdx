@@ -1,0 +1,303 @@
+---
+title: Get Batch Results
+description: Retrieve batch verification results using GET /v1/batch/:id/results.
+order: 5
+---
+
+# Get Batch Results
+
+Retrieve the verification results for items in a batch.
+
+<EndpointHeader
+  method="GET"
+  path="/v1/batch/:id/results"
+  description="Get paginated verification results for a batch job."
+/>
+
+## Path Parameters
+
+<ParameterTable
+  title="Path Parameters"
+  parameters={[
+    {
+      name: 'id',
+      type: 'string',
+      required: true,
+      description: 'The batch ID (prefixed with batch_)',
+    },
+  ]}
+/>
+
+## Query Parameters
+
+<ParameterTable
+  title="Query Parameters"
+  parameters={[
+    {
+      name: 'limit',
+      type: 'integer',
+      required: false,
+      description: 'Number of results to return. Default: 50, Maximum: 100.',
+      default: '50',
+    },
+    {
+      name: 'offset',
+      type: 'integer',
+      required: false,
+      description: 'Number of results to skip for pagination.',
+      default: '0',
+    },
+    {
+      name: 'status',
+      type: 'string',
+      required: false,
+      description: 'Filter by item status: pending, queued, processing, completed, failed, skipped.',
+    },
+  ]}
+/>
+
+## Example Request
+
+<CodeTabs
+  examples={[
+    {
+      language: 'curl',
+      label: 'cURL',
+      code: `curl -X GET "https://api.verifact.ai/v1/batch/batch_abc123/results?limit=20" \\
+  -H "Authorization: Bearer vfy_your_api_key"`
+    },
+    {
+      language: 'javascript',
+      label: 'Node.js',
+      code: `import { VerifyAI } from '@verifyai/sdk';
+
+const client = new VerifyAI({ apiKey: 'vfy_your_api_key' });
+
+const results = await client.getBatchResults('batch_abc123', {
+  limit: 20,
+  status: 'completed'
+});
+
+results.items.forEach(item => {
+  console.log(\`Item \${item.itemIndex}: \${item.verdict} (\${item.confidence})\`);
+});`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `import requests
+
+response = requests.get(
+    'https://api.verifact.ai/v1/batch/batch_abc123/results',
+    headers={'Authorization': 'Bearer vfy_your_api_key'},
+    params={'limit': 20}
+)
+
+results = response.json()
+for item in results['items']:
+    print(f"Item {item['itemIndex']}: {item['verdict']}")`
+    },
+  ]}
+/>
+
+## Response
+
+### Success Response (200)
+
+```json
+{
+  "batch": {
+    "id": "batch_abc123def456",
+    "status": "completed",
+    "totalItems": 50,
+    "processedItems": 50,
+    "successCount": 48,
+    "failureCount": 2
+  },
+  "items": [
+    {
+      "id": "item_001",
+      "itemIndex": 0,
+      "idempotencyKey": "fact-001",
+      "content": "The Earth is approximately 4.5 billion years old.",
+      "itemContext": { "source": "textbook" },
+      "status": "completed",
+      "verificationId": "ver_xyz789",
+      "verdict": "true",
+      "confidence": 0.95,
+      "decision": "accept",
+      "costCents": 5,
+      "processingTimeMs": 1250,
+      "errorMessage": null,
+      "createdAt": "2024-01-15T10:00:00Z",
+      "completedAt": "2024-01-15T10:00:02Z"
+    },
+    {
+      "id": "item_002",
+      "itemIndex": 1,
+      "idempotencyKey": "fact-002",
+      "content": "The Great Wall of China is visible from space.",
+      "itemContext": null,
+      "status": "completed",
+      "verificationId": "ver_abc456",
+      "verdict": "false",
+      "confidence": 0.88,
+      "decision": "reject",
+      "costCents": 5,
+      "processingTimeMs": 1180,
+      "errorMessage": null,
+      "createdAt": "2024-01-15T10:00:00Z",
+      "completedAt": "2024-01-15T10:00:02Z"
+    },
+    {
+      "id": "item_003",
+      "itemIndex": 2,
+      "status": "failed",
+      "verificationId": null,
+      "verdict": null,
+      "confidence": null,
+      "errorMessage": "Verification timeout after 120 seconds",
+      "retryCount": 3
+    }
+  ],
+  "pagination": {
+    "total": 50,
+    "limit": 20,
+    "offset": 0,
+    "hasMore": true
+  }
+}
+```
+
+### Response Fields
+
+<ParameterTable
+  parameters={[
+    {
+      name: 'batch',
+      type: 'object',
+      description: 'Summary of the batch job',
+    },
+    {
+      name: 'items',
+      type: 'array',
+      description: 'Array of item results',
+    },
+    {
+      name: 'items[].id',
+      type: 'string',
+      description: 'Unique item identifier',
+    },
+    {
+      name: 'items[].itemIndex',
+      type: 'integer',
+      description: 'Position in the original batch (0-indexed)',
+    },
+    {
+      name: 'items[].idempotencyKey',
+      type: 'string | null',
+      description: 'Deduplication key if provided',
+    },
+    {
+      name: 'items[].content',
+      type: 'string',
+      description: 'The content that was verified',
+    },
+    {
+      name: 'items[].status',
+      type: 'string',
+      description: 'Item status: pending, queued, processing, completed, failed, skipped',
+    },
+    {
+      name: 'items[].verificationId',
+      type: 'string | null',
+      description: 'ID of the verification record (can be used with /v1/verify/:id)',
+    },
+    {
+      name: 'items[].verdict',
+      type: 'string | null',
+      description: 'Final verdict: "true", "false", or "uncertain"',
+    },
+    {
+      name: 'items[].confidence',
+      type: 'number | null',
+      description: 'Confidence score from 0.0 to 1.0',
+    },
+    {
+      name: 'items[].decision',
+      type: 'string | null',
+      description: 'Recommended action: "accept", "reject", or "review"',
+    },
+    {
+      name: 'items[].costCents',
+      type: 'integer | null',
+      description: 'Cost for this item in cents',
+    },
+    {
+      name: 'items[].processingTimeMs',
+      type: 'integer | null',
+      description: 'Processing time in milliseconds',
+    },
+    {
+      name: 'items[].errorMessage',
+      type: 'string | null',
+      description: 'Error message if item failed',
+    },
+    {
+      name: 'items[].retryCount',
+      type: 'integer',
+      description: 'Number of retry attempts',
+    },
+  ]}
+/>
+
+### Item Statuses
+
+| Status | Description |
+|--------|-------------|
+| `pending` | Item created, not yet queued |
+| `queued` | Item sent to processing queue |
+| `processing` | Item currently being verified |
+| `completed` | Verification completed successfully |
+| `failed` | Verification failed after retries |
+| `skipped` | Item skipped (batch was cancelled) |
+
+### Error Responses
+
+**404 Not Found**
+```json
+{
+  "error": {
+    "code": "not_found",
+    "message": "Batch not found"
+  }
+}
+```
+
+## Fetching All Results
+
+```javascript
+async function fetchAllResults(client, batchId) {
+  const allItems = [];
+  let offset = 0;
+  const limit = 100;
+
+  while (true) {
+    const results = await client.getBatchResults(batchId, { limit, offset });
+    allItems.push(...results.items);
+
+    if (!results.pagination.hasMore) break;
+    offset += limit;
+  }
+
+  return allItems;
+}
+```
+
+## Filtering Failed Items
+
+```bash
+# Get only failed items
+curl -X GET "https://api.verifact.ai/v1/batch/batch_abc123/results?status=failed" \
+  -H "Authorization: Bearer vfy_your_api_key"
+```

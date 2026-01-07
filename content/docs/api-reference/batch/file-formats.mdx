@@ -1,0 +1,216 @@
+---
+title: File Formats
+description: CSV and JSON file format specifications for batch uploads.
+order: 8
+---
+
+# File Formats
+
+Batch processing supports both CSV and JSON file formats. Files can be uploaded via the [Upload File](/docs/api-reference/batch/upload-file) endpoint.
+
+## Limits
+
+| Limit | Value |
+|-------|-------|
+| Maximum file size | 10 MB |
+| Maximum items per file | 100 |
+| Maximum content length per item | 50,000 characters |
+
+## CSV Format
+
+CSV files must include a header row with column names.
+
+### Required Columns
+
+| Column | Description |
+|--------|-------------|
+| `content` | The text content to verify (required) |
+
+### Optional Columns
+
+| Column | Description |
+|--------|-------------|
+| `idempotencyKey` or `idempotency_key` | Unique key for deduplication |
+| `context.*` | Context fields (e.g., `context.source`, `context.category`) |
+
+### Example CSV
+
+```csv
+content,context.source,context.category,idempotencyKey
+"The Earth is approximately 4.5 billion years old.",wikipedia,science,claim-001
+"Water boils at 100 degrees Celsius at sea level.",textbook,physics,claim-002
+"The Great Wall of China is visible from space.",internet,myth,claim-003
+```
+
+### CSV Parsing Rules
+
+1. **Header row** - First row must contain column names (case-insensitive)
+2. **Quoting** - Use double quotes for values containing commas or newlines
+3. **Escaping** - Double quotes within quoted values should be escaped with another double quote (`""`)
+4. **Empty rows** - Blank lines are ignored
+5. **Line endings** - Both `\n` (Unix) and `\r\n` (Windows) are supported
+
+### Context Columns
+
+Any column prefixed with `context.` will be parsed as a context field:
+
+```csv
+content,context.source,context.author,context.publishDate
+"Claim text here",news-site,John Smith,2024-01-15
+```
+
+This creates:
+```json
+{
+  "content": "Claim text here",
+  "context": {
+    "source": "news-site",
+    "author": "John Smith",
+    "publishDate": "2024-01-15"
+  }
+}
+```
+
+## JSON Format
+
+JSON files can be either an array of items or an object with an `items` array.
+
+### Array Format
+
+```json
+[
+  {
+    "content": "The Earth is approximately 4.5 billion years old.",
+    "context": {
+      "source": "wikipedia",
+      "category": "science"
+    },
+    "idempotencyKey": "claim-001"
+  },
+  {
+    "content": "Water boils at 100 degrees Celsius at sea level.",
+    "context": {
+      "source": "textbook"
+    },
+    "idempotencyKey": "claim-002"
+  }
+]
+```
+
+### Object Format
+
+```json
+{
+  "items": [
+    {
+      "content": "The Earth is approximately 4.5 billion years old.",
+      "context": {
+        "source": "wikipedia"
+      }
+    },
+    {
+      "content": "Water boils at 100 degrees Celsius at sea level."
+    }
+  ]
+}
+```
+
+### Item Schema
+
+```typescript
+interface BatchItem {
+  // Required
+  content: string;          // 1-50,000 characters
+
+  // Optional
+  context?: {
+    [key: string]: unknown; // Arbitrary context data
+  };
+  idempotencyKey?: string;  // Max 255 characters
+}
+```
+
+## Validation
+
+### Content Validation
+
+- **Required** - Content field cannot be empty
+- **Length** - Maximum 50,000 characters
+- **Whitespace** - Leading/trailing whitespace is preserved
+
+### Item Limits
+
+- Files with more than 100 valid items will be truncated
+- A warning is returned indicating rows were ignored
+
+### Error Handling
+
+Items with validation errors are skipped, and the error is returned in the upload response:
+
+```json
+{
+  "fileId": "abc123",
+  "itemCount": 98,
+  "validationErrors": [
+    { "row": 15, "error": "Content is empty" },
+    { "row": 42, "error": "Content exceeds maximum length (50000 chars)" }
+  ],
+  "message": "File uploaded with 2 validation warning(s). Items with errors were skipped."
+}
+```
+
+## Format Detection
+
+File format is automatically detected by:
+
+1. **File extension** - `.csv` or `.json`
+2. **Content inspection** - If extension is ambiguous, content is inspected
+3. **Explicit format** - Pass `format` field in the upload request
+
+```bash
+# Force JSON format detection
+curl -X POST https://api.verifact.ai/v1/batch/upload \
+  -H "Authorization: Bearer vfy_your_api_key" \
+  -F "file=@data.txt" \
+  -F "format=json"
+```
+
+## Best Practices
+
+<Callout type="tip">
+**For large datasets**: Split files into multiple batches of 100 items each for better error handling and progress tracking.
+</Callout>
+
+1. **Use idempotency keys** - Prevent duplicate processing if you need to retry
+2. **Include context** - Context helps verification methods provide better results
+3. **Validate locally** - Check your file format before uploading to avoid validation errors
+4. **Use JSON for complex context** - CSV is limited to string values for context fields
+
+## Sample Files
+
+### Minimal CSV
+
+```csv
+content
+"First claim to verify"
+"Second claim to verify"
+"Third claim to verify"
+```
+
+### Full-Featured JSON
+
+```json
+[
+  {
+    "content": "The human brain contains approximately 86 billion neurons.",
+    "context": {
+      "source": "neuroscience-journal",
+      "category": "biology",
+      "author": "Dr. Smith",
+      "publishDate": "2024-01-10",
+      "confidence_level": "peer-reviewed"
+    },
+    "idempotencyKey": "neuro-fact-001"
+  }
+]
+```

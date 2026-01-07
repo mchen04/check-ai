@@ -1,0 +1,226 @@
+---
+title: Create Batch
+description: Create a new batch verification job using POST /v1/batch.
+order: 2
+---
+
+# Create Batch
+
+Create a new batch job to verify multiple content items.
+
+<EndpointHeader
+  method="POST"
+  path="/v1/batch"
+  description="Submit items for batch verification. Returns 202 Accepted with batch ID."
+/>
+
+<Callout type="info">
+Batch processing requires a Pro or Enterprise plan.
+</Callout>
+
+## Request Body
+
+<ParameterTable
+  title="Parameters"
+  parameters={[
+    {
+      name: 'items',
+      type: 'array',
+      required: false,
+      description: 'Array of items to verify. Required if fileId is not provided. Maximum 100 items.',
+    },
+    {
+      name: 'items[].content',
+      type: 'string',
+      required: true,
+      description: 'The text content to verify. Maximum 50,000 characters.',
+    },
+    {
+      name: 'items[].context',
+      type: 'object',
+      required: false,
+      description: 'Additional context for verification (source, category, etc.)',
+    },
+    {
+      name: 'items[].idempotencyKey',
+      type: 'string',
+      required: false,
+      description: 'Unique key for deduplication. Maximum 255 characters.',
+    },
+    {
+      name: 'fileId',
+      type: 'string',
+      required: false,
+      description: 'ID from a previous file upload. Required if items is not provided.',
+    },
+    {
+      name: 'name',
+      type: 'string',
+      required: false,
+      description: 'Human-readable name for the batch. Maximum 255 characters.',
+    },
+    {
+      name: 'methods',
+      type: 'object',
+      required: true,
+      description: 'Verification methods and their weights (0-1). At least one method required.',
+    },
+    {
+      name: 'context',
+      type: 'object',
+      required: false,
+      description: 'Global context applied to all items in the batch.',
+    },
+  ]}
+/>
+
+### Available Methods
+
+| Method | Description | Plan Required |
+|--------|-------------|---------------|
+| `semantic` | Embedding similarity checks | Free |
+| `reasoning` | LLM chain-of-thought analysis | Free |
+| `tool` | Web search grounding | Pro |
+| `biprm` | Bidirectional reasoning | Pro |
+| `ensemble` | Multi-model voting | Pro |
+| `entropy` | Semantic consistency | Pro |
+| `formal` | Mathematical verification | Enterprise |
+
+## Example Request
+
+<CodeTabs
+  examples={[
+    {
+      language: 'curl',
+      label: 'cURL',
+      code: `curl -X POST https://api.verifact.ai/v1/batch \\
+  -H "Authorization: Bearer vfy_your_api_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "name": "Daily fact check",
+    "items": [
+      {
+        "content": "The Earth is 4.5 billion years old.",
+        "context": { "source": "textbook" },
+        "idempotencyKey": "fact-001"
+      },
+      {
+        "content": "Mount Everest is the tallest mountain.",
+        "idempotencyKey": "fact-002"
+      }
+    ],
+    "methods": {
+      "reasoning": 1,
+      "tool": 0.5
+    }
+  }'`
+    },
+    {
+      language: 'javascript',
+      label: 'Node.js',
+      code: `import { VerifyAI } from '@verifyai/sdk';
+
+const client = new VerifyAI({ apiKey: 'vfy_your_api_key' });
+
+const batch = await client.createBatch({
+  name: 'Daily fact check',
+  items: [
+    {
+      content: 'The Earth is 4.5 billion years old.',
+      context: { source: 'textbook' },
+      idempotencyKey: 'fact-001'
+    },
+    {
+      content: 'Mount Everest is the tallest mountain.',
+      idempotencyKey: 'fact-002'
+    }
+  ],
+  methods: {
+    reasoning: 1,
+    tool: 0.5
+  }
+});
+
+console.log('Batch ID:', batch.id);`
+    },
+  ]}
+/>
+
+### Using File Upload
+
+```bash
+# First upload the file
+curl -X POST https://api.verifact.ai/v1/batch/upload \
+  -H "Authorization: Bearer vfy_your_api_key" \
+  -F "file=@claims.csv"
+
+# Response: { "fileId": "abc123", ... }
+
+# Then create batch with fileId
+curl -X POST https://api.verifact.ai/v1/batch \
+  -H "Authorization: Bearer vfy_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fileId": "abc123",
+    "methods": { "reasoning": 1 }
+  }'
+```
+
+## Response
+
+### Success Response (202 Accepted)
+
+```json
+{
+  "id": "batch_abc123def456",
+  "status": "processing",
+  "totalItems": 2,
+  "message": "Batch created successfully. Items are being processed."
+}
+```
+
+### Validation Error Response (400)
+
+```json
+{
+  "id": "batch_xyz789",
+  "status": "failed",
+  "validationErrors": [
+    { "row": 1, "error": "Content is required" },
+    { "row": 3, "error": "Content exceeds maximum length (50000 chars)" }
+  ],
+  "message": "2 validation error(s) found"
+}
+```
+
+### Error Responses
+
+**400 Bad Request**
+```json
+{
+  "error": {
+    "code": "validation_error",
+    "message": "Either items array or fileId must be provided"
+  }
+}
+```
+
+**402 Payment Required**
+```json
+{
+  "error": {
+    "code": "quota_exceeded",
+    "message": "Batch processing is not available on the free plan. Please upgrade to Pro or Enterprise."
+  }
+}
+```
+
+**404 Not Found** (when using fileId)
+```json
+{
+  "error": {
+    "code": "not_found",
+    "message": "File not found, expired, or already used. Please upload the file again."
+  }
+}
+```

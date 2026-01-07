@@ -1,0 +1,251 @@
+---
+title: Upload Batch File
+description: Upload a CSV or JSON file for batch processing using POST /v1/batch/upload.
+order: 7
+---
+
+# Upload Batch File
+
+Upload a CSV or JSON file containing items for batch verification.
+
+<EndpointHeader
+  method="POST"
+  path="/v1/batch/upload"
+  description="Upload a file and receive a fileId for use in batch creation."
+/>
+
+<Callout type="info">
+Uploaded files expire after 1 hour and can only be used once. The file is consumed atomically when creating a batch.
+</Callout>
+
+## Request
+
+Send a `multipart/form-data` request with the file.
+
+<ParameterTable
+  title="Form Fields"
+  parameters={[
+    {
+      name: 'file',
+      type: 'File',
+      required: true,
+      description: 'CSV or JSON file. Maximum 10 MB.',
+    },
+    {
+      name: 'format',
+      type: 'string',
+      required: false,
+      description: 'Force format detection: "csv" or "json". Auto-detected from file extension if omitted.',
+    },
+  ]}
+/>
+
+## Example Request
+
+<CodeTabs
+  examples={[
+    {
+      language: 'curl',
+      label: 'cURL',
+      code: `curl -X POST https://api.verifact.ai/v1/batch/upload \\
+  -H "Authorization: Bearer vfy_your_api_key" \\
+  -F "file=@claims.csv"`
+    },
+    {
+      language: 'javascript',
+      label: 'Node.js',
+      code: `import { VerifyAI } from '@verifyai/sdk';
+import fs from 'fs';
+
+const client = new VerifyAI({ apiKey: 'vfy_your_api_key' });
+
+// Upload a file
+const file = fs.readFileSync('claims.csv');
+const upload = await client.uploadBatchFile(file, 'claims.csv');
+
+console.log('File ID:', upload.fileId);
+console.log('Item count:', upload.itemCount);
+
+// Use in batch creation
+const batch = await client.createBatch({
+  fileId: upload.fileId,
+  methods: { reasoning: 1 }
+});`
+    },
+    {
+      language: 'javascript',
+      label: 'Browser',
+      code: `const fileInput = document.getElementById('fileInput');
+const file = fileInput.files[0];
+
+const formData = new FormData();
+formData.append('file', file);
+
+const response = await fetch('https://api.verifact.ai/v1/batch/upload', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer vfy_your_api_key'
+  },
+  body: formData
+});
+
+const result = await response.json();
+console.log('File ID:', result.fileId);`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `import requests
+
+with open('claims.csv', 'rb') as f:
+    response = requests.post(
+        'https://api.verifact.ai/v1/batch/upload',
+        headers={'Authorization': 'Bearer vfy_your_api_key'},
+        files={'file': ('claims.csv', f, 'text/csv')}
+    )
+
+result = response.json()
+print(f"File ID: {result['fileId']}")`
+    },
+  ]}
+/>
+
+## Response
+
+### Success Response (200)
+
+```json
+{
+  "fileId": "550e8400-e29b-41d4-a716-446655440000",
+  "originalFileName": "claims.csv",
+  "format": "csv",
+  "itemCount": 87,
+  "validationErrors": [],
+  "expiresAt": "2024-01-15T11:30:00Z",
+  "message": "File uploaded successfully"
+}
+```
+
+### Success with Warnings
+
+```json
+{
+  "fileId": "550e8400-e29b-41d4-a716-446655440000",
+  "originalFileName": "claims.csv",
+  "format": "csv",
+  "itemCount": 85,
+  "validationErrors": [
+    { "row": 12, "error": "Content is empty, row skipped" },
+    { "row": 45, "error": "Content exceeds maximum length (50000 chars), row skipped" }
+  ],
+  "expiresAt": "2024-01-15T11:30:00Z",
+  "message": "File uploaded with 2 validation warning(s). Items with errors were skipped."
+}
+```
+
+### Error Response (400)
+
+```json
+{
+  "error": "File parsing failed",
+  "validationErrors": [
+    { "row": 1, "error": "Missing required column: content" }
+  ]
+}
+```
+
+### Response Fields
+
+<ParameterTable
+  parameters={[
+    {
+      name: 'fileId',
+      type: 'string',
+      description: 'UUID to reference in batch creation. Valid for 1 hour.',
+    },
+    {
+      name: 'originalFileName',
+      type: 'string',
+      description: 'Original name of the uploaded file',
+    },
+    {
+      name: 'format',
+      type: 'string',
+      description: 'Detected format: "csv" or "json"',
+    },
+    {
+      name: 'itemCount',
+      type: 'integer',
+      description: 'Number of valid items parsed from the file',
+    },
+    {
+      name: 'validationErrors',
+      type: 'array',
+      description: 'Rows that were skipped due to validation errors',
+    },
+    {
+      name: 'expiresAt',
+      type: 'string',
+      description: 'When the file reference expires (ISO 8601)',
+    },
+  ]}
+/>
+
+### Error Responses
+
+**400 Bad Request**
+```json
+{
+  "error": {
+    "code": "validation_error",
+    "message": "File is required. Use form field name \"file\"."
+  }
+}
+```
+
+**402 Payment Required**
+```json
+{
+  "error": {
+    "code": "quota_exceeded",
+    "message": "Batch processing is not available on the free plan."
+  }
+}
+```
+
+**413 Payload Too Large**
+```json
+{
+  "error": {
+    "code": "payload_too_large",
+    "message": "File size exceeds maximum of 10 MB"
+  }
+}
+```
+
+**503 Service Unavailable**
+```json
+{
+  "error": {
+    "code": "FILE_STORAGE_UNAVAILABLE",
+    "message": "File upload is not configured. Please use direct JSON items array instead."
+  }
+}
+```
+
+## File Formats
+
+See [File Formats](/docs/api-reference/batch/file-formats) for detailed CSV and JSON specifications.
+
+## Workflow
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Upload File    │ ──> │  Get fileId     │ ──> │  Create Batch   │
+│  POST /upload   │     │  (valid 1hr)    │     │  POST /batch    │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
+
+<Callout type="warning">
+Each fileId can only be used once. After creating a batch, the file is atomically consumed and cannot be reused. Upload the file again if you need to create another batch.
+</Callout>

@@ -1,0 +1,213 @@
+---
+title: List Batches
+description: List all batch jobs using GET /v1/batch.
+order: 3
+---
+
+# List Batches
+
+Retrieve a paginated list of your batch jobs.
+
+<EndpointHeader
+  method="GET"
+  path="/v1/batch"
+  description="List batch jobs with pagination and optional status filtering."
+/>
+
+## Query Parameters
+
+<ParameterTable
+  title="Parameters"
+  parameters={[
+    {
+      name: 'limit',
+      type: 'integer',
+      required: false,
+      description: 'Number of batches to return. Default: 20, Maximum: 100.',
+      default: '20',
+    },
+    {
+      name: 'offset',
+      type: 'integer',
+      required: false,
+      description: 'Number of batches to skip for pagination.',
+      default: '0',
+    },
+    {
+      name: 'status',
+      type: 'string',
+      required: false,
+      description: 'Filter by status: pending, validating, processing, completed, failed, cancelled.',
+    },
+  ]}
+/>
+
+## Example Request
+
+<CodeTabs
+  examples={[
+    {
+      language: 'curl',
+      label: 'cURL',
+      code: `curl -X GET "https://api.verifact.ai/v1/batch?limit=10&status=completed" \\
+  -H "Authorization: Bearer vfy_your_api_key"`
+    },
+    {
+      language: 'javascript',
+      label: 'Node.js',
+      code: `import { VerifyAI } from '@verifyai/sdk';
+
+const client = new VerifyAI({ apiKey: 'vfy_your_api_key' });
+
+const { data, pagination } = await client.listBatches({
+  limit: 10,
+  status: 'completed'
+});
+
+console.log(\`Found \${pagination.total} batches\`);
+data.forEach(batch => {
+  console.log(\`\${batch.id}: \${batch.status}\`);
+});`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `import requests
+
+response = requests.get(
+    'https://api.verifact.ai/v1/batch',
+    headers={'Authorization': 'Bearer vfy_your_api_key'},
+    params={'limit': 10, 'status': 'completed'}
+)
+
+result = response.json()
+print(f"Found {result['pagination']['total']} batches")`
+    },
+  ]}
+/>
+
+## Response
+
+### Success Response (200)
+
+```json
+{
+  "data": [
+    {
+      "id": "batch_abc123def456",
+      "name": "Daily fact check",
+      "status": "completed",
+      "totalItems": 50,
+      "processedItems": 50,
+      "successCount": 48,
+      "failureCount": 2,
+      "totalCostCents": 250,
+      "createdAt": "2024-01-15T10:00:00Z",
+      "startedAt": "2024-01-15T10:00:01Z",
+      "completedAt": "2024-01-15T10:02:30Z"
+    },
+    {
+      "id": "batch_xyz789",
+      "name": "Article verification",
+      "status": "processing",
+      "totalItems": 100,
+      "processedItems": 45,
+      "successCount": 44,
+      "failureCount": 1,
+      "totalCostCents": 112,
+      "createdAt": "2024-01-15T11:00:00Z",
+      "startedAt": "2024-01-15T11:00:01Z",
+      "completedAt": null
+    }
+  ],
+  "pagination": {
+    "total": 156,
+    "limit": 10,
+    "offset": 0,
+    "hasMore": true
+  }
+}
+```
+
+### Response Fields
+
+<ParameterTable
+  parameters={[
+    {
+      name: 'data',
+      type: 'array',
+      description: 'Array of batch job objects',
+    },
+    {
+      name: 'data[].id',
+      type: 'string',
+      description: 'Unique batch identifier (prefixed with batch_)',
+    },
+    {
+      name: 'data[].name',
+      type: 'string | null',
+      description: 'Human-readable batch name',
+    },
+    {
+      name: 'data[].status',
+      type: 'string',
+      description: 'Batch status: pending, validating, processing, completed, failed, cancelled',
+    },
+    {
+      name: 'data[].totalItems',
+      type: 'integer',
+      description: 'Total number of items in the batch',
+    },
+    {
+      name: 'data[].processedItems',
+      type: 'integer',
+      description: 'Number of items processed so far',
+    },
+    {
+      name: 'data[].successCount',
+      type: 'integer',
+      description: 'Number of items verified successfully',
+    },
+    {
+      name: 'data[].failureCount',
+      type: 'integer',
+      description: 'Number of items that failed verification',
+    },
+    {
+      name: 'data[].totalCostCents',
+      type: 'integer',
+      description: 'Total cost in cents for all processed items',
+    },
+    {
+      name: 'pagination.total',
+      type: 'integer',
+      description: 'Total number of batches matching the query',
+    },
+    {
+      name: 'pagination.hasMore',
+      type: 'boolean',
+      description: 'Whether more results are available',
+    },
+  ]}
+/>
+
+## Pagination Example
+
+```javascript
+// Fetch all batches with pagination
+async function fetchAllBatches(client) {
+  const batches = [];
+  let offset = 0;
+  const limit = 100;
+
+  while (true) {
+    const { data, pagination } = await client.listBatches({ limit, offset });
+    batches.push(...data);
+
+    if (!pagination.hasMore) break;
+    offset += limit;
+  }
+
+  return batches;
+}
+```

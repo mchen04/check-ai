@@ -19,7 +19,9 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "docs": "typedoc",
+    "docs:watch": "typedoc --watch"
   },
   "keywords": [
     "verifyai",
@@ -33,6 +35,8 @@
   "license": "MIT",
   "devDependencies": {
     "tsup": "^8.0.0",
+    "typedoc": "^0.27.0",
+    "typedoc-plugin-markdown": "^4.4.0",
     "typescript": "^5.0.0"
   },
   "engines": {

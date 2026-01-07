@@ -1,0 +1,147 @@
+---
+title: Cancel Batch
+description: Cancel a batch job using POST /v1/batch/:id/cancel.
+order: 6
+---
+
+# Cancel Batch
+
+Cancel a batch job that is pending or processing.
+
+<EndpointHeader
+  method="POST"
+  path="/v1/batch/:id/cancel"
+  description="Cancel a batch job. Items that have already completed will not be affected."
+/>
+
+## Path Parameters
+
+<ParameterTable
+  title="Parameters"
+  parameters={[
+    {
+      name: 'id',
+      type: 'string',
+      required: true,
+      description: 'The batch ID (prefixed with batch_)',
+    },
+  ]}
+/>
+
+## Example Request
+
+<CodeTabs
+  examples={[
+    {
+      language: 'curl',
+      label: 'cURL',
+      code: `curl -X POST https://api.verifact.ai/v1/batch/batch_abc123/cancel \\
+  -H "Authorization: Bearer vfy_your_api_key"`
+    },
+    {
+      language: 'javascript',
+      label: 'Node.js',
+      code: `import { VerifyAI } from '@verifyai/sdk';
+
+const client = new VerifyAI({ apiKey: 'vfy_your_api_key' });
+
+const result = await client.cancelBatch('batch_abc123');
+console.log(result.message); // "Batch cancelled successfully"`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `import requests
+
+response = requests.post(
+    'https://api.verifact.ai/v1/batch/batch_abc123/cancel',
+    headers={'Authorization': 'Bearer vfy_your_api_key'}
+)
+
+print(response.json())`
+    },
+  ]}
+/>
+
+## Response
+
+### Success Response (200)
+
+```json
+{
+  "id": "batch_abc123def456",
+  "status": "cancelled",
+  "message": "Batch cancelled successfully"
+}
+```
+
+### Error Responses
+
+**400 Bad Request** (already completed or cancelled)
+```json
+{
+  "error": {
+    "code": "CANNOT_CANCEL",
+    "message": "Cannot cancel batch. Batch not found or already completed/cancelled."
+  }
+}
+```
+
+**404 Not Found**
+```json
+{
+  "error": {
+    "code": "not_found",
+    "message": "Batch not found"
+  }
+}
+```
+
+## Cancellation Behavior
+
+When a batch is cancelled:
+
+1. **Pending items** - Marked as `skipped`, will not be processed
+2. **Queued items** - Removed from queue, marked as `skipped`
+3. **Processing items** - May complete if already started
+4. **Completed items** - Remain unchanged, results available
+
+<Callout type="warning">
+Cancellation is best-effort. Items that have already started processing may complete before the cancellation takes effect. You will only be charged for items that complete verification.
+</Callout>
+
+## Use Cases
+
+### Cancel on High Error Rate
+
+```javascript
+async function monitorAndCancel(client, batchId) {
+  const batch = await client.getBatch(batchId);
+
+  // Cancel if failure rate exceeds 20%
+  const failureRate = batch.failureCount / batch.processedItems;
+  if (failureRate > 0.2 && batch.processedItems > 10) {
+    console.log('High failure rate detected, cancelling batch...');
+    await client.cancelBatch(batchId);
+  }
+}
+```
+
+### Cancel with Timeout
+
+```javascript
+async function runBatchWithTimeout(client, request, timeoutMs = 300000) {
+  const batch = await client.createBatch(request);
+
+  const timeout = setTimeout(async () => {
+    console.log('Batch timeout, cancelling...');
+    await client.cancelBatch(batch.id);
+  }, timeoutMs);
+
+  try {
+    return await client.getBatch(batch.id); // Poll until complete
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+```

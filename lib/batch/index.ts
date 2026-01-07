@@ -50,3 +50,11 @@ export {
   deleteStoredFile,
   isFileStorageAvailable,
 } from './file-storage';
+
+// Cleanup
+export {
+  cleanupExpiredBatches,
+  getCleanupStats,
+  type CleanupResult,
+  type CleanupOptions,
+} from './cleanup-service';

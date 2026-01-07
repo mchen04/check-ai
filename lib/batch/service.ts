@@ -13,16 +13,16 @@ import {
 import { eq, desc, and, sql, count } from 'drizzle-orm';
 import { queueBatchItems, cancelBatchItems } from './qstash';
 import { createAuditLog } from '@/lib/audit/service';
-import type {
-  BatchJob,
-  BatchItem,
-  BatchJobResponse,
-  BatchItemResponse,
-  BatchResultsResponse,
-  CreateBatchRequest,
-  BatchValidationError,
-  MethodsConfig,
+import {
   BATCH_CONSTANTS,
+  type BatchJob,
+  type BatchItem,
+  type BatchJobResponse,
+  type BatchItemResponse,
+  type BatchResultsResponse,
+  type CreateBatchRequest,
+  type BatchValidationError,
+  type MethodsConfig,
 } from './types';
 
 // =============================================================================
@@ -52,6 +52,11 @@ export async function createBatch(
     }
   });
 
+  // Calculate expiry time (30 days from now)
+  const expiresAt = new Date(
+    Date.now() + BATCH_CONSTANTS.RESULTS_EXPIRY_DAYS * 24 * 60 * 60 * 1000
+  );
+
   // If there are validation errors, create batch in failed state
   if (validationErrors.length > 0) {
     const [batch] = await db
@@ -66,6 +71,7 @@ export async function createBatch(
         totalItems: items.length,
         validationErrors,
         errorMessage: `${validationErrors.length} validation error(s)`,
+        expiresAt,
       })
       .returning();
 
@@ -95,6 +101,7 @@ export async function createBatch(
       context: request.context || null,
       status: 'pending',
       totalItems: items.length,
+      expiresAt,
     })
     .returning();
 
