@@ -4,7 +4,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { db } from '@/utils/db/db';
 import { apiKeysTable, organizationsTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -18,14 +17,9 @@ import {
 import { hashApiKey } from '@/lib/llm/key-manager';
 import { PLAN_LIMITS, type PlanType } from '@/utils/db/schema';
 import { checkRateLimit, cleanupInMemoryRateLimits } from '@/lib/cache/ratelimit';
+import { createLogger, createRequestLogger, generateRequestId } from '@/lib/logger';
 
-// =============================================================================
-// REQUEST ID GENERATION
-// =============================================================================
-
-function generateRequestId(): string {
-  return `req_${crypto.randomBytes(12).toString('base64url')}`;
-}
+const log = createLogger('API');
 
 // =============================================================================
 // API KEY AUTHENTICATION MIDDLEWARE
@@ -111,7 +105,7 @@ export function withApiAuth(handler: ApiHandler): PublicApiHandler {
         .set({ lastUsedAt: new Date() })
         .where(eq(apiKeysTable.id, keyRecord.id))
         .execute()
-        .catch(console.error);
+        .catch((err) => log.error({ err }, 'Failed to update API key last used timestamp'));
 
       // Attach organization to request
       const authenticatedReq = req as AuthenticatedRequest;
@@ -279,7 +273,8 @@ export function withErrorHandler(handler: ApiHandler): ApiHandler {
     try {
       return await handler(req, context);
     } catch (error) {
-      console.error(`API Error [${requestId}]:`, error);
+      const reqLog = createRequestLogger(requestId, 'API');
+      reqLog.error({ err: error }, 'API error');
       return createErrorResponse(error, requestId);
     }
   };
@@ -297,30 +292,24 @@ export function withLogging(handler: ApiHandler): ApiHandler {
     const startTime = Date.now();
     const requestId = req.headers.get('X-Request-ID') || generateRequestId();
 
-    console.log(
-      JSON.stringify({
-        type: 'api_request',
-        requestId,
-        method: req.method,
-        path: req.nextUrl.pathname,
-        orgId: req.organization?.id,
-        timestamp: new Date().toISOString(),
-      })
-    );
+    const reqLog = createRequestLogger(requestId, 'API', {
+      orgId: req.organization?.id,
+    });
+
+    reqLog.info({
+      type: 'api_request',
+      method: req.method,
+      path: req.nextUrl.pathname,
+    });
 
     const response = await handler(req, context);
     const duration = Date.now() - startTime;
 
-    console.log(
-      JSON.stringify({
-        type: 'api_response',
-        requestId,
-        status: response.status,
-        durationMs: duration,
-        orgId: req.organization?.id,
-        timestamp: new Date().toISOString(),
-      })
-    );
+    reqLog.info({
+      type: 'api_response',
+      status: response.status,
+      durationMs: duration,
+    });
 
     return response;
   };

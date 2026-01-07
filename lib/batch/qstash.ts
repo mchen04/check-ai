@@ -8,6 +8,9 @@ import { db } from '@/utils/db/db';
 import { batchJobsTable, batchItemsTable } from '@/utils/db/schema';
 import { eq, and, inArray } from 'drizzle-orm';
 import type { BatchItemQueuePayload, MethodsConfig } from './types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Batch QStash');
 
 // =============================================================================
 // QStash Client
@@ -23,7 +26,7 @@ export function getBatchQStashClient(): Client | null {
 
   const token = process.env.QSTASH_TOKEN;
   if (!token) {
-    console.warn('[Batch QStash] Not configured');
+    log.warn('Not configured');
     return null;
   }
 
@@ -113,7 +116,7 @@ export async function queueBatchItems(
 
         return response.messageId;
       } catch (error) {
-        console.error(`[Batch QStash] Failed to queue item ${item.id}:`, error);
+        log.error({ err: error, itemId: item.id, batchId }, 'Failed to queue item');
         throw error;
       }
     });
@@ -170,7 +173,7 @@ export async function cancelBatchItems(batchId: string): Promise<void> {
         await client.messages.delete(messageId);
       } catch (error) {
         // Ignore errors - message may already be processed
-        console.warn(`[Batch QStash] Could not cancel message ${messageId}:`, error);
+        log.warn({ messageId, batchId }, 'Could not cancel message');
       }
     });
 
@@ -254,7 +257,7 @@ export async function retryBatchItem(
 
     return response.messageId;
   } catch (error) {
-    console.error(`[Batch QStash] Failed to retry item ${itemId}:`, error);
+    log.error({ err: error, itemId, batchId }, 'Failed to retry item');
     return null;
   }
 }

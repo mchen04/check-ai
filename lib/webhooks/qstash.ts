@@ -1,4 +1,7 @@
 import { Client, Receiver } from '@upstash/qstash';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('QStash');
 
 // =============================================================================
 // QStash Client Singleton
@@ -15,7 +18,7 @@ export function getQStashClient(): Client | null {
 
   const token = process.env.QSTASH_TOKEN;
   if (!token) {
-    console.warn('[QStash] Not configured - webhook retries disabled');
+    log.warn('Not configured - webhook retries disabled');
     return null;
   }
 
@@ -40,7 +43,7 @@ export function getQStashReceiver(): Receiver | null {
   const nextSigningKey = process.env.QSTASH_NEXT_SIGNING_KEY;
 
   if (!currentSigningKey || !nextSigningKey) {
-    console.warn('[QStash] Signing keys not configured - signature verification disabled');
+    log.warn('Signing keys not configured - signature verification disabled');
     return null;
   }
 

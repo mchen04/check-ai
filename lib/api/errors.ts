@@ -5,6 +5,9 @@
 
 import { NextResponse } from 'next/server';
 import { ApiErrorResponse } from './types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('API');
 
 // =============================================================================
 // BASE API ERROR
@@ -149,7 +152,7 @@ export function createErrorResponse(error: unknown, requestId?: string): Respons
   }
 
   // Log unexpected errors
-  console.error('Unexpected API error:', error);
+  log.error({ err: error, requestId }, 'Unexpected API error');
 
   // Return generic error for unknown errors
   return new InternalServerError().toResponse(requestId);

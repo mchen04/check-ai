@@ -6,6 +6,9 @@
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { PLAN_LIMITS, type PlanType } from '@/utils/db/schema';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('RateLimit');
 
 // =============================================================================
 // TYPES
@@ -163,13 +166,13 @@ export async function checkRateLimit(
       };
     } catch (error) {
       // Log error and fallback to in-memory
-      console.error('Redis rate limit error, falling back to in-memory:', error);
+      log.error({ err: error }, 'Redis rate limit error, falling back to in-memory');
     }
   }
 
   // Fallback to in-memory rate limiting
   if (!limiter) {
-    console.warn('Using in-memory rate limiting (Redis not configured)');
+    log.warn('Using in-memory rate limiting (Redis not configured)');
   }
 
   return checkInMemoryRateLimit(key, {
@@ -241,7 +244,7 @@ export async function checkPublicRateLimit(
         : Math.ceil((result.reset - Date.now()) / 1000),
     };
   } catch (error) {
-    console.error('Redis rate limit error, falling back to in-memory:', error);
+    log.error({ err: error, identifier }, 'Redis rate limit error, falling back to in-memory');
     return checkInMemoryRateLimit(identifier, {
       requests: maxRequests,
       windowMs,

@@ -15,6 +15,9 @@ import {
   cleanupExpiredVerifications,
   getFullCleanupStats,
 } from '@/lib/batch/cleanup-service';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Cron');
 
 // Vercel Cron config
 export const maxDuration = 300; // 5 minutes max
@@ -28,7 +31,7 @@ function validateAuth(req: NextRequest): NextResponse | null {
   const cronSecret = process.env.CRON_SECRET;
 
   if (!cronSecret) {
-    console.error('[Cron] CRON_SECRET not configured');
+    log.error('CRON_SECRET not configured');
     return NextResponse.json(
       { error: 'Server misconfiguration' },
       { status: 500 }
@@ -68,8 +71,9 @@ async function runCleanup(req: NextRequest): Promise<NextResponse> {
       });
     }
 
-    console.log(
-      `[Cron] Running data cleanup (limit: ${limit}, dryRun: ${dryRun})`
+    log.info(
+      { limit, dryRun },
+      `Running data cleanup (limit: ${limit}, dryRun: ${dryRun})`
     );
 
     // Run both batch and verification cleanup
@@ -85,7 +89,7 @@ async function runCleanup(req: NextRequest): Promise<NextResponse> {
       verifications: verificationResult,
     });
   } catch (error) {
-    console.error('[Cron] Cleanup error:', error);
+    log.error({ err: error }, 'Cleanup error');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

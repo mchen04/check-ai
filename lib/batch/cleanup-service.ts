@@ -6,6 +6,9 @@
 import { db } from '@/utils/db/db';
 import { batchJobsTable, batchItemsTable, verificationsTable, paradigmResultsTable } from '@/utils/db/schema';
 import { lt, and, inArray } from 'drizzle-orm';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Cleanup');
 
 // =============================================================================
 // Types
@@ -76,8 +79,9 @@ export async function cleanupExpiredBatches(
 
     const batchIds = expiredBatches.map((b) => b.id);
 
-    console.log(
-      `[Cleanup] Found ${batchIds.length} expired batches to delete${dryRun ? ' (dry run)' : ''}`
+    log.info(
+      { count: batchIds.length, dryRun },
+      `Found ${batchIds.length} expired batches to delete${dryRun ? ' (dry run)' : ''}`
     );
 
     if (dryRun) {
@@ -106,13 +110,14 @@ export async function cleanupExpiredBatches(
 
     result.batchesDeleted = batchIds.length;
 
-    console.log(
-      `[Cleanup] Deleted ${result.batchesDeleted} batches and ${result.itemsDeleted} items`
+    log.info(
+      { batchesDeleted: result.batchesDeleted, itemsDeleted: result.itemsDeleted },
+      `Deleted ${result.batchesDeleted} batches and ${result.itemsDeleted} items`
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     result.errors.push(errorMessage);
-    console.error('[Cleanup] Error during batch cleanup:', error);
+    log.error({ err: error }, 'Error during batch cleanup');
   }
 
   result.durationMs = Date.now() - startTime;
@@ -221,8 +226,9 @@ export async function cleanupExpiredVerifications(
 
     const verificationIds = expiredVerifications.map((v) => v.id);
 
-    console.log(
-      `[Cleanup] Found ${verificationIds.length} expired verifications to delete${dryRun ? ' (dry run)' : ''}`
+    log.info(
+      { count: verificationIds.length, dryRun },
+      `Found ${verificationIds.length} expired verifications to delete${dryRun ? ' (dry run)' : ''}`
     );
 
     if (dryRun) {
@@ -251,13 +257,14 @@ export async function cleanupExpiredVerifications(
 
     result.verificationsDeleted = verificationIds.length;
 
-    console.log(
-      `[Cleanup] Deleted ${result.verificationsDeleted} verifications and ${result.paradigmResultsDeleted} paradigm results`
+    log.info(
+      { verificationsDeleted: result.verificationsDeleted, paradigmResultsDeleted: result.paradigmResultsDeleted },
+      `Deleted ${result.verificationsDeleted} verifications and ${result.paradigmResultsDeleted} paradigm results`
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     result.errors.push(errorMessage);
-    console.error('[Cleanup] Error during verification cleanup:', error);
+    log.error({ err: error }, 'Error during verification cleanup');
   }
 
   result.durationMs = Date.now() - startTime;

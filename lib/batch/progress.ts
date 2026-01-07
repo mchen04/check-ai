@@ -9,6 +9,9 @@ import { eq, sql, and } from 'drizzle-orm';
 import { fireWebhooks } from '@/lib/webhooks/service';
 import type { BatchRealtimeEvent, BatchItemProcessResult } from './types';
 import type { BatchStatus } from '@/utils/db/schema';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Batch');
 
 // =============================================================================
 // Progress Updates
@@ -163,7 +166,7 @@ export async function completeBatch(
 
   // If no rows updated, batch was already completed by another item
   if (result.length === 0) {
-    console.log(`[Batch Progress] Batch ${batchId} already completed, skipping`);
+    log.debug({ batchId }, 'Batch already completed, skipping');
     return;
   }
 

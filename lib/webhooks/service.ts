@@ -10,6 +10,9 @@ import {
   WEBHOOK_TIMEOUT_SECONDS,
   type QueuedWebhookPayload,
 } from './qstash';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Webhook');
 
 // =============================================================================
 // Types
@@ -165,7 +168,7 @@ export async function queueWebhookDelivery(
 
   if (!client) {
     // Fallback: QStash not configured, deliver immediately without retries
-    console.warn('[Webhook] QStash not configured, using immediate delivery');
+    log.warn('QStash not configured, using immediate delivery');
     await deliverWebhookImmediate(delivery.id, webhookId, event, data);
     return delivery.id;
   }
@@ -222,7 +225,7 @@ export async function queueWebhookDelivery(
 
     return delivery.id;
   } catch (error) {
-    console.error('[Webhook] Failed to queue via QStash:', error);
+    log.error({ err: error, webhookId, deliveryId: delivery.id }, 'Failed to queue via QStash');
 
     // Fallback to immediate delivery on QStash error
     await deliverWebhookImmediate(delivery.id, webhookId, event, data);
@@ -312,7 +315,7 @@ async function deliverWebhookImmediate(
         .where(eq(webhooksTable.id, webhookId));
     }
   } catch (error) {
-    console.error('[Webhook] Immediate delivery failed:', error);
+    log.error({ err: error, webhookId, deliveryId }, 'Immediate delivery failed');
     await db
       .update(webhookDeliveriesTable)
       .set({
@@ -357,16 +360,16 @@ export async function fireWebhooks(
     // Queue all webhook deliveries (non-blocking)
     const queuePromises = subscribedWebhooks.map((webhook) =>
       queueWebhookDelivery(webhook.id, orgId, event, data).catch((error) => {
-        console.error(`[Webhook] Failed to queue delivery for ${webhook.id}:`, error);
+        log.error({ err: error, webhookId: webhook.id, orgId, event }, 'Failed to queue delivery');
       })
     );
 
     // Don't await - fire and forget for performance
     Promise.all(queuePromises).catch((error) => {
-      console.error('[Webhook] Error queuing webhooks:', error);
+      log.error({ err: error, orgId, event }, 'Error queuing webhooks');
     });
   } catch (error) {
-    console.error('[Webhook] Error fetching webhooks:', error);
+    log.error({ err: error, orgId, event }, 'Error fetching webhooks');
   }
 }
 
@@ -417,7 +420,7 @@ export async function retryWebhookDelivery(
 
     return newDeliveryId;
   } catch (error) {
-    console.error('[Webhook] Error retrying delivery:', error);
+    log.error({ err: error, deliveryId, orgId }, 'Error retrying delivery');
     return null;
   }
 }

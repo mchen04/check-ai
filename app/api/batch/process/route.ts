@@ -6,6 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Receiver } from '@upstash/qstash';
 import { db } from '@/utils/db/db';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Batch Process');
 import {
   batchJobsTable,
   batchItemsTable,
@@ -48,13 +51,13 @@ async function verifyQStashSignature(req: NextRequest, body: string): Promise<bo
 
   // In production, signing keys are required
   if (process.env.NODE_ENV === 'production' && !hasSigningKeys) {
-    console.error('[Batch Process] CRITICAL: QStash signing keys not configured in production');
+    log.error('CRITICAL: QStash signing keys not configured in production');
     throw new Error('QStash signing keys not configured');
   }
 
   // Skip verification in development if not configured
   if (process.env.NODE_ENV === 'development' && !hasSigningKeys) {
-    console.warn('[Batch Process] Skipping QStash signature verification in development');
+    log.warn('Skipping QStash signature verification in development');
     return true;
   }
 
@@ -70,7 +73,7 @@ async function verifyQStashSignature(req: NextRequest, body: string): Promise<bo
     });
     return true;
   } catch (error) {
-    console.error('[Batch Process] QStash signature verification failed:', error);
+    log.error({ err: error }, 'QStash signature verification failed');
     return false;
   }
 }
@@ -88,7 +91,7 @@ async function processBatchItem(
   // Check if batch is still active (not cancelled)
   const active = await isBatchActive(batchId);
   if (!active) {
-    console.log(`[Batch Process] Batch ${batchId} is no longer active, skipping item ${itemId}`);
+    log.info({ batchId, itemId }, 'Batch is no longer active, skipping item');
     return;
   }
 
@@ -249,9 +252,9 @@ async function processBatchItem(
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const isFinalAttempt = retryAttempt >= BATCH_QSTASH_CONFIG.MAX_RETRIES;
 
-    console.error(
-      `[Batch Process] Error processing item ${itemId} (attempt ${retryAttempt}/${BATCH_QSTASH_CONFIG.MAX_RETRIES}):`,
-      error
+    log.error(
+      { err: error, itemId, batchId, attempt: retryAttempt, maxRetries: BATCH_QSTASH_CONFIG.MAX_RETRIES },
+      'Error processing item'
     );
 
     if (isFinalAttempt) {
@@ -334,7 +337,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // Verify QStash signature
   const isValid = await verifyQStashSignature(req, bodyText);
   if (!isValid) {
-    console.error('[Batch Process] Invalid QStash signature');
+    log.error('Invalid QStash signature');
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
@@ -358,7 +361,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     await processBatchItem(payload, retryAttempt);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[Batch Process] Processing failed:', error);
+    log.error({ err: error, batchId: payload.batchId, itemId: payload.itemId }, 'Processing failed');
     // Return 500 to trigger QStash retry
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Processing failed' },

@@ -23,6 +23,9 @@ import {
   createEntropyParadigm,
   createFormalParadigm,
 } from './methods';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Verification');
 
 // =============================================================================
 // ORCHESTRATOR CONFIGURATION
@@ -311,7 +314,7 @@ export class StreamingVerificationOrchestrator extends VerificationOrchestrator 
         this.updateCallback(update);
       } catch (error) {
         // Don't let callback errors break verification
-        console.error('Error in update callback:', error);
+        log.error({ err: error }, 'Error in update callback');
       }
     }
   }

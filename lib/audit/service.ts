@@ -2,6 +2,9 @@ import { db } from '@/utils/db/db';
 import { auditLogsTable, usersTable } from '@/utils/db/schema';
 import { eq, and, desc, asc, gte, lte, inArray, sql } from 'drizzle-orm';
 import type { AuditLogInput, AuditLogFilter, AuditLogQueryOptions } from './types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Audit');
 
 /**
  * Create an audit log entry
@@ -21,7 +24,7 @@ export async function createAuditLog(input: AuditLogInput): Promise<void> {
     });
   } catch (error) {
     // Log but don't throw - audit logging should never break main operations
-    console.error('[Audit] Failed to create audit log:', error);
+    log.error({ err: error }, 'Failed to create audit log');
   }
 }
 
@@ -32,7 +35,7 @@ export async function createAuditLog(input: AuditLogInput): Promise<void> {
 export function logAuditEvent(input: AuditLogInput): void {
   // Fire and forget - don't await
   createAuditLog(input).catch((error) => {
-    console.error('[Audit] Async audit log failed:', error);
+    log.error({ err: error }, 'Async audit log failed');
   });
 }
 
