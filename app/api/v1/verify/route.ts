@@ -377,6 +377,10 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
         verificationId: verification.id,
         confidence: result.confidence,
         paradigmResults: result.paradigmResults,
+        // Pass org info for email notifications
+        orgId: organization.id,
+        organizationName: organization.name,
+        content: body.content,
       });
 
       // Fire verification.escalated webhook

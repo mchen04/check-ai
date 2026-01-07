@@ -15,6 +15,7 @@ import type {
   EscalationStatus,
   HumanVerdict,
 } from './types';
+import { sendEscalationAlert } from '@/lib/email/send-escalation-alert';
 
 // =============================================================================
 // Priority Thresholds
@@ -161,7 +162,7 @@ export function calculateDeadline(priority: 1 | 2 | 3): Date | null {
 export async function createEscalation(
   context: EscalationContext
 ): Promise<InsertEscalation | null> {
-  const { verificationId } = context;
+  const { verificationId, orgId, organizationName, content } = context;
 
   // Check if escalation already exists (idempotency)
   const existing = await db.query.escalationsTable.findFirst({
@@ -188,6 +189,27 @@ export async function createEscalation(
       deadline,
     })
     .returning();
+
+  // Send email alerts to org members (fire-and-forget)
+  if (escalation && orgId && organizationName) {
+    const dashboardUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://app.verifyai.dev';
+
+    sendEscalationAlert({
+      escalation: {
+        id: escalation.id,
+        orgId,
+        reason,
+        priority,
+        content: content || 'Content not available',
+        deadline,
+      },
+      organizationName,
+      dashboardUrl,
+    }).catch((err) => {
+      // Log but don't fail the escalation creation
+      console.error('Failed to send escalation alerts:', err);
+    });
+  }
 
   return escalation;
 }

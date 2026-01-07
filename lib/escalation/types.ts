@@ -58,6 +58,10 @@ export interface EscalationContext {
   confidence: number;
   paradigmResults: ParadigmResult[];
   timedOut?: boolean;
+  // Optional fields for email notifications
+  orgId?: string;
+  organizationName?: string;
+  content?: string;
 }
 
 // =============================================================================

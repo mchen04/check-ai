@@ -87,18 +87,20 @@ export async function cleanupExpiredBatches(
     }
 
     // Delete items first (foreign key constraint)
-    const itemsResult = await db
+    const deletedItems = await db
       .delete(batchItemsTable)
-      .where(inArray(batchItemsTable.batchId, batchIds));
+      .where(inArray(batchItemsTable.batchId, batchIds))
+      .returning({ id: batchItemsTable.id });
 
-    result.itemsDeleted = itemsResult.rowCount ?? 0;
+    result.itemsDeleted = deletedItems.length;
 
     // Delete batch jobs
-    const batchesResult = await db
+    const deletedBatches = await db
       .delete(batchJobsTable)
-      .where(inArray(batchJobsTable.id, batchIds));
+      .where(inArray(batchJobsTable.id, batchIds))
+      .returning({ id: batchJobsTable.id });
 
-    result.batchesDeleted = batchesResult.rowCount ?? batchIds.length;
+    result.batchesDeleted = deletedBatches.length;
 
     console.log(
       `[Cleanup] Deleted ${result.batchesDeleted} batches and ${result.itemsDeleted} items`
