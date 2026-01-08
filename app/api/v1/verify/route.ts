@@ -4,452 +4,69 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { db } from '@/utils/db/db';
-import {
-  verificationsTable,
-  paradigmResultsTable,
-  usageTable,
-  PLAN_LIMITS,
-} from '@/utils/db/schema';
-import { eq, and, gte, sql } from 'drizzle-orm';
-import {
-  StreamingVerificationOrchestrator,
-  MethodsConfig,
-  ParadigmType,
-  VerificationUpdate,
-} from '@/lib/verification';
-import { ProviderKeys } from '@/lib/llm/types';
-import { getDecryptedApiKeys } from '@/lib/llm/key-manager';
-import {
-  getCachedVerification,
-  cacheVerification,
-  recordCacheHit,
-  recordCacheMiss,
-} from '@/lib/cache';
 import {
   ApiError,
   ValidationError,
-  RateLimitError,
   QuotaExceededError,
   withApiMiddleware,
   ApiRequest,
 } from '@/lib/api';
-import { createEscalation } from '@/lib/escalation';
-import { fireWebhooks } from '@/lib/webhooks/service';
-import {
-  broadcastStatusUpdate,
-  broadcastParadigmComplete,
-  broadcastFinalResult,
-} from '@/utils/supabase/realtime';
-
-// =============================================================================
-// REQUEST VALIDATION
-// =============================================================================
-
-const MethodsConfigSchema = z
-  .object({
-    semantic: z.number().min(0).max(1).optional(),
-    reasoning: z.number().min(0).max(1).optional(),
-    tool: z.number().min(0).max(1).optional(),
-    biprm: z.number().min(0).max(1).optional(),
-    ensemble: z.number().min(0).max(1).optional(),
-    entropy: z.number().min(0).max(1).optional(),
-    formal: z.number().min(0).max(1).optional(),
-  })
-  .refine((data) => Object.values(data).some((v) => v !== undefined && v > 0), {
-    message: 'At least one verification method must be specified with weight > 0',
-  });
-
-const VerifyRequestSchema = z.object({
-  content: z.string().min(1).max(100000),
-  context: z.record(z.string(), z.unknown()).optional(),
-  methods: MethodsConfigSchema,
-  idempotencyKey: z.string().max(255).optional(),
-});
-
-type VerifyRequest = z.infer<typeof VerifyRequestSchema>;
-
-// =============================================================================
-// HELPERS
-// =============================================================================
-
-async function checkMethodsAllowed(
-  methods: MethodsConfig,
-  allowedMethods: readonly string[]
-): Promise<void> {
-  const requestedMethods = Object.entries(methods)
-    .filter(([, weight]) => weight !== undefined && weight > 0)
-    .map(([method]) => method);
-
-  const disallowedMethods = requestedMethods.filter((method) => !allowedMethods.includes(method));
-
-  if (disallowedMethods.length > 0) {
-    throw new QuotaExceededError(
-      `Methods not allowed on your plan: ${disallowedMethods.join(', ')}. ` +
-        `Upgrade to access: ${disallowedMethods.join(', ')}`
-    );
-  }
-}
-
-async function checkMonthlyQuota(
-  orgId: string,
-  planType: 'free' | 'pro' | 'enterprise'
-): Promise<void> {
-  const limits = PLAN_LIMITS[planType];
-
-  if (limits.verificationsPerMonth === Infinity) {
-    return; // Enterprise has unlimited
-  }
-
-  // Count verifications this month
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
-  const [countResult] = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(verificationsTable)
-    .where(
-      and(eq(verificationsTable.orgId, orgId), gte(verificationsTable.createdAt, startOfMonth))
-    );
-
-  const currentCount = Number(countResult?.count || 0);
-
-  if (currentCount >= limits.verificationsPerMonth) {
-    throw new QuotaExceededError(
-      `Monthly verification limit reached (${limits.verificationsPerMonth}). ` +
-        `Upgrade your plan for more verifications.`
-    );
-  }
-}
-
-async function checkIdempotency(
-  orgId: string,
-  idempotencyKey: string
-): Promise<{ cached: true; result: unknown } | { cached: false }> {
-  const existing = await db.query.verificationsTable.findFirst({
-    where: and(
-      eq(verificationsTable.orgId, orgId),
-      eq(verificationsTable.idempotencyKey, idempotencyKey)
-    ),
-    with: {
-      paradigmResults: true,
-    },
-  });
-
-  if (existing) {
-    return {
-      cached: true,
-      result: {
-        id: existing.id,
-        status: existing.status,
-        verdict: existing.finalVerdict,
-        confidence: existing.confidenceScore ? parseFloat(existing.confidenceScore) : null,
-        decision: existing.status === 'completed' ? 'accept' : 'pending',
-        paradigmResults: existing.paradigmResults,
-        processingTimeMs: existing.processingTimeMs,
-        costCents: existing.costCents ?? 0,
-        cached: true,
-      },
-    };
-  }
-
-  return { cached: false };
-}
+import { verify, validateVerifyRequest, OrganizationContext } from '@/lib/verification';
 
 // =============================================================================
 // HANDLER
 // =============================================================================
 
 async function handleVerify(req: ApiRequest): Promise<NextResponse> {
-  // Parse and validate request body
-  let body: VerifyRequest;
+  // Parse request body
+  let rawBody: unknown;
   try {
-    const rawBody = await req.json();
-    body = VerifyRequestSchema.parse(rawBody);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      throw new ValidationError('Invalid request body', {
-        errors: error.issues.map((e) => ({
-          field: e.path.join('.'),
-          message: e.message,
-        })),
-      });
-    }
+    rawBody = await req.json();
+  } catch {
     throw new ValidationError('Invalid JSON in request body');
   }
 
+  // Validate request
+  const validation = validateVerifyRequest(rawBody);
+  if (!validation.success) {
+    throw new ValidationError('Invalid request body', { errors: validation.errors });
+  }
+
+  // Build organization context
   const { organization } = req;
-  const planType = organization.planType;
+  const orgContext: OrganizationContext = {
+    id: organization.id,
+    name: organization.name,
+    planType: organization.planType,
+    dataRetentionEnabled: organization.dataRetentionEnabled,
+    verificationRetentionDays: organization.verificationRetentionDays,
+  };
 
-  // Check if requested methods are allowed for plan
-  const limits = PLAN_LIMITS[planType];
-  await checkMethodsAllowed(body.methods, limits.allowedMethods);
+  // Execute verification via service
+  const result = await verify({
+    organization: orgContext,
+    request: validation.data,
+  });
 
-  // Check monthly quota
-  await checkMonthlyQuota(organization.id, planType);
-
-  // Check idempotency
-  if (body.idempotencyKey) {
-    const cached = await checkIdempotency(organization.id, body.idempotencyKey);
-    if (cached.cached) {
-      recordCacheHit();
-      return NextResponse.json(cached.result, { status: 200 });
+  // Handle service errors
+  if (!result.success) {
+    const { error } = result;
+    switch (error.type) {
+      case 'quota_exceeded':
+        throw new QuotaExceededError(error.message);
+      case 'methods_not_allowed':
+        throw new QuotaExceededError(error.message);
+      case 'no_api_keys':
+        throw new ApiError(error.message, 400, 'NO_API_KEYS');
+      case 'verification_failed':
+        throw new ApiError(error.message, 500, 'VERIFICATION_FAILED');
+      default:
+        throw new ApiError('Verification failed', 500);
     }
   }
 
-  // Check Redis cache for identical content + methods
-  const cachedResult = await getCachedVerification(body.content, body.methods);
-  if (cachedResult) {
-    recordCacheHit();
-    return NextResponse.json(
-      {
-        id: cachedResult.id,
-        status: 'completed',
-        verdict: cachedResult.verdict,
-        confidence: cachedResult.confidence,
-        decision: cachedResult.decision,
-        reasoning: cachedResult.reasoning,
-        paradigmResults: cachedResult.paradigmResults.map((pr) => ({
-          paradigm: pr.paradigm,
-          verdict: pr.verdict,
-          confidence: pr.confidence,
-          reasoning: pr.reasoning?.slice(0, 500),
-          processingTimeMs: pr.processingTimeMs,
-          error: pr.error,
-        })),
-        processingTimeMs: cachedResult.processingTimeMs,
-        costCents: cachedResult.costCents,
-        cached: true,
-      },
-      { status: 200 }
-    );
-  }
-
-  recordCacheMiss();
-
-  // Get decrypted API keys for the organization
-  const keys = await getDecryptedApiKeys(organization.id);
-
-  if (Object.keys(keys).length === 0) {
-    throw new ApiError(
-      'No API keys configured. Please add at least one LLM provider API key in settings.',
-      400,
-      'NO_API_KEYS'
-    );
-  }
-
-  // Calculate expiresAt based on org retention settings
-  const expiresAt = organization.dataRetentionEnabled
-    ? new Date(Date.now() + organization.verificationRetentionDays * 24 * 60 * 60 * 1000)
-    : null;
-
-  // Create verification record
-  const [verification] = await db
-    .insert(verificationsTable)
-    .values({
-      orgId: organization.id,
-      idempotencyKey: body.idempotencyKey || null,
-      content: body.content,
-      context: body.context || null,
-      methodsConfig: body.methods,
-      status: 'processing',
-      expiresAt,
-    })
-    .returning();
-
-  try {
-    // Calculate total methods for progress tracking
-    const methodsCount = Object.values(body.methods).filter(
-      (w) => w !== undefined && w > 0
-    ).length;
-
-    // Create streaming orchestrator with real-time broadcasts
-    const orchestrator = new StreamingVerificationOrchestrator({
-      keys,
-      defaultTimeout: 30000,
-    });
-
-    // Set the verification ID so broadcasts use the correct ID
-    orchestrator.setVerificationId(verification.id);
-
-    // Wire up real-time broadcasts via callback
-    orchestrator.setUpdateCallback((update: VerificationUpdate) => {
-      switch (update.type) {
-        case 'started':
-          broadcastStatusUpdate(verification.id, 'processing', {
-            completed: 0,
-            total: methodsCount,
-          });
-          break;
-        case 'paradigm_completed':
-          if (update.data.result && update.data.progress) {
-            broadcastParadigmComplete(
-              verification.id,
-              update.data.paradigm!,
-              update.data.result.verdict,
-              update.data.result.confidence,
-              update.data.progress
-            );
-          }
-          break;
-        case 'error':
-          broadcastStatusUpdate(verification.id, 'failed');
-          break;
-      }
-    });
-
-    const result = await orchestrator.verifyWithUpdates(body.content, {
-      context: body.context,
-      methods: body.methods,
-    });
-
-    // Check if verification should be escalated
-    const shouldEscalate = result.decision === 'escalate';
-
-    // Calculate token usage for tracking
-    const totalInputTokens = result.paradigmResults.reduce(
-      (sum, pr) => sum + (pr.tokenUsage?.inputTokens || 0),
-      0
-    );
-    const totalOutputTokens = result.paradigmResults.reduce(
-      (sum, pr) => sum + (pr.tokenUsage?.outputTokens || 0),
-      0
-    );
-
-    // Use transaction to ensure atomicity for verification update + escalation creation
-    await db.transaction(async (tx) => {
-      // Update verification record
-      await tx
-        .update(verificationsTable)
-        .set({
-          status: shouldEscalate ? 'escalated' : 'completed',
-          finalVerdict: result.verdict,
-          confidenceScore: result.confidence.toFixed(4),
-          decision: result.decision,
-          reasoning: result.reasoning,
-          processingTimeMs: result.processingTimeMs,
-          costCents: Math.round(result.costCents),
-          completedAt: new Date(),
-        })
-        .where(eq(verificationsTable.id, verification.id));
-
-      // Store paradigm results
-      if (result.paradigmResults.length > 0) {
-        await tx.insert(paradigmResultsTable).values(
-          result.paradigmResults.map((pr) => ({
-            verificationId: verification.id,
-            paradigmType: pr.paradigm,
-            weight: pr.weight.toFixed(2),
-            provider: pr.provider,
-            model: pr.model,
-            verdict: pr.verdict,
-            confidence: pr.confidence.toFixed(4),
-            reasoning: pr.reasoning,
-            tokenUsage: pr.tokenUsage || null,
-            processingTimeMs: pr.processingTimeMs,
-            costCents: Math.round(pr.costCents),
-            errorMessage: pr.error || null,
-          }))
-        );
-      }
-
-      // Track usage
-      await tx.insert(usageTable).values({
-        orgId: organization.id,
-        verificationId: verification.id,
-        provider: 'mixed',
-        model: 'mixed',
-        inputTokens: totalInputTokens,
-        outputTokens: totalOutputTokens,
-        costCents: Math.round(result.costCents),
-      });
-    });
-
-    // Broadcast final result to real-time subscribers
-    broadcastFinalResult(verification.id, {
-      verdict: result.verdict,
-      confidence: result.confidence,
-      decision: result.decision,
-      processingTimeMs: result.processingTimeMs,
-      costCents: Math.round(result.costCents),
-    });
-
-    // Create escalation record if verification needs human review
-    // Note: This is outside the transaction as it's idempotent and has its own checks
-    if (shouldEscalate) {
-      await createEscalation({
-        verificationId: verification.id,
-        confidence: result.confidence,
-        paradigmResults: result.paradigmResults,
-        // Pass org info for email notifications
-        orgId: organization.id,
-        organizationName: organization.name,
-        content: body.content,
-      });
-
-      // Fire verification.escalated webhook
-      fireWebhooks(organization.id, 'verification.escalated', {
-        verificationId: verification.id,
-        verdict: result.verdict,
-        confidence: result.confidence,
-        decision: result.decision,
-      });
-    } else {
-      // Fire verification.completed webhook
-      fireWebhooks(organization.id, 'verification.completed', {
-        verificationId: verification.id,
-        verdict: result.verdict,
-        confidence: result.confidence,
-        decision: result.decision,
-        processingTimeMs: result.processingTimeMs,
-        cached: false,
-      });
-    }
-
-    // Cache the result for future requests
-    await cacheVerification(body.content, body.methods, {
-      ...result,
-      id: verification.id,
-    });
-
-    // Return response
-    return NextResponse.json(
-      {
-        id: verification.id,
-        status: shouldEscalate ? 'escalated' : 'completed',
-        verdict: result.verdict,
-        confidence: result.confidence,
-        decision: result.decision,
-        reasoning: result.reasoning,
-        paradigmResults: result.paradigmResults.map((pr) => ({
-          paradigm: pr.paradigm,
-          verdict: pr.verdict,
-          confidence: pr.confidence,
-          reasoning: pr.reasoning?.slice(0, 500),
-          processingTimeMs: pr.processingTimeMs,
-          error: pr.error,
-        })),
-        processingTimeMs: result.processingTimeMs,
-        costCents: result.costCents,
-        cached: false,
-        escalated: shouldEscalate,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    // Update verification as failed
-    await db
-      .update(verificationsTable)
-      .set({
-        status: 'failed',
-        completedAt: new Date(),
-      })
-      .where(eq(verificationsTable.id, verification.id));
-
-    throw error;
-  }
+  // Return success response
+  return NextResponse.json(result.data, { status: 200 });
 }
 
 // =============================================================================

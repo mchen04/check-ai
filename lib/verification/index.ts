@@ -25,7 +25,41 @@ export type {
 } from './types';
 
 // Constants and functions from types
-export { FPR_WEIGHTS, DECISION_THRESHOLDS, calculateConsensus, determineDecision } from './types';
+export {
+  FPR_WEIGHTS,
+  DECISION_THRESHOLDS,
+  calculateConsensus,
+  determineDecision,
+  createErrorParadigmResult,
+} from './types';
+
+// Service layer
+export { verify } from './service';
+export type {
+  OrganizationContext,
+  VerifyServiceRequest,
+  VerifyServiceResponse,
+  VerifyServiceError,
+  VerifyServiceResult,
+} from './service';
+
+// Validation
+export { validateVerifyRequest, getRequestedMethods, getMethodsCount } from './validator';
+export type { ValidatedVerifyRequest, ValidationResult } from './validator';
+
+// Quota
+export { checkMethodsAllowed, checkMonthlyQuota, getPlanLimits } from './quota';
+export type { QuotaCheckResult, MethodsCheckResult, PlanType } from './quota';
+
+// Repository
+export {
+  createVerification,
+  findByIdempotencyKey,
+  updateVerification,
+  markVerificationFailed,
+  saveVerificationResult,
+} from './repository';
+export type { CreateVerificationInput, VerificationRecord, CachedVerificationResult } from './repository';
 
 // Individual paradigms (for advanced usage)
 export {

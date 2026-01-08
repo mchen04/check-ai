@@ -1,16 +1,21 @@
-import { resend } from './resend';
+import { sendEmail, isEmailConfigured, type BulkEmailResult } from './sender';
 import { WeeklyReportEmail } from './templates/weekly-report';
+import { getMembersWithNotification } from '@/lib/db/queries/members';
 import { db } from '@/utils/db/db';
 import {
-  userPreferencesTable,
-  orgMembersTable,
-  usersTable,
   verificationsTable,
   escalationsTable,
   paradigmResultsTable,
   organizationsTable,
 } from '@/utils/db/schema';
 import { eq, and, gte, lte, sql, count } from 'drizzle-orm';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Email');
+
+// =============================================================================
+// TYPES
+// =============================================================================
 
 interface WeeklyReportStats {
   totalVerifications: number;
@@ -29,6 +34,10 @@ interface SendWeeklyReportParams {
   periodEnd: Date;
   dashboardUrl: string;
 }
+
+// =============================================================================
+// STATS CALCULATION
+// =============================================================================
 
 /**
  * Calculates weekly stats for an organization
@@ -138,6 +147,10 @@ function generateHighlights(stats: WeeklyReportStats): string[] {
   return highlights.slice(0, 3); // Max 3 highlights
 }
 
+// =============================================================================
+// SEND FUNCTIONS
+// =============================================================================
+
 /**
  * Sends weekly reports to all users in an organization who have them enabled
  */
@@ -147,9 +160,9 @@ export async function sendWeeklyReportForOrg({
   periodStart,
   periodEnd,
   dashboardUrl,
-}: SendWeeklyReportParams): Promise<{ success: boolean; sent: number; errors: string[] }> {
-  if (!resend) {
-    console.warn('Resend not configured, skipping weekly reports');
+}: SendWeeklyReportParams): Promise<BulkEmailResult> {
+  if (!isEmailConfigured()) {
+    log.warn('Resend not configured, skipping weekly reports');
     return { success: true, sent: 0, errors: [] };
   }
 
@@ -167,33 +180,12 @@ export async function sendWeeklyReportForOrg({
 
     const highlights = generateHighlights(stats);
 
-    // Get all org members with their user info and preferences
-    const members = await db
-      .select({
-        userId: orgMembersTable.userId,
-        userName: usersTable.name,
-        userEmail: usersTable.email,
-      })
-      .from(orgMembersTable)
-      .innerJoin(usersTable, eq(usersTable.id, orgMembersTable.userId))
-      .where(eq(orgMembersTable.orgId, orgId));
+    // Get members with weekly reports enabled
+    const members = await getMembersWithNotification(orgId, 'weeklyReport');
 
     for (const member of members) {
-      // Check if user has weekly reports enabled
-      const [prefs] = await db
-        .select({ weeklyReport: userPreferencesTable.weeklyReport })
-        .from(userPreferencesTable)
-        .where(eq(userPreferencesTable.userId, member.userId));
-
-      // Default to true if no preferences set
-      const reportEnabled = prefs?.weeklyReport ?? true;
-
-      if (!reportEnabled) {
-        continue;
-      }
-
-      try {
-        const { error } = await resend.emails.send({
+      const result = await sendEmail(
+        {
           from: 'VerifyAI <reports@verifyai.dev>',
           to: member.userEmail,
           subject: `Weekly Report - ${organizationName}`,
@@ -206,23 +198,20 @@ export async function sendWeeklyReportForOrg({
             highlights,
             dashboardUrl,
           }),
-        });
+        },
+        { type: 'weekly-report', recipient: member.userEmail }
+      );
 
-        if (error) {
-          errors.push(`Failed to send to ${member.userEmail}: ${error.message}`);
-        } else {
-          sent++;
-        }
-      } catch (err) {
-        errors.push(
-          `Error sending to ${member.userEmail}: ${err instanceof Error ? err.message : 'Unknown error'}`
-        );
+      if (result.success) {
+        sent++;
+      } else {
+        errors.push(`Failed to send to ${member.userEmail}: ${result.error}`);
       }
     }
 
     return { success: errors.length === 0, sent, errors };
   } catch (err) {
-    console.error('Error sending weekly reports:', err);
+    log.error({ err }, 'Error sending weekly reports');
     return { success: false, sent: 0, errors: ['Failed to process weekly reports'] };
   }
 }

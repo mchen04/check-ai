@@ -193,6 +193,29 @@ export function calculateConsensus(results: ParadigmResult[]): {
 }
 
 /**
+ * Create an error result for a failed paradigm execution
+ * Centralized factory to avoid duplication in orchestrator
+ */
+export function createErrorParadigmResult(
+  paradigm: ParadigmType,
+  weight: number,
+  error: unknown
+): ParadigmResult {
+  return {
+    paradigm,
+    weight,
+    provider: 'openai' as const,
+    model: 'unknown',
+    verdict: null,
+    confidence: 0,
+    reasoning: null,
+    processingTimeMs: 0,
+    costCents: 0,
+    error: error instanceof Error ? error.message : 'Unknown error',
+  };
+}
+
+/**
  * Determine decision based on confidence and verdict
  */
 export function determineDecision(

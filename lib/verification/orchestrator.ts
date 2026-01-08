@@ -13,6 +13,7 @@ import {
   MethodsConfig,
   calculateConsensus,
   determineDecision,
+  createErrorParadigmResult,
 } from './types';
 import {
   createSemanticParadigm,
@@ -189,18 +190,7 @@ export class VerificationOrchestrator {
           });
         } catch (error) {
           // Return error result for failed paradigm
-          return {
-            paradigm,
-            weight,
-            provider: 'openai' as const,
-            model: 'unknown',
-            verdict: null,
-            confidence: 0,
-            reasoning: null,
-            processingTimeMs: 0,
-            costCents: 0,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          };
+          return createErrorParadigmResult(paradigm, weight, error);
         }
       });
 
@@ -377,18 +367,7 @@ export class StreamingVerificationOrchestrator extends VerificationOrchestrator 
           this.completedMethods++;
 
           // Create error result
-          const errorResult: ParadigmResult = {
-            paradigm,
-            weight,
-            provider: 'openai' as const,
-            model: 'unknown',
-            verdict: null,
-            confidence: 0,
-            reasoning: null,
-            processingTimeMs: 0,
-            costCents: 0,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          };
+          const errorResult = createErrorParadigmResult(paradigm, weight, error);
 
           // Emit paradigm_completed event (even for errors)
           if (this.currentVerificationId) {

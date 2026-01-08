@@ -1,8 +1,9 @@
-import { resend } from './resend';
+import { sendEmail, isEmailConfigured, type BulkEmailResult } from './sender';
 import { EscalationAlertEmail } from './templates/escalation-alert';
-import { db } from '@/utils/db/db';
-import { userPreferencesTable, orgMembersTable, usersTable } from '@/utils/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { getMembersWithNotification } from '@/lib/db/queries/members';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Email');
 
 interface EscalationDetails {
   id: string;
@@ -23,9 +24,9 @@ export async function sendEscalationAlert({
   escalation,
   organizationName,
   dashboardUrl,
-}: SendEscalationAlertParams): Promise<{ success: boolean; sent: number; errors: string[] }> {
-  if (!resend) {
-    console.warn('Resend not configured, skipping escalation alerts');
+}: SendEscalationAlertParams): Promise<BulkEmailResult> {
+  if (!isEmailConfigured()) {
+    log.warn('Resend not configured, skipping escalation alerts');
     return { success: true, sent: 0, errors: [] };
   }
 
@@ -33,34 +34,12 @@ export async function sendEscalationAlert({
   let sent = 0;
 
   try {
-    // Get all org members with their user info and preferences
-    const members = await db
-      .select({
-        userId: orgMembersTable.userId,
-        role: orgMembersTable.role,
-        userName: usersTable.name,
-        userEmail: usersTable.email,
-      })
-      .from(orgMembersTable)
-      .innerJoin(usersTable, eq(usersTable.id, orgMembersTable.userId))
-      .where(eq(orgMembersTable.orgId, escalation.orgId));
+    // Get members with escalation alerts enabled
+    const members = await getMembersWithNotification(escalation.orgId, 'escalationAlerts');
 
     for (const member of members) {
-      // Check if user has escalation alerts enabled
-      const [prefs] = await db
-        .select({ escalationAlerts: userPreferencesTable.escalationAlerts })
-        .from(userPreferencesTable)
-        .where(eq(userPreferencesTable.userId, member.userId));
-
-      // Default to true if no preferences set
-      const alertsEnabled = prefs?.escalationAlerts ?? true;
-
-      if (!alertsEnabled) {
-        continue;
-      }
-
-      try {
-        const { error } = await resend.emails.send({
+      const result = await sendEmail(
+        {
           from: 'VerifyAI <alerts@verifyai.dev>',
           to: member.userEmail,
           subject: `[${getPriorityLabel(escalation.priority)}] Verification needs review - ${organizationName}`,
@@ -74,21 +53,20 @@ export async function sendEscalationAlert({
             deadline: escalation.deadline?.toISOString() || null,
             dashboardUrl,
           }),
-        });
+        },
+        { type: 'escalation-alert', recipient: member.userEmail }
+      );
 
-        if (error) {
-          errors.push(`Failed to send to ${member.userEmail}: ${error.message}`);
-        } else {
-          sent++;
-        }
-      } catch (err) {
-        errors.push(`Error sending to ${member.userEmail}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      if (result.success) {
+        sent++;
+      } else {
+        errors.push(`Failed to send to ${member.userEmail}: ${result.error}`);
       }
     }
 
     return { success: errors.length === 0, sent, errors };
   } catch (err) {
-    console.error('Error sending escalation alerts:', err);
+    log.error({ err }, 'Error sending escalation alerts');
     return { success: false, sent: 0, errors: ['Failed to query organization members'] };
   }
 }

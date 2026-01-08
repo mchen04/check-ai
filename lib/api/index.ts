@@ -19,3 +19,15 @@ export {
   withApiMiddleware,
   compose,
 } from './middleware';
+
+// Dashboard Middleware
+export {
+  withDashboardAuth,
+  withDashboardRead,
+  withOrgView,
+  withOrgUpdate,
+  type DashboardRequest,
+  type DashboardHandler,
+  type PublicDashboardHandler,
+  type DashboardMiddlewareOptions,
+} from './dashboard-middleware';
