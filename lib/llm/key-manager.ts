@@ -8,7 +8,7 @@ import crypto from 'crypto';
 import { db } from '@/utils/db/db';
 import { apiKeysTable, organizationsTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { ProviderKeys, LLMProvider } from './types';
+import { ProviderKeys, LLMProvider, PROVIDER_BASE_URLS } from './types';
 
 // =============================================================================
 // ENCRYPTION CONFIGURATION
@@ -141,14 +141,25 @@ export class KeyManager {
     }
 
     // Fall back to platform keys from environment for providers without BYOK
+    // Tier 1: First-party providers
     if (!result.openai) result.openai = process.env.OPENAI_API_KEY;
     if (!result.anthropic) result.anthropic = process.env.ANTHROPIC_API_KEY;
     if (!result.google) result.google = process.env.GOOGLE_API_KEY;
-    if (!result.deepseek) result.deepseek = process.env.DEEPSEEK_API_KEY;
-    if (!result.groq) result.groq = process.env.GROQ_API_KEY;
-    if (!result.together) result.together = process.env.TOGETHER_API_KEY;
+    if (!result.xai) result.xai = process.env.XAI_API_KEY;
     if (!result.mistral) result.mistral = process.env.MISTRAL_API_KEY;
     if (!result.cohere) result.cohere = process.env.COHERE_API_KEY;
+    if (!result.deepseek) result.deepseek = process.env.DEEPSEEK_API_KEY;
+
+    // Tier 3: Inference providers
+    if (!result.groq) result.groq = process.env.GROQ_API_KEY;
+    if (!result.together) result.together = process.env.TOGETHER_API_KEY;
+    if (!result.fireworks) result.fireworks = process.env.FIREWORKS_API_KEY;
+    if (!result.cerebras) result.cerebras = process.env.CEREBRAS_API_KEY;
+    if (!result.perplexity) result.perplexity = process.env.PERPLEXITY_API_KEY;
+
+    // Tier 4: Unified gateways
+    if (!result.openrouter) result.openrouter = process.env.OPENROUTER_API_KEY;
+    if (!result.replicate) result.replicate = process.env.REPLICATE_API_TOKEN;
 
     return result;
   }
@@ -322,6 +333,9 @@ export class KeyManager {
   ): Promise<{ valid: boolean; error?: string }> {
     try {
       switch (provider) {
+        // ===========================================
+        // Tier 1: First-party providers
+        // ===========================================
         case 'openai': {
           const { OpenAI } = await import('openai');
           const client = new OpenAI({ apiKey });
@@ -348,6 +362,33 @@ export class KeyManager {
           }
           return { valid: true };
         }
+        case 'xai': {
+          const response = await fetch('https://api.x.ai/v1/models', {
+            headers: { Authorization: `Bearer ${apiKey}` },
+          });
+          if (!response.ok) {
+            return { valid: false, error: 'Invalid xAI/Grok API key' };
+          }
+          return { valid: true };
+        }
+        case 'mistral': {
+          const response = await fetch('https://api.mistral.ai/v1/models', {
+            headers: { Authorization: `Bearer ${apiKey}` },
+          });
+          if (!response.ok) {
+            return { valid: false, error: 'Invalid Mistral API key' };
+          }
+          return { valid: true };
+        }
+        case 'cohere': {
+          const response = await fetch('https://api.cohere.ai/v1/models', {
+            headers: { Authorization: `Bearer ${apiKey}` },
+          });
+          if (!response.ok) {
+            return { valid: false, error: 'Invalid Cohere API key' };
+          }
+          return { valid: true };
+        }
         case 'deepseek': {
           const response = await fetch('https://api.deepseek.com/v1/models', {
             headers: { Authorization: `Bearer ${apiKey}` },
@@ -357,6 +398,25 @@ export class KeyManager {
           }
           return { valid: true };
         }
+
+        // ===========================================
+        // Tier 2: Cloud providers (enterprise)
+        // Azure and Bedrock require config objects, not just API keys
+        // ===========================================
+        case 'azure':
+          return {
+            valid: false,
+            error: 'Azure OpenAI requires configuration object with endpoint and deploymentId. Use validateAzureConfig() instead.',
+          };
+        case 'bedrock':
+          return {
+            valid: false,
+            error: 'AWS Bedrock requires AWS credentials. Use validateBedrockConfig() instead.',
+          };
+
+        // ===========================================
+        // Tier 3: Inference providers
+        // ===========================================
         case 'groq': {
           const response = await fetch('https://api.groq.com/openai/v1/models', {
             headers: { Authorization: `Bearer ${apiKey}` },
@@ -375,15 +435,71 @@ export class KeyManager {
           }
           return { valid: true };
         }
-        case 'mistral': {
-          const response = await fetch('https://api.mistral.ai/v1/models', {
+        case 'fireworks': {
+          const response = await fetch('https://api.fireworks.ai/inference/v1/models', {
             headers: { Authorization: `Bearer ${apiKey}` },
           });
           if (!response.ok) {
-            return { valid: false, error: 'Invalid Mistral API key' };
+            return { valid: false, error: 'Invalid Fireworks AI API key' };
           }
           return { valid: true };
         }
+        case 'cerebras': {
+          const response = await fetch('https://api.cerebras.ai/v1/models', {
+            headers: { Authorization: `Bearer ${apiKey}` },
+          });
+          if (!response.ok) {
+            return { valid: false, error: 'Invalid Cerebras API key' };
+          }
+          return { valid: true };
+        }
+        case 'perplexity': {
+          // Perplexity doesn't have a models endpoint, so we make a minimal chat request
+          const response = await fetch('https://api.perplexity.ai/chat/completions', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'sonar',
+              messages: [{ role: 'user', content: 'test' }],
+              max_tokens: 1,
+            }),
+          });
+          if (!response.ok) {
+            const errorText = await response.text();
+            if (errorText.includes('Invalid API Key') || response.status === 401) {
+              return { valid: false, error: 'Invalid Perplexity API key' };
+            }
+            // Other errors might be due to rate limits or model issues, not key validity
+            return { valid: true };
+          }
+          return { valid: true };
+        }
+
+        // ===========================================
+        // Tier 4: Unified gateways
+        // ===========================================
+        case 'openrouter': {
+          const response = await fetch('https://openrouter.ai/api/v1/models', {
+            headers: { Authorization: `Bearer ${apiKey}` },
+          });
+          if (!response.ok) {
+            return { valid: false, error: 'Invalid OpenRouter API key' };
+          }
+          return { valid: true };
+        }
+        case 'replicate': {
+          const response = await fetch('https://api.replicate.com/v1/account', {
+            headers: { Authorization: `Token ${apiKey}` },
+          });
+          if (!response.ok) {
+            return { valid: false, error: 'Invalid Replicate API token' };
+          }
+          return { valid: true };
+        }
+
         default:
           return { valid: false, error: `Unsupported provider: ${provider}` };
       }
@@ -392,6 +508,81 @@ export class KeyManager {
         valid: false,
         error: error instanceof Error ? error.message : 'Validation failed',
       };
+    }
+  }
+
+  /**
+   * Validate Azure OpenAI configuration
+   */
+  async validateAzureConfig(config: {
+    apiKey: string;
+    endpoint: string;
+    deploymentId: string;
+    apiVersion?: string;
+  }): Promise<{ valid: boolean; error?: string }> {
+    try {
+      const apiVersion = config.apiVersion || '2024-10-21';
+      // Use /openai/models endpoint (not deployment-specific) for validation
+      const url = `${config.endpoint}/openai/models?api-version=${apiVersion}`;
+
+      const response = await fetch(url, {
+        headers: { 'api-key': config.apiKey },
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 401) {
+          return { valid: false, error: 'Invalid Azure OpenAI API key' };
+        }
+        if (status === 404) {
+          return { valid: false, error: 'Invalid Azure deployment or endpoint' };
+        }
+        return { valid: false, error: `Azure validation failed: ${response.statusText}` };
+      }
+
+      return { valid: true };
+    } catch (error) {
+      return {
+        valid: false,
+        error: error instanceof Error ? error.message : 'Azure validation failed',
+      };
+    }
+  }
+
+  /**
+   * Validate AWS Bedrock configuration
+   */
+  async validateBedrockConfig(config: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    region: string;
+    sessionToken?: string;
+  }): Promise<{ valid: boolean; error?: string }> {
+    try {
+      const { BedrockClient, ListFoundationModelsCommand } = await import('@aws-sdk/client-bedrock');
+
+      const client = new BedrockClient({
+        region: config.region,
+        credentials: {
+          accessKeyId: config.accessKeyId,
+          secretAccessKey: config.secretAccessKey,
+          sessionToken: config.sessionToken,
+        },
+      });
+
+      await client.send(new ListFoundationModelsCommand({}));
+      return { valid: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Bedrock validation failed';
+
+      if (errorMessage.includes('credentials') || errorMessage.includes('UnrecognizedClientException')) {
+        return { valid: false, error: 'Invalid AWS credentials' };
+      }
+      if (errorMessage.includes('region')) {
+        return { valid: false, error: 'Invalid AWS region' };
+      }
+
+      return { valid: false, error: errorMessage };
     }
   }
 }

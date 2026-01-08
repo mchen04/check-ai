@@ -8,16 +8,29 @@ import { getKeyManager } from '@/lib/llm/key-manager';
 import { LLMProvider } from '@/lib/llm/types';
 
 // Valid providers for BYOK (excludes platform keys)
+// Note: Azure and Bedrock require special configuration (endpoint/credentials) and are handled separately
 const VALID_PROVIDERS: LLMProvider[] = [
+  // Tier 1: First-party providers
   'openai',
   'anthropic',
   'google',
-  'deepseek',
-  'groq',
-  'together',
+  'xai',
   'mistral',
   'cohere',
+  'deepseek',
+  // Tier 3: Inference providers
+  'groq',
+  'together',
+  'fireworks',
+  'cerebras',
+  'perplexity',
+  // Tier 4: Unified gateways
+  'openrouter',
+  'replicate',
 ];
+
+// Providers that require special configuration instead of simple API keys
+const CONFIG_REQUIRED_PROVIDERS: LLMProvider[] = ['azure', 'bedrock'];
 
 // GET /api/dashboard/provider-keys - List BYOK provider keys
 export async function GET() {

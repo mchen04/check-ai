@@ -178,19 +178,29 @@ ${parsed.reasoning}
   private getDefaultModel(provider: LLMProvider): string {
     // Use more capable models for BiPRM
     const models: Record<LLMProvider, string> = {
-      openai: 'gpt-4o',
-      anthropic: 'claude-3-5-sonnet-20241022',
-      google: 'gemini-2.0-flash',
-      deepseek: 'deepseek-chat',
-      groq: 'llama-3.3-70b-versatile',
-      together: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+      // Tier 1: First-party providers
+      openai: 'gpt-4.1',
+      anthropic: 'claude-sonnet-4-5-20250929',
+      google: 'gemini-2.5-flash',
+      xai: 'grok-4',
       mistral: 'mistral-large-latest',
       cohere: 'command-r-plus',
-      replicate: 'meta/llama-2-70b-chat',
+      deepseek: 'deepseek-chat',
+      // Tier 2: Cloud providers
       azure: 'gpt-4o',
       bedrock: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+      // Tier 3: Inference providers
+      groq: 'llama-3.3-70b-versatile',
+      together: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+      fireworks: 'accounts/fireworks/models/llama-v3p3-70b-instruct',
+      cerebras: 'llama3.3-70b',
+      perplexity: 'sonar-pro',
+      // Tier 4: Gateways
+      openrouter: 'anthropic/claude-3.5-sonnet',
+      // Legacy
+      replicate: 'meta/llama-2-70b-chat',
     };
-    return models[provider] || 'gpt-4o';
+    return models[provider] || 'gpt-4.1';
   }
 }
 
