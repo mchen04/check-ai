@@ -5,11 +5,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  ApiError,
   ValidationError,
-  QuotaExceededError,
   withApiMiddleware,
   ApiRequest,
+  throwVerifyApiError,
 } from '@/lib/api';
 import { verify, validateVerifyRequest, OrganizationContext } from '@/lib/verification';
 
@@ -48,21 +47,9 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
     request: validation.data,
   });
 
-  // Handle service errors
+  // Handle service errors using unified mapper
   if (!result.success) {
-    const { error } = result;
-    switch (error.type) {
-      case 'quota_exceeded':
-        throw new QuotaExceededError(error.message);
-      case 'methods_not_allowed':
-        throw new QuotaExceededError(error.message);
-      case 'no_api_keys':
-        throw new ApiError(error.message, 400, 'NO_API_KEYS');
-      case 'verification_failed':
-        throw new ApiError(error.message, 500, 'VERIFICATION_FAILED');
-      default:
-        throw new ApiError('Verification failed', 500);
-    }
+    throwVerifyApiError(result.error);
   }
 
   // Return success response

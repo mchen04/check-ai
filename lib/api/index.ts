@@ -8,6 +8,9 @@ export * from './types';
 // Errors
 export * from './errors';
 
+// Mappers (service-to-API type conversion)
+export * from './mappers';
+
 // Middleware
 export {
   withApiAuth,

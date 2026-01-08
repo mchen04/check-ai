@@ -6,6 +6,10 @@
 import { LLMProvider, ExtendedProviderKeys } from '../types';
 import { ILLMProvider, ProviderFactory, ProviderFactoryConfig } from './interfaces';
 
+// Re-export PROVIDER_TIERS and getProvidersByTier from config for backward compatibility
+// These are now centralized in ../config.ts
+export { PROVIDER_TIERS, getProvidersByTier } from '../config';
+
 // =============================================================================
 // PROVIDER REGISTRY
 // =============================================================================
@@ -76,39 +80,4 @@ class ProviderRegistry {
 // Export singleton instance
 export const providerRegistry = ProviderRegistry.getInstance();
 
-// =============================================================================
-// PROVIDER TIERS
-// =============================================================================
-
-export const PROVIDER_TIERS: Record<LLMProvider, 1 | 2 | 3 | 4> = {
-  // Tier 1: First-party providers
-  openai: 1,
-  anthropic: 1,
-  google: 1,
-  xai: 1,
-  mistral: 1,
-  cohere: 1,
-  deepseek: 1,
-  // Tier 2: Cloud providers
-  azure: 2,
-  bedrock: 2,
-  // Tier 3: Inference providers
-  groq: 3,
-  together: 3,
-  fireworks: 3,
-  cerebras: 3,
-  perplexity: 3,
-  // Tier 4: Gateways
-  openrouter: 4,
-  // Legacy
-  replicate: 1,
-};
-
-/**
- * Get providers by tier
- */
-export function getProvidersByTier(tier: 1 | 2 | 3 | 4): LLMProvider[] {
-  return Object.entries(PROVIDER_TIERS)
-    .filter(([, t]) => t === tier)
-    .map(([name]) => name as LLMProvider);
-}
+// Note: PROVIDER_TIERS and getProvidersByTier are re-exported from ../config.ts at the top of this file

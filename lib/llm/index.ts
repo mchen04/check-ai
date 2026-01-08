@@ -3,8 +3,11 @@
  * Unified interface for multi-provider LLM interactions
  */
 
-// Types
+// Types (includes re-exports from config.ts for backward compatibility)
 export * from './types';
+
+// Config (centralized provider configuration - can also import from ./types)
+export * from './config';
 
 // Client
 export { LLMClient, LLMError, createLLMClient, createLLMClientFromEnv } from './client';
