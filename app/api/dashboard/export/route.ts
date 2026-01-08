@@ -12,36 +12,11 @@ import { db } from '@/utils/db/db';
 import { verificationsTable, paradigmResultsTable } from '@/utils/db/schema';
 import { eq, and, gte, lte, desc } from 'drizzle-orm';
 import { getUserOrgContext, checkPermission } from '@/lib/rbac/get-user-org';
-
-// Maximum records per export
-const MAX_EXPORT_LIMIT = 10000;
-
-interface ExportRequest {
-  format: 'csv' | 'json';
-  startDate?: string;
-  endDate?: string;
-  includeParadigmResults?: boolean;
-  limit?: number;
-}
-
-interface VerificationExport {
-  id: string;
-  content: string;
-  verdict: string | null;
-  confidence: number | null;
-  decision: string | null;
-  status: string;
-  processingTimeMs: number | null;
-  costCents: number | null;
-  createdAt: string;
-  completedAt: string | null;
-  paradigmResults?: Array<{
-    paradigm: string;
-    verdict: string | null;
-    confidence: number | null;
-    reasoning: string | null;
-  }>;
-}
+import {
+  ExportRequest,
+  VerificationExport,
+  MAX_EXPORT_LIMIT,
+} from '@/lib/export/types';
 
 /**
  * Converts verification records to CSV format

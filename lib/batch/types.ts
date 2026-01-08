@@ -4,8 +4,11 @@
  */
 
 import { z } from 'zod';
-import { methodsConfigSchema } from '@/lib/api/types';
+import { methodsConfigSchema, MethodsConfig } from '@/lib/verification/types';
 import type { BatchStatus, BatchItemStatus } from '@/utils/db/schema';
+
+// Re-export MethodsConfig for consumers of this module
+export type { MethodsConfig };
 
 // =============================================================================
 // Batch Job Types
@@ -62,15 +65,7 @@ export interface BatchValidationError {
   error: string;
 }
 
-export type MethodsConfig = {
-  semantic?: number;
-  reasoning?: number;
-  tool?: number;
-  biprm?: number;
-  ensemble?: number;
-  entropy?: number;
-  formal?: number;
-};
+// Note: MethodsConfig is imported from @/lib/verification/types
 
 // =============================================================================
 // Request/Response Types

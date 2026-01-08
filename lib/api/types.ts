@@ -1,10 +1,24 @@
 /**
  * API Types
  * Shared types for API requests, responses, and validation
+ *
+ * Note: Core verification types are defined in @/lib/verification/types
+ * This file re-exports relevant types and defines API-specific variants.
  */
 
 import { z } from 'zod';
 import { NextRequest } from 'next/server';
+import {
+  MethodsConfig,
+  methodsConfigSchema,
+  Verdict,
+  Decision,
+  ParadigmResult as VerificationParadigmResult,
+} from '@/lib/verification/types';
+
+// Re-export verification types for convenience
+export { methodsConfigSchema };
+export type { MethodsConfig, Verdict, Decision };
 
 // =============================================================================
 // API REQUEST TYPES
@@ -28,23 +42,7 @@ export interface AuthenticatedRequest extends NextRequest {
 // VERIFICATION REQUEST/RESPONSE SCHEMAS
 // =============================================================================
 
-export const methodsConfigSchema = z
-  .object({
-    semantic: z.number().min(0).max(1).optional(),
-    reasoning: z.number().min(0).max(1).optional(),
-    tool: z.number().min(0).max(1).optional(),
-    biprm: z.number().min(0).max(1).optional(),
-    ensemble: z.number().min(0).max(1).optional(),
-    entropy: z.number().min(0).max(1).optional(),
-    formal: z.number().min(0).max(1).optional(),
-  })
-  .refine(
-    (data) => {
-      const weights = Object.values(data).filter((v) => v !== undefined);
-      return weights.length > 0;
-    },
-    { message: 'At least one verification method must be specified' }
-  );
+// Note: methodsConfigSchema is imported from @/lib/verification/types
 
 export const verifyRequestSchema = z.object({
   content: z.string().min(1, 'Content is required').max(50000, 'Content too long'),
@@ -61,17 +59,13 @@ export const verifyRequestSchema = z.object({
 
 export type VerifyRequest = z.infer<typeof verifyRequestSchema>;
 
-export interface ParadigmResult {
-  paradigm: string;
-  weight: number;
+/**
+ * API-specific ParadigmResult that serializes provider to string.
+ * The internal VerificationParadigmResult uses LLMProvider enum,
+ * but API responses use string for JSON serialization.
+ */
+export interface ParadigmResult extends Omit<VerificationParadigmResult, 'provider' | 'tokenUsage'> {
   provider: string;
-  model: string;
-  verdict: 'true' | 'false' | 'uncertain' | null;
-  confidence: number;
-  reasoning: string | null;
-  processingTimeMs: number;
-  costCents: number;
-  error?: string;
 }
 
 export interface VerifyResponse {

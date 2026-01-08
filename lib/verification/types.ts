@@ -1,8 +1,12 @@
 /**
  * Verification Types
  * Types for the multi-paradigm verification system
+ *
+ * This is the single source of truth for all verification-related types.
+ * Other modules should import from here rather than defining duplicates.
  */
 
+import { z } from 'zod';
 import { LLMProvider } from '@/lib/llm/types';
 
 // =============================================================================
@@ -23,6 +27,24 @@ export type Verdict = 'true' | 'false' | 'uncertain';
 export type Decision = 'accept' | 'refine' | 'escalate' | 'reject';
 
 // =============================================================================
+// ZOD SCHEMAS
+// =============================================================================
+
+export const paradigmTypeSchema = z.enum([
+  'semantic',
+  'reasoning',
+  'tool',
+  'biprm',
+  'ensemble',
+  'entropy',
+  'formal',
+]);
+
+export const verdictSchema = z.enum(['true', 'false', 'uncertain']);
+
+export const decisionSchema = z.enum(['accept', 'refine', 'escalate', 'reject']);
+
+// =============================================================================
 // METHODS CONFIGURATION
 // =============================================================================
 
@@ -35,6 +57,24 @@ export interface MethodsConfig {
   entropy?: number;
   formal?: number;
 }
+
+export const methodsConfigSchema = z
+  .object({
+    semantic: z.number().min(0).max(1).optional(),
+    reasoning: z.number().min(0).max(1).optional(),
+    tool: z.number().min(0).max(1).optional(),
+    biprm: z.number().min(0).max(1).optional(),
+    ensemble: z.number().min(0).max(1).optional(),
+    entropy: z.number().min(0).max(1).optional(),
+    formal: z.number().min(0).max(1).optional(),
+  })
+  .refine(
+    (data) => {
+      const weights = Object.values(data).filter((v) => v !== undefined);
+      return weights.length > 0;
+    },
+    { message: 'At least one verification method must be specified' }
+  );
 
 // =============================================================================
 // PARADIGM RESULT

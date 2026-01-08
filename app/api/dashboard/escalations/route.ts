@@ -5,14 +5,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
-import {
-  escalationsTable,
-  verificationsTable,
-  orgMembersTable,
-} from '@/utils/db/schema';
-import { eq, desc, and, isNull, isNotNull, sql } from 'drizzle-orm';
+import { orgMembersTable } from '@/utils/db/schema';
+import { eq } from 'drizzle-orm';
 import { createClient } from '@/utils/supabase/server';
-import { getEscalationStatus, REASON_DISPLAY_MAP } from '@/lib/escalation';
+import { REASON_DISPLAY_MAP } from '@/lib/escalation';
+import {
+  listEscalations,
+  getEscalationStats,
+  getEscalationStatus,
+} from '@/lib/escalation/repository';
 
 export async function GET(req: NextRequest) {
   try {
@@ -44,96 +45,29 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
     const offset = (page - 1) * limit;
-    const statusFilter = searchParams.get('status'); // 'pending' | 'resolved' | 'dismissed'
-    const priorityFilter = searchParams.get('priority'); // '1' | '2' | '3'
+    const statusFilter = searchParams.get('status') as 'pending' | 'resolved' | 'dismissed' | null;
+    const priorityFilter = searchParams.get('priority');
 
-    // Build base query conditions
-    const baseCondition = eq(verificationsTable.orgId, orgMember.orgId);
-
-    // Fetch escalations with verification data
-    let query = db
-      .select({
-        id: escalationsTable.id,
-        verificationId: escalationsTable.verificationId,
-        reason: escalationsTable.reason,
-        details: escalationsTable.details,
-        priority: escalationsTable.priority,
-        deadline: escalationsTable.deadline,
-        resolvedAt: escalationsTable.resolvedAt,
-        resolvedBy: escalationsTable.resolvedBy,
-        resolution: escalationsTable.resolution,
-        humanVerdict: escalationsTable.humanVerdict,
-        createdAt: escalationsTable.createdAt,
-        // Verification fields
-        verificationContent: verificationsTable.content,
-        verificationVerdict: verificationsTable.finalVerdict,
-        verificationConfidence: verificationsTable.confidenceScore,
-      })
-      .from(escalationsTable)
-      .innerJoin(
-        verificationsTable,
-        eq(escalationsTable.verificationId, verificationsTable.id)
-      )
-      .where(baseCondition)
-      .$dynamic();
-
-    // Apply status filter
-    if (statusFilter === 'pending') {
-      query = query.where(and(baseCondition, isNull(escalationsTable.resolvedAt)));
-    } else if (statusFilter === 'resolved') {
-      query = query.where(
-        and(
-          baseCondition,
-          isNotNull(escalationsTable.resolvedAt),
-          isNotNull(escalationsTable.humanVerdict)
-        )
-      );
-    } else if (statusFilter === 'dismissed') {
-      query = query.where(
-        and(
-          baseCondition,
-          isNotNull(escalationsTable.resolvedAt),
-          isNull(escalationsTable.humanVerdict)
-        )
-      );
-    }
-
-    // Apply priority filter
+    // Parse priority filter
+    let priority: number | undefined;
     if (priorityFilter) {
-      const priority = parseInt(priorityFilter, 10);
-      if (priority >= 1 && priority <= 3) {
-        query = query.where(
-          and(baseCondition, eq(escalationsTable.priority, priority))
-        );
+      const p = parseInt(priorityFilter, 10);
+      if (p >= 1 && p <= 3) {
+        priority = p;
       }
     }
 
-    // Execute query with pagination
-    const escalations = await query
-      .orderBy(desc(escalationsTable.priority), desc(escalationsTable.createdAt))
-      .limit(limit + 1)
-      .offset(offset);
+    // Fetch escalations using repository
+    const { escalations: results, hasMore } = await listEscalations({
+      orgId: orgMember.orgId,
+      status: statusFilter || undefined,
+      priority,
+      limit,
+      offset,
+    });
 
-    // Check if there are more results
-    const hasMore = escalations.length > limit;
-    const results = hasMore ? escalations.slice(0, limit) : escalations;
-
-    // Calculate stats (separate query for accuracy)
-    const statsQuery = await db
-      .select({
-        total: sql<number>`count(*)`,
-        pending: sql<number>`count(*) filter (where ${escalationsTable.resolvedAt} is null)`,
-        resolved: sql<number>`count(*) filter (where ${escalationsTable.resolvedAt} is not null and ${escalationsTable.humanVerdict} is not null)`,
-        dismissed: sql<number>`count(*) filter (where ${escalationsTable.resolvedAt} is not null and ${escalationsTable.humanVerdict} is null)`,
-      })
-      .from(escalationsTable)
-      .innerJoin(
-        verificationsTable,
-        eq(escalationsTable.verificationId, verificationsTable.id)
-      )
-      .where(eq(verificationsTable.orgId, orgMember.orgId));
-
-    const stats = statsQuery[0] || { total: 0, pending: 0, resolved: 0, dismissed: 0 };
+    // Get stats using repository
+    const stats = await getEscalationStats(orgMember.orgId);
 
     // Format response
     const formattedResults = results.map((e) => ({
@@ -162,11 +96,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       escalations: formattedResults,
       stats: {
-        total: Number(stats.total),
-        pending: Number(stats.pending),
+        total: stats.total,
+        pending: stats.pending,
         inReview: 0, // Reserved for future use
-        resolved: Number(stats.resolved),
-        dismissed: Number(stats.dismissed),
+        resolved: stats.resolved,
+        dismissed: stats.dismissed,
       },
       page,
       limit,
