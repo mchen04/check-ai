@@ -20,6 +20,9 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "docs": "typedoc",
     "docs:watch": "typedoc --watch"
   },
@@ -33,11 +36,26 @@
   ],
   "author": "VerifyAI",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/verifyai/verifyai.git",
+    "directory": "packages/typescript-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/verifyai/verifyai/issues"
+  },
+  "homepage": "https://verifyai.dev/docs/sdk/typescript",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "devDependencies": {
+    "@vitest/coverage-v8": "^2.0.0",
     "tsup": "^8.0.0",
     "typedoc": "^0.27.0",
     "typedoc-plugin-markdown": "^4.4.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^2.0.0"
   },
   "engines": {
     "node": ">=18.0.0"

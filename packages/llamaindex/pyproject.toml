@@ -54,6 +54,10 @@ Repository = "https://github.com/verifyai/verifyai-llamaindex"
 [tool.hatch.build.targets.wheel]
 packages = ["verifyai_llamaindex"]
 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
 [tool.mypy]
 python_version = "3.9"
 strict = true

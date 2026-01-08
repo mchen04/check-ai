@@ -53,6 +53,10 @@ Repository = "https://github.com/verifyai/verifyai-langchain"
 [tool.hatch.build.targets.wheel]
 packages = ["verifyai_langchain"]
 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
 [tool.mypy]
 python_version = "3.9"
 strict = true

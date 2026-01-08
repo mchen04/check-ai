@@ -1,0 +1,22 @@
+# Source files (dist is published)
+src/
+tsconfig.json
+tsup.config.ts
+typedoc.json
+
+# Development
+.git/
+.github/
+*.log
+.DS_Store
+
+# Documentation (available on website)
+docs/
+
+# Test files
+__tests__/
+*.test.ts
+*.spec.ts
+coverage/
+.nyc_output/
+vitest.config.ts

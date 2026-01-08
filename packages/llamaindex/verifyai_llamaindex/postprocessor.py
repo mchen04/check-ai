@@ -45,6 +45,8 @@ class VerifyAIPostprocessor(BaseNodePostprocessor):
         include_query_context: Include query in verification context
     """
 
+    model_config = {"arbitrary_types_allowed": True}
+
     client: VerifyAI
     methods: Union[MethodsConfig, Dict[str, float]]
     min_confidence: float
@@ -76,14 +78,15 @@ class VerifyAIPostprocessor(BaseNodePostprocessor):
             poll_interval: Polling interval in seconds
             timeout: Maximum time to wait for verification
         """
-        super().__init__()
-        self.client = client
-        self.methods = methods or {"reasoning": 1.0}
-        self.min_confidence = min_confidence
-        self.filter_unverified = filter_unverified
-        self.include_query_context = include_query_context
-        self.poll_interval = poll_interval
-        self.timeout = timeout
+        super().__init__(
+            client=client,
+            methods=methods or {"reasoning": 1.0},
+            min_confidence=min_confidence,
+            filter_unverified=filter_unverified,
+            include_query_context=include_query_context,
+            poll_interval=poll_interval,
+            timeout=timeout,
+        )
 
     @classmethod
     def class_name(cls) -> str:
@@ -191,6 +194,8 @@ class AsyncVerifyAIPostprocessor(BaseNodePostprocessor):
         >>> asyncio.run(main())
     """
 
+    model_config = {"arbitrary_types_allowed": True}
+
     client: AsyncVerifyAI
     methods: Union[MethodsConfig, Dict[str, float]]
     min_confidence: float
@@ -222,14 +227,15 @@ class AsyncVerifyAIPostprocessor(BaseNodePostprocessor):
             poll_interval: Polling interval in seconds
             timeout: Maximum time to wait for verification
         """
-        super().__init__()
-        self.client = client
-        self.methods = methods or {"reasoning": 1.0}
-        self.min_confidence = min_confidence
-        self.filter_unverified = filter_unverified
-        self.include_query_context = include_query_context
-        self.poll_interval = poll_interval
-        self.timeout = timeout
+        super().__init__(
+            client=client,
+            methods=methods or {"reasoning": 1.0},
+            min_confidence=min_confidence,
+            filter_unverified=filter_unverified,
+            include_query_context=include_query_context,
+            poll_interval=poll_interval,
+            timeout=timeout,
+        )
 
     @classmethod
     def class_name(cls) -> str:

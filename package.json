@@ -17,7 +17,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "stripe:setup": "tsx --env-file=.env stripeSetup.ts",
-    "stripe:listen": "stripe listen --forward-to localhost:3001/webhook/stripe"
+    "stripe:listen": "stripe listen --forward-to localhost:3001/webhook/stripe",
+    "sdk:build": "npm run build -w packages/typescript-sdk && npm run build -w packages/langchain-ts",
+    "sdk:test": "npm run test -w packages/typescript-sdk && npm run test -w packages/langchain-ts",
+    "sdk:docs": "npm run docs -w packages/typescript-sdk && npm run docs -w packages/langchain-ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
