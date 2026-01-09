@@ -1,6 +1,6 @@
-# VerifyAI - Platform Overview
+# Shove - Platform Overview
 
-VerifyAI is a production-grade SaaS platform for verifying the truthfulness and accuracy of Large Language Model (LLM) outputs. Think of it as "the Stripe for LLM Verification" — a developer-first solution that helps organizations detect hallucinations, false claims, and AI-generated inaccuracies through multiple verification paradigms.
+Shove is a production-grade SaaS platform for verifying the truthfulness and accuracy of Large Language Model (LLM) outputs. Think of it as "the Stripe for LLM Verification" — a developer-first solution that helps organizations detect hallucinations, false claims, and AI-generated inaccuracies through multiple verification paradigms.
 
 ---
 
@@ -179,11 +179,11 @@ The monorepo includes SDK packages:
 
 | Package | Description |
 |---------|-------------|
-| `@verifyai/sdk` | TypeScript SDK for Node.js/browser |
-| `verifyai-python` | Python SDK |
-| `@verifyai/langchain` | LangChain TypeScript integration |
-| `verifyai-langchain-python` | LangChain Python integration |
-| `@verifyai/llamaindex` | LlamaIndex integration |
+| `@shove/sdk` | TypeScript SDK for Node.js/browser |
+| `shove-python` | Python SDK |
+| `@shove/langchain` | LangChain TypeScript integration |
+| `shove-langchain-python` | LangChain Python integration |
+| `@shove/llamaindex` | LlamaIndex integration |
 
 ---
 

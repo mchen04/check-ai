@@ -71,7 +71,7 @@ export default async function LandingPage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
                 <Shield className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-semibold tracking-tight">VerifyAI</span>
+              <span className="text-xl font-semibold tracking-tight">Shove</span>
             </Link>
             <nav className="ml-auto hidden items-center gap-8 md:flex">
               <a
@@ -252,7 +252,7 @@ export default async function LandingPage() {
                 </div>
               </div>
 
-              {/* VerifyAI - Columns 2-4 with contrasting scale */}
+              {/* Shove - Columns 2-4 with contrasting scale */}
               <div className="col-2-4 space-y-6">
                 {/* Huge number showing capability */}
                 <div className="relative">
@@ -260,7 +260,7 @@ export default async function LandingPage() {
                     7
                   </div>
                   <div className="absolute bottom-2 left-0 text-xs font-bold uppercase tracking-widest text-primary">
-                    VerifyAI
+                    Shove
                   </div>
                 </div>
 
@@ -369,7 +369,7 @@ export default async function LandingPage() {
                 </h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
                   Different industries need different verification mixes. Here&apos;s how teams
-                  configure VerifyAI.
+                  configure Shove.
                 </p>
               </div>
 
@@ -667,7 +667,7 @@ export default async function LandingPage() {
       <footer className="w-full border-t">
         <div className="content-wrapper">
           <div className="content-constrained flex flex-col items-center gap-6 px-6 py-12 sm:flex-row">
-            <p className="text-sm text-muted-foreground">© 2025 VerifyAI</p>
+            <p className="text-sm text-muted-foreground">© 2025 Shove</p>
             <nav className="flex gap-8 sm:ml-auto">
               <a
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"

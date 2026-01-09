@@ -2,7 +2,7 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["src/index.ts"],
   "out": "docs",
-  "name": "@verifyai/langchain",
+  "name": "@shove/langchain",
   "readme": "README.md",
   "includeVersion": true,
   "excludePrivate": true,
@@ -12,7 +12,7 @@
   "plugin": ["typedoc-plugin-markdown"],
   "theme": "markdown",
   "navigationLinks": {
-    "VerifyAI Docs": "https://verifyai.dev/docs",
-    "GitHub": "https://github.com/verifyai/verifyai-langchain"
+    "Shove.ai Docs": "https://shove.ai/docs",
+    "GitHub": "https://github.com/shove-ai/shove"
   }
 }

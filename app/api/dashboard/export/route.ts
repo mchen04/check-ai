@@ -298,7 +298,7 @@ export async function GET() {
       },
     },
     example: {
-      curl: `curl -X POST https://app.verifyai.dev/api/dashboard/export \\
+      curl: `curl -X POST https://app.shove.ai/api/dashboard/export \\
   -H "Content-Type: application/json" \\
   -H "Cookie: your-auth-cookie" \\
   -d '{"format": "csv", "startDate": "2024-01-01", "includeParadigmResults": true}'`,

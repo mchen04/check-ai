@@ -118,9 +118,9 @@ Batch processing requires a Pro or Enterprise plan.
     {
       language: 'javascript',
       label: 'Node.js',
-      code: `import { VerifyAI } from '@verifyai/sdk';
+      code: `import { Shove } from '@shove/sdk';
 
-const client = new VerifyAI({ apiKey: 'vfy_your_api_key' });
+const client = new Shove({ apiKey: 'vfy_your_api_key' });
 
 const batch = await client.createBatch({
   name: 'Daily fact check',

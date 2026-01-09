@@ -1,1 +1,1 @@
-"""Tests for the VerifyAI LlamaIndex integration."""
+"""Tests for the Shove LlamaIndex integration."""

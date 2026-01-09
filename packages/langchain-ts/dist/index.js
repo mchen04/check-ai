@@ -20,9 +20,9 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
+  ShoveCallbackHandler: () => ShoveCallbackHandler,
   VerificationError: () => VerificationError,
-  VerificationRejectedError: () => VerificationRejectedError,
-  VerifyAICallbackHandler: () => VerifyAICallbackHandler
+  VerificationRejectedError: () => VerificationRejectedError
 });
 module.exports = __toCommonJS(index_exports);
 
@@ -61,8 +61,8 @@ var VerificationRejectedError = class extends VerificationError {
 };
 
 // src/callback.ts
-var VerifyAICallbackHandler = class extends import_base.BaseCallbackHandler {
-  name = "VerifyAICallbackHandler";
+var ShoveCallbackHandler = class extends import_base.BaseCallbackHandler {
+  name = "ShoveCallbackHandler";
   client;
   methods;
   minConfidence;
@@ -160,8 +160,8 @@ var VerifyAICallbackHandler = class extends import_base.BaseCallbackHandler {
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  ShoveCallbackHandler,
   VerificationError,
-  VerificationRejectedError,
-  VerifyAICallbackHandler
+  VerificationRejectedError
 });
 //# sourceMappingURL=index.js.map

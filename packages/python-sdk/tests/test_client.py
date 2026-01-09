@@ -1,11 +1,11 @@
-"""Tests for VerifyAI client."""
+"""Tests for Shove client."""
 
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 
-from verifyai import VerifyAI, AsyncVerifyAI
-from verifyai.errors import (
-    VerifyAIError,
+from shove import Shove, AsyncShove
+from shove.errors import (
+    ShoveError,
     AuthenticationError,
     RateLimitError,
     TimeoutError,
@@ -14,47 +14,47 @@ from verifyai.errors import (
 )
 
 
-class TestVerifyAIInit:
-    """Test VerifyAI client initialization."""
+class TestShoveInit:
+    """Test Shove client initialization."""
 
     def test_init_requires_api_key(self):
         """Should raise error when API key is missing."""
-        with pytest.raises(VerifyAIError) as exc_info:
-            VerifyAI(api_key="")
+        with pytest.raises(ShoveError) as exc_info:
+            Shove(api_key="")
         assert exc_info.value.code == "MISSING_API_KEY"
 
     def test_init_with_valid_api_key(self, api_key):
         """Should create client with valid API key."""
         with patch("httpx.Client"):
-            client = VerifyAI(api_key=api_key)
+            client = Shove(api_key=api_key)
             assert client is not None
 
     def test_init_with_custom_base_url(self, api_key):
         """Should accept custom base URL."""
         with patch("httpx.Client"):
-            client = VerifyAI(api_key=api_key, base_url="https://custom.api.com/")
+            client = Shove(api_key=api_key, base_url="https://custom.api.com/")
             assert client._base_url == "https://custom.api.com"
 
     def test_init_strips_trailing_slash(self, api_key):
         """Should strip trailing slash from base URL."""
         with patch("httpx.Client"):
-            client = VerifyAI(api_key=api_key, base_url="https://api.verifyai.dev/")
-            assert client._base_url == "https://api.verifyai.dev"
+            client = Shove(api_key=api_key, base_url="https://api.shove.ai/")
+            assert client._base_url == "https://api.shove.ai"
 
     def test_init_with_retry_disabled(self, api_key):
         """Should disable retry when retry=False."""
         with patch("httpx.Client"):
-            client = VerifyAI(api_key=api_key, retry=False)
+            client = Shove(api_key=api_key, retry=False)
             assert client._retry_config is None
 
     def test_init_with_retry_enabled(self, api_key):
         """Should use default retry config when retry=True."""
         with patch("httpx.Client"):
-            client = VerifyAI(api_key=api_key, retry=True)
+            client = Shove(api_key=api_key, retry=True)
             assert client._retry_config is not None
 
 
-class TestVerifyAIVerify:
+class TestShoveVerify:
     """Test verify method."""
 
     def test_verify_sends_correct_request(self, api_key, mock_response):
@@ -67,7 +67,7 @@ class TestVerifyAIVerify:
             })
             MockClient.return_value = mock_client
 
-            client = VerifyAI(api_key=api_key)
+            client = Shove(api_key=api_key)
             result = client.verify(
                 content="Test content",
                 methods={"reasoning": 1.0},
@@ -89,7 +89,7 @@ class TestVerifyAIVerify:
             })
             MockClient.return_value = mock_client
 
-            client = VerifyAI(api_key=api_key)
+            client = Shove(api_key=api_key)
             client.verify(
                 content="Test content",
                 methods={"reasoning": 1.0},
@@ -110,7 +110,7 @@ class TestVerifyAIVerify:
             })
             MockClient.return_value = mock_client
 
-            client = VerifyAI(api_key=api_key)
+            client = Shove(api_key=api_key)
             client.verify(
                 content="Test content",
                 methods={"reasoning": 1.0},
@@ -122,14 +122,14 @@ class TestVerifyAIVerify:
             assert body["idempotencyKey"] == "key123"
 
 
-class TestVerifyAIGetVerification:
+class TestShoveGetVerification:
     """Test get_verification method."""
 
     def test_get_verification_requires_id(self, api_key):
         """Should raise error when ID is missing."""
         with patch("httpx.Client"):
-            client = VerifyAI(api_key=api_key)
-            with pytest.raises(VerifyAIError) as exc_info:
+            client = Shove(api_key=api_key)
+            with pytest.raises(ShoveError) as exc_info:
                 client.get_verification("")
             assert exc_info.value.code == "MISSING_ID"
 
@@ -145,7 +145,7 @@ class TestVerifyAIGetVerification:
             })
             MockClient.return_value = mock_client
 
-            client = VerifyAI(api_key=api_key)
+            client = Shove(api_key=api_key)
             result = client.get_verification("ver_123")
 
             assert result.status == "completed"
@@ -153,7 +153,7 @@ class TestVerifyAIGetVerification:
             assert result.confidence == 0.95
 
 
-class TestVerifyAIVerifyAndWait:
+class TestShoveVerifyAndWait:
     """Test verify_and_wait method."""
 
     def test_verify_and_wait_polls_until_complete(self, api_key, mock_response):
@@ -173,7 +173,7 @@ class TestVerifyAIVerifyAndWait:
             mock_client.request.side_effect = responses
             MockClient.return_value = mock_client
 
-            client = VerifyAI(api_key=api_key)
+            client = Shove(api_key=api_key)
             result = client.verify_and_wait(
                 content="Test",
                 methods={"reasoning": 1.0},
@@ -195,7 +195,7 @@ class TestVerifyAIVerifyAndWait:
             })
             MockClient.return_value = mock_client
 
-            client = VerifyAI(api_key=api_key)
+            client = Shove(api_key=api_key)
             with pytest.raises(TimeoutError):
                 client.verify_and_wait(
                     content="Test",
@@ -205,7 +205,7 @@ class TestVerifyAIVerifyAndWait:
                 )
 
 
-class TestVerifyAIBatchOperations:
+class TestShoveBatchOperations:
     """Test batch verification operations."""
 
     def test_create_batch(self, api_key, mock_response):
@@ -220,7 +220,7 @@ class TestVerifyAIBatchOperations:
             })
             MockClient.return_value = mock_client
 
-            client = VerifyAI(api_key=api_key)
+            client = Shove(api_key=api_key)
             result = client.create_batch(
                 methods={"reasoning": 1.0},
                 items=[
@@ -236,8 +236,8 @@ class TestVerifyAIBatchOperations:
     def test_get_batch_requires_id(self, api_key):
         """Should raise error when batch ID is missing."""
         with patch("httpx.Client"):
-            client = VerifyAI(api_key=api_key)
-            with pytest.raises(VerifyAIError):
+            client = Shove(api_key=api_key)
+            with pytest.raises(ShoveError):
                 client.get_batch("")
 
     def test_get_batch(self, api_key, mock_response):
@@ -256,14 +256,14 @@ class TestVerifyAIBatchOperations:
             })
             MockClient.return_value = mock_client
 
-            client = VerifyAI(api_key=api_key)
+            client = Shove(api_key=api_key)
             result = client.get_batch("batch_123")
 
             assert result.progress == 50
             assert result.completed_items == 5
 
 
-class TestVerifyAIErrorHandling:
+class TestShoveErrorHandling:
     """Test error handling."""
 
     def test_authentication_error_on_401(self, api_key, mock_response):
@@ -276,7 +276,7 @@ class TestVerifyAIErrorHandling:
             )
             MockClient.return_value = mock_client
 
-            client = VerifyAI(api_key=api_key, retry=False)
+            client = Shove(api_key=api_key, retry=False)
             with pytest.raises(AuthenticationError):
                 client.verify(content="Test", methods={"reasoning": 1.0})
 
@@ -290,7 +290,7 @@ class TestVerifyAIErrorHandling:
             )
             MockClient.return_value = mock_client
 
-            client = VerifyAI(api_key=api_key, retry=False)
+            client = Shove(api_key=api_key, retry=False)
             with pytest.raises(ValidationError):
                 # Use valid local input that server rejects
                 client.verify(content="Test content", methods={"reasoning": 1.0})
@@ -305,7 +305,7 @@ class TestVerifyAIErrorHandling:
             )
             MockClient.return_value = mock_client
 
-            client = VerifyAI(api_key=api_key, retry=False)
+            client = Shove(api_key=api_key, retry=False)
             with pytest.raises(NotFoundError):
                 client.get_verification("ver_notexist")
 
@@ -320,13 +320,13 @@ class TestVerifyAIErrorHandling:
             )
             MockClient.return_value = mock_client
 
-            client = VerifyAI(api_key=api_key, retry=False)
+            client = Shove(api_key=api_key, retry=False)
             with pytest.raises(RateLimitError) as exc_info:
                 client.verify(content="Test", methods={"reasoning": 1.0})
             assert exc_info.value.retry_after == 30
 
 
-class TestVerifyAIContextManager:
+class TestShoveContextManager:
     """Test context manager support."""
 
     def test_context_manager(self, api_key):
@@ -335,19 +335,19 @@ class TestVerifyAIContextManager:
             mock_client = MagicMock()
             MockClient.return_value = mock_client
 
-            with VerifyAI(api_key=api_key) as client:
+            with Shove(api_key=api_key) as client:
                 assert client is not None
 
             mock_client.close.assert_called_once()
 
 
-class TestAsyncVerifyAI:
-    """Test async VerifyAI client."""
+class TestAsyncShove:
+    """Test async Shove client."""
 
     def test_init_requires_api_key(self):
         """Should raise error when API key is missing."""
-        with pytest.raises(VerifyAIError):
-            AsyncVerifyAI(api_key="")
+        with pytest.raises(ShoveError):
+            AsyncShove(api_key="")
 
     @pytest.mark.asyncio
     async def test_verify_async(self, api_key, mock_response):
@@ -361,7 +361,7 @@ class TestAsyncVerifyAI:
             mock_client.aclose = AsyncMock()
             MockClient.return_value = mock_client
 
-            client = AsyncVerifyAI(api_key=api_key)
+            client = AsyncShove(api_key=api_key)
             result = await client.verify(
                 content="Test",
                 methods={"reasoning": 1.0},
@@ -382,7 +382,7 @@ class TestAsyncVerifyAI:
             mock_client.aclose = AsyncMock()
             MockClient.return_value = mock_client
 
-            async with AsyncVerifyAI(api_key=api_key) as client:
+            async with AsyncShove(api_key=api_key) as client:
                 result = await client.verify(
                     content="Test",
                     methods={"reasoning": 1.0},

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  VerifyAIError,
+  ShoveError,
   AuthenticationError,
   AuthorizationError,
   ValidationError,
@@ -11,46 +11,46 @@ import {
   ServerError,
 } from '../src/errors';
 
-describe('VerifyAI Errors', () => {
-  describe('VerifyAIError', () => {
+describe('Shove Errors', () => {
+  describe('ShoveError', () => {
     it('should create error with message', () => {
-      const error = new VerifyAIError('Test error');
+      const error = new ShoveError('Test error');
       expect(error.message).toBe('Test error');
-      expect(error.name).toBe('VerifyAIError');
+      expect(error.name).toBe('ShoveError');
       expect(error.code).toBe('UNKNOWN_ERROR');
     });
 
     it('should create error with code', () => {
-      const error = new VerifyAIError('Test error', { code: 'TEST_CODE' });
+      const error = new ShoveError('Test error', { code: 'TEST_CODE' });
       expect(error.code).toBe('TEST_CODE');
     });
 
     it('should create error with status', () => {
-      const error = new VerifyAIError('Test error', { status: 400 });
+      const error = new ShoveError('Test error', { status: 400 });
       expect(error.status).toBe(400);
     });
 
     it('should create error with requestId', () => {
-      const error = new VerifyAIError('Test error', { requestId: 'req_123' });
+      const error = new ShoveError('Test error', { requestId: 'req_123' });
       expect(error.requestId).toBe('req_123');
     });
 
     it('should create error with details', () => {
-      const error = new VerifyAIError('Test error', {
+      const error = new ShoveError('Test error', {
         details: { field: 'content', reason: 'too short' },
       });
       expect(error.details).toEqual({ field: 'content', reason: 'too short' });
     });
 
     it('should be instance of Error', () => {
-      const error = new VerifyAIError('Test error');
+      const error = new ShoveError('Test error');
       expect(error).toBeInstanceOf(Error);
     });
   });
 
-  describe('VerifyAIError.fromResponse', () => {
+  describe('ShoveError.fromResponse', () => {
     it('should create AuthenticationError for AUTHENTICATION_ERROR code', () => {
-      const error = VerifyAIError.fromResponse(
+      const error = ShoveError.fromResponse(
         { error: 'Invalid key', code: 'AUTHENTICATION_ERROR' },
         401
       );
@@ -59,7 +59,7 @@ describe('VerifyAI Errors', () => {
     });
 
     it('should create ValidationError for VALIDATION_ERROR code', () => {
-      const error = VerifyAIError.fromResponse(
+      const error = ShoveError.fromResponse(
         { error: 'Invalid request', code: 'VALIDATION_ERROR' },
         400
       );
@@ -67,7 +67,7 @@ describe('VerifyAI Errors', () => {
     });
 
     it('should create RateLimitError for RATE_LIMIT code', () => {
-      const error = VerifyAIError.fromResponse(
+      const error = ShoveError.fromResponse(
         { error: 'Rate limited', code: 'RATE_LIMIT' },
         429
       );
@@ -75,7 +75,7 @@ describe('VerifyAI Errors', () => {
     });
 
     it('should create NotFoundError for NOT_FOUND code', () => {
-      const error = VerifyAIError.fromResponse(
+      const error = ShoveError.fromResponse(
         { error: 'Not found', code: 'NOT_FOUND' },
         404
       );
@@ -83,7 +83,7 @@ describe('VerifyAI Errors', () => {
     });
 
     it('should fall back to status code when code is missing', () => {
-      const error = VerifyAIError.fromResponse(
+      const error = ShoveError.fromResponse(
         { error: 'Unauthorized' },
         401
       );
@@ -91,7 +91,7 @@ describe('VerifyAI Errors', () => {
     });
 
     it('should create ServerError for 500 status', () => {
-      const error = VerifyAIError.fromResponse(
+      const error = ShoveError.fromResponse(
         { error: 'Internal error' },
         500
       );
@@ -99,7 +99,7 @@ describe('VerifyAI Errors', () => {
     });
 
     it('should create ServerError for 503 status', () => {
-      const error = VerifyAIError.fromResponse(
+      const error = ShoveError.fromResponse(
         { error: 'Service unavailable' },
         503
       );
@@ -107,7 +107,7 @@ describe('VerifyAI Errors', () => {
     });
 
     it('should include requestId from response', () => {
-      const error = VerifyAIError.fromResponse(
+      const error = ShoveError.fromResponse(
         { error: 'Error', requestId: 'req_abc123' },
         500
       );
@@ -122,9 +122,9 @@ describe('VerifyAI Errors', () => {
       expect(error.code).toBe('AUTHENTICATION_ERROR');
     });
 
-    it('should be instance of VerifyAIError', () => {
+    it('should be instance of ShoveError', () => {
       const error = new AuthenticationError('Invalid API key');
-      expect(error).toBeInstanceOf(VerifyAIError);
+      expect(error).toBeInstanceOf(ShoveError);
     });
   });
 
@@ -219,7 +219,7 @@ describe('VerifyAI Errors', () => {
   describe('error inheritance', () => {
     it('all error types should be instances of Error', () => {
       const errors = [
-        new VerifyAIError('test'),
+        new ShoveError('test'),
         new AuthenticationError('test'),
         new AuthorizationError('test'),
         new ValidationError('test'),
@@ -232,14 +232,14 @@ describe('VerifyAI Errors', () => {
 
       for (const error of errors) {
         expect(error).toBeInstanceOf(Error);
-        expect(error).toBeInstanceOf(VerifyAIError);
+        expect(error).toBeInstanceOf(ShoveError);
       }
     });
 
     it('error types should have proper stack traces', () => {
-      const error = new VerifyAIError('Test error');
+      const error = new ShoveError('Test error');
       expect(error.stack).toBeDefined();
-      expect(error.stack).toContain('VerifyAIError');
+      expect(error.stack).toContain('ShoveError');
     });
   });
 });

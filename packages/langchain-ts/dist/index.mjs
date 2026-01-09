@@ -33,8 +33,8 @@ var VerificationRejectedError = class extends VerificationError {
 };
 
 // src/callback.ts
-var VerifyAICallbackHandler = class extends BaseCallbackHandler {
-  name = "VerifyAICallbackHandler";
+var ShoveCallbackHandler = class extends BaseCallbackHandler {
+  name = "ShoveCallbackHandler";
   client;
   methods;
   minConfidence;
@@ -131,8 +131,8 @@ var VerifyAICallbackHandler = class extends BaseCallbackHandler {
   }
 };
 export {
+  ShoveCallbackHandler,
   VerificationError,
-  VerificationRejectedError,
-  VerifyAICallbackHandler
+  VerificationRejectedError
 };
 //# sourceMappingURL=index.mjs.map

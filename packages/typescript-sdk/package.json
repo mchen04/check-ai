@@ -1,7 +1,7 @@
 {
-  "name": "@verifyai/sdk",
+  "name": "@shove/sdk",
   "version": "0.1.0",
-  "description": "Official TypeScript SDK for VerifyAI - The Stripe for LLM Verification",
+  "description": "Official TypeScript SDK for Shove.ai - AI-powered verification",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -27,24 +27,24 @@
     "docs:watch": "typedoc --watch"
   },
   "keywords": [
-    "verifyai",
+    "shove",
     "llm",
     "verification",
     "hallucination",
     "ai",
     "sdk"
   ],
-  "author": "VerifyAI",
+  "author": "Shove.ai",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/verifyai/verifyai.git",
+    "url": "https://github.com/shove-ai/shove.git",
     "directory": "packages/typescript-sdk"
   },
   "bugs": {
-    "url": "https://github.com/verifyai/verifyai/issues"
+    "url": "https://github.com/shove-ai/shove/issues"
   },
-  "homepage": "https://verifyai.dev/docs/sdk/typescript",
+  "homepage": "https://shove.ai/docs/sdk/typescript",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"

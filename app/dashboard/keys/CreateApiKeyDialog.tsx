@@ -89,7 +89,7 @@ export default function CreateApiKeyDialog() {
             <DialogHeader>
               <DialogTitle>Create API Key</DialogTitle>
               <DialogDescription>
-                Create a new API key to access the VerifyAI API
+                Create a new API key to access the Shove API
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">

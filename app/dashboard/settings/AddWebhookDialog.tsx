@@ -172,7 +172,7 @@ export function AddWebhookDialog({ onSuccess }: AddWebhookDialogProps) {
                   type="url"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://your-app.com/webhooks/verifyai"
+                  placeholder="https://your-app.com/webhooks/shove"
                 />
               </div>
 

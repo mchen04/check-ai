@@ -1,14 +1,14 @@
 /**
- * VerifyAI SDK Errors
- * Custom error classes for the VerifyAI API
+ * Shove SDK Errors
+ * Custom error classes for the Shove API
  */
 
 import type { ApiErrorResponse } from './types';
 
 /**
- * Base error class for all VerifyAI errors
+ * Base error class for all Shove errors
  */
-export class VerifyAIError extends Error {
+export class ShoveError extends Error {
   /** Error code for programmatic handling */
   readonly code: string;
   /** HTTP status code if applicable */
@@ -28,7 +28,7 @@ export class VerifyAIError extends Error {
     }
   ) {
     super(message);
-    this.name = 'VerifyAIError';
+    this.name = 'ShoveError';
     this.code = options?.code ?? 'UNKNOWN_ERROR';
     this.status = options?.status;
     this.requestId = options?.requestId;
@@ -36,7 +36,7 @@ export class VerifyAIError extends Error {
 
     // Maintains proper stack trace for where our error was thrown
     if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, VerifyAIError);
+      Error.captureStackTrace(this, ShoveError);
     }
   }
 
@@ -46,7 +46,7 @@ export class VerifyAIError extends Error {
   static fromResponse(
     response: ApiErrorResponse,
     status: number
-  ): VerifyAIError {
+  ): ShoveError {
     const ErrorClass = getErrorClass(response.code, status);
     return new ErrorClass(response.error, {
       code: response.code,
@@ -61,7 +61,7 @@ export class VerifyAIError extends Error {
  * Authentication error (401)
  * Thrown when API key is missing, invalid, or expired
  */
-export class AuthenticationError extends VerifyAIError {
+export class AuthenticationError extends ShoveError {
   constructor(
     message: string,
     options?: {
@@ -80,7 +80,7 @@ export class AuthenticationError extends VerifyAIError {
  * Authorization error (403)
  * Thrown when API key lacks permission for the requested operation
  */
-export class AuthorizationError extends VerifyAIError {
+export class AuthorizationError extends ShoveError {
   constructor(
     message: string,
     options?: {
@@ -99,7 +99,7 @@ export class AuthorizationError extends VerifyAIError {
  * Validation error (400)
  * Thrown when request parameters are invalid
  */
-export class ValidationError extends VerifyAIError {
+export class ValidationError extends ShoveError {
   constructor(
     message: string,
     options?: {
@@ -118,7 +118,7 @@ export class ValidationError extends VerifyAIError {
  * Not found error (404)
  * Thrown when requested resource doesn't exist
  */
-export class NotFoundError extends VerifyAIError {
+export class NotFoundError extends ShoveError {
   constructor(
     message: string,
     options?: {
@@ -137,7 +137,7 @@ export class NotFoundError extends VerifyAIError {
  * Rate limit error (429)
  * Thrown when rate limit is exceeded
  */
-export class RateLimitError extends VerifyAIError {
+export class RateLimitError extends ShoveError {
   /** Seconds until rate limit resets */
   readonly retryAfter?: number;
 
@@ -161,7 +161,7 @@ export class RateLimitError extends VerifyAIError {
  * Quota exceeded error (402)
  * Thrown when monthly verification quota is exceeded
  */
-export class QuotaExceededError extends VerifyAIError {
+export class QuotaExceededError extends ShoveError {
   constructor(
     message: string,
     options?: {
@@ -180,7 +180,7 @@ export class QuotaExceededError extends VerifyAIError {
  * Timeout error
  * Thrown when request or polling times out
  */
-export class TimeoutError extends VerifyAIError {
+export class TimeoutError extends ShoveError {
   constructor(
     message: string,
     options?: {
@@ -199,7 +199,7 @@ export class TimeoutError extends VerifyAIError {
  * Server error (5xx)
  * Thrown when the API experiences an internal error
  */
-export class ServerError extends VerifyAIError {
+export class ServerError extends ShoveError {
   constructor(
     message: string,
     options?: {
@@ -220,7 +220,7 @@ export class ServerError extends VerifyAIError {
 function getErrorClass(
   code?: string,
   status?: number
-): typeof VerifyAIError {
+): typeof ShoveError {
   // Check by code first
   switch (code) {
     case 'AUTHENTICATION_ERROR':
@@ -259,6 +259,6 @@ function getErrorClass(
     case 504:
       return ServerError;
     default:
-      return VerifyAIError;
+      return ShoveError;
   }
 }

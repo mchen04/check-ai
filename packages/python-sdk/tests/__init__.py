@@ -1,1 +1,1 @@
-"""Tests for the VerifyAI Python SDK."""
+"""Tests for the Shove Python SDK."""

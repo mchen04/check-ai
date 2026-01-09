@@ -405,14 +405,14 @@ export default async function Dashboard() {
           <CardHeader>
             <CardTitle>Getting Started</CardTitle>
             <CardDescription className="mt-1">
-              Integrate VerifyAI into your application
+              Integrate Shove into your application
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="rounded-lg bg-muted p-4">
               <p className="mb-3 text-sm font-medium">Quick API Example</p>
               <pre className="overflow-x-auto rounded bg-background p-3 font-mono text-xs">
-{`curl -X POST https://api.verifyai.dev/v1/verify \\
+{`curl -X POST https://api.shove.ai/v1/verify \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{

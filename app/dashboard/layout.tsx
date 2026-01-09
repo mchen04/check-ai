@@ -6,8 +6,8 @@ import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
-  title: 'Dashboard | VerifyAI',
-  description: 'VerifyAI Dashboard - Manage your verifications, API keys, and usage',
+  title: 'Dashboard | Shove',
+  description: 'Shove Dashboard - Manage your verifications, API keys, and usage',
 };
 
 export default async function DashboardLayout({

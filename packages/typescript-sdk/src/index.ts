@@ -1,15 +1,15 @@
 /**
- * VerifyAI SDK
- * Official TypeScript SDK for VerifyAI - The Stripe for LLM Verification
+ * Shove SDK
+ * Official TypeScript SDK for Shove - The Stripe for LLM Verification
  *
  * @packageDocumentation
  *
  * @example
  * ```typescript
- * import { VerifyAI } from '@verifyai/sdk';
+ * import { Shove } from '@shove/sdk';
  *
  * // Initialize client
- * const client = new VerifyAI({ apiKey: 'vfy_...' });
+ * const client = new Shove({ apiKey: 'vfy_...' });
  *
  * // Verify content (3-line integration!)
  * const result = await client.verifyAndWait({
@@ -24,7 +24,7 @@
  */
 
 // Client
-export { VerifyAI, VERSION } from './client';
+export { Shove, VERSION } from './client';
 
 // Types
 export type {
@@ -41,7 +41,7 @@ export type {
   ParadigmResult,
   VerifyResponse,
   // Client options
-  VerifyAIOptions,
+  ShoveOptions,
   WaitOptions,
   RetryConfig,
   // Error types
@@ -62,7 +62,7 @@ export type {
 
 // Errors
 export {
-  VerifyAIError,
+  ShoveError,
   AuthenticationError,
   AuthorizationError,
   ValidationError,

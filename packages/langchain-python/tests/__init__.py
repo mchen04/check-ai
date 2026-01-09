@@ -1,1 +1,1 @@
-"""Tests for the VerifyAI LangChain Python integration."""
+"""Tests for the Shove LangChain Python integration."""

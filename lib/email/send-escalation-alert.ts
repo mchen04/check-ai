@@ -40,7 +40,7 @@ export async function sendEscalationAlert({
     for (const member of members) {
       const result = await sendEmail(
         {
-          from: 'VerifyAI <alerts@verifyai.dev>',
+          from: 'Shove <alerts@shove.ai>',
           to: member.userEmail,
           subject: `[${getPriorityLabel(escalation.priority)}] Verification needs review - ${organizationName}`,
           react: EscalationAlertEmail({

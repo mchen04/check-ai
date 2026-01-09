@@ -1,6 +1,6 @@
 /**
- * VerifyAI SDK Types
- * TypeScript types for the VerifyAI API
+ * Shove SDK Types
+ * TypeScript types for the Shove API
  */
 
 // =============================================================================
@@ -182,12 +182,12 @@ export interface RetryConfig {
 }
 
 /**
- * Options for initializing the VerifyAI client
+ * Options for initializing the Shove client
  */
-export interface VerifyAIOptions {
-  /** Your VerifyAI API key (starts with vfy_) */
+export interface ShoveOptions {
+  /** Your Shove API key (starts with vfy_) */
   apiKey: string;
-  /** Base URL for the API (defaults to https://api.verifyai.dev) */
+  /** Base URL for the API (defaults to https://api.shove.ai) */
   baseUrl?: string;
   /** Default timeout in milliseconds */
   timeout?: number;

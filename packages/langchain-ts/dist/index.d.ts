@@ -1,9 +1,9 @@
 import { BaseCallbackHandler } from '@langchain/core/callbacks/base';
 import { LLMResult } from '@langchain/core/outputs';
-import { VerifyAI, MethodsConfig } from '@verifyai/sdk';
+import { Shove, MethodsConfig } from '@shove/sdk';
 
 /**
- * VerifyAI LangChain Callback Handler
+ * Shove LangChain Callback Handler
  * Auto-verify LLM outputs via LangChain callbacks
  */
 
@@ -25,9 +25,9 @@ interface VerificationResult {
     cached: boolean;
 }
 /**
- * Options for VerifyAICallbackHandler
+ * Options for ShoveCallbackHandler
  */
-interface VerifyAICallbackHandlerOptions {
+interface ShoveCallbackHandlerOptions {
     /** Verification methods to use (default: { reasoning: 1.0 }) */
     methods?: MethodsConfig;
     /** Minimum confidence threshold for acceptance */
@@ -49,11 +49,11 @@ interface VerifyAICallbackHandlerOptions {
  * @example
  * ```typescript
  * import { ChatOpenAI } from "@langchain/openai";
- * import { VerifyAI } from "@verifyai/sdk";
- * import { VerifyAICallbackHandler } from "@verifyai/langchain";
+ * import { Shove } from "@shove/sdk";
+ * import { ShoveCallbackHandler } from "@shove/langchain";
  *
- * const client = new VerifyAI({ apiKey: "vfy_..." });
- * const handler = new VerifyAICallbackHandler(client, {
+ * const client = new Shove({ apiKey: "vfy_..." });
+ * const handler = new ShoveCallbackHandler(client, {
  *   methods: { reasoning: 1.0, tool: 0.5 },
  *   raiseOnReject: true,
  * });
@@ -62,7 +62,7 @@ interface VerifyAICallbackHandlerOptions {
  * const response = await llm.invoke("What is the capital of France?");
  * ```
  */
-declare class VerifyAICallbackHandler extends BaseCallbackHandler {
+declare class ShoveCallbackHandler extends BaseCallbackHandler {
     name: string;
     private client;
     private methods;
@@ -72,7 +72,7 @@ declare class VerifyAICallbackHandler extends BaseCallbackHandler {
     private skipEmpty;
     private pollInterval;
     private timeout;
-    constructor(client: VerifyAI, options?: VerifyAICallbackHandlerOptions);
+    constructor(client: Shove, options?: ShoveCallbackHandlerOptions);
     /**
      * Handle LLM completion - verify the output
      */
@@ -84,7 +84,7 @@ declare class VerifyAICallbackHandler extends BaseCallbackHandler {
 }
 
 /**
- * VerifyAI LangChain Errors
+ * Shove LangChain Errors
  * Custom error classes for verification failures
  */
 /**
@@ -117,4 +117,4 @@ declare class VerificationRejectedError extends VerificationError {
     });
 }
 
-export { VerificationError, VerificationRejectedError, type VerificationResult, VerifyAICallbackHandler, type VerifyAICallbackHandlerOptions };
+export { ShoveCallbackHandler, type ShoveCallbackHandlerOptions, VerificationError, VerificationRejectedError, type VerificationResult };

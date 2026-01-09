@@ -55,9 +55,9 @@ Retrieve a paginated list of your batch jobs.
     {
       language: 'javascript',
       label: 'Node.js',
-      code: `import { VerifyAI } from '@verifyai/sdk';
+      code: `import { Shove } from '@shove/sdk';
 
-const client = new VerifyAI({ apiKey: 'vfy_your_api_key' });
+const client = new Shove({ apiKey: 'vfy_your_api_key' });
 
 const { data, pagination } = await client.listBatches({
   limit: 10,

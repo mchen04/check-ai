@@ -123,7 +123,7 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Run type check
-        run: mypy verifyai || echo "Type check skipped"
+        run: mypy shove || echo "Type check skipped"
 
       - name: Run tests
         run: pytest -v
@@ -167,7 +167,7 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Run type check
-        run: mypy verifyai_langchain || echo "Type check skipped"
+        run: mypy shove_langchain || echo "Type check skipped"
 
       - name: Run tests
         run: pytest -v
@@ -211,7 +211,7 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Run type check
-        run: mypy verifyai_llamaindex || echo "Type check skipped"
+        run: mypy shove_llamaindex || echo "Type check skipped"
 
       - name: Run tests
         run: pytest -v

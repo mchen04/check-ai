@@ -1,5 +1,5 @@
 """
-VerifyAI LangChain Exceptions
+Shove LangChain Exceptions
 Custom exceptions for verification failures
 """
 

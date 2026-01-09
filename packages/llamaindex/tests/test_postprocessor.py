@@ -1,17 +1,17 @@
-"""Tests for VerifyAI LlamaIndex postprocessor."""
+"""Tests for Shove LlamaIndex postprocessor."""
 
 import pytest
 from unittest.mock import MagicMock, AsyncMock
 
-from verifyai_llamaindex import VerifyAIPostprocessor, AsyncVerifyAIPostprocessor
+from shove_llamaindex import ShovePostprocessor, AsyncShovePostprocessor
 
 
-class TestVerifyAIPostprocessorInit:
+class TestShovePostprocessorInit:
     """Test postprocessor initialization."""
 
     def test_init_with_defaults(self, mock_sync_client):
         """Should initialize with default options."""
-        postprocessor = VerifyAIPostprocessor(mock_sync_client)
+        postprocessor = ShovePostprocessor(mock_sync_client)
 
         assert postprocessor.client == mock_sync_client
         assert postprocessor.methods == {"reasoning": 1.0}
@@ -23,7 +23,7 @@ class TestVerifyAIPostprocessorInit:
 
     def test_init_with_custom_options(self, mock_sync_client):
         """Should accept custom options."""
-        postprocessor = VerifyAIPostprocessor(
+        postprocessor = ShovePostprocessor(
             mock_sync_client,
             methods={"reasoning": 1.0, "tool": 0.5},
             min_confidence=0.9,
@@ -42,8 +42,8 @@ class TestVerifyAIPostprocessorInit:
 
     def test_class_name(self, mock_sync_client):
         """Should return correct class name."""
-        postprocessor = VerifyAIPostprocessor(mock_sync_client)
-        assert postprocessor.class_name() == "VerifyAIPostprocessor"
+        postprocessor = ShovePostprocessor(mock_sync_client)
+        assert postprocessor.class_name() == "ShovePostprocessor"
 
 
 class TestPostprocessNodes:
@@ -61,7 +61,7 @@ class TestPostprocessNodes:
             verification_id="ver_123",
         )
 
-        postprocessor = VerifyAIPostprocessor(mock_sync_client)
+        postprocessor = ShovePostprocessor(mock_sync_client)
         nodes = [mock_node("Paris is the capital of France.")]
 
         result = postprocessor._postprocess_nodes(nodes)
@@ -84,7 +84,7 @@ class TestPostprocessNodes:
         """Should include query in verification context."""
         mock_sync_client.verify_and_wait.return_value = mock_verify_response()
 
-        postprocessor = VerifyAIPostprocessor(
+        postprocessor = ShovePostprocessor(
             mock_sync_client, include_query_context=True
         )
         nodes = [mock_node("Test content")]
@@ -101,7 +101,7 @@ class TestPostprocessNodes:
         """Should not include query when include_query_context is False."""
         mock_sync_client.verify_and_wait.return_value = mock_verify_response()
 
-        postprocessor = VerifyAIPostprocessor(
+        postprocessor = ShovePostprocessor(
             mock_sync_client, include_query_context=False
         )
         nodes = [mock_node("Test content")]
@@ -119,7 +119,7 @@ class TestPostprocessNodes:
         """Should include node metadata in verification context."""
         mock_sync_client.verify_and_wait.return_value = mock_verify_response()
 
-        postprocessor = VerifyAIPostprocessor(mock_sync_client)
+        postprocessor = ShovePostprocessor(mock_sync_client)
         nodes = [mock_node("Test content", metadata={"source": "document.pdf"})]
 
         postprocessor._postprocess_nodes(nodes)
@@ -129,7 +129,7 @@ class TestPostprocessNodes:
 
     def test_skips_empty_nodes(self, mock_sync_client, mock_node):
         """Should skip verification for empty nodes."""
-        postprocessor = VerifyAIPostprocessor(mock_sync_client)
+        postprocessor = ShovePostprocessor(mock_sync_client)
         nodes = [mock_node("")]
 
         result = postprocessor._postprocess_nodes(nodes)
@@ -139,7 +139,7 @@ class TestPostprocessNodes:
 
     def test_skips_whitespace_only_nodes(self, mock_sync_client, mock_node):
         """Should skip verification for whitespace-only nodes."""
-        postprocessor = VerifyAIPostprocessor(mock_sync_client)
+        postprocessor = ShovePostprocessor(mock_sync_client)
         nodes = [mock_node("   \n\t  ")]
 
         result = postprocessor._postprocess_nodes(nodes)
@@ -155,7 +155,7 @@ class TestPostprocessNodes:
             confidence=0.95
         )
 
-        postprocessor = VerifyAIPostprocessor(mock_sync_client)
+        postprocessor = ShovePostprocessor(mock_sync_client)
         nodes = [
             mock_node("First content"),
             mock_node("Second content"),
@@ -179,7 +179,7 @@ class TestFilteringBehavior:
             confidence=0.5, decision="escalate"
         )
 
-        postprocessor = VerifyAIPostprocessor(
+        postprocessor = ShovePostprocessor(
             mock_sync_client, min_confidence=0.7, filter_unverified=True
         )
         nodes = [mock_node("Low confidence content")]
@@ -196,7 +196,7 @@ class TestFilteringBehavior:
             confidence=0.95, decision="accept"
         )
 
-        postprocessor = VerifyAIPostprocessor(
+        postprocessor = ShovePostprocessor(
             mock_sync_client, min_confidence=0.7, filter_unverified=True
         )
         nodes = [mock_node("High confidence content")]
@@ -213,7 +213,7 @@ class TestFilteringBehavior:
             confidence=0.1, decision="reject"
         )
 
-        postprocessor = VerifyAIPostprocessor(
+        postprocessor = ShovePostprocessor(
             mock_sync_client, min_confidence=0.7, filter_unverified=False
         )
         nodes = [mock_node("Low confidence content")]
@@ -254,7 +254,7 @@ class TestFilteringBehavior:
         ]
         mock_sync_client.verify_and_wait.side_effect = responses
 
-        postprocessor = VerifyAIPostprocessor(
+        postprocessor = ShovePostprocessor(
             mock_sync_client, min_confidence=0.7, filter_unverified=True
         )
         nodes = [
@@ -275,7 +275,7 @@ class TestFilteringBehavior:
             confidence=None
         )
 
-        postprocessor = VerifyAIPostprocessor(
+        postprocessor = ShovePostprocessor(
             mock_sync_client, min_confidence=0.7, filter_unverified=True
         )
         nodes = [mock_node("Content with None confidence")]
@@ -292,7 +292,7 @@ class TestErrorHandling:
         """Should catch errors and add error metadata."""
         mock_sync_client.verify_and_wait.side_effect = Exception("API Error")
 
-        postprocessor = VerifyAIPostprocessor(mock_sync_client)
+        postprocessor = ShovePostprocessor(mock_sync_client)
         nodes = [mock_node("Test content")]
 
         result = postprocessor._postprocess_nodes(nodes)
@@ -305,7 +305,7 @@ class TestErrorHandling:
         """Should keep nodes even when verification fails."""
         mock_sync_client.verify_and_wait.side_effect = Exception("Network error")
 
-        postprocessor = VerifyAIPostprocessor(
+        postprocessor = ShovePostprocessor(
             mock_sync_client, filter_unverified=True
         )
         nodes = [mock_node("Test content")]
@@ -325,7 +325,7 @@ class TestCustomPollingOptions:
         """Should pass custom polling options to verify_and_wait."""
         mock_sync_client.verify_and_wait.return_value = mock_verify_response()
 
-        postprocessor = VerifyAIPostprocessor(
+        postprocessor = ShovePostprocessor(
             mock_sync_client,
             poll_interval=5.0,
             timeout=300.0,
@@ -339,12 +339,12 @@ class TestCustomPollingOptions:
         assert call_kwargs["timeout"] == 300.0
 
 
-class TestAsyncVerifyAIPostprocessor:
+class TestAsyncShovePostprocessor:
     """Test async postprocessor."""
 
     def test_init_with_defaults(self, mock_async_client):
         """Should initialize with default options."""
-        postprocessor = AsyncVerifyAIPostprocessor(mock_async_client)
+        postprocessor = AsyncShovePostprocessor(mock_async_client)
 
         assert postprocessor.client == mock_async_client
         assert postprocessor.methods == {"reasoning": 1.0}
@@ -353,14 +353,14 @@ class TestAsyncVerifyAIPostprocessor:
 
     def test_class_name(self, mock_async_client):
         """Should return correct class name."""
-        postprocessor = AsyncVerifyAIPostprocessor(mock_async_client)
-        assert postprocessor.class_name() == "AsyncVerifyAIPostprocessor"
+        postprocessor = AsyncShovePostprocessor(mock_async_client)
+        assert postprocessor.class_name() == "AsyncShovePostprocessor"
 
     def test_sync_postprocess_returns_nodes_unverified(
         self, mock_async_client, mock_node
     ):
         """Sync method should return nodes without verification."""
-        postprocessor = AsyncVerifyAIPostprocessor(mock_async_client)
+        postprocessor = AsyncShovePostprocessor(mock_async_client)
         nodes = [mock_node("Test content")]
 
         result = postprocessor._postprocess_nodes(nodes)
@@ -380,7 +380,7 @@ class TestAsyncVerifyAIPostprocessor:
             confidence=0.95,
         )
 
-        postprocessor = AsyncVerifyAIPostprocessor(mock_async_client)
+        postprocessor = AsyncShovePostprocessor(mock_async_client)
         nodes = [mock_node("Async test content")]
 
         result = await postprocessor.apostprocess_nodes(nodes)
@@ -398,7 +398,7 @@ class TestAsyncVerifyAIPostprocessor:
             confidence=0.3
         )
 
-        postprocessor = AsyncVerifyAIPostprocessor(
+        postprocessor = AsyncShovePostprocessor(
             mock_async_client, min_confidence=0.7, filter_unverified=True
         )
         nodes = [mock_node("Low confidence content")]
@@ -414,7 +414,7 @@ class TestAsyncVerifyAIPostprocessor:
         """Should include query in async verification context."""
         mock_async_client.verify_and_wait.return_value = mock_verify_response()
 
-        postprocessor = AsyncVerifyAIPostprocessor(
+        postprocessor = AsyncShovePostprocessor(
             mock_async_client, include_query_context=True
         )
         nodes = [mock_node("Test content")]
@@ -430,7 +430,7 @@ class TestAsyncVerifyAIPostprocessor:
         """Should handle errors in async verification."""
         mock_async_client.verify_and_wait.side_effect = Exception("Async API Error")
 
-        postprocessor = AsyncVerifyAIPostprocessor(mock_async_client)
+        postprocessor = AsyncShovePostprocessor(mock_async_client)
         nodes = [mock_node("Test content")]
 
         result = await postprocessor.apostprocess_nodes(nodes)
@@ -442,7 +442,7 @@ class TestAsyncVerifyAIPostprocessor:
     @pytest.mark.asyncio
     async def test_async_skips_empty_nodes(self, mock_async_client, mock_node):
         """Should skip empty nodes asynchronously."""
-        postprocessor = AsyncVerifyAIPostprocessor(mock_async_client)
+        postprocessor = AsyncShovePostprocessor(mock_async_client)
         nodes = [mock_node("")]
 
         result = await postprocessor.apostprocess_nodes(nodes)

@@ -1,5 +1,5 @@
 /**
- * VerifyAI LangChain Errors
+ * Shove LangChain Errors
  * Custom error classes for verification failures
  */
 

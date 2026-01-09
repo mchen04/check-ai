@@ -1,13 +1,13 @@
 """
-VerifyAI SDK Errors
-Custom exception classes for the VerifyAI API
+Shove SDK Errors
+Custom exception classes for the Shove API
 """
 
 from typing import Any, Dict, Optional, Type
 
 
-class VerifyAIError(Exception):
-    """Base error class for all VerifyAI errors."""
+class ShoveError(Exception):
+    """Base error class for all Shove errors."""
 
     def __init__(
         self,
@@ -43,7 +43,7 @@ class VerifyAIError(Exception):
         )
 
 
-class AuthenticationError(VerifyAIError):
+class AuthenticationError(ShoveError):
     """
     Authentication error (401).
     Thrown when API key is missing, invalid, or expired.
@@ -67,7 +67,7 @@ class AuthenticationError(VerifyAIError):
         )
 
 
-class AuthorizationError(VerifyAIError):
+class AuthorizationError(ShoveError):
     """
     Authorization error (403).
     Thrown when API key lacks permission for the requested operation.
@@ -91,7 +91,7 @@ class AuthorizationError(VerifyAIError):
         )
 
 
-class ValidationError(VerifyAIError):
+class ValidationError(ShoveError):
     """
     Validation error (400).
     Thrown when request parameters are invalid.
@@ -115,7 +115,7 @@ class ValidationError(VerifyAIError):
         )
 
 
-class NotFoundError(VerifyAIError):
+class NotFoundError(ShoveError):
     """
     Not found error (404).
     Thrown when requested resource doesn't exist.
@@ -139,7 +139,7 @@ class NotFoundError(VerifyAIError):
         )
 
 
-class RateLimitError(VerifyAIError):
+class RateLimitError(ShoveError):
     """
     Rate limit error (429).
     Thrown when rate limit is exceeded.
@@ -165,7 +165,7 @@ class RateLimitError(VerifyAIError):
         self.retry_after = retry_after
 
 
-class QuotaExceededError(VerifyAIError):
+class QuotaExceededError(ShoveError):
     """
     Quota exceeded error (402).
     Thrown when monthly verification quota is exceeded.
@@ -189,7 +189,7 @@ class QuotaExceededError(VerifyAIError):
         )
 
 
-class TimeoutError(VerifyAIError):
+class TimeoutError(ShoveError):
     """
     Timeout error.
     Thrown when request or polling times out.
@@ -213,7 +213,7 @@ class TimeoutError(VerifyAIError):
         )
 
 
-class ServerError(VerifyAIError):
+class ServerError(ShoveError):
     """
     Server error (5xx).
     Thrown when the API experiences an internal error.
@@ -237,11 +237,11 @@ class ServerError(VerifyAIError):
         )
 
 
-def get_error_class(code: Optional[str], status: Optional[int]) -> Type[VerifyAIError]:
+def get_error_class(code: Optional[str], status: Optional[int]) -> Type[ShoveError]:
     """Get the appropriate error class based on error code or status."""
 
     # Check by code first
-    code_mapping: Dict[str, Type[VerifyAIError]] = {
+    code_mapping: Dict[str, Type[ShoveError]] = {
         "AUTHENTICATION_ERROR": AuthenticationError,
         "AUTHORIZATION_ERROR": AuthorizationError,
         "VALIDATION_ERROR": ValidationError,
@@ -255,7 +255,7 @@ def get_error_class(code: Optional[str], status: Optional[int]) -> Type[VerifyAI
         return code_mapping[code]
 
     # Fall back to status code
-    status_mapping: Dict[int, Type[VerifyAIError]] = {
+    status_mapping: Dict[int, Type[ShoveError]] = {
         400: ValidationError,
         401: AuthenticationError,
         402: QuotaExceededError,
@@ -271,4 +271,4 @@ def get_error_class(code: Optional[str], status: Optional[int]) -> Type[VerifyAI
     if status and status in status_mapping:
         return status_mapping[status]
 
-    return VerifyAIError
+    return ShoveError

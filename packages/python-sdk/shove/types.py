@@ -1,6 +1,6 @@
 """
-VerifyAI SDK Types
-Pydantic models for the VerifyAI API
+Shove SDK Types
+Pydantic models for the Shove API
 """
 
 from typing import Any, Dict, List, Literal, Optional

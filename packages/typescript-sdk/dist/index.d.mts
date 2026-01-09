@@ -1,6 +1,6 @@
 /**
- * VerifyAI SDK Types
- * TypeScript types for the VerifyAI API
+ * Shove SDK Types
+ * TypeScript types for the Shove API
  */
 /**
  * Available verification paradigms/methods
@@ -143,12 +143,12 @@ interface RetryConfig {
     retryableStatuses?: number[];
 }
 /**
- * Options for initializing the VerifyAI client
+ * Options for initializing the Shove client
  */
-interface VerifyAIOptions {
-    /** Your VerifyAI API key (starts with vfy_) */
+interface ShoveOptions {
+    /** Your Shove API key (starts with vfy_) */
     apiKey: string;
-    /** Base URL for the API (defaults to https://api.verifyai.dev) */
+    /** Base URL for the API (defaults to https://api.shove.ai) */
     baseUrl?: string;
     /** Default timeout in milliseconds */
     timeout?: number;
@@ -357,20 +357,20 @@ interface BatchWaitOptions {
 }
 
 /**
- * VerifyAI Client
- * Main client class for interacting with the VerifyAI API
+ * Shove Client
+ * Main client class for interacting with the Shove API
  */
 
 /** SDK Version - keep in sync with package.json */
 declare const VERSION = "0.1.0";
 /**
- * VerifyAI Client
+ * Shove Client
  *
  * @example
  * ```typescript
- * import { VerifyAI } from '@verifyai/sdk';
+ * import { Shove } from '@shove/sdk';
  *
- * const client = new VerifyAI({ apiKey: 'vfy_...' });
+ * const client = new Shove({ apiKey: 'vfy_...' });
  *
  * // Simple verification
  * const result = await client.verifyAndWait({
@@ -382,13 +382,13 @@ declare const VERSION = "0.1.0";
  * console.log(result.confidence); // 0.95
  * ```
  */
-declare class VerifyAI {
+declare class Shove {
     private readonly apiKey;
     private readonly baseUrl;
     private readonly timeout;
     private readonly fetchFn;
     private readonly retryConfig;
-    constructor(options: VerifyAIOptions);
+    constructor(options: ShoveOptions);
     /**
      * Start a verification request
      *
@@ -616,14 +616,14 @@ declare class VerifyAI {
 }
 
 /**
- * VerifyAI SDK Errors
- * Custom error classes for the VerifyAI API
+ * Shove SDK Errors
+ * Custom error classes for the Shove API
  */
 
 /**
- * Base error class for all VerifyAI errors
+ * Base error class for all Shove errors
  */
-declare class VerifyAIError extends Error {
+declare class ShoveError extends Error {
     /** Error code for programmatic handling */
     readonly code: string;
     /** HTTP status code if applicable */
@@ -641,13 +641,13 @@ declare class VerifyAIError extends Error {
     /**
      * Create error from API response
      */
-    static fromResponse(response: ApiErrorResponse, status: number): VerifyAIError;
+    static fromResponse(response: ApiErrorResponse, status: number): ShoveError;
 }
 /**
  * Authentication error (401)
  * Thrown when API key is missing, invalid, or expired
  */
-declare class AuthenticationError extends VerifyAIError {
+declare class AuthenticationError extends ShoveError {
     constructor(message: string, options?: {
         code?: string;
         status?: number;
@@ -659,7 +659,7 @@ declare class AuthenticationError extends VerifyAIError {
  * Authorization error (403)
  * Thrown when API key lacks permission for the requested operation
  */
-declare class AuthorizationError extends VerifyAIError {
+declare class AuthorizationError extends ShoveError {
     constructor(message: string, options?: {
         code?: string;
         status?: number;
@@ -671,7 +671,7 @@ declare class AuthorizationError extends VerifyAIError {
  * Validation error (400)
  * Thrown when request parameters are invalid
  */
-declare class ValidationError extends VerifyAIError {
+declare class ValidationError extends ShoveError {
     constructor(message: string, options?: {
         code?: string;
         status?: number;
@@ -683,7 +683,7 @@ declare class ValidationError extends VerifyAIError {
  * Not found error (404)
  * Thrown when requested resource doesn't exist
  */
-declare class NotFoundError extends VerifyAIError {
+declare class NotFoundError extends ShoveError {
     constructor(message: string, options?: {
         code?: string;
         status?: number;
@@ -695,7 +695,7 @@ declare class NotFoundError extends VerifyAIError {
  * Rate limit error (429)
  * Thrown when rate limit is exceeded
  */
-declare class RateLimitError extends VerifyAIError {
+declare class RateLimitError extends ShoveError {
     /** Seconds until rate limit resets */
     readonly retryAfter?: number;
     constructor(message: string, options?: {
@@ -710,7 +710,7 @@ declare class RateLimitError extends VerifyAIError {
  * Quota exceeded error (402)
  * Thrown when monthly verification quota is exceeded
  */
-declare class QuotaExceededError extends VerifyAIError {
+declare class QuotaExceededError extends ShoveError {
     constructor(message: string, options?: {
         code?: string;
         status?: number;
@@ -722,7 +722,7 @@ declare class QuotaExceededError extends VerifyAIError {
  * Timeout error
  * Thrown when request or polling times out
  */
-declare class TimeoutError extends VerifyAIError {
+declare class TimeoutError extends ShoveError {
     constructor(message: string, options?: {
         code?: string;
         status?: number;
@@ -734,7 +734,7 @@ declare class TimeoutError extends VerifyAIError {
  * Server error (5xx)
  * Thrown when the API experiences an internal error
  */
-declare class ServerError extends VerifyAIError {
+declare class ServerError extends ShoveError {
     constructor(message: string, options?: {
         code?: string;
         status?: number;
@@ -743,4 +743,4 @@ declare class ServerError extends VerifyAIError {
     });
 }
 
-export { type ApiErrorResponse, AuthenticationError, AuthorizationError, type BatchItem, type BatchItemResult, type BatchJob, type BatchResultsResponse, type BatchStatus, type BatchWaitOptions, type CreateBatchRequest, type CreateBatchResponse, type Decision, type FileUploadResponse, type ListBatchesOptions, type ListBatchesResponse, type MethodsConfig, NotFoundError, type ParadigmResult, type ParadigmType, QuotaExceededError, RateLimitError, type RetryConfig, ServerError, TimeoutError, VERSION, ValidationError, type Verdict, type VerificationStatus, VerifyAI, VerifyAIError, type VerifyAIOptions, type VerifyOptions, type VerifyRequest, type VerifyResponse, type WaitOptions };
+export { type ApiErrorResponse, AuthenticationError, AuthorizationError, type BatchItem, type BatchItemResult, type BatchJob, type BatchResultsResponse, type BatchStatus, type BatchWaitOptions, type CreateBatchRequest, type CreateBatchResponse, type Decision, type FileUploadResponse, type ListBatchesOptions, type ListBatchesResponse, type MethodsConfig, NotFoundError, type ParadigmResult, type ParadigmType, QuotaExceededError, RateLimitError, type RetryConfig, ServerError, Shove, ShoveError, type ShoveOptions, TimeoutError, VERSION, ValidationError, type Verdict, type VerificationStatus, type VerifyOptions, type VerifyRequest, type VerifyResponse, type WaitOptions };

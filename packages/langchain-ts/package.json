@@ -1,7 +1,7 @@
 {
-  "name": "@verifyai/langchain",
+  "name": "@shove/langchain",
   "version": "0.1.0",
-  "description": "LangChain integration for VerifyAI - Auto-verify LLM outputs",
+  "description": "LangChain integration for Shove.ai - Auto-verify LLM outputs",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -25,24 +25,24 @@
     "test:coverage": "vitest run --coverage"
   },
   "keywords": [
-    "verifyai",
+    "shove",
     "langchain",
     "llm",
     "verification",
     "hallucination",
     "callback"
   ],
-  "author": "VerifyAI",
+  "author": "Shove.ai",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/verifyai/verifyai.git",
+    "url": "https://github.com/shove-ai/shove.git",
     "directory": "packages/langchain-ts"
   },
   "bugs": {
-    "url": "https://github.com/verifyai/verifyai/issues"
+    "url": "https://github.com/shove-ai/shove/issues"
   },
-  "homepage": "https://verifyai.dev/docs/sdk/langchain-typescript",
+  "homepage": "https://shove.ai/docs/sdk/langchain-typescript",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -51,7 +51,7 @@
     "@langchain/core": ">=0.1.0 <1.0.0"
   },
   "dependencies": {
-    "@verifyai/sdk": "^0.1.0"
+    "@shove/sdk": "^0.1.0"
   },
   "devDependencies": {
     "@langchain/core": "^0.3.0",

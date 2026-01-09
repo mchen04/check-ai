@@ -1,22 +1,22 @@
-# verifyai
+# shove
 
-Official Python SDK for VerifyAI - The Stripe for LLM Verification.
+Official Python SDK for Shove - The Stripe for LLM Verification.
 
 Verify AI-generated content to prevent costly hallucinations with 7 verification methods.
 
 ## Installation
 
 ```bash
-pip install verifyai
+pip install shove
 ```
 
 ## Quick Start
 
 ```python
-from verifyai import VerifyAI
+from shove import Shove
 
 # Initialize client
-client = VerifyAI(api_key="vfy_...")
+client = Shove(api_key="vfy_...")
 
 # Verify content (3 lines!)
 result = client.verify_and_wait(
@@ -79,10 +79,10 @@ result = client.verify_and_wait(
 
 ```python
 import asyncio
-from verifyai import AsyncVerifyAI
+from shove import AsyncShove
 
 async def main():
-    client = AsyncVerifyAI(api_key="vfy_...")
+    client = AsyncShove(api_key="vfy_...")
 
     result = await client.verify_and_wait(
         content="The Earth orbits the Sun.",
@@ -98,14 +98,14 @@ asyncio.run(main())
 ### Context Manager
 
 ```python
-with VerifyAI(api_key="vfy_...") as client:
+with Shove(api_key="vfy_...") as client:
     result = client.verify_and_wait(
         content="Some claim...",
         methods={"reasoning": 1.0}
     )
 
 # Async
-async with AsyncVerifyAI(api_key="vfy_...") as client:
+async with AsyncShove(api_key="vfy_...") as client:
     result = await client.verify_and_wait(...)
 ```
 
@@ -143,8 +143,8 @@ class VerifyResponse:
 ## Error Handling
 
 ```python
-from verifyai import (
-    VerifyAI,
+from shove import (
+    Shove,
     AuthenticationError,
     RateLimitError,
     QuotaExceededError,
@@ -166,9 +166,9 @@ except TimeoutError:
 ## Configuration
 
 ```python
-client = VerifyAI(
+client = Shove(
     api_key="vfy_...",
-    base_url="https://api.verifyai.dev",  # Optional
+    base_url="https://api.shove.ai",  # Optional
     timeout=30.0,                          # Request timeout in seconds
 )
 ```
@@ -178,7 +178,7 @@ client = VerifyAI(
 Full type hint support:
 
 ```python
-from verifyai import (
+from shove import (
     MethodsConfig,
     VerifyRequest,
     VerifyResponse,

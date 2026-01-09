@@ -16,7 +16,7 @@ export async function sendInviteEmail({
 }: SendInviteEmailParams): Promise<{ success: boolean; error?: string }> {
   return sendEmail(
     {
-      from: 'VerifyAI <noreply@verifyai.dev>',
+      from: 'Shove <noreply@shove.ai>',
       to,
       subject: `You've been invited to join ${organizationName}`,
       react: TeamInviteEmail({ inviteUrl, organizationName, role }),

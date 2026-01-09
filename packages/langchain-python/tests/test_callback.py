@@ -1,22 +1,22 @@
-"""Tests for VerifyAI LangChain callback handlers."""
+"""Tests for Shove LangChain callback handlers."""
 
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
 from uuid import uuid4
 
-from verifyai_langchain import (
-    VerifyAICallbackHandler,
-    AsyncVerifyAICallbackHandler,
+from shove_langchain import (
+    ShoveCallbackHandler,
+    AsyncShoveCallbackHandler,
     VerificationResult,
 )
-from verifyai_langchain.exceptions import VerificationRejectedError
+from shove_langchain.exceptions import VerificationRejectedError
 
 
 class TestVerificationResult:
     """Test VerificationResult dataclass."""
 
     def test_from_response(self, mock_verify_response):
-        """Should create result from VerifyAI response."""
+        """Should create result from Shove response."""
         response = mock_verify_response(
             verdict="true",
             confidence=0.95,
@@ -55,12 +55,12 @@ class TestVerificationResult:
         assert result.cached is False
 
 
-class TestVerifyAICallbackHandler:
+class TestShoveCallbackHandler:
     """Test sync callback handler."""
 
     def test_init_with_defaults(self, mock_sync_client):
         """Should initialize with default options."""
-        handler = VerifyAICallbackHandler(mock_sync_client)
+        handler = ShoveCallbackHandler(mock_sync_client)
 
         assert handler.client == mock_sync_client
         assert handler.methods == {"reasoning": 1.0}
@@ -74,7 +74,7 @@ class TestVerifyAICallbackHandler:
     def test_init_with_custom_options(self, mock_sync_client):
         """Should accept custom options."""
         callback = MagicMock()
-        handler = VerifyAICallbackHandler(
+        handler = ShoveCallbackHandler(
             mock_sync_client,
             methods={"reasoning": 1.0, "tool": 0.5},
             min_confidence=0.9,
@@ -109,7 +109,7 @@ class TestOnLLMEnd:
             verification_id="ver_123",
         )
 
-        handler = VerifyAICallbackHandler(mock_sync_client)
+        handler = ShoveCallbackHandler(mock_sync_client)
         result = mock_llm_result(["Paris is the capital of France."])
 
         handler.on_llm_end(result, run_id=run_id)
@@ -132,7 +132,7 @@ class TestOnLLMEnd:
         """Should use custom verification methods."""
         mock_sync_client.verify_and_wait.return_value = mock_verify_response()
 
-        handler = VerifyAICallbackHandler(
+        handler = ShoveCallbackHandler(
             mock_sync_client,
             methods={"reasoning": 1.0, "tool": 0.5, "biprm": 0.3},
         )
@@ -147,7 +147,7 @@ class TestOnLLMEnd:
         self, mock_sync_client, mock_llm_result, run_id
     ):
         """Should skip verification for empty responses."""
-        handler = VerifyAICallbackHandler(mock_sync_client)
+        handler = ShoveCallbackHandler(mock_sync_client)
         result = mock_llm_result([""])
 
         handler.on_llm_end(result, run_id=run_id)
@@ -158,7 +158,7 @@ class TestOnLLMEnd:
         self, mock_sync_client, mock_llm_result, run_id
     ):
         """Should skip verification for whitespace-only responses."""
-        handler = VerifyAICallbackHandler(mock_sync_client)
+        handler = ShoveCallbackHandler(mock_sync_client)
         result = mock_llm_result(["   \n\t  "])
 
         handler.on_llm_end(result, run_id=run_id)
@@ -171,7 +171,7 @@ class TestOnLLMEnd:
         """Should verify empty responses when skip_empty is False."""
         mock_sync_client.verify_and_wait.return_value = mock_verify_response()
 
-        handler = VerifyAICallbackHandler(mock_sync_client, skip_empty=False)
+        handler = ShoveCallbackHandler(mock_sync_client, skip_empty=False)
         result = mock_llm_result(["   "])
 
         handler.on_llm_end(result, run_id=run_id)
@@ -184,7 +184,7 @@ class TestOnLLMEnd:
         """Should verify each generation."""
         mock_sync_client.verify_and_wait.return_value = mock_verify_response()
 
-        handler = VerifyAICallbackHandler(mock_sync_client)
+        handler = ShoveCallbackHandler(mock_sync_client)
 
         # Create result with multiple generations in same list
         from tests.conftest import MockGeneration, MockLLMResult
@@ -208,7 +208,7 @@ class TestOnLLMEnd:
         """Should handle generations with None generation_info."""
         mock_sync_client.verify_and_wait.return_value = mock_verify_response()
 
-        handler = VerifyAICallbackHandler(mock_sync_client)
+        handler = ShoveCallbackHandler(mock_sync_client)
 
         from tests.conftest import MockGeneration, MockLLMResult
 
@@ -239,7 +239,7 @@ class TestOnVerificationCallback:
         )
 
         callback = MagicMock()
-        handler = VerifyAICallbackHandler(mock_sync_client, on_verification=callback)
+        handler = ShoveCallbackHandler(mock_sync_client, on_verification=callback)
         result = mock_llm_result(["Test content"])
 
         handler.on_llm_end(result, run_id=run_id)
@@ -258,7 +258,7 @@ class TestOnVerificationCallback:
         mock_sync_client.verify_and_wait.return_value = mock_verify_response()
 
         callback = MagicMock()
-        handler = VerifyAICallbackHandler(mock_sync_client, on_verification=callback)
+        handler = ShoveCallbackHandler(mock_sync_client, on_verification=callback)
 
         from tests.conftest import MockGeneration, MockLLMResult
 
@@ -290,7 +290,7 @@ class TestRaiseOnReject:
             reasoning="Content is false",
         )
 
-        handler = VerifyAICallbackHandler(mock_sync_client, raise_on_reject=False)
+        handler = ShoveCallbackHandler(mock_sync_client, raise_on_reject=False)
         result = mock_llm_result(["False claim"])
 
         # Should not raise
@@ -308,7 +308,7 @@ class TestRaiseOnReject:
             verification_id="ver_456",
         )
 
-        handler = VerifyAICallbackHandler(mock_sync_client, raise_on_reject=True)
+        handler = ShoveCallbackHandler(mock_sync_client, raise_on_reject=True)
         result = mock_llm_result(["The Earth is flat."])
 
         with pytest.raises(VerificationRejectedError) as exc_info:
@@ -332,7 +332,7 @@ class TestRaiseOnReject:
             reasoning="Needs human review",
         )
 
-        handler = VerifyAICallbackHandler(mock_sync_client, raise_on_reject=True)
+        handler = ShoveCallbackHandler(mock_sync_client, raise_on_reject=True)
         result = mock_llm_result(["Uncertain claim"])
 
         # Should not raise
@@ -348,7 +348,7 @@ class TestErrorHandling:
         """Should catch and attach verification errors."""
         mock_sync_client.verify_and_wait.side_effect = Exception("API Error")
 
-        handler = VerifyAICallbackHandler(mock_sync_client)
+        handler = ShoveCallbackHandler(mock_sync_client)
         result = mock_llm_result(["Test content"])
 
         handler.on_llm_end(result, run_id=run_id)
@@ -368,7 +368,7 @@ class TestErrorHandling:
         )
         mock_sync_client.verify_and_wait.side_effect = error
 
-        handler = VerifyAICallbackHandler(mock_sync_client, raise_on_reject=True)
+        handler = ShoveCallbackHandler(mock_sync_client, raise_on_reject=True)
         result = mock_llm_result(["Test"])
 
         with pytest.raises(VerificationRejectedError):
@@ -384,7 +384,7 @@ class TestCustomPollingOptions:
         """Should pass custom polling options to verify_and_wait."""
         mock_sync_client.verify_and_wait.return_value = mock_verify_response()
 
-        handler = VerifyAICallbackHandler(
+        handler = ShoveCallbackHandler(
             mock_sync_client,
             poll_interval=5.0,
             timeout=300.0,
@@ -398,12 +398,12 @@ class TestCustomPollingOptions:
         assert call_kwargs["timeout"] == 300.0
 
 
-class TestAsyncVerifyAICallbackHandler:
+class TestAsyncShoveCallbackHandler:
     """Test async callback handler."""
 
     def test_init_with_defaults(self, mock_async_client):
         """Should initialize with default options."""
-        handler = AsyncVerifyAICallbackHandler(mock_async_client)
+        handler = AsyncShoveCallbackHandler(mock_async_client)
 
         assert handler.client == mock_async_client
         assert handler.methods == {"reasoning": 1.0}
@@ -422,7 +422,7 @@ class TestAsyncVerifyAICallbackHandler:
             verification_id="ver_123",
         )
 
-        handler = AsyncVerifyAICallbackHandler(mock_async_client)
+        handler = AsyncShoveCallbackHandler(mock_async_client)
         result = mock_llm_result(["Test content"])
 
         await handler.on_llm_end(result, run_id=run_id)
@@ -437,7 +437,7 @@ class TestAsyncVerifyAICallbackHandler:
         self, mock_async_client, mock_llm_result, run_id
     ):
         """Should skip empty responses asynchronously."""
-        handler = AsyncVerifyAICallbackHandler(mock_async_client)
+        handler = AsyncShoveCallbackHandler(mock_async_client)
         result = mock_llm_result([""])
 
         await handler.on_llm_end(result, run_id=run_id)
@@ -457,7 +457,7 @@ class TestAsyncVerifyAICallbackHandler:
             verification_id="ver_456",
         )
 
-        handler = AsyncVerifyAICallbackHandler(
+        handler = AsyncShoveCallbackHandler(
             mock_async_client, raise_on_reject=True
         )
         result = mock_llm_result(["False claim"])
@@ -473,7 +473,7 @@ class TestAsyncVerifyAICallbackHandler:
         mock_async_client.verify_and_wait.return_value = mock_verify_response()
 
         callback = MagicMock()
-        handler = AsyncVerifyAICallbackHandler(
+        handler = AsyncShoveCallbackHandler(
             mock_async_client, on_verification=callback
         )
         result = mock_llm_result(["Test content"])
@@ -489,7 +489,7 @@ class TestAsyncVerifyAICallbackHandler:
         """Should catch and attach errors asynchronously."""
         mock_async_client.verify_and_wait.side_effect = Exception("Async API Error")
 
-        handler = AsyncVerifyAICallbackHandler(mock_async_client)
+        handler = AsyncShoveCallbackHandler(mock_async_client)
         result = mock_llm_result(["Test content"])
 
         await handler.on_llm_end(result, run_id=run_id)

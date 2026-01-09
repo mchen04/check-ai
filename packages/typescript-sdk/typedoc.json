@@ -2,7 +2,7 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["./src/index.ts"],
   "out": "./docs/api",
-  "name": "@verifyai/sdk",
+  "name": "@shove/sdk",
   "readme": "./README.md",
   "plugin": ["typedoc-plugin-markdown"],
   "excludePrivate": true,

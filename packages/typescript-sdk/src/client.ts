@@ -1,10 +1,10 @@
 /**
- * VerifyAI Client
- * Main client class for interacting with the VerifyAI API
+ * Shove Client
+ * Main client class for interacting with the Shove API
  */
 
 import type {
-  VerifyAIOptions,
+  ShoveOptions,
   VerifyRequest,
   VerifyResponse,
   WaitOptions,
@@ -20,7 +20,7 @@ import type {
   RetryConfig,
 } from './types';
 import {
-  VerifyAIError,
+  ShoveError,
   RateLimitError,
   TimeoutError,
 } from './errors';
@@ -28,7 +28,7 @@ import {
 /** SDK Version - keep in sync with package.json */
 export const VERSION = '0.1.0';
 
-const DEFAULT_BASE_URL = 'https://api.verifyai.dev';
+const DEFAULT_BASE_URL = 'https://api.shove.ai';
 const DEFAULT_TIMEOUT = 30000;
 const DEFAULT_POLL_INTERVAL = 1000;
 const DEFAULT_WAIT_TIMEOUT = 60000;
@@ -46,13 +46,13 @@ const DEFAULT_RETRY_CONFIG: Required<RetryConfig> = {
 };
 
 /**
- * VerifyAI Client
+ * Shove Client
  *
  * @example
  * ```typescript
- * import { VerifyAI } from '@verifyai/sdk';
+ * import { Shove } from '@shove/sdk';
  *
- * const client = new VerifyAI({ apiKey: 'vfy_...' });
+ * const client = new Shove({ apiKey: 'vfy_...' });
  *
  * // Simple verification
  * const result = await client.verifyAndWait({
@@ -64,16 +64,16 @@ const DEFAULT_RETRY_CONFIG: Required<RetryConfig> = {
  * console.log(result.confidence); // 0.95
  * ```
  */
-export class VerifyAI {
+export class Shove {
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly timeout: number;
   private readonly fetchFn: typeof fetch;
   private readonly retryConfig: Required<RetryConfig> | null;
 
-  constructor(options: VerifyAIOptions) {
+  constructor(options: ShoveOptions) {
     if (!options.apiKey) {
-      throw new VerifyAIError('API key is required', { code: 'MISSING_API_KEY' });
+      throw new ShoveError('API key is required', { code: 'MISSING_API_KEY' });
     }
 
     this.apiKey = options.apiKey;
@@ -92,7 +92,7 @@ export class VerifyAI {
     }
 
     if (!this.fetchFn) {
-      throw new VerifyAIError(
+      throw new ShoveError(
         'fetch is not available. Please provide a fetch implementation or use Node.js 18+',
         { code: 'FETCH_NOT_AVAILABLE' }
       );
@@ -140,7 +140,7 @@ export class VerifyAI {
    */
   async getVerification(id: string): Promise<VerifyResponse> {
     if (!id) {
-      throw new VerifyAIError('Verification ID is required', {
+      throw new ShoveError('Verification ID is required', {
         code: 'MISSING_ID',
       });
     }
@@ -234,7 +234,7 @@ export class VerifyAI {
     }
 
     // Should never reach here, but TypeScript needs this
-    throw lastError ?? new VerifyAIError('Request failed', { code: 'UNKNOWN_ERROR' });
+    throw lastError ?? new ShoveError('Request failed', { code: 'UNKNOWN_ERROR' });
   }
 
   /**
@@ -255,7 +255,7 @@ export class VerifyAI {
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
-          'User-Agent': `@verifyai/sdk/${VERSION}`,
+          'User-Agent': `@shove/sdk/${VERSION}`,
           ...options.headers,
         },
         signal: controller.signal,
@@ -282,15 +282,15 @@ export class VerifyAI {
           });
         }
 
-        throw VerifyAIError.fromResponse(errorData, response.status);
+        throw ShoveError.fromResponse(errorData, response.status);
       }
 
       return data as T;
     } catch (error) {
       clearTimeout(timeoutId);
 
-      // Re-throw VerifyAI errors
-      if (error instanceof VerifyAIError) {
+      // Re-throw Shove errors
+      if (error instanceof ShoveError) {
         throw error;
       }
 
@@ -301,13 +301,13 @@ export class VerifyAI {
 
       // Handle network errors
       if (error instanceof TypeError) {
-        throw new VerifyAIError(`Network error: ${error.message}`, {
+        throw new ShoveError(`Network error: ${error.message}`, {
           code: 'NETWORK_ERROR',
         });
       }
 
       // Unknown error
-      throw new VerifyAIError(
+      throw new ShoveError(
         error instanceof Error ? error.message : 'Unknown error',
         { code: 'UNKNOWN_ERROR' }
       );
@@ -332,12 +332,12 @@ export class VerifyAI {
     }
 
     // Retry on specific status codes
-    if (error instanceof VerifyAIError && error.status) {
+    if (error instanceof ShoveError && error.status) {
       return this.retryConfig.retryableStatuses.includes(error.status);
     }
 
     // Retry on network errors
-    if (error instanceof VerifyAIError && error.code === 'NETWORK_ERROR') {
+    if (error instanceof ShoveError && error.code === 'NETWORK_ERROR') {
       return true;
     }
 
@@ -432,7 +432,7 @@ export class VerifyAI {
    */
   async getBatch(id: string): Promise<BatchJob> {
     if (!id) {
-      throw new VerifyAIError('Batch ID is required', { code: 'MISSING_ID' });
+      throw new ShoveError('Batch ID is required', { code: 'MISSING_ID' });
     }
 
     return this.request<BatchJob>(`/v1/batch/${encodeURIComponent(id)}`, {
@@ -487,7 +487,7 @@ export class VerifyAI {
    */
   async cancelBatch(id: string): Promise<BatchJob> {
     if (!id) {
-      throw new VerifyAIError('Batch ID is required', { code: 'MISSING_ID' });
+      throw new ShoveError('Batch ID is required', { code: 'MISSING_ID' });
     }
 
     return this.request<BatchJob>(`/v1/batch/${encodeURIComponent(id)}/cancel`, {
@@ -519,7 +519,7 @@ export class VerifyAI {
     options?: { limit?: number; offset?: number }
   ): Promise<BatchResultsResponse> {
     if (!id) {
-      throw new VerifyAIError('Batch ID is required', { code: 'MISSING_ID' });
+      throw new ShoveError('Batch ID is required', { code: 'MISSING_ID' });
     }
 
     const params = new URLSearchParams();
@@ -582,7 +582,7 @@ export class VerifyAI {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
-          'User-Agent': `@verifyai/sdk/${VERSION}`,
+          'User-Agent': `@shove/sdk/${VERSION}`,
           // Note: Don't set Content-Type for FormData - browser sets it with boundary
         },
         body: formData,
@@ -594,14 +594,14 @@ export class VerifyAI {
       const data = await response.json() as FileUploadResponse | ApiErrorResponse;
 
       if (!response.ok) {
-        throw VerifyAIError.fromResponse(data as ApiErrorResponse, response.status);
+        throw ShoveError.fromResponse(data as ApiErrorResponse, response.status);
       }
 
       return data as FileUploadResponse;
     } catch (error) {
       clearTimeout(timeoutId);
 
-      if (error instanceof VerifyAIError) {
+      if (error instanceof ShoveError) {
         throw error;
       }
 
@@ -609,7 +609,7 @@ export class VerifyAI {
         throw new TimeoutError(`Upload timed out after ${this.timeout}ms`);
       }
 
-      throw new VerifyAIError(
+      throw new ShoveError(
         error instanceof Error ? error.message : 'Upload failed',
         { code: 'UPLOAD_ERROR' }
       );

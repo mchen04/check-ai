@@ -1,25 +1,25 @@
-# verifyai-llamaindex
+# shove-llamaindex
 
-LlamaIndex integration for VerifyAI - Verify retrieved nodes before synthesis.
+LlamaIndex integration for Shove - Verify retrieved nodes before synthesis.
 
 ## Installation
 
 ```bash
-pip install verifyai-llamaindex
+pip install shove-llamaindex
 ```
 
 ## Quick Start
 
 ```python
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
-from verifyai import VerifyAI
-from verifyai_llamaindex import VerifyAIPostprocessor
+from shove import Shove
+from shove_llamaindex import ShovePostprocessor
 
 # Initialize client
-client = VerifyAI(api_key="vfy_...")
+client = Shove(api_key="vfy_...")
 
 # Create postprocessor
-postprocessor = VerifyAIPostprocessor(client)
+postprocessor = ShovePostprocessor(client)
 
 # Use with query engine
 documents = SimpleDirectoryReader("data").load_data()
@@ -38,7 +38,7 @@ response = query_engine.query("What is the main topic?")
 - **Node verification**: Verify retrieved nodes before synthesis
 - **Configurable filtering**: Filter out unverified nodes
 - **Query context**: Include query in verification for relevance checking
-- **Async support**: Full async support with AsyncVerifyAIPostprocessor
+- **Async support**: Full async support with AsyncShovePostprocessor
 - **Metadata attachment**: Verification results attached to node metadata
 
 ## Usage
@@ -47,11 +47,11 @@ response = query_engine.query("What is the main topic?")
 
 ```python
 from llama_index.core import VectorStoreIndex
-from verifyai import VerifyAI
-from verifyai_llamaindex import VerifyAIPostprocessor
+from shove import Shove
+from shove_llamaindex import ShovePostprocessor
 
-client = VerifyAI(api_key="vfy_...")
-postprocessor = VerifyAIPostprocessor(client)
+client = Shove(api_key="vfy_...")
+postprocessor = ShovePostprocessor(client)
 
 query_engine = index.as_query_engine(
     node_postprocessors=[postprocessor]
@@ -63,7 +63,7 @@ response = query_engine.query("What is...?")
 ### Configure Methods and Filtering
 
 ```python
-postprocessor = VerifyAIPostprocessor(
+postprocessor = ShovePostprocessor(
     client,
     methods={"reasoning": 1.0, "tool": 0.5},
     min_confidence=0.7,
@@ -74,7 +74,7 @@ postprocessor = VerifyAIPostprocessor(
 ### Keep All Nodes (Just Add Metadata)
 
 ```python
-postprocessor = VerifyAIPostprocessor(
+postprocessor = ShovePostprocessor(
     client,
     filter_unverified=False,  # Keep all nodes
 )
@@ -89,12 +89,12 @@ for node in response.source_nodes:
 ```python
 import asyncio
 from llama_index.core import VectorStoreIndex
-from verifyai import AsyncVerifyAI
-from verifyai_llamaindex import AsyncVerifyAIPostprocessor
+from shove import AsyncShove
+from shove_llamaindex import AsyncShovePostprocessor
 
 async def main():
-    client = AsyncVerifyAI(api_key="vfy_...")
-    postprocessor = AsyncVerifyAIPostprocessor(client)
+    client = AsyncShove(api_key="vfy_...")
+    postprocessor = AsyncShovePostprocessor(client)
 
     query_engine = index.as_query_engine(
         node_postprocessors=[postprocessor]
@@ -149,7 +149,7 @@ response = chat_engine.chat("Tell me more about...")
 ## Requirements
 
 - Python 3.9+
-- verifyai
+- shove
 - llama-index-core >= 0.10.0
 
 ## License

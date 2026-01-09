@@ -41,9 +41,9 @@ Cancel a batch job that is pending or processing.
     {
       language: 'javascript',
       label: 'Node.js',
-      code: `import { VerifyAI } from '@verifyai/sdk';
+      code: `import { Shove } from '@shove/sdk';
 
-const client = new VerifyAI({ apiKey: 'vfy_your_api_key' });
+const client = new Shove({ apiKey: 'vfy_your_api_key' });
 
 const result = await client.cancelBatch('batch_abc123');
 console.log(result.message); // "Batch cancelled successfully"`

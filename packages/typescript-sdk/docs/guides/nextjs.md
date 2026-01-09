@@ -1,11 +1,11 @@
 # Next.js Integration Guide
 
-This guide shows how to integrate the VerifyAI SDK with Next.js applications.
+This guide shows how to integrate the Shove SDK with Next.js applications.
 
 ## Installation
 
 ```bash
-npm install @verifyai/sdk
+npm install @shove/sdk
 ```
 
 ## Environment Setup
@@ -13,7 +13,7 @@ npm install @verifyai/sdk
 Add your API key to `.env.local`:
 
 ```env
-VERIFYAI_API_KEY=vfy_your_api_key
+SHOVE_API_KEY=vfy_your_api_key
 ```
 
 ## Server-Side Usage (App Router)
@@ -23,10 +23,10 @@ VERIFYAI_API_KEY=vfy_your_api_key
 ```typescript
 // app/api/verify/route.ts
 import { NextResponse } from 'next/server';
-import { VerifyAI } from '@verifyai/sdk';
+import { Shove } from '@shove/sdk';
 
-const client = new VerifyAI({
-  apiKey: process.env.VERIFYAI_API_KEY!,
+const client = new Shove({
+  apiKey: process.env.SHOVE_API_KEY!,
 });
 
 export async function POST(request: Request) {
@@ -47,10 +47,10 @@ export async function POST(request: Request) {
 // app/actions/verify.ts
 'use server';
 
-import { VerifyAI } from '@verifyai/sdk';
+import { Shove } from '@shove/sdk';
 
-const client = new VerifyAI({
-  apiKey: process.env.VERIFYAI_API_KEY!,
+const client = new Shove({
+  apiKey: process.env.SHOVE_API_KEY!,
 });
 
 export async function verifyContent(content: string) {
@@ -71,10 +71,10 @@ export async function verifyContent(content: string) {
 
 ```typescript
 // app/verify/page.tsx
-import { VerifyAI } from '@verifyai/sdk';
+import { Shove } from '@shove/sdk';
 
-const client = new VerifyAI({
-  apiKey: process.env.VERIFYAI_API_KEY!,
+const client = new Shove({
+  apiKey: process.env.SHOVE_API_KEY!,
 });
 
 export default async function VerifyPage({
@@ -159,12 +159,12 @@ The SDK works in Vercel Edge Runtime:
 
 ```typescript
 // app/api/verify/route.ts
-import { VerifyAI } from '@verifyai/sdk';
+import { Shove } from '@shove/sdk';
 
 export const runtime = 'edge';
 
-const client = new VerifyAI({
-  apiKey: process.env.VERIFYAI_API_KEY!,
+const client = new Shove({
+  apiKey: process.env.SHOVE_API_KEY!,
 });
 
 export async function POST(request: Request) {
@@ -218,9 +218,9 @@ export async function middleware(request: NextRequest) {
 ## Error Handling
 
 ```typescript
-import { VerifyAI, RateLimitError, AuthenticationError } from '@verifyai/sdk';
+import { Shove, RateLimitError, AuthenticationError } from '@shove/sdk';
 
-const client = new VerifyAI({ apiKey: process.env.VERIFYAI_API_KEY! });
+const client = new Shove({ apiKey: process.env.SHOVE_API_KEY! });
 
 try {
   const result = await client.verifyAndWait({ content: '...' });

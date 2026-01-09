@@ -3,17 +3,17 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "verifyai-llamaindex"
+name = "shove-llamaindex"
 version = "0.1.0"
-description = "LlamaIndex integration for VerifyAI - Verify retrieved nodes before synthesis"
+description = "LlamaIndex integration for Shove.ai - Verify retrieved nodes before synthesis"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"
 authors = [
-    { name = "VerifyAI", email = "support@verifyai.dev" }
+    { name = "Shove.ai", email = "support@shove.ai" }
 ]
 keywords = [
-    "verifyai",
+    "shove",
     "llamaindex",
     "llm",
     "verification",
@@ -35,7 +35,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "verifyai>=0.1.0",
+    "shove>=0.1.0",
     "llama-index-core>=0.10.0",
 ]
 
@@ -47,12 +47,12 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://verifyai.dev"
-Documentation = "https://verifyai.dev/docs/integrations/llamaindex"
-Repository = "https://github.com/verifyai/verifyai-llamaindex"
+Homepage = "https://shove.ai"
+Documentation = "https://shove.ai/docs/integrations/llamaindex"
+Repository = "https://github.com/shove-ai/shove"
 
 [tool.hatch.build.targets.wheel]
-packages = ["verifyai_llamaindex"]
+packages = ["shove_llamaindex"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

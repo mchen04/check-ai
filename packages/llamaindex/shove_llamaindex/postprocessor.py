@@ -1,5 +1,5 @@
 """
-VerifyAI LlamaIndex Postprocessor
+Shove LlamaIndex Postprocessor
 Verify retrieved nodes before synthesis
 """
 
@@ -8,24 +8,24 @@ from typing import Any, Dict, List, Optional, Union
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.schema import NodeWithScore, QueryBundle
 
-from verifyai import VerifyAI, AsyncVerifyAI, MethodsConfig
+from shove import Shove, AsyncShove, MethodsConfig
 
 
-class VerifyAIPostprocessor(BaseNodePostprocessor):
+class ShovePostprocessor(BaseNodePostprocessor):
     """
     LlamaIndex node postprocessor that verifies retrieved nodes.
 
-    This postprocessor verifies the content of retrieved nodes using VerifyAI
+    This postprocessor verifies the content of retrieved nodes using Shove
     before they are passed to the response synthesizer. Nodes that fail
     verification can be filtered out or have verification metadata attached.
 
     Example:
         >>> from llama_index.core import VectorStoreIndex
-        >>> from verifyai import VerifyAI
-        >>> from verifyai_llamaindex import VerifyAIPostprocessor
+        >>> from shove import Shove
+        >>> from shove_llamaindex import ShovePostprocessor
         >>>
-        >>> client = VerifyAI(api_key="vfy_...")
-        >>> postprocessor = VerifyAIPostprocessor(
+        >>> client = Shove(api_key="vfy_...")
+        >>> postprocessor = ShovePostprocessor(
         ...     client,
         ...     methods={"reasoning": 1.0, "tool": 0.5},
         ...     min_confidence=0.7,
@@ -38,7 +38,7 @@ class VerifyAIPostprocessor(BaseNodePostprocessor):
         >>> response = query_engine.query("What is the capital of France?")
 
     Attributes:
-        client: VerifyAI client instance
+        client: Shove client instance
         methods: Verification methods to use
         min_confidence: Minimum confidence threshold to keep node
         filter_unverified: Whether to filter out unverified nodes
@@ -47,7 +47,7 @@ class VerifyAIPostprocessor(BaseNodePostprocessor):
 
     model_config = {"arbitrary_types_allowed": True}
 
-    client: VerifyAI
+    client: Shove
     methods: Union[MethodsConfig, Dict[str, float]]
     min_confidence: float
     filter_unverified: bool
@@ -57,7 +57,7 @@ class VerifyAIPostprocessor(BaseNodePostprocessor):
 
     def __init__(
         self,
-        client: VerifyAI,
+        client: Shove,
         *,
         methods: Optional[Union[MethodsConfig, Dict[str, float]]] = None,
         min_confidence: float = 0.7,
@@ -70,7 +70,7 @@ class VerifyAIPostprocessor(BaseNodePostprocessor):
         Initialize the postprocessor.
 
         Args:
-            client: VerifyAI client instance
+            client: Shove client instance
             methods: Verification methods to use (default: reasoning=1.0)
             min_confidence: Minimum confidence threshold to keep node
             filter_unverified: Whether to filter out nodes below threshold
@@ -90,7 +90,7 @@ class VerifyAIPostprocessor(BaseNodePostprocessor):
 
     @classmethod
     def class_name(cls) -> str:
-        return "VerifyAIPostprocessor"
+        return "ShovePostprocessor"
 
     def _postprocess_nodes(
         self,
@@ -169,22 +169,22 @@ class VerifyAIPostprocessor(BaseNodePostprocessor):
         return verified_nodes
 
 
-class AsyncVerifyAIPostprocessor(BaseNodePostprocessor):
+class AsyncShovePostprocessor(BaseNodePostprocessor):
     """
     Async LlamaIndex node postprocessor that verifies retrieved nodes.
 
-    This is the async version of VerifyAIPostprocessor for use with
+    This is the async version of ShovePostprocessor for use with
     async LlamaIndex pipelines.
 
     Example:
         >>> import asyncio
         >>> from llama_index.core import VectorStoreIndex
-        >>> from verifyai import AsyncVerifyAI
-        >>> from verifyai_llamaindex import AsyncVerifyAIPostprocessor
+        >>> from shove import AsyncShove
+        >>> from shove_llamaindex import AsyncShovePostprocessor
         >>>
         >>> async def main():
-        ...     client = AsyncVerifyAI(api_key="vfy_...")
-        ...     postprocessor = AsyncVerifyAIPostprocessor(client)
+        ...     client = AsyncShove(api_key="vfy_...")
+        ...     postprocessor = AsyncShovePostprocessor(client)
         ...     query_engine = index.as_query_engine(
         ...         node_postprocessors=[postprocessor]
         ...     )
@@ -196,7 +196,7 @@ class AsyncVerifyAIPostprocessor(BaseNodePostprocessor):
 
     model_config = {"arbitrary_types_allowed": True}
 
-    client: AsyncVerifyAI
+    client: AsyncShove
     methods: Union[MethodsConfig, Dict[str, float]]
     min_confidence: float
     filter_unverified: bool
@@ -206,7 +206,7 @@ class AsyncVerifyAIPostprocessor(BaseNodePostprocessor):
 
     def __init__(
         self,
-        client: AsyncVerifyAI,
+        client: AsyncShove,
         *,
         methods: Optional[Union[MethodsConfig, Dict[str, float]]] = None,
         min_confidence: float = 0.7,
@@ -219,7 +219,7 @@ class AsyncVerifyAIPostprocessor(BaseNodePostprocessor):
         Initialize the async postprocessor.
 
         Args:
-            client: AsyncVerifyAI client instance
+            client: AsyncShove client instance
             methods: Verification methods to use (default: reasoning=1.0)
             min_confidence: Minimum confidence threshold to keep node
             filter_unverified: Whether to filter out nodes below threshold
@@ -239,7 +239,7 @@ class AsyncVerifyAIPostprocessor(BaseNodePostprocessor):
 
     @classmethod
     def class_name(cls) -> str:
-        return "AsyncVerifyAIPostprocessor"
+        return "AsyncShovePostprocessor"
 
     def _postprocess_nodes(
         self,

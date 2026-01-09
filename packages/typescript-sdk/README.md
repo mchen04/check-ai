@@ -1,26 +1,26 @@
-# @verifyai/sdk
+# @shove/sdk
 
-Official TypeScript SDK for VerifyAI - The Stripe for LLM Verification.
+Official TypeScript SDK for Shove - The Stripe for LLM Verification.
 
 Verify AI-generated content to prevent costly hallucinations with 7 verification methods.
 
 ## Installation
 
 ```bash
-npm install @verifyai/sdk
+npm install @shove/sdk
 # or
-yarn add @verifyai/sdk
+yarn add @shove/sdk
 # or
-pnpm add @verifyai/sdk
+pnpm add @shove/sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { VerifyAI } from '@verifyai/sdk';
+import { Shove } from '@shove/sdk';
 
 // Initialize client
-const client = new VerifyAI({ apiKey: 'vfy_...' });
+const client = new Shove({ apiKey: 'vfy_...' });
 
 // Verify content (3 lines!)
 const result = await client.verifyAndWait({
@@ -114,11 +114,11 @@ interface VerifyResponse {
 
 ```typescript
 import {
-  VerifyAI,
+  Shove,
   AuthenticationError,
   RateLimitError,
   QuotaExceededError
-} from '@verifyai/sdk';
+} from '@shove/sdk';
 
 try {
   const result = await client.verifyAndWait({ ... });
@@ -136,9 +136,9 @@ try {
 ## Configuration
 
 ```typescript
-const client = new VerifyAI({
+const client = new Shove({
   apiKey: 'vfy_...',
-  baseUrl: 'https://api.verifyai.dev',  // Optional
+  baseUrl: 'https://api.shove.ai',  // Optional
   timeout: 30000,                        // Request timeout in ms
 });
 ```
@@ -155,7 +155,7 @@ import type {
   ParadigmResult,
   Verdict,
   Decision,
-} from '@verifyai/sdk';
+} from '@shove/sdk';
 ```
 
 ## Requirements

@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { VerifyAICallbackHandler } from '../src/callback';
+import { ShoveCallbackHandler } from '../src/callback';
 import { VerificationError, VerificationRejectedError } from '../src/errors';
 import type { LLMResult } from '@langchain/core/outputs';
 
-// Mock VerifyAI client type
-interface MockVerifyAI {
+// Mock Shove client type
+interface MockShove {
   verifyAndWait: ReturnType<typeof vi.fn>;
 }
 
-describe('VerifyAICallbackHandler', () => {
-  let mockClient: MockVerifyAI;
+describe('ShoveCallbackHandler', () => {
+  let mockClient: MockShove;
 
   beforeEach(() => {
     mockClient = {
@@ -23,14 +23,14 @@ describe('VerifyAICallbackHandler', () => {
 
   describe('constructor', () => {
     it('should create handler with default options', () => {
-      const handler = new VerifyAICallbackHandler(mockClient as any);
+      const handler = new ShoveCallbackHandler(mockClient as any);
       expect(handler).toBeDefined();
-      expect(handler.name).toBe('VerifyAICallbackHandler');
+      expect(handler.name).toBe('ShoveCallbackHandler');
     });
 
     it('should accept custom options', () => {
       const onVerification = vi.fn();
-      const handler = new VerifyAICallbackHandler(mockClient as any, {
+      const handler = new ShoveCallbackHandler(mockClient as any, {
         methods: { reasoning: 1.0, tool: 0.5 },
         minConfidence: 0.9,
         raiseOnReject: true,
@@ -58,7 +58,7 @@ describe('VerifyAICallbackHandler', () => {
         cached: false,
       });
 
-      const handler = new VerifyAICallbackHandler(mockClient as any, {
+      const handler = new ShoveCallbackHandler(mockClient as any, {
         methods: { reasoning: 1.0 },
       });
 
@@ -99,7 +99,7 @@ describe('VerifyAICallbackHandler', () => {
         cached: false,
       });
 
-      const handler = new VerifyAICallbackHandler(mockClient as any, {
+      const handler = new ShoveCallbackHandler(mockClient as any, {
         methods: { reasoning: 1.0, tool: 0.5, biprm: 0.3 },
       });
 
@@ -119,7 +119,7 @@ describe('VerifyAICallbackHandler', () => {
     });
 
     it('should skip empty responses by default', async () => {
-      const handler = new VerifyAICallbackHandler(mockClient as any);
+      const handler = new ShoveCallbackHandler(mockClient as any);
 
       const output: LLMResult = {
         generations: [[{ text: '', generationInfo: {} }]],
@@ -132,7 +132,7 @@ describe('VerifyAICallbackHandler', () => {
     });
 
     it('should skip whitespace-only responses by default', async () => {
-      const handler = new VerifyAICallbackHandler(mockClient as any);
+      const handler = new ShoveCallbackHandler(mockClient as any);
 
       const output: LLMResult = {
         generations: [[{ text: '   \n\t  ', generationInfo: {} }]],
@@ -153,7 +153,7 @@ describe('VerifyAICallbackHandler', () => {
         cached: false,
       });
 
-      const handler = new VerifyAICallbackHandler(mockClient as any, {
+      const handler = new ShoveCallbackHandler(mockClient as any, {
         skipEmpty: false,
       });
 
@@ -176,7 +176,7 @@ describe('VerifyAICallbackHandler', () => {
         cached: false,
       });
 
-      const handler = new VerifyAICallbackHandler(mockClient as any);
+      const handler = new ShoveCallbackHandler(mockClient as any);
 
       const output: LLMResult = {
         generations: [
@@ -202,7 +202,7 @@ describe('VerifyAICallbackHandler', () => {
         cached: false,
       });
 
-      const handler = new VerifyAICallbackHandler(mockClient as any);
+      const handler = new ShoveCallbackHandler(mockClient as any);
 
       const generation = { text: 'Test content' };
       const output: LLMResult = {
@@ -232,7 +232,7 @@ describe('VerifyAICallbackHandler', () => {
       });
 
       const onVerification = vi.fn();
-      const handler = new VerifyAICallbackHandler(mockClient as any, {
+      const handler = new ShoveCallbackHandler(mockClient as any, {
         onVerification,
       });
 
@@ -263,7 +263,7 @@ describe('VerifyAICallbackHandler', () => {
       });
 
       const onVerification = vi.fn();
-      const handler = new VerifyAICallbackHandler(mockClient as any, {
+      const handler = new ShoveCallbackHandler(mockClient as any, {
         onVerification,
       });
 
@@ -300,7 +300,7 @@ describe('VerifyAICallbackHandler', () => {
         cached: false,
       });
 
-      const handler = new VerifyAICallbackHandler(mockClient as any, {
+      const handler = new ShoveCallbackHandler(mockClient as any, {
         raiseOnReject: false,
       });
 
@@ -322,7 +322,7 @@ describe('VerifyAICallbackHandler', () => {
         cached: false,
       });
 
-      const handler = new VerifyAICallbackHandler(mockClient as any, {
+      const handler = new ShoveCallbackHandler(mockClient as any, {
         raiseOnReject: true,
       });
 
@@ -346,7 +346,7 @@ describe('VerifyAICallbackHandler', () => {
         cached: false,
       });
 
-      const handler = new VerifyAICallbackHandler(mockClient as any, {
+      const handler = new ShoveCallbackHandler(mockClient as any, {
         raiseOnReject: true,
       });
 
@@ -379,7 +379,7 @@ describe('VerifyAICallbackHandler', () => {
         cached: false,
       });
 
-      const handler = new VerifyAICallbackHandler(mockClient as any, {
+      const handler = new ShoveCallbackHandler(mockClient as any, {
         raiseOnReject: true,
       });
 
@@ -400,7 +400,7 @@ describe('VerifyAICallbackHandler', () => {
     it('should catch verification errors and attach to generationInfo', async () => {
       mockClient.verifyAndWait.mockRejectedValue(new Error('API Error'));
 
-      const handler = new VerifyAICallbackHandler(mockClient as any);
+      const handler = new ShoveCallbackHandler(mockClient as any);
 
       const output: LLMResult = {
         generations: [[{ text: 'Test content', generationInfo: {} }]],
@@ -422,7 +422,7 @@ describe('VerifyAICallbackHandler', () => {
       });
       mockClient.verifyAndWait.mockRejectedValue(rejectedError);
 
-      const handler = new VerifyAICallbackHandler(mockClient as any, {
+      const handler = new ShoveCallbackHandler(mockClient as any, {
         raiseOnReject: true,
       });
 
@@ -439,7 +439,7 @@ describe('VerifyAICallbackHandler', () => {
     it('should handle unknown error types', async () => {
       mockClient.verifyAndWait.mockRejectedValue('string error');
 
-      const handler = new VerifyAICallbackHandler(mockClient as any);
+      const handler = new ShoveCallbackHandler(mockClient as any);
 
       const output: LLMResult = {
         generations: [[{ text: 'Test content', generationInfo: {} }]],
@@ -468,7 +468,7 @@ describe('VerifyAICallbackHandler', () => {
         cached: false,
       });
 
-      const handler = new VerifyAICallbackHandler(mockClient as any, {
+      const handler = new ShoveCallbackHandler(mockClient as any, {
         pollInterval: 5000,
         timeout: 300000,
       });

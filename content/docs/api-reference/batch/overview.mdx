@@ -78,9 +78,9 @@ curl -X POST https://api.verifact.ai/v1/batch \\
     {
       language: 'javascript',
       label: 'Node.js',
-      code: `import { VerifyAI } from '@verifyai/sdk';
+      code: `import { Shove } from '@shove/sdk';
 
-const client = new VerifyAI({ apiKey: 'vfy_your_api_key' });
+const client = new Shove({ apiKey: 'vfy_your_api_key' });
 
 // Create and wait for batch completion
 const batch = await client.createBatchAndWait({

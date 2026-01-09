@@ -7,5 +7,5 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
-  external: ['@langchain/core', '@verifyai/sdk'],
+  external: ['@langchain/core', '@shove/sdk'],
 });

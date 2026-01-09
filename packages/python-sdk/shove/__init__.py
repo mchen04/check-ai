@@ -1,10 +1,10 @@
 """
-VerifyAI SDK
-Official Python SDK for VerifyAI - The Stripe for LLM Verification
+Shove SDK
+Official Python SDK for Shove - The Stripe for LLM Verification
 
 Example:
-    >>> from verifyai import VerifyAI
-    >>> client = VerifyAI(api_key="vfy_...")
+    >>> from shove import Shove
+    >>> client = Shove(api_key="vfy_...")
     >>> result = client.verify_and_wait(
     ...     content="The speed of light is approximately 299,792 km/s.",
     ...     methods={"reasoning": 1.0}
@@ -13,8 +13,8 @@ Example:
     >>> print(result.confidence)  # 0.95
 """
 
-from verifyai.client import VerifyAI, AsyncVerifyAI
-from verifyai.types import (
+from shove.client import Shove, AsyncShove
+from shove.types import (
     # Core types
     ParadigmType,
     Verdict,
@@ -43,8 +43,8 @@ from verifyai.types import (
     BatchWaitOptions,
     PaginationInfo,
 )
-from verifyai.errors import (
-    VerifyAIError,
+from shove.errors import (
+    ShoveError,
     AuthenticationError,
     AuthorizationError,
     ValidationError,
@@ -59,8 +59,8 @@ __version__ = "0.1.0"
 
 __all__ = [
     # Clients
-    "VerifyAI",
-    "AsyncVerifyAI",
+    "Shove",
+    "AsyncShove",
     # Core types
     "ParadigmType",
     "Verdict",
@@ -89,7 +89,7 @@ __all__ = [
     "BatchWaitOptions",
     "PaginationInfo",
     # Errors
-    "VerifyAIError",
+    "ShoveError",
     "AuthenticationError",
     "AuthorizationError",
     "ValidationError",

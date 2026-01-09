@@ -76,7 +76,7 @@ export function createWebhookHeaders(
     'Content-Type': 'application/json',
     'X-Webhook-Signature': signature,
     'X-Webhook-Timestamp': timestamp,
-    'User-Agent': 'VerifyAI-Webhooks/1.0',
+    'User-Agent': 'Shove-Webhooks/1.0',
   };
 }
 
@@ -452,7 +452,7 @@ export async function sendTestWebhook(webhookId: string): Promise<WebhookDeliver
     event: 'test',
     timestamp: new Date().toISOString(),
     data: {
-      message: 'This is a test webhook from VerifyAI',
+      message: 'This is a test webhook from Shove',
       webhookId: webhook.id,
     },
   };

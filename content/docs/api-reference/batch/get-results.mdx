@@ -69,9 +69,9 @@ Retrieve the verification results for items in a batch.
     {
       language: 'javascript',
       label: 'Node.js',
-      code: `import { VerifyAI } from '@verifyai/sdk';
+      code: `import { Shove } from '@shove/sdk';
 
-const client = new VerifyAI({ apiKey: 'vfy_your_api_key' });
+const client = new Shove({ apiKey: 'vfy_your_api_key' });
 
 const results = await client.getBatchResults('batch_abc123', {
   limit: 20,

@@ -1,7 +1,7 @@
 'use strict';
 
 // src/errors.ts
-var VerifyAIError = class _VerifyAIError extends Error {
+var ShoveError = class _ShoveError extends Error {
   /** Error code for programmatic handling */
   code;
   /** HTTP status code if applicable */
@@ -12,13 +12,13 @@ var VerifyAIError = class _VerifyAIError extends Error {
   details;
   constructor(message, options) {
     super(message);
-    this.name = "VerifyAIError";
+    this.name = "ShoveError";
     this.code = options?.code ?? "UNKNOWN_ERROR";
     this.status = options?.status;
     this.requestId = options?.requestId;
     this.details = options?.details;
     if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, _VerifyAIError);
+      Error.captureStackTrace(this, _ShoveError);
     }
   }
   /**
@@ -34,31 +34,31 @@ var VerifyAIError = class _VerifyAIError extends Error {
     });
   }
 };
-var AuthenticationError = class extends VerifyAIError {
+var AuthenticationError = class extends ShoveError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "AUTHENTICATION_ERROR" });
     this.name = "AuthenticationError";
   }
 };
-var AuthorizationError = class extends VerifyAIError {
+var AuthorizationError = class extends ShoveError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "AUTHORIZATION_ERROR" });
     this.name = "AuthorizationError";
   }
 };
-var ValidationError = class extends VerifyAIError {
+var ValidationError = class extends ShoveError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "VALIDATION_ERROR" });
     this.name = "ValidationError";
   }
 };
-var NotFoundError = class extends VerifyAIError {
+var NotFoundError = class extends ShoveError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "NOT_FOUND" });
     this.name = "NotFoundError";
   }
 };
-var RateLimitError = class extends VerifyAIError {
+var RateLimitError = class extends ShoveError {
   /** Seconds until rate limit resets */
   retryAfter;
   constructor(message, options) {
@@ -67,19 +67,19 @@ var RateLimitError = class extends VerifyAIError {
     this.retryAfter = options?.retryAfter;
   }
 };
-var QuotaExceededError = class extends VerifyAIError {
+var QuotaExceededError = class extends ShoveError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "QUOTA_EXCEEDED" });
     this.name = "QuotaExceededError";
   }
 };
-var TimeoutError = class extends VerifyAIError {
+var TimeoutError = class extends ShoveError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "TIMEOUT" });
     this.name = "TimeoutError";
   }
 };
-var ServerError = class extends VerifyAIError {
+var ServerError = class extends ShoveError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "SERVER_ERROR" });
     this.name = "ServerError";
@@ -121,13 +121,13 @@ function getErrorClass(code, status) {
     case 504:
       return ServerError;
     default:
-      return VerifyAIError;
+      return ShoveError;
   }
 }
 
 // src/client.ts
 var VERSION = "0.1.0";
-var DEFAULT_BASE_URL = "https://api.verifyai.dev";
+var DEFAULT_BASE_URL = "https://api.shove.ai";
 var DEFAULT_TIMEOUT = 3e4;
 var DEFAULT_POLL_INTERVAL = 1e3;
 var DEFAULT_WAIT_TIMEOUT = 6e4;
@@ -141,7 +141,7 @@ var DEFAULT_RETRY_CONFIG = {
   jitter: true,
   retryableStatuses: [429, 500, 502, 503, 504]
 };
-var VerifyAI = class {
+var Shove = class {
   apiKey;
   baseUrl;
   timeout;
@@ -149,7 +149,7 @@ var VerifyAI = class {
   retryConfig;
   constructor(options) {
     if (!options.apiKey) {
-      throw new VerifyAIError("API key is required", { code: "MISSING_API_KEY" });
+      throw new ShoveError("API key is required", { code: "MISSING_API_KEY" });
     }
     this.apiKey = options.apiKey;
     this.baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, "");
@@ -164,7 +164,7 @@ var VerifyAI = class {
       };
     }
     if (!this.fetchFn) {
-      throw new VerifyAIError(
+      throw new ShoveError(
         "fetch is not available. Please provide a fetch implementation or use Node.js 18+",
         { code: "FETCH_NOT_AVAILABLE" }
       );
@@ -210,7 +210,7 @@ var VerifyAI = class {
    */
   async getVerification(id) {
     if (!id) {
-      throw new VerifyAIError("Verification ID is required", {
+      throw new ShoveError("Verification ID is required", {
         code: "MISSING_ID"
       });
     }
@@ -275,7 +275,7 @@ var VerifyAI = class {
         await this.sleep(delay);
       }
     }
-    throw lastError ?? new VerifyAIError("Request failed", { code: "UNKNOWN_ERROR" });
+    throw lastError ?? new ShoveError("Request failed", { code: "UNKNOWN_ERROR" });
   }
   /**
    * Execute a single request attempt
@@ -290,7 +290,7 @@ var VerifyAI = class {
         headers: {
           "Authorization": `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
-          "User-Agent": `@verifyai/sdk/${VERSION}`,
+          "User-Agent": `@shove/sdk/${VERSION}`,
           ...options.headers
         },
         signal: controller.signal
@@ -309,23 +309,23 @@ var VerifyAI = class {
             retryAfter: retryAfter ? parseInt(retryAfter, 10) : void 0
           });
         }
-        throw VerifyAIError.fromResponse(errorData, response.status);
+        throw ShoveError.fromResponse(errorData, response.status);
       }
       return data;
     } catch (error) {
       clearTimeout(timeoutId);
-      if (error instanceof VerifyAIError) {
+      if (error instanceof ShoveError) {
         throw error;
       }
       if (error instanceof Error && error.name === "AbortError") {
         throw new TimeoutError(`Request timed out after ${this.timeout}ms`);
       }
       if (error instanceof TypeError) {
-        throw new VerifyAIError(`Network error: ${error.message}`, {
+        throw new ShoveError(`Network error: ${error.message}`, {
           code: "NETWORK_ERROR"
         });
       }
-      throw new VerifyAIError(
+      throw new ShoveError(
         error instanceof Error ? error.message : "Unknown error",
         { code: "UNKNOWN_ERROR" }
       );
@@ -344,10 +344,10 @@ var VerifyAI = class {
     if (error instanceof RateLimitError) {
       return true;
     }
-    if (error instanceof VerifyAIError && error.status) {
+    if (error instanceof ShoveError && error.status) {
       return this.retryConfig.retryableStatuses.includes(error.status);
     }
-    if (error instanceof VerifyAIError && error.code === "NETWORK_ERROR") {
+    if (error instanceof ShoveError && error.code === "NETWORK_ERROR") {
       return true;
     }
     if (error instanceof TimeoutError) {
@@ -425,7 +425,7 @@ var VerifyAI = class {
    */
   async getBatch(id) {
     if (!id) {
-      throw new VerifyAIError("Batch ID is required", { code: "MISSING_ID" });
+      throw new ShoveError("Batch ID is required", { code: "MISSING_ID" });
     }
     return this.request(`/v1/batch/${encodeURIComponent(id)}`, {
       method: "GET"
@@ -475,7 +475,7 @@ var VerifyAI = class {
    */
   async cancelBatch(id) {
     if (!id) {
-      throw new VerifyAIError("Batch ID is required", { code: "MISSING_ID" });
+      throw new ShoveError("Batch ID is required", { code: "MISSING_ID" });
     }
     return this.request(`/v1/batch/${encodeURIComponent(id)}/cancel`, {
       method: "POST"
@@ -502,7 +502,7 @@ var VerifyAI = class {
    */
   async getBatchResults(id, options) {
     if (!id) {
-      throw new VerifyAIError("Batch ID is required", { code: "MISSING_ID" });
+      throw new ShoveError("Batch ID is required", { code: "MISSING_ID" });
     }
     const params = new URLSearchParams();
     if (options?.limit) params.set("limit", String(options.limit));
@@ -550,7 +550,7 @@ var VerifyAI = class {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${this.apiKey}`,
-          "User-Agent": `@verifyai/sdk/${VERSION}`
+          "User-Agent": `@shove/sdk/${VERSION}`
           // Note: Don't set Content-Type for FormData - browser sets it with boundary
         },
         body: formData,
@@ -559,18 +559,18 @@ var VerifyAI = class {
       clearTimeout(timeoutId);
       const data = await response.json();
       if (!response.ok) {
-        throw VerifyAIError.fromResponse(data, response.status);
+        throw ShoveError.fromResponse(data, response.status);
       }
       return data;
     } catch (error) {
       clearTimeout(timeoutId);
-      if (error instanceof VerifyAIError) {
+      if (error instanceof ShoveError) {
         throw error;
       }
       if (error instanceof Error && error.name === "AbortError") {
         throw new TimeoutError(`Upload timed out after ${this.timeout}ms`);
       }
-      throw new VerifyAIError(
+      throw new ShoveError(
         error instanceof Error ? error.message : "Upload failed",
         { code: "UPLOAD_ERROR" }
       );
@@ -638,10 +638,10 @@ exports.NotFoundError = NotFoundError;
 exports.QuotaExceededError = QuotaExceededError;
 exports.RateLimitError = RateLimitError;
 exports.ServerError = ServerError;
+exports.Shove = Shove;
+exports.ShoveError = ShoveError;
 exports.TimeoutError = TimeoutError;
 exports.VERSION = VERSION;
 exports.ValidationError = ValidationError;
-exports.VerifyAI = VerifyAI;
-exports.VerifyAIError = VerifyAIError;
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

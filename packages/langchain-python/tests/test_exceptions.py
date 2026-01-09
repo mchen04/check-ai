@@ -1,8 +1,8 @@
-"""Tests for VerifyAI LangChain exceptions."""
+"""Tests for Shove LangChain exceptions."""
 
 import pytest
 
-from verifyai_langchain.exceptions import VerificationError, VerificationRejectedError
+from shove_langchain.exceptions import VerificationError, VerificationRejectedError
 
 
 class TestVerificationError:

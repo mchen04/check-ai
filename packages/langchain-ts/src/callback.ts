@@ -1,12 +1,12 @@
 /**
- * VerifyAI LangChain Callback Handler
+ * Shove LangChain Callback Handler
  * Auto-verify LLM outputs via LangChain callbacks
  */
 
 import { BaseCallbackHandler } from '@langchain/core/callbacks/base';
 import type { LLMResult } from '@langchain/core/outputs';
 import type { Serialized } from '@langchain/core/load/serializable';
-import type { VerifyAI, MethodsConfig, VerifyResponse } from '@verifyai/sdk';
+import type { Shove, MethodsConfig, VerifyResponse } from '@shove/sdk';
 import { VerificationRejectedError } from './errors';
 
 /**
@@ -28,9 +28,9 @@ export interface VerificationResult {
 }
 
 /**
- * Options for VerifyAICallbackHandler
+ * Options for ShoveCallbackHandler
  */
-export interface VerifyAICallbackHandlerOptions {
+export interface ShoveCallbackHandlerOptions {
   /** Verification methods to use (default: { reasoning: 1.0 }) */
   methods?: MethodsConfig;
   /** Minimum confidence threshold for acceptance */
@@ -53,11 +53,11 @@ export interface VerifyAICallbackHandlerOptions {
  * @example
  * ```typescript
  * import { ChatOpenAI } from "@langchain/openai";
- * import { VerifyAI } from "@verifyai/sdk";
- * import { VerifyAICallbackHandler } from "@verifyai/langchain";
+ * import { Shove } from "@shove/sdk";
+ * import { ShoveCallbackHandler } from "@shove/langchain";
  *
- * const client = new VerifyAI({ apiKey: "vfy_..." });
- * const handler = new VerifyAICallbackHandler(client, {
+ * const client = new Shove({ apiKey: "vfy_..." });
+ * const handler = new ShoveCallbackHandler(client, {
  *   methods: { reasoning: 1.0, tool: 0.5 },
  *   raiseOnReject: true,
  * });
@@ -66,10 +66,10 @@ export interface VerifyAICallbackHandlerOptions {
  * const response = await llm.invoke("What is the capital of France?");
  * ```
  */
-export class VerifyAICallbackHandler extends BaseCallbackHandler {
-  name = 'VerifyAICallbackHandler';
+export class ShoveCallbackHandler extends BaseCallbackHandler {
+  name = 'ShoveCallbackHandler';
 
-  private client: VerifyAI;
+  private client: Shove;
   private methods: MethodsConfig;
   private minConfidence: number;
   private raiseOnReject: boolean;
@@ -78,7 +78,7 @@ export class VerifyAICallbackHandler extends BaseCallbackHandler {
   private pollInterval: number;
   private timeout: number;
 
-  constructor(client: VerifyAI, options?: VerifyAICallbackHandlerOptions) {
+  constructor(client: Shove, options?: ShoveCallbackHandlerOptions) {
     super();
     this.client = client;
     this.methods = options?.methods ?? { reasoning: 1.0 };
