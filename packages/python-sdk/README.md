@@ -1,22 +1,22 @@
-# shove
+# check
 
-Official Python SDK for Shove - The Stripe for LLM Verification.
+Official Python SDK for Check - The Stripe for LLM Verification.
 
 Verify AI-generated content to prevent costly hallucinations with 7 verification methods.
 
 ## Installation
 
 ```bash
-pip install shove
+pip install check
 ```
 
 ## Quick Start
 
 ```python
-from shove import Shove
+from check import Check
 
 # Initialize client
-client = Shove(api_key="vfy_...")
+client = Check(api_key="vfy_...")
 
 # Verify content (3 lines!)
 result = client.verify_and_wait(
@@ -79,10 +79,10 @@ result = client.verify_and_wait(
 
 ```python
 import asyncio
-from shove import AsyncShove
+from check import AsyncCheck
 
 async def main():
-    client = AsyncShove(api_key="vfy_...")
+    client = AsyncCheck(api_key="vfy_...")
 
     result = await client.verify_and_wait(
         content="The Earth orbits the Sun.",
@@ -98,14 +98,14 @@ asyncio.run(main())
 ### Context Manager
 
 ```python
-with Shove(api_key="vfy_...") as client:
+with Check(api_key="vfy_...") as client:
     result = client.verify_and_wait(
         content="Some claim...",
         methods={"reasoning": 1.0}
     )
 
 # Async
-async with AsyncShove(api_key="vfy_...") as client:
+async with AsyncCheck(api_key="vfy_...") as client:
     result = await client.verify_and_wait(...)
 ```
 
@@ -143,8 +143,8 @@ class VerifyResponse:
 ## Error Handling
 
 ```python
-from shove import (
-    Shove,
+from check import (
+    Check,
     AuthenticationError,
     RateLimitError,
     QuotaExceededError,
@@ -166,9 +166,9 @@ except TimeoutError:
 ## Configuration
 
 ```python
-client = Shove(
+client = Check(
     api_key="vfy_...",
-    base_url="https://api.shove.ai",  # Optional
+    base_url="https://api.check.ai",  # Optional
     timeout=30.0,                          # Request timeout in seconds
 )
 ```
@@ -178,7 +178,7 @@ client = Shove(
 Full type hint support:
 
 ```python
-from shove import (
+from check import (
     MethodsConfig,
     VerifyRequest,
     VerifyResponse,

@@ -1,6 +1,6 @@
-# Shove - Platform Overview
+# Check - Platform Overview
 
-Shove is a production-grade SaaS platform for verifying the truthfulness and accuracy of Large Language Model (LLM) outputs. Think of it as "the Stripe for LLM Verification" — a developer-first solution that helps organizations detect hallucinations, false claims, and AI-generated inaccuracies through multiple verification paradigms.
+Check is a production-grade SaaS platform for verifying the truthfulness and accuracy of Large Language Model (LLM) outputs. Think of it as "the Stripe for LLM Verification" — a developer-first solution that helps organizations detect hallucinations, false claims, and AI-generated inaccuracies through multiple verification paradigms.
 
 ---
 
@@ -179,11 +179,11 @@ The monorepo includes SDK packages:
 
 | Package | Description |
 |---------|-------------|
-| `@shove/sdk` | TypeScript SDK for Node.js/browser |
-| `shove-python` | Python SDK |
-| `@shove/langchain` | LangChain TypeScript integration |
-| `shove-langchain-python` | LangChain Python integration |
-| `@shove/llamaindex` | LlamaIndex integration |
+| `@check/sdk` | TypeScript SDK for Node.js/browser |
+| `check-python` | Python SDK |
+| `@check/langchain` | LangChain TypeScript integration |
+| `check-langchain-python` | LangChain Python integration |
+| `@check/llamaindex` | LlamaIndex integration |
 
 ---
 

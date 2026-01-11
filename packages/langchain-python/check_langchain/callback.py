@@ -1,5 +1,5 @@
 """
-Shove LangChain Callback Handler
+Check LangChain Callback Handler
 Auto-verify LLM outputs via LangChain callbacks
 """
 
@@ -10,8 +10,8 @@ from uuid import UUID
 from langchain_core.callbacks import BaseCallbackHandler, AsyncCallbackHandler
 from langchain_core.outputs import LLMResult
 
-from shove import Shove, AsyncShove, MethodsConfig, VerifyResponse
-from shove_langchain.exceptions import VerificationRejectedError
+from check import Check, AsyncCheck, MethodsConfig, VerifyResponse
+from check_langchain.exceptions import VerificationRejectedError
 
 
 @dataclass
@@ -37,7 +37,7 @@ class VerificationResult:
 
     @classmethod
     def from_response(cls, response: VerifyResponse) -> "VerificationResult":
-        """Create from Shove response."""
+        """Create from Check response."""
         return cls(
             verification_id=response.id,
             verdict=response.verdict,
@@ -48,20 +48,20 @@ class VerificationResult:
         )
 
 
-class ShoveCallbackHandler(BaseCallbackHandler):
+class CheckCallbackHandler(BaseCallbackHandler):
     """
     LangChain callback handler that auto-verifies LLM outputs.
 
-    This handler intercepts LLM responses and verifies them using Shove.
+    This handler intercepts LLM responses and verifies them using Check.
     Verification results are attached to the generation metadata.
 
     Example:
         >>> from langchain_openai import ChatOpenAI
-        >>> from shove import Shove
-        >>> from shove_langchain import ShoveCallbackHandler
+        >>> from shove import Check
+        >>> from check_langchain import CheckCallbackHandler
         >>>
-        >>> client = Shove(api_key="vfy_...")
-        >>> handler = ShoveCallbackHandler(
+        >>> client = Check(api_key="vfy_...")
+        >>> handler = CheckCallbackHandler(
         ...     client,
         ...     methods={"reasoning": 1.0, "tool": 0.5},
         ...     raise_on_reject=True,
@@ -71,7 +71,7 @@ class ShoveCallbackHandler(BaseCallbackHandler):
         >>> response = llm.invoke("What is the capital of France?")
 
     Attributes:
-        client: Shove client instance
+        client: Check client instance
         methods: Verification methods to use
         min_confidence: Minimum confidence threshold
         raise_on_reject: Whether to raise exception on rejection
@@ -80,7 +80,7 @@ class ShoveCallbackHandler(BaseCallbackHandler):
 
     def __init__(
         self,
-        client: Shove,
+        client: Check,
         *,
         methods: Optional[Union[MethodsConfig, Dict[str, float]]] = None,
         min_confidence: float = 0.7,
@@ -94,7 +94,7 @@ class ShoveCallbackHandler(BaseCallbackHandler):
         Initialize the callback handler.
 
         Args:
-            client: Shove client instance
+            client: Check client instance
             methods: Verification methods to use (default: reasoning=1.0)
             min_confidence: Minimum confidence threshold for acceptance
             raise_on_reject: Whether to raise VerificationRejectedError on rejection
@@ -185,22 +185,22 @@ class ShoveCallbackHandler(BaseCallbackHandler):
                     }
 
 
-class AsyncShoveCallbackHandler(AsyncCallbackHandler):
+class AsyncCheckCallbackHandler(AsyncCallbackHandler):
     """
     Async LangChain callback handler that auto-verifies LLM outputs.
 
-    This is the async version of ShoveCallbackHandler for use with
+    This is the async version of CheckCallbackHandler for use with
     async LangChain chains and agents.
 
     Example:
         >>> import asyncio
         >>> from langchain_openai import ChatOpenAI
-        >>> from shove import AsyncShove
-        >>> from shove_langchain import AsyncShoveCallbackHandler
+        >>> from shove import AsyncCheck
+        >>> from check_langchain import AsyncCheckCallbackHandler
         >>>
         >>> async def main():
-        ...     client = AsyncShove(api_key="vfy_...")
-        ...     handler = AsyncShoveCallbackHandler(client)
+        ...     client = AsyncCheck(api_key="vfy_...")
+        ...     handler = AsyncCheckCallbackHandler(client)
         ...     llm = ChatOpenAI(callbacks=[handler])
         ...     response = await llm.ainvoke("What is 2+2?")
         ...     await client.close()
@@ -210,7 +210,7 @@ class AsyncShoveCallbackHandler(AsyncCallbackHandler):
 
     def __init__(
         self,
-        client: AsyncShove,
+        client: AsyncCheck,
         *,
         methods: Optional[Union[MethodsConfig, Dict[str, float]]] = None,
         min_confidence: float = 0.7,
@@ -224,7 +224,7 @@ class AsyncShoveCallbackHandler(AsyncCallbackHandler):
         Initialize the async callback handler.
 
         Args:
-            client: AsyncShove client instance
+            client: AsyncCheck client instance
             methods: Verification methods to use (default: reasoning=1.0)
             min_confidence: Minimum confidence threshold for acceptance
             raise_on_reject: Whether to raise VerificationRejectedError on rejection

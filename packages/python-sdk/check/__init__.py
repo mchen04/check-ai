@@ -1,10 +1,10 @@
 """
-Shove SDK
-Official Python SDK for Shove - The Stripe for LLM Verification
+Check SDK
+Official Python SDK for Check - The Stripe for LLM Verification
 
 Example:
-    >>> from shove import Shove
-    >>> client = Shove(api_key="vfy_...")
+    >>> from check import Check
+    >>> client = Check(api_key="vfy_...")
     >>> result = client.verify_and_wait(
     ...     content="The speed of light is approximately 299,792 km/s.",
     ...     methods={"reasoning": 1.0}
@@ -13,8 +13,8 @@ Example:
     >>> print(result.confidence)  # 0.95
 """
 
-from shove.client import Shove, AsyncShove
-from shove.types import (
+from check.client import Check, AsyncCheck
+from check.types import (
     # Core types
     ParadigmType,
     Verdict,
@@ -43,8 +43,8 @@ from shove.types import (
     BatchWaitOptions,
     PaginationInfo,
 )
-from shove.errors import (
-    ShoveError,
+from check.errors import (
+    CheckError,
     AuthenticationError,
     AuthorizationError,
     ValidationError,
@@ -59,8 +59,8 @@ __version__ = "0.1.0"
 
 __all__ = [
     # Clients
-    "Shove",
-    "AsyncShove",
+    "Check",
+    "AsyncCheck",
     # Core types
     "ParadigmType",
     "Verdict",
@@ -89,7 +89,7 @@ __all__ = [
     "BatchWaitOptions",
     "PaginationInfo",
     # Errors
-    "ShoveError",
+    "CheckError",
     "AuthenticationError",
     "AuthorizationError",
     "ValidationError",

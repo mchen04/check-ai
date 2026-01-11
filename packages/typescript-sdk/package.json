@@ -1,7 +1,7 @@
 {
-  "name": "@shove/sdk",
+  "name": "@check/sdk",
   "version": "0.1.0",
-  "description": "Official TypeScript SDK for Shove.ai - AI-powered verification",
+  "description": "Official TypeScript SDK for Check.ai - AI-powered verification",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -27,24 +27,24 @@
     "docs:watch": "typedoc --watch"
   },
   "keywords": [
-    "shove",
+    "check",
     "llm",
     "verification",
     "hallucination",
     "ai",
     "sdk"
   ],
-  "author": "Shove.ai",
+  "author": "Check.ai",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/shove-ai/shove.git",
+    "url": "https://github.com/check-ai/check.git",
     "directory": "packages/typescript-sdk"
   },
   "bugs": {
-    "url": "https://github.com/shove-ai/shove/issues"
+    "url": "https://github.com/check-ai/check/issues"
   },
-  "homepage": "https://shove.ai/docs/sdk/typescript",
+  "homepage": "https://check.ai/docs/sdk/typescript",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"

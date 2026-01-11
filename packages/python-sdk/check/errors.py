@@ -1,13 +1,13 @@
 """
-Shove SDK Errors
-Custom exception classes for the Shove API
+Check SDK Errors
+Custom exception classes for the Check API
 """
 
 from typing import Any, Dict, Optional, Type
 
 
-class ShoveError(Exception):
-    """Base error class for all Shove errors."""
+class CheckError(Exception):
+    """Base error class for all Check errors."""
 
     def __init__(
         self,
@@ -43,7 +43,7 @@ class ShoveError(Exception):
         )
 
 
-class AuthenticationError(ShoveError):
+class AuthenticationError(CheckError):
     """
     Authentication error (401).
     Thrown when API key is missing, invalid, or expired.
@@ -67,7 +67,7 @@ class AuthenticationError(ShoveError):
         )
 
 
-class AuthorizationError(ShoveError):
+class AuthorizationError(CheckError):
     """
     Authorization error (403).
     Thrown when API key lacks permission for the requested operation.
@@ -91,7 +91,7 @@ class AuthorizationError(ShoveError):
         )
 
 
-class ValidationError(ShoveError):
+class ValidationError(CheckError):
     """
     Validation error (400).
     Thrown when request parameters are invalid.
@@ -115,7 +115,7 @@ class ValidationError(ShoveError):
         )
 
 
-class NotFoundError(ShoveError):
+class NotFoundError(CheckError):
     """
     Not found error (404).
     Thrown when requested resource doesn't exist.
@@ -139,7 +139,7 @@ class NotFoundError(ShoveError):
         )
 
 
-class RateLimitError(ShoveError):
+class RateLimitError(CheckError):
     """
     Rate limit error (429).
     Thrown when rate limit is exceeded.
@@ -165,7 +165,7 @@ class RateLimitError(ShoveError):
         self.retry_after = retry_after
 
 
-class QuotaExceededError(ShoveError):
+class QuotaExceededError(CheckError):
     """
     Quota exceeded error (402).
     Thrown when monthly verification quota is exceeded.
@@ -189,7 +189,7 @@ class QuotaExceededError(ShoveError):
         )
 
 
-class TimeoutError(ShoveError):
+class TimeoutError(CheckError):
     """
     Timeout error.
     Thrown when request or polling times out.
@@ -213,7 +213,7 @@ class TimeoutError(ShoveError):
         )
 
 
-class ServerError(ShoveError):
+class ServerError(CheckError):
     """
     Server error (5xx).
     Thrown when the API experiences an internal error.
@@ -237,11 +237,11 @@ class ServerError(ShoveError):
         )
 
 
-def get_error_class(code: Optional[str], status: Optional[int]) -> Type[ShoveError]:
+def get_error_class(code: Optional[str], status: Optional[int]) -> Type[CheckError]:
     """Get the appropriate error class based on error code or status."""
 
     # Check by code first
-    code_mapping: Dict[str, Type[ShoveError]] = {
+    code_mapping: Dict[str, Type[CheckError]] = {
         "AUTHENTICATION_ERROR": AuthenticationError,
         "AUTHORIZATION_ERROR": AuthorizationError,
         "VALIDATION_ERROR": ValidationError,
@@ -255,7 +255,7 @@ def get_error_class(code: Optional[str], status: Optional[int]) -> Type[ShoveErr
         return code_mapping[code]
 
     # Fall back to status code
-    status_mapping: Dict[int, Type[ShoveError]] = {
+    status_mapping: Dict[int, Type[CheckError]] = {
         400: ValidationError,
         401: AuthenticationError,
         402: QuotaExceededError,
@@ -271,4 +271,4 @@ def get_error_class(code: Optional[str], status: Optional[int]) -> Type[ShoveErr
     if status and status in status_mapping:
         return status_mapping[status]
 
-    return ShoveError
+    return CheckError

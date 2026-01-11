@@ -21,10 +21,10 @@ interface WelcomeEmailProps {
 export function WelcomeEmail({ userName, dashboardUrl, docsUrl }: WelcomeEmailProps) {
   return (
     <BaseTemplate
-      preview="Welcome to Shove - Let's get started!"
+      preview="Welcome to Check - Let's get started!"
       footer={<StandardFooter />}
     >
-      <Heading style={emailStyles.h1}>Welcome to Shove!</Heading>
+      <Heading style={emailStyles.h1}>Welcome to Check!</Heading>
       <Text style={emailStyles.text}>Hi {userName},</Text>
       <Text style={emailStyles.text}>
         Thanks for signing up! You&apos;re ready to start verifying AI-generated content and

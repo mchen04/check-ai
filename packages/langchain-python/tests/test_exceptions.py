@@ -1,8 +1,8 @@
-"""Tests for Shove LangChain exceptions."""
+"""Tests for Check LangChain exceptions."""
 
 import pytest
 
-from shove_langchain.exceptions import VerificationError, VerificationRejectedError
+from check_langchain.exceptions import VerificationError, VerificationRejectedError
 
 
 class TestVerificationError:

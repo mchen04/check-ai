@@ -5,7 +5,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Shove - Stop $2.4M Hallucination Incidents',
+  title: 'Check - Stop $2.4M Hallucination Incidents',
   description:
     'Multi-method AI verification platform. One API, seven research-backed approaches, custom weighting. Catch AI hallucinations before they cost millions.',
 };

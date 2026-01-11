@@ -2,7 +2,7 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["./src/index.ts"],
   "out": "./docs/api",
-  "name": "@shove/sdk",
+  "name": "@check/sdk",
   "readme": "./README.md",
   "plugin": ["typedoc-plugin-markdown"],
   "excludePrivate": true,

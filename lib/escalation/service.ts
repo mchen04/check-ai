@@ -192,7 +192,7 @@ export async function createEscalation(
 
   // Send email alerts to org members (fire-and-forget)
   if (escalation && orgId && organizationName) {
-    const dashboardUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://app.shove.ai';
+    const dashboardUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://app.check.ai';
 
     sendEscalationAlert({
       escalation: {

@@ -27,7 +27,7 @@ export function TeamInviteEmail({
 }: TeamInviteEmailProps) {
   return (
     <BaseTemplate
-      preview={`You've been invited to join ${organizationName} on Shove`}
+      preview={`You've been invited to join ${organizationName} on Check`}
       footer={
         <StandardFooter helpText="If you didn't expect this invitation, you can ignore this email." />
       }
@@ -35,7 +35,7 @@ export function TeamInviteEmail({
       <Heading style={emailStyles.h1}>Team Invitation</Heading>
       <Text style={emailStyles.text}>
         You&apos;ve been invited to join <strong>{organizationName}</strong> as a{' '}
-        <strong>{role}</strong> on Shove.
+        <strong>{role}</strong> on Check.
       </Text>
       <Section style={emailStyles.buttonContainer}>
         <Button style={emailStyles.button} href={inviteUrl}>

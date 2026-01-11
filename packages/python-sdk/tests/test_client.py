@@ -1,11 +1,11 @@
-"""Tests for Shove client."""
+"""Tests for Check client."""
 
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 
-from shove import Shove, AsyncShove
-from shove.errors import (
-    ShoveError,
+from check import Check, AsyncCheck
+from check.errors import (
+    CheckError,
     AuthenticationError,
     RateLimitError,
     TimeoutError,
@@ -14,47 +14,47 @@ from shove.errors import (
 )
 
 
-class TestShoveInit:
-    """Test Shove client initialization."""
+class TestCheckInit:
+    """Test Check client initialization."""
 
     def test_init_requires_api_key(self):
         """Should raise error when API key is missing."""
-        with pytest.raises(ShoveError) as exc_info:
-            Shove(api_key="")
+        with pytest.raises(CheckError) as exc_info:
+            Check(api_key="")
         assert exc_info.value.code == "MISSING_API_KEY"
 
     def test_init_with_valid_api_key(self, api_key):
         """Should create client with valid API key."""
         with patch("httpx.Client"):
-            client = Shove(api_key=api_key)
+            client = Check(api_key=api_key)
             assert client is not None
 
     def test_init_with_custom_base_url(self, api_key):
         """Should accept custom base URL."""
         with patch("httpx.Client"):
-            client = Shove(api_key=api_key, base_url="https://custom.api.com/")
+            client = Check(api_key=api_key, base_url="https://custom.api.com/")
             assert client._base_url == "https://custom.api.com"
 
     def test_init_strips_trailing_slash(self, api_key):
         """Should strip trailing slash from base URL."""
         with patch("httpx.Client"):
-            client = Shove(api_key=api_key, base_url="https://api.shove.ai/")
-            assert client._base_url == "https://api.shove.ai"
+            client = Check(api_key=api_key, base_url="https://api.check.ai/")
+            assert client._base_url == "https://api.check.ai"
 
     def test_init_with_retry_disabled(self, api_key):
         """Should disable retry when retry=False."""
         with patch("httpx.Client"):
-            client = Shove(api_key=api_key, retry=False)
+            client = Check(api_key=api_key, retry=False)
             assert client._retry_config is None
 
     def test_init_with_retry_enabled(self, api_key):
         """Should use default retry config when retry=True."""
         with patch("httpx.Client"):
-            client = Shove(api_key=api_key, retry=True)
+            client = Check(api_key=api_key, retry=True)
             assert client._retry_config is not None
 
 
-class TestShoveVerify:
+class TestCheckVerify:
     """Test verify method."""
 
     def test_verify_sends_correct_request(self, api_key, mock_response):
@@ -67,7 +67,7 @@ class TestShoveVerify:
             })
             MockClient.return_value = mock_client
 
-            client = Shove(api_key=api_key)
+            client = Check(api_key=api_key)
             result = client.verify(
                 content="Test content",
                 methods={"reasoning": 1.0},
@@ -89,7 +89,7 @@ class TestShoveVerify:
             })
             MockClient.return_value = mock_client
 
-            client = Shove(api_key=api_key)
+            client = Check(api_key=api_key)
             client.verify(
                 content="Test content",
                 methods={"reasoning": 1.0},
@@ -110,7 +110,7 @@ class TestShoveVerify:
             })
             MockClient.return_value = mock_client
 
-            client = Shove(api_key=api_key)
+            client = Check(api_key=api_key)
             client.verify(
                 content="Test content",
                 methods={"reasoning": 1.0},
@@ -122,14 +122,14 @@ class TestShoveVerify:
             assert body["idempotencyKey"] == "key123"
 
 
-class TestShoveGetVerification:
+class TestCheckGetVerification:
     """Test get_verification method."""
 
     def test_get_verification_requires_id(self, api_key):
         """Should raise error when ID is missing."""
         with patch("httpx.Client"):
-            client = Shove(api_key=api_key)
-            with pytest.raises(ShoveError) as exc_info:
+            client = Check(api_key=api_key)
+            with pytest.raises(CheckError) as exc_info:
                 client.get_verification("")
             assert exc_info.value.code == "MISSING_ID"
 
@@ -145,7 +145,7 @@ class TestShoveGetVerification:
             })
             MockClient.return_value = mock_client
 
-            client = Shove(api_key=api_key)
+            client = Check(api_key=api_key)
             result = client.get_verification("ver_123")
 
             assert result.status == "completed"
@@ -153,7 +153,7 @@ class TestShoveGetVerification:
             assert result.confidence == 0.95
 
 
-class TestShoveVerifyAndWait:
+class TestCheckVerifyAndWait:
     """Test verify_and_wait method."""
 
     def test_verify_and_wait_polls_until_complete(self, api_key, mock_response):
@@ -173,7 +173,7 @@ class TestShoveVerifyAndWait:
             mock_client.request.side_effect = responses
             MockClient.return_value = mock_client
 
-            client = Shove(api_key=api_key)
+            client = Check(api_key=api_key)
             result = client.verify_and_wait(
                 content="Test",
                 methods={"reasoning": 1.0},
@@ -195,7 +195,7 @@ class TestShoveVerifyAndWait:
             })
             MockClient.return_value = mock_client
 
-            client = Shove(api_key=api_key)
+            client = Check(api_key=api_key)
             with pytest.raises(TimeoutError):
                 client.verify_and_wait(
                     content="Test",
@@ -205,7 +205,7 @@ class TestShoveVerifyAndWait:
                 )
 
 
-class TestShoveBatchOperations:
+class TestCheckBatchOperations:
     """Test batch verification operations."""
 
     def test_create_batch(self, api_key, mock_response):
@@ -220,7 +220,7 @@ class TestShoveBatchOperations:
             })
             MockClient.return_value = mock_client
 
-            client = Shove(api_key=api_key)
+            client = Check(api_key=api_key)
             result = client.create_batch(
                 methods={"reasoning": 1.0},
                 items=[
@@ -236,8 +236,8 @@ class TestShoveBatchOperations:
     def test_get_batch_requires_id(self, api_key):
         """Should raise error when batch ID is missing."""
         with patch("httpx.Client"):
-            client = Shove(api_key=api_key)
-            with pytest.raises(ShoveError):
+            client = Check(api_key=api_key)
+            with pytest.raises(CheckError):
                 client.get_batch("")
 
     def test_get_batch(self, api_key, mock_response):
@@ -256,14 +256,14 @@ class TestShoveBatchOperations:
             })
             MockClient.return_value = mock_client
 
-            client = Shove(api_key=api_key)
+            client = Check(api_key=api_key)
             result = client.get_batch("batch_123")
 
             assert result.progress == 50
             assert result.completed_items == 5
 
 
-class TestShoveErrorHandling:
+class TestCheckErrorHandling:
     """Test error handling."""
 
     def test_authentication_error_on_401(self, api_key, mock_response):
@@ -276,7 +276,7 @@ class TestShoveErrorHandling:
             )
             MockClient.return_value = mock_client
 
-            client = Shove(api_key=api_key, retry=False)
+            client = Check(api_key=api_key, retry=False)
             with pytest.raises(AuthenticationError):
                 client.verify(content="Test", methods={"reasoning": 1.0})
 
@@ -290,7 +290,7 @@ class TestShoveErrorHandling:
             )
             MockClient.return_value = mock_client
 
-            client = Shove(api_key=api_key, retry=False)
+            client = Check(api_key=api_key, retry=False)
             with pytest.raises(ValidationError):
                 # Use valid local input that server rejects
                 client.verify(content="Test content", methods={"reasoning": 1.0})
@@ -305,7 +305,7 @@ class TestShoveErrorHandling:
             )
             MockClient.return_value = mock_client
 
-            client = Shove(api_key=api_key, retry=False)
+            client = Check(api_key=api_key, retry=False)
             with pytest.raises(NotFoundError):
                 client.get_verification("ver_notexist")
 
@@ -320,13 +320,13 @@ class TestShoveErrorHandling:
             )
             MockClient.return_value = mock_client
 
-            client = Shove(api_key=api_key, retry=False)
+            client = Check(api_key=api_key, retry=False)
             with pytest.raises(RateLimitError) as exc_info:
                 client.verify(content="Test", methods={"reasoning": 1.0})
             assert exc_info.value.retry_after == 30
 
 
-class TestShoveContextManager:
+class TestCheckContextManager:
     """Test context manager support."""
 
     def test_context_manager(self, api_key):
@@ -335,19 +335,19 @@ class TestShoveContextManager:
             mock_client = MagicMock()
             MockClient.return_value = mock_client
 
-            with Shove(api_key=api_key) as client:
+            with Check(api_key=api_key) as client:
                 assert client is not None
 
             mock_client.close.assert_called_once()
 
 
-class TestAsyncShove:
-    """Test async Shove client."""
+class TestAsyncCheck:
+    """Test async Check client."""
 
     def test_init_requires_api_key(self):
         """Should raise error when API key is missing."""
-        with pytest.raises(ShoveError):
-            AsyncShove(api_key="")
+        with pytest.raises(CheckError):
+            AsyncCheck(api_key="")
 
     @pytest.mark.asyncio
     async def test_verify_async(self, api_key, mock_response):
@@ -361,7 +361,7 @@ class TestAsyncShove:
             mock_client.aclose = AsyncMock()
             MockClient.return_value = mock_client
 
-            client = AsyncShove(api_key=api_key)
+            client = AsyncCheck(api_key=api_key)
             result = await client.verify(
                 content="Test",
                 methods={"reasoning": 1.0},
@@ -382,7 +382,7 @@ class TestAsyncShove:
             mock_client.aclose = AsyncMock()
             MockClient.return_value = mock_client
 
-            async with AsyncShove(api_key=api_key) as client:
+            async with AsyncCheck(api_key=api_key) as client:
                 result = await client.verify(
                     content="Test",
                     methods={"reasoning": 1.0},

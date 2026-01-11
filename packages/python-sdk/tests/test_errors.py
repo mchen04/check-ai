@@ -1,8 +1,8 @@
-"""Tests for Shove errors."""
+"""Tests for Check errors."""
 
 import pytest
-from shove.errors import (
-    ShoveError,
+from check.errors import (
+    CheckError,
     AuthenticationError,
     AuthorizationError,
     ValidationError,
@@ -15,47 +15,47 @@ from shove.errors import (
 )
 
 
-class TestShoveError:
+class TestCheckError:
     """Test base error class."""
 
     def test_error_with_message(self):
         """Should create error with message."""
-        error = ShoveError("Test error")
+        error = CheckError("Test error")
         assert str(error).startswith("Test error")
         assert error.message == "Test error"
 
     def test_error_with_code(self):
         """Should include error code."""
-        error = ShoveError("Test", code="TEST_CODE")
+        error = CheckError("Test", code="TEST_CODE")
         assert error.code == "TEST_CODE"
         assert "[TEST_CODE]" in str(error)
 
     def test_error_with_status(self):
         """Should include HTTP status."""
-        error = ShoveError("Test", status=400)
+        error = CheckError("Test", status=400)
         assert error.status == 400
 
     def test_error_with_request_id(self):
         """Should include request ID."""
-        error = ShoveError("Test", request_id="req_123")
+        error = CheckError("Test", request_id="req_123")
         assert error.request_id == "req_123"
         assert "req_123" in str(error)
 
     def test_error_with_details(self):
         """Should include details."""
-        error = ShoveError("Test", details={"field": "content"})
+        error = CheckError("Test", details={"field": "content"})
         assert error.details == {"field": "content"}
 
     def test_default_code(self):
         """Should have default code UNKNOWN_ERROR."""
-        error = ShoveError("Test")
+        error = CheckError("Test")
         assert error.code == "UNKNOWN_ERROR"
 
     def test_repr(self):
         """Should have proper repr."""
-        error = ShoveError("Test", code="TEST", status=400, request_id="req_123")
+        error = CheckError("Test", code="TEST", status=400, request_id="req_123")
         repr_str = repr(error)
-        assert "ShoveError" in repr_str
+        assert "CheckError" in repr_str
         assert "Test" in repr_str
         assert "TEST" in repr_str
 
@@ -73,10 +73,10 @@ class TestAuthenticationError:
         error = AuthenticationError("Invalid key")
         assert error.status == 401
 
-    def test_is_shove_error(self):
-        """Should be instance of ShoveError."""
+    def test_is_check_error(self):
+        """Should be instance of CheckError."""
         error = AuthenticationError("Invalid key")
-        assert isinstance(error, ShoveError)
+        assert isinstance(error, CheckError)
         assert isinstance(error, Exception)
 
 
@@ -276,8 +276,8 @@ class TestGetErrorClass:
         assert get_error_class(None, 504) == ServerError
 
     def test_unknown_code_and_status(self):
-        """Should return ShoveError for unknown code and status."""
-        assert get_error_class("UNKNOWN", 999) == ShoveError
+        """Should return CheckError for unknown code and status."""
+        assert get_error_class("UNKNOWN", 999) == CheckError
 
     def test_code_takes_precedence(self):
         """Code should take precedence over status."""
@@ -289,8 +289,8 @@ class TestGetErrorClass:
 class TestErrorInheritance:
     """Test error class inheritance."""
 
-    def test_all_errors_are_shove_errors(self):
-        """All error types should be instances of ShoveError."""
+    def test_all_errors_are_check_errors(self):
+        """All error types should be instances of CheckError."""
         errors = [
             AuthenticationError("test"),
             AuthorizationError("test"),
@@ -303,7 +303,7 @@ class TestErrorInheritance:
         ]
 
         for error in errors:
-            assert isinstance(error, ShoveError)
+            assert isinstance(error, CheckError)
             assert isinstance(error, Exception)
 
     def test_all_errors_are_exceptions(self):

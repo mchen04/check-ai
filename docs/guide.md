@@ -1,4 +1,4 @@
-# Shove: Complete Product & Methodology Guide
+# Check: Complete Product & Methodology Guide
 
 **The Stripe for LLM Verification**
 
@@ -84,7 +84,7 @@ POST /v1/verify
 
 ### Competitive Differentiation
 
-| Feature          | Guardrails | Cleanlab | Harmonic      | **Shove** |
+| Feature          | Guardrails | Cleanlab | Harmonic      | **Check** |
 | ---------------- | ---------- | -------- | ------------- | ------------ |
 | Multiple methods | ✗          | ✗        | ✗             | **✓ (7+)**   |
 | Custom weighting | ✗          | ✗        | ✗             | **✓**        |

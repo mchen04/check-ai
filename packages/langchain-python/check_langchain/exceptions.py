@@ -1,5 +1,5 @@
 """
-Shove LangChain Exceptions
+Check LangChain Exceptions
 Custom exceptions for verification failures
 """
 

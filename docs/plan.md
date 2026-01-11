@@ -1,8 +1,8 @@
-Shove Full Implementation Plan
+Check Full Implementation Plan
 
      Overview
 
-     Complete implementation of Shove - a multi-method LLM verification platform with 7 verification paradigms, BYOK (Bring Your Own Key) support via LiteLLM, Supabase
+     Complete implementation of Check - a multi-method LLM verification platform with 7 verification paradigms, BYOK (Bring Your Own Key) support via LiteLLM, Supabase
      real-time status updates, and tiered subscription billing.
 
      ---

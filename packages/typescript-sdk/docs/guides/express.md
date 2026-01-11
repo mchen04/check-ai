@@ -1,11 +1,11 @@
 # Express.js Integration Guide
 
-This guide shows how to integrate the Shove SDK with Express.js applications.
+This guide shows how to integrate the Check SDK with Express.js applications.
 
 ## Installation
 
 ```bash
-npm install @shove/sdk express
+npm install @check/sdk express
 npm install -D @types/express typescript
 ```
 
@@ -14,13 +14,13 @@ npm install -D @types/express typescript
 ```typescript
 // src/index.ts
 import express from 'express';
-import { Shove } from '@shove/sdk';
+import { Check } from '@check/sdk';
 
 const app = express();
 app.use(express.json());
 
-const client = new Shove({
-  apiKey: process.env.SHOVE_API_KEY!,
+const client = new Check({
+  apiKey: process.env.CHECK_API_KEY!,
 });
 
 // Verify endpoint
@@ -56,10 +56,10 @@ Create reusable verification middleware:
 ```typescript
 // src/middleware/verify.ts
 import { Request, Response, NextFunction } from 'express';
-import { Shove, VerifyResponse } from '@shove/sdk';
+import { Check, VerifyResponse } from '@check/sdk';
 
-const client = new Shove({
-  apiKey: process.env.SHOVE_API_KEY!,
+const client = new Check({
+  apiKey: process.env.CHECK_API_KEY!,
 });
 
 // Extend Express Request type
@@ -222,12 +222,12 @@ app.post('/verify/batch', async (req, res) => {
 
 ```typescript
 import {
-  Shove,
+  Check,
   RateLimitError,
   AuthenticationError,
   ValidationError,
   QuotaExceededError
-} from '@shove/sdk';
+} from '@check/sdk';
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
@@ -268,8 +268,8 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 Configure custom retry behavior:
 
 ```typescript
-const client = new Shove({
-  apiKey: process.env.SHOVE_API_KEY!,
+const client = new Check({
+  apiKey: process.env.CHECK_API_KEY!,
   retry: {
     maxRetries: 5,
     initialDelayMs: 500,
@@ -284,8 +284,8 @@ const client = new Shove({
 Set custom timeout:
 
 ```typescript
-const client = new Shove({
-  apiKey: process.env.SHOVE_API_KEY!,
+const client = new Check({
+  apiKey: process.env.CHECK_API_KEY!,
   timeout: 60000, // 60 seconds
 });
 ```

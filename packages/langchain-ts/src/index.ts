@@ -1,15 +1,15 @@
 /**
- * Shove LangChain Integration
- * Auto-verify LLM outputs with Shove callbacks
+ * Check LangChain Integration
+ * Auto-verify LLM outputs with Check callbacks
  *
  * @example
  * ```typescript
  * import { ChatOpenAI } from "@langchain/openai";
- * import { Shove } from "@shove/sdk";
- * import { ShoveCallbackHandler } from "@shove/langchain";
+ * import { Check } from "@check/sdk";
+ * import { CheckCallbackHandler } from "@check/langchain";
  *
- * const client = new Shove({ apiKey: "vfy_..." });
- * const handler = new ShoveCallbackHandler(client);
+ * const client = new Check({ apiKey: "vfy_..." });
+ * const handler = new CheckCallbackHandler(client);
  *
  * const llm = new ChatOpenAI({
  *   callbacks: [handler],
@@ -19,6 +19,6 @@
  * ```
  */
 
-export { ShoveCallbackHandler } from './callback';
-export type { ShoveCallbackHandlerOptions, VerificationResult } from './callback';
+export { CheckCallbackHandler } from './callback';
+export type { CheckCallbackHandlerOptions, VerificationResult } from './callback';
 export { VerificationError, VerificationRejectedError } from './errors';

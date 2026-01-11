@@ -186,7 +186,7 @@ export async function sendWeeklyReportForOrg({
     for (const member of members) {
       const result = await sendEmail(
         {
-          from: 'Shove <reports@shove.ai>',
+          from: 'Check <reports@check.ai>',
           to: member.userEmail,
           subject: `Weekly Report - ${organizationName}`,
           react: WeeklyReportEmail({
@@ -225,7 +225,7 @@ export async function sendAllWeeklyReports(): Promise<{
   totalSent: number;
   errors: string[];
 }> {
-  const dashboardUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://app.shove.ai';
+  const dashboardUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://app.check.ai';
 
   // Calculate period (last 7 days)
   const periodEnd = new Date();

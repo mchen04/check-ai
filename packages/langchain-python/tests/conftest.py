@@ -1,4 +1,4 @@
-"""Test fixtures for Shove LangChain tests."""
+"""Test fixtures for Check LangChain tests."""
 
 import pytest
 from dataclasses import dataclass
@@ -9,7 +9,7 @@ from uuid import uuid4
 
 @dataclass
 class MockVerifyResponse:
-    """Mock Shove response object."""
+    """Mock Check response object."""
 
     id: str
     status: str = "completed"
@@ -38,7 +38,7 @@ class MockLLMResult:
 
 @pytest.fixture
 def mock_verify_response():
-    """Factory fixture to create mock Shove responses."""
+    """Factory fixture to create mock Check responses."""
 
     def _mock_response(
         verdict: str = "true",
@@ -82,7 +82,7 @@ def mock_llm_result():
 
 @pytest.fixture
 def mock_sync_client(mock_verify_response):
-    """Create a mock sync Shove client."""
+    """Create a mock sync Check client."""
     client = MagicMock()
     client.verify_and_wait.return_value = mock_verify_response()
     return client
@@ -90,7 +90,7 @@ def mock_sync_client(mock_verify_response):
 
 @pytest.fixture
 def mock_async_client(mock_verify_response):
-    """Create a mock async Shove client."""
+    """Create a mock async Check client."""
     client = MagicMock()
     client.verify_and_wait = AsyncMock(return_value=mock_verify_response())
     return client

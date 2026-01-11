@@ -1,23 +1,23 @@
-# @shove/langchain
+# @check/langchain
 
-LangChain integration for Shove - Auto-verify LLM outputs with callbacks.
+LangChain integration for Check - Auto-verify LLM outputs with callbacks.
 
 ## Installation
 
 ```bash
-npm install @shove/langchain @shove/sdk
+npm install @check/langchain @check/sdk
 ```
 
 ## Quick Start
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
-import { Shove } from "@shove/sdk";
-import { ShoveCallbackHandler } from "@shove/langchain";
+import { Check } from "@check/sdk";
+import { CheckCallbackHandler } from "@check/langchain";
 
 // Initialize clients
-const client = new Shove({ apiKey: "vfy_..." });
-const handler = new ShoveCallbackHandler(client);
+const client = new Check({ apiKey: "vfy_..." });
+const handler = new CheckCallbackHandler(client);
 
 // Use with any LangChain LLM
 const llm = new ChatOpenAI({
@@ -42,11 +42,11 @@ const response = await llm.invoke("What is the capital of France?");
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
-import { Shove } from "@shove/sdk";
-import { ShoveCallbackHandler } from "@shove/langchain";
+import { Check } from "@check/sdk";
+import { CheckCallbackHandler } from "@check/langchain";
 
-const client = new Shove({ apiKey: "vfy_..." });
-const handler = new ShoveCallbackHandler(client);
+const client = new Check({ apiKey: "vfy_..." });
+const handler = new CheckCallbackHandler(client);
 
 const llm = new ChatOpenAI({ callbacks: [handler] });
 const response = await llm.invoke("What is 2+2?");
@@ -55,7 +55,7 @@ const response = await llm.invoke("What is 2+2?");
 ### Configure Methods
 
 ```typescript
-const handler = new ShoveCallbackHandler(client, {
+const handler = new CheckCallbackHandler(client, {
   methods: { reasoning: 1.0, tool: 0.5 },
   minConfidence: 0.7,
 });
@@ -64,9 +64,9 @@ const handler = new ShoveCallbackHandler(client, {
 ### Raise on Rejection
 
 ```typescript
-import { ShoveCallbackHandler, VerificationRejectedError } from "@shove/langchain";
+import { CheckCallbackHandler, VerificationRejectedError } from "@check/langchain";
 
-const handler = new ShoveCallbackHandler(client, {
+const handler = new CheckCallbackHandler(client, {
   raiseOnReject: true,
 });
 
@@ -82,7 +82,7 @@ try {
 ### Custom Callback
 
 ```typescript
-const handler = new ShoveCallbackHandler(client, {
+const handler = new CheckCallbackHandler(client, {
   onVerification: (content, result) => {
     console.log(`Verified: ${result.verdict} (${(result.confidence * 100).toFixed(0)}%)`);
   },
@@ -92,7 +92,7 @@ const handler = new ShoveCallbackHandler(client, {
 ## Configuration Options
 
 ```typescript
-interface ShoveCallbackHandlerOptions {
+interface CheckCallbackHandlerOptions {
   methods?: MethodsConfig;           // Verification methods (default: { reasoning: 1.0 })
   minConfidence?: number;            // Min confidence threshold (default: 0.7)
   raiseOnReject?: boolean;           // Raise on rejection (default: false)
@@ -120,7 +120,7 @@ const result = await chain.invoke({ question: "What is the speed of light?" });
 
 - Node.js 18+
 - @langchain/core >= 0.1.0
-- @shove/sdk
+- @check/sdk
 
 ## License
 

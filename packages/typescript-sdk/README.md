@@ -1,26 +1,26 @@
-# @shove/sdk
+# @check/sdk
 
-Official TypeScript SDK for Shove - The Stripe for LLM Verification.
+Official TypeScript SDK for Check - The Stripe for LLM Verification.
 
 Verify AI-generated content to prevent costly hallucinations with 7 verification methods.
 
 ## Installation
 
 ```bash
-npm install @shove/sdk
+npm install @check/sdk
 # or
-yarn add @shove/sdk
+yarn add @check/sdk
 # or
-pnpm add @shove/sdk
+pnpm add @check/sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { Shove } from '@shove/sdk';
+import { Check } from '@check/sdk';
 
 // Initialize client
-const client = new Shove({ apiKey: 'vfy_...' });
+const client = new Check({ apiKey: 'vfy_...' });
 
 // Verify content (3 lines!)
 const result = await client.verifyAndWait({
@@ -114,11 +114,11 @@ interface VerifyResponse {
 
 ```typescript
 import {
-  Shove,
+  Check,
   AuthenticationError,
   RateLimitError,
   QuotaExceededError
-} from '@shove/sdk';
+} from '@check/sdk';
 
 try {
   const result = await client.verifyAndWait({ ... });
@@ -136,9 +136,9 @@ try {
 ## Configuration
 
 ```typescript
-const client = new Shove({
+const client = new Check({
   apiKey: 'vfy_...',
-  baseUrl: 'https://api.shove.ai',  // Optional
+  baseUrl: 'https://api.check.ai',  // Optional
   timeout: 30000,                        // Request timeout in ms
 });
 ```
@@ -155,7 +155,7 @@ import type {
   ParadigmResult,
   Verdict,
   Decision,
-} from '@shove/sdk';
+} from '@check/sdk';
 ```
 
 ## Requirements

@@ -52,7 +52,7 @@ const baseLogger = pino({
   // Base bindings included in all log entries
   base: {
     env: process.env.NODE_ENV || 'development',
-    service: 'shove',
+    service: 'check',
   },
 
   // ISO timestamp format

@@ -64,7 +64,7 @@ export default async function ApiKeysPage() {
         <div>
           <h1 className="mb-2 text-2xl font-bold tracking-tight">API Keys</h1>
           <p className="text-muted-foreground">
-            Manage your API keys for accessing the Shove API
+            Manage your API keys for accessing the Check API
           </p>
         </div>
         <CreateApiKeyDialog />
@@ -97,7 +97,7 @@ export default async function ApiKeysPage() {
               <Key className="mb-4 h-12 w-12 text-muted-foreground/30" />
               <p className="mb-2 text-sm font-medium">No API keys yet</p>
               <p className="mb-4 text-xs text-muted-foreground">
-                Create your first API key to start using the Shove API
+                Create your first API key to start using the Check API
               </p>
               <CreateApiKeyDialog />
             </div>

@@ -90,7 +90,7 @@ export function OnboardingChecklist({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg">Get Started with Shove</CardTitle>
+            <CardTitle className="text-lg">Get Started with Check</CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
               Complete these steps to start verifying content
             </p>

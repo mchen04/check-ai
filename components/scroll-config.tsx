@@ -86,7 +86,7 @@ export default function ScrollConfig() {
             </h2>
             <p className="text-base leading-relaxed text-muted-foreground">
               Different industries need different verification mixes. Here&apos;s how teams
-              configure Shove.
+              configure Check.
             </p>
           </div>
 

@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import { Shield } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | Shove',
-  description: 'Terms of Service for Shove - The Stripe for LLM Verification',
+  title: 'Terms of Service | Check',
+  description: 'Terms of Service for Check - The Stripe for LLM Verification',
 };
 
 export default function TermsPage() {
@@ -17,7 +17,7 @@ export default function TermsPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
               <Shield className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-semibold tracking-tight">Shove</span>
+            <span className="text-xl font-semibold tracking-tight">Check</span>
           </Link>
         </div>
       </header>
@@ -37,13 +37,13 @@ export default function TermsPage() {
         <div className="prose prose-neutral dark:prose-invert max-w-none">
           <h2>1. Acceptance of Terms</h2>
           <p>
-            By accessing or using Shove (&quot;Service&quot;), you agree to be bound by these
+            By accessing or using Check (&quot;Service&quot;), you agree to be bound by these
             Terms of Service. If you do not agree to these terms, do not use the Service.
           </p>
 
           <h2>2. Description of Service</h2>
           <p>
-            Shove provides AI-powered content verification services through an API and web
+            Check provides AI-powered content verification services through an API and web
             dashboard. The Service is currently in beta and subject to change.
           </p>
 
@@ -81,7 +81,7 @@ export default function TermsPage() {
           <h2>7. Intellectual Property</h2>
           <p>
             The Service and its original content, features, and functionality are owned by
-            Shove and are protected by international copyright, trademark, and other
+            Check and are protected by international copyright, trademark, and other
             intellectual property laws.
           </p>
 
@@ -94,7 +94,7 @@ export default function TermsPage() {
 
           <h2>9. Limitation of Liability</h2>
           <p>
-            TO THE MAXIMUM EXTENT PERMITTED BY LAW, SHOVE SHALL NOT BE LIABLE FOR ANY
+            TO THE MAXIMUM EXTENT PERMITTED BY LAW, CHECK SHALL NOT BE LIABLE FOR ANY
             INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM YOUR
             USE OF THE SERVICE.
           </p>
@@ -114,7 +114,7 @@ export default function TermsPage() {
           <h2>12. Contact</h2>
           <p>
             For questions about these Terms, contact us at{' '}
-            <a href="mailto:legal@shove.ai">legal@shove.ai</a>.
+            <a href="mailto:legal@check.ai">legal@check.ai</a>.
           </p>
         </div>
       </main>

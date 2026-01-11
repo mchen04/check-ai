@@ -1,15 +1,15 @@
 /**
- * Shove SDK
- * Official TypeScript SDK for Shove - The Stripe for LLM Verification
+ * Check SDK
+ * Official TypeScript SDK for Check - The Stripe for LLM Verification
  *
  * @packageDocumentation
  *
  * @example
  * ```typescript
- * import { Shove } from '@shove/sdk';
+ * import { Check } from '@check/sdk';
  *
  * // Initialize client
- * const client = new Shove({ apiKey: 'vfy_...' });
+ * const client = new Check({ apiKey: 'vfy_...' });
  *
  * // Verify content (3-line integration!)
  * const result = await client.verifyAndWait({
@@ -24,7 +24,7 @@
  */
 
 // Client
-export { Shove, VERSION } from './client';
+export { Check, VERSION } from './client';
 
 // Types
 export type {
@@ -41,7 +41,7 @@ export type {
   ParadigmResult,
   VerifyResponse,
   // Client options
-  ShoveOptions,
+  CheckOptions,
   WaitOptions,
   RetryConfig,
   // Error types
@@ -62,7 +62,7 @@ export type {
 
 // Errors
 export {
-  ShoveError,
+  CheckError,
   AuthenticationError,
   AuthorizationError,
   ValidationError,

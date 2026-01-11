@@ -1,14 +1,14 @@
 /**
- * Shove SDK Errors
- * Custom error classes for the Shove API
+ * Check SDK Errors
+ * Custom error classes for the Check API
  */
 
 import type { ApiErrorResponse } from './types';
 
 /**
- * Base error class for all Shove errors
+ * Base error class for all Check errors
  */
-export class ShoveError extends Error {
+export class CheckError extends Error {
   /** Error code for programmatic handling */
   readonly code: string;
   /** HTTP status code if applicable */
@@ -28,7 +28,7 @@ export class ShoveError extends Error {
     }
   ) {
     super(message);
-    this.name = 'ShoveError';
+    this.name = 'CheckError';
     this.code = options?.code ?? 'UNKNOWN_ERROR';
     this.status = options?.status;
     this.requestId = options?.requestId;
@@ -36,7 +36,7 @@ export class ShoveError extends Error {
 
     // Maintains proper stack trace for where our error was thrown
     if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, ShoveError);
+      Error.captureStackTrace(this, CheckError);
     }
   }
 
@@ -46,7 +46,7 @@ export class ShoveError extends Error {
   static fromResponse(
     response: ApiErrorResponse,
     status: number
-  ): ShoveError {
+  ): CheckError {
     const ErrorClass = getErrorClass(response.code, status);
     return new ErrorClass(response.error, {
       code: response.code,
@@ -61,7 +61,7 @@ export class ShoveError extends Error {
  * Authentication error (401)
  * Thrown when API key is missing, invalid, or expired
  */
-export class AuthenticationError extends ShoveError {
+export class AuthenticationError extends CheckError {
   constructor(
     message: string,
     options?: {
@@ -80,7 +80,7 @@ export class AuthenticationError extends ShoveError {
  * Authorization error (403)
  * Thrown when API key lacks permission for the requested operation
  */
-export class AuthorizationError extends ShoveError {
+export class AuthorizationError extends CheckError {
   constructor(
     message: string,
     options?: {
@@ -99,7 +99,7 @@ export class AuthorizationError extends ShoveError {
  * Validation error (400)
  * Thrown when request parameters are invalid
  */
-export class ValidationError extends ShoveError {
+export class ValidationError extends CheckError {
   constructor(
     message: string,
     options?: {
@@ -118,7 +118,7 @@ export class ValidationError extends ShoveError {
  * Not found error (404)
  * Thrown when requested resource doesn't exist
  */
-export class NotFoundError extends ShoveError {
+export class NotFoundError extends CheckError {
   constructor(
     message: string,
     options?: {
@@ -137,7 +137,7 @@ export class NotFoundError extends ShoveError {
  * Rate limit error (429)
  * Thrown when rate limit is exceeded
  */
-export class RateLimitError extends ShoveError {
+export class RateLimitError extends CheckError {
   /** Seconds until rate limit resets */
   readonly retryAfter?: number;
 
@@ -161,7 +161,7 @@ export class RateLimitError extends ShoveError {
  * Quota exceeded error (402)
  * Thrown when monthly verification quota is exceeded
  */
-export class QuotaExceededError extends ShoveError {
+export class QuotaExceededError extends CheckError {
   constructor(
     message: string,
     options?: {
@@ -180,7 +180,7 @@ export class QuotaExceededError extends ShoveError {
  * Timeout error
  * Thrown when request or polling times out
  */
-export class TimeoutError extends ShoveError {
+export class TimeoutError extends CheckError {
   constructor(
     message: string,
     options?: {
@@ -199,7 +199,7 @@ export class TimeoutError extends ShoveError {
  * Server error (5xx)
  * Thrown when the API experiences an internal error
  */
-export class ServerError extends ShoveError {
+export class ServerError extends CheckError {
   constructor(
     message: string,
     options?: {
@@ -220,7 +220,7 @@ export class ServerError extends ShoveError {
 function getErrorClass(
   code?: string,
   status?: number
-): typeof ShoveError {
+): typeof CheckError {
   // Check by code first
   switch (code) {
     case 'AUTHENTICATION_ERROR':
@@ -259,6 +259,6 @@ function getErrorClass(
     case 504:
       return ServerError;
     default:
-      return ShoveError;
+      return CheckError;
   }
 }

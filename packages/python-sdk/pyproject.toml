@@ -3,17 +3,17 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "shove"
+name = "check"
 version = "0.1.0"
-description = "Official Python SDK for Shove.ai - AI-powered verification"
+description = "Official Python SDK for Check.ai - AI-powered verification"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"
 authors = [
-    { name = "Shove.ai", email = "support@shove.ai" }
+    { name = "Check.ai", email = "support@check.ai" }
 ]
 keywords = [
-    "shove",
+    "check",
     "llm",
     "verification",
     "hallucination",
@@ -47,12 +47,12 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://shove.ai"
-Documentation = "https://shove.ai/docs"
-Repository = "https://github.com/shove-ai/shove"
+Homepage = "https://check.ai"
+Documentation = "https://check.ai/docs"
+Repository = "https://github.com/check-ai/check"
 
 [tool.hatch.build.targets.wheel]
-packages = ["shove"]
+packages = ["check"]
 
 [tool.mypy]
 python_version = "3.9"

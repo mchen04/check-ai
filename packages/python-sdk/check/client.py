@@ -1,6 +1,6 @@
 """
-Shove Client
-Main client classes for interacting with the Shove API
+Check Client
+Main client classes for interacting with the Check API
 """
 
 import asyncio
@@ -11,7 +11,7 @@ from pathlib import Path
 
 import httpx
 
-from shove.types import (
+from check.types import (
     MethodsConfig,
     VerifyRequest,
     VerifyResponse,
@@ -25,14 +25,14 @@ from shove.types import (
     FileUploadResponse,
     BatchStatus,
 )
-from shove.errors import (
-    ShoveError,
+from check.errors import (
+    CheckError,
     RateLimitError,
     TimeoutError,
     get_error_class,
 )
 
-DEFAULT_BASE_URL = "https://api.shove.ai"
+DEFAULT_BASE_URL = "https://api.check.ai"
 DEFAULT_TIMEOUT = 30.0
 DEFAULT_POLL_INTERVAL = 1.0
 DEFAULT_WAIT_TIMEOUT = 60.0
@@ -43,13 +43,13 @@ DEFAULT_BATCH_WAIT_TIMEOUT = 3600.0  # 1 hour
 DEFAULT_RETRY_CONFIG = RetryConfig()
 
 
-class Shove:
+class Check:
     """
-    Synchronous Shove client.
+    Synchronous Check client.
 
     Example:
-        >>> from shove import Shove
-        >>> client = Shove(api_key="vfy_...")
+        >>> from check import Check
+        >>> client = Check(api_key="vfy_...")
         >>> result = client.verify_and_wait(
         ...     content="The Earth orbits the Sun.",
         ...     methods={"reasoning": 1.0}
@@ -67,17 +67,17 @@ class Shove:
         retry: Optional[Union[RetryConfig, bool]] = None,
     ) -> None:
         """
-        Initialize the Shove client.
+        Initialize the Check client.
 
         Args:
-            api_key: Your Shove API key (starts with vfy_)
-            base_url: Base URL for the API (defaults to https://api.shove.ai)
+            api_key: Your Check API key (starts with vfy_)
+            base_url: Base URL for the API (defaults to https://api.check.ai)
             timeout: Request timeout in seconds
             retry: Retry configuration. Pass False to disable, True or None for
                    defaults, or a RetryConfig instance for custom configuration.
         """
         if not api_key:
-            raise ShoveError("API key is required", code="MISSING_API_KEY")
+            raise CheckError("API key is required", code="MISSING_API_KEY")
 
         self._api_key = api_key
         self._base_url = base_url.rstrip("/")
@@ -88,7 +88,7 @@ class Shove:
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
-                "User-Agent": "shove-python/0.1.0",
+                "User-Agent": "check-python/0.1.0",
             },
         )
 
@@ -100,7 +100,7 @@ class Shove:
         else:
             self._retry_config = retry
 
-    def __enter__(self) -> "Shove":
+    def __enter__(self) -> "Check":
         return self
 
     def __exit__(self, *args: Any) -> None:
@@ -173,7 +173,7 @@ class Shove:
             ...     print(result.verdict)
         """
         if not verification_id:
-            raise ShoveError("Verification ID is required", code="MISSING_ID")
+            raise CheckError("Verification ID is required", code="MISSING_ID")
 
         return self._request("GET", f"/v1/verify/{verification_id}")
 
@@ -268,7 +268,7 @@ class Shove:
                 time.sleep(delay)
 
         # Should never reach here, but Python needs this
-        raise last_error or ShoveError("Request failed", code="UNKNOWN_ERROR")
+        raise last_error or CheckError("Request failed", code="UNKNOWN_ERROR")
 
     def _execute_request(
         self,
@@ -291,7 +291,7 @@ class Shove:
         except httpx.TimeoutException as e:
             raise TimeoutError(f"Request timed out: {e}") from e
         except httpx.RequestError as e:
-            raise ShoveError(f"Network error: {e}", code="NETWORK_ERROR") from e
+            raise CheckError(f"Network error: {e}", code="NETWORK_ERROR") from e
 
     def _should_retry(self, error: Exception, attempt: int) -> bool:
         """Determine if a request should be retried."""
@@ -306,11 +306,11 @@ class Shove:
             return True
 
         # Retry on specific status codes
-        if isinstance(error, ShoveError) and error.status:
+        if isinstance(error, CheckError) and error.status:
             return error.status in self._retry_config.retryable_statuses
 
         # Retry on network errors
-        if isinstance(error, ShoveError) and error.code == "NETWORK_ERROR":
+        if isinstance(error, CheckError) and error.code == "NETWORK_ERROR":
             return True
 
         # Retry on timeout
@@ -458,7 +458,7 @@ class Shove:
             >>> print(f"Status: {batch.status}")
         """
         if not batch_id:
-            raise ShoveError("Batch ID is required", code="MISSING_ID")
+            raise CheckError("Batch ID is required", code="MISSING_ID")
 
         return self._batch_request(
             "GET",
@@ -518,7 +518,7 @@ class Shove:
             >>> print(batch.status)  # 'cancelled'
         """
         if not batch_id:
-            raise ShoveError("Batch ID is required", code="MISSING_ID")
+            raise CheckError("Batch ID is required", code="MISSING_ID")
 
         return self._batch_request(
             "POST",
@@ -553,7 +553,7 @@ class Shove:
             ...     print(f"Item {result.index}: {result.verdict} ({result.confidence})")
         """
         if not batch_id:
-            raise ShoveError("Batch ID is required", code="MISSING_ID")
+            raise CheckError("Batch ID is required", code="MISSING_ID")
 
         return self._batch_request(
             "GET",
@@ -597,7 +597,7 @@ class Shove:
             content = path.read_bytes()
         elif isinstance(file, bytes):
             if not filename:
-                raise ShoveError(
+                raise CheckError(
                     "filename is required when uploading bytes",
                     code="MISSING_FILENAME"
                 )
@@ -609,7 +609,7 @@ class Shove:
                 filename = Path(file.name).name
 
         if not filename:
-            raise ShoveError(
+            raise CheckError(
                 "Could not determine filename. Please provide filename parameter.",
                 code="MISSING_FILENAME"
             )
@@ -629,7 +629,7 @@ class Shove:
         except httpx.TimeoutException as e:
             raise TimeoutError(f"Upload timed out: {e}") from e
         except httpx.RequestError as e:
-            raise ShoveError(f"Upload error: {e}", code="UPLOAD_ERROR") from e
+            raise CheckError(f"Upload error: {e}", code="UPLOAD_ERROR") from e
 
     def create_batch_and_wait(
         self,
@@ -745,7 +745,7 @@ class Shove:
                 time.sleep(delay)
 
         # Should never reach here, but Python needs this
-        raise last_error or ShoveError("Request failed", code="UNKNOWN_ERROR")
+        raise last_error or CheckError("Request failed", code="UNKNOWN_ERROR")
 
     def _execute_batch_request(
         self,
@@ -774,19 +774,19 @@ class Shove:
         except httpx.TimeoutException as e:
             raise TimeoutError(f"Request timed out: {e}") from e
         except httpx.RequestError as e:
-            raise ShoveError(f"Network error: {e}", code="NETWORK_ERROR") from e
+            raise CheckError(f"Network error: {e}", code="NETWORK_ERROR") from e
 
 
-class AsyncShove:
+class AsyncCheck:
     """
-    Asynchronous Shove client.
+    Asynchronous Check client.
 
     Example:
         >>> import asyncio
-        >>> from shove import AsyncShove
+        >>> from check import AsyncCheck
         >>>
         >>> async def main():
-        ...     client = AsyncShove(api_key="vfy_...")
+        ...     client = AsyncCheck(api_key="vfy_...")
         ...     result = await client.verify_and_wait(
         ...         content="The Earth orbits the Sun.",
         ...         methods={"reasoning": 1.0}
@@ -806,17 +806,17 @@ class AsyncShove:
         retry: Optional[Union[RetryConfig, bool]] = None,
     ) -> None:
         """
-        Initialize the async Shove client.
+        Initialize the async Check client.
 
         Args:
-            api_key: Your Shove API key (starts with vfy_)
-            base_url: Base URL for the API (defaults to https://api.shove.ai)
+            api_key: Your Check API key (starts with vfy_)
+            base_url: Base URL for the API (defaults to https://api.check.ai)
             timeout: Request timeout in seconds
             retry: Retry configuration. Pass False to disable, True or None for
                    defaults, or a RetryConfig instance for custom configuration.
         """
         if not api_key:
-            raise ShoveError("API key is required", code="MISSING_API_KEY")
+            raise CheckError("API key is required", code="MISSING_API_KEY")
 
         self._api_key = api_key
         self._base_url = base_url.rstrip("/")
@@ -827,7 +827,7 @@ class AsyncShove:
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
-                "User-Agent": "shove-python/0.1.0",
+                "User-Agent": "check-python/0.1.0",
             },
         )
 
@@ -839,7 +839,7 @@ class AsyncShove:
         else:
             self._retry_config = retry
 
-    async def __aenter__(self) -> "AsyncShove":
+    async def __aenter__(self) -> "AsyncCheck":
         return self
 
     async def __aexit__(self, *args: Any) -> None:
@@ -897,7 +897,7 @@ class AsyncShove:
             Current verification status and results
         """
         if not verification_id:
-            raise ShoveError("Verification ID is required", code="MISSING_ID")
+            raise CheckError("Verification ID is required", code="MISSING_ID")
 
         return await self._request("GET", f"/v1/verify/{verification_id}")
 
@@ -981,7 +981,7 @@ class AsyncShove:
                 await asyncio.sleep(delay)
 
         # Should never reach here, but Python needs this
-        raise last_error or ShoveError("Request failed", code="UNKNOWN_ERROR")
+        raise last_error or CheckError("Request failed", code="UNKNOWN_ERROR")
 
     async def _execute_request(
         self,
@@ -1004,7 +1004,7 @@ class AsyncShove:
         except httpx.TimeoutException as e:
             raise TimeoutError(f"Request timed out: {e}") from e
         except httpx.RequestError as e:
-            raise ShoveError(f"Network error: {e}", code="NETWORK_ERROR") from e
+            raise CheckError(f"Network error: {e}", code="NETWORK_ERROR") from e
 
     def _should_retry(self, error: Exception, attempt: int) -> bool:
         """Determine if a request should be retried."""
@@ -1019,11 +1019,11 @@ class AsyncShove:
             return True
 
         # Retry on specific status codes
-        if isinstance(error, ShoveError) and error.status:
+        if isinstance(error, CheckError) and error.status:
             return error.status in self._retry_config.retryable_statuses
 
         # Retry on network errors
-        if isinstance(error, ShoveError) and error.code == "NETWORK_ERROR":
+        if isinstance(error, CheckError) and error.code == "NETWORK_ERROR":
             return True
 
         # Retry on timeout
@@ -1170,7 +1170,7 @@ class AsyncShove:
             print(f"Progress: {batch.progress}%")
         """
         if not batch_id:
-            raise ShoveError("Batch ID is required", code="MISSING_ID")
+            raise CheckError("Batch ID is required", code="MISSING_ID")
 
         response = await self._batch_request("GET", f"/v1/batch/{batch_id}")
         return BatchJob.model_validate(response)
@@ -1218,7 +1218,7 @@ class AsyncShove:
             Updated batch job details
         """
         if not batch_id:
-            raise ShoveError("Batch ID is required", code="MISSING_ID")
+            raise CheckError("Batch ID is required", code="MISSING_ID")
 
         response = await self._batch_request("POST", f"/v1/batch/{batch_id}/cancel")
         return BatchJob.model_validate(response)
@@ -1250,7 +1250,7 @@ class AsyncShove:
                 print(f"Item {result.index}: {result.verdict} ({result.confidence})")
         """
         if not batch_id:
-            raise ShoveError("Batch ID is required", code="MISSING_ID")
+            raise CheckError("Batch ID is required", code="MISSING_ID")
 
         response = await self._batch_request(
             "GET",
@@ -1294,7 +1294,7 @@ class AsyncShove:
             content = path.read_bytes()
         elif isinstance(file, bytes):
             if not filename:
-                raise ShoveError(
+                raise CheckError(
                     "filename is required when uploading bytes",
                     code="MISSING_FILENAME"
                 )
@@ -1306,7 +1306,7 @@ class AsyncShove:
                 filename = Path(file.name).name
 
         if not filename:
-            raise ShoveError(
+            raise CheckError(
                 "Could not determine filename. Please provide filename parameter.",
                 code="MISSING_FILENAME"
             )
@@ -1326,7 +1326,7 @@ class AsyncShove:
         except httpx.TimeoutException as e:
             raise TimeoutError(f"Upload timed out: {e}") from e
         except httpx.RequestError as e:
-            raise ShoveError(f"Upload error: {e}", code="UPLOAD_ERROR") from e
+            raise CheckError(f"Upload error: {e}", code="UPLOAD_ERROR") from e
 
     async def create_batch_and_wait(
         self,
@@ -1440,7 +1440,7 @@ class AsyncShove:
                 await asyncio.sleep(delay)
 
         # Should never reach here, but Python needs this
-        raise last_error or ShoveError("Request failed", code="UNKNOWN_ERROR")
+        raise last_error or CheckError("Request failed", code="UNKNOWN_ERROR")
 
     async def _execute_batch_request(
         self,
@@ -1465,4 +1465,4 @@ class AsyncShove:
         except httpx.TimeoutException as e:
             raise TimeoutError(f"Request timed out: {e}") from e
         except httpx.RequestError as e:
-            raise ShoveError(f"Network error: {e}", code="NETWORK_ERROR") from e
+            raise CheckError(f"Network error: {e}", code="NETWORK_ERROR") from e

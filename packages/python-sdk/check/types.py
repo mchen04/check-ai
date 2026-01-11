@@ -1,6 +1,6 @@
 """
-Shove SDK Types
-Pydantic models for the Shove API
+Check SDK Types
+Pydantic models for the Check API
 """
 
 from typing import Any, Dict, List, Literal, Optional

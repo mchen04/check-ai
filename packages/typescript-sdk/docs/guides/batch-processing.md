@@ -1,6 +1,6 @@
 # Batch Processing Guide
 
-This guide covers how to use the Shove SDK for batch verification of multiple content items.
+This guide covers how to use the Check SDK for batch verification of multiple content items.
 
 ## Overview
 
@@ -18,9 +18,9 @@ Batch processing allows you to verify up to 100 items in a single request. It's 
 The simplest approach - create a batch and wait for completion:
 
 ```typescript
-import { Shove } from '@shove/sdk';
+import { Check } from '@check/sdk';
 
-const client = new Shove({ apiKey: 'vfy_your_api_key' });
+const client = new Check({ apiKey: 'vfy_your_api_key' });
 
 const batch = await client.createBatchAndWait({
   name: 'Daily fact check',
@@ -114,7 +114,7 @@ const upload = await client.uploadBatchFile(jsonContent, 'claims.json');
 
 ```typescript
 async function processBatchWithProgress(
-  client: Shove,
+  client: Check,
   request: CreateBatchRequest
 ) {
   const batch = await client.createBatch(request);
@@ -167,7 +167,7 @@ function subscribeToBatchProgress(batchId: string) {
 ### Get All Results
 
 ```typescript
-async function getAllResults(client: Shove, batchId: string) {
+async function getAllResults(client: Check, batchId: string) {
   const allItems = [];
   let offset = 0;
   const limit = 100;
@@ -275,7 +275,7 @@ setTimeout(async () => {
 ### Cancel on High Failure Rate
 
 ```typescript
-async function monitorBatch(client: Shove, batchId: string) {
+async function monitorBatch(client: Check, batchId: string) {
   while (true) {
     const batch = await client.getBatch(batchId);
 

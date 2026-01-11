@@ -46,8 +46,8 @@ export class OpenRouterProvider extends BaseLLMProvider {
         headers: {
           Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': process.env.OPENROUTER_REFERER ?? 'https://shove.ai',
-          'X-Title': process.env.OPENROUTER_TITLE ?? 'Shove',
+          'HTTP-Referer': process.env.OPENROUTER_REFERER ?? 'https://check.ai',
+          'X-Title': process.env.OPENROUTER_TITLE ?? 'Check',
         },
         body: JSON.stringify({
           model: options.model,

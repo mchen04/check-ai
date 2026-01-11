@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import { Shield } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Shove',
-  description: 'Privacy Policy for Shove - The Stripe for LLM Verification',
+  title: 'Privacy Policy | Check',
+  description: 'Privacy Policy for Check - The Stripe for LLM Verification',
 };
 
 export default function PrivacyPage() {
@@ -17,7 +17,7 @@ export default function PrivacyPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
               <Shield className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-semibold tracking-tight">Shove</span>
+            <span className="text-xl font-semibold tracking-tight">Check</span>
           </Link>
         </div>
       </header>
@@ -145,7 +145,7 @@ export default function PrivacyPage() {
           <h2>11. Contact Us</h2>
           <p>
             For privacy-related inquiries, contact us at{' '}
-            <a href="mailto:privacy@shove.ai">privacy@shove.ai</a>.
+            <a href="mailto:privacy@check.ai">privacy@check.ai</a>.
           </p>
         </div>
       </main>

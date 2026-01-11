@@ -194,7 +194,7 @@ export default function PlaygroundPage() {
   const generateCodeSnippet = (): string => {
     const config = buildMethodsConfig();
     return `// Using fetch
-const response = await fetch('https://api.shove.ai/v1/verify', {
+const response = await fetch('https://api.check.ai/v1/verify', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',

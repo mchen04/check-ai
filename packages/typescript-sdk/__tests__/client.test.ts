@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { Shove, VERSION } from '../src/client';
+import { Check, VERSION } from '../src/client';
 import {
-  ShoveError,
+  CheckError,
   AuthenticationError,
   RateLimitError,
   TimeoutError,
@@ -9,7 +9,7 @@ import {
   NotFoundError,
 } from '../src/errors';
 
-describe('Shove Client', () => {
+describe('Check Client', () => {
   let mockFetch: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -26,12 +26,12 @@ describe('Shove Client', () => {
 
   describe('constructor', () => {
     it('should throw error when API key is missing', () => {
-      expect(() => new Shove({ apiKey: '' })).toThrow(ShoveError);
-      expect(() => new Shove({ apiKey: '' })).toThrow('API key is required');
+      expect(() => new Check({ apiKey: '' })).toThrow(CheckError);
+      expect(() => new Check({ apiKey: '' })).toThrow('API key is required');
     });
 
     it('should create client with valid API key', () => {
-      const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+      const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
       expect(client).toBeDefined();
     });
 
@@ -41,11 +41,11 @@ describe('Shove Client', () => {
         json: () => Promise.resolve({ id: 'ver_123', status: 'pending' }),
       });
 
-      const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+      const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
       client.verify({ content: 'test', methods: { reasoning: 1.0 } });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.shove.ai/v1/verify',
+        'https://api.check.ai/v1/verify',
         expect.any(Object)
       );
     });
@@ -56,7 +56,7 @@ describe('Shove Client', () => {
         json: () => Promise.resolve({ id: 'ver_123', status: 'pending' }),
       });
 
-      const client = new Shove({
+      const client = new Check({
         apiKey: 'vfy_test123',
         baseUrl: 'https://custom.api.com/',
         fetch: mockFetch,
@@ -75,7 +75,7 @@ describe('Shove Client', () => {
         json: () => Promise.resolve({ id: 'ver_123', status: 'pending' }),
       });
 
-      const client = new Shove({
+      const client = new Check({
         apiKey: 'vfy_test123',
         baseUrl: 'https://custom.api.com/',
         fetch: mockFetch,
@@ -103,20 +103,20 @@ describe('Shove Client', () => {
         }),
       });
 
-      const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+      const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
       const result = await client.verify({
         content: 'Test content',
         methods: { reasoning: 1.0 },
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.shove.ai/v1/verify',
+        'https://api.check.ai/v1/verify',
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
             Authorization: 'Bearer vfy_test123',
             'Content-Type': 'application/json',
-            'User-Agent': `@shove/sdk/${VERSION}`,
+            'User-Agent': `@check/sdk/${VERSION}`,
           }),
         })
       );
@@ -130,7 +130,7 @@ describe('Shove Client', () => {
         json: () => Promise.resolve({ id: 'ver_123', status: 'pending' }),
       });
 
-      const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+      const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
       await client.verify({
         content: 'Paris is the capital of France.',
         methods: { reasoning: 1.0, tool: 0.5 },
@@ -154,8 +154,8 @@ describe('Shove Client', () => {
 
   describe('getVerification', () => {
     it('should throw error when ID is missing', async () => {
-      const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
-      await expect(client.getVerification('')).rejects.toThrow(ShoveError);
+      const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
+      await expect(client.getVerification('')).rejects.toThrow(CheckError);
       await expect(client.getVerification('')).rejects.toThrow('Verification ID is required');
     });
 
@@ -170,11 +170,11 @@ describe('Shove Client', () => {
         }),
       });
 
-      const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+      const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
       const result = await client.getVerification('ver_abc123');
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.shove.ai/v1/verify/ver_abc123',
+        'https://api.check.ai/v1/verify/ver_abc123',
         expect.objectContaining({ method: 'GET' })
       );
       expect(result.verdict).toBe('true');
@@ -187,11 +187,11 @@ describe('Shove Client', () => {
         json: () => Promise.resolve({ id: 'ver_abc/123', status: 'completed' }),
       });
 
-      const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+      const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
       await client.getVerification('ver_abc/123');
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.shove.ai/v1/verify/ver_abc%2F123',
+        'https://api.check.ai/v1/verify/ver_abc%2F123',
         expect.any(Object)
       );
     });
@@ -232,7 +232,7 @@ describe('Shove Client', () => {
         });
       });
 
-      const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+      const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
       const result = await client.verifyAndWait(
         { content: 'Test', methods: { reasoning: 1.0 } },
         { pollInterval: 10, timeout: 5000 }
@@ -251,7 +251,7 @@ describe('Shove Client', () => {
         });
       });
 
-      const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+      const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
 
       await expect(
         client.verifyAndWait(
@@ -272,7 +272,7 @@ describe('Shove Client', () => {
         }),
       });
 
-      const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+      const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
       const result = await client.verifyAndWait(
         { content: 'Test', methods: { reasoning: 1.0 } }
       );
@@ -299,7 +299,7 @@ describe('Shove Client', () => {
           }),
         });
 
-        const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+        const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
         const result = await client.createBatch({
           items: [
             { content: 'Item 1' },
@@ -316,8 +316,8 @@ describe('Shove Client', () => {
 
     describe('getBatch', () => {
       it('should throw error when batch ID is missing', async () => {
-        const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
-        await expect(client.getBatch('')).rejects.toThrow(ShoveError);
+        const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
+        await expect(client.getBatch('')).rejects.toThrow(CheckError);
       });
 
       it('should get batch details', async () => {
@@ -333,7 +333,7 @@ describe('Shove Client', () => {
           }),
         });
 
-        const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+        const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
         const result = await client.getBatch('batch_123');
 
         expect(result.progress).toBe(50);
@@ -351,7 +351,7 @@ describe('Shove Client', () => {
           }),
         });
 
-        const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+        const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
         const result = await client.listBatches({ limit: 2 });
 
         expect(result.data).toHaveLength(2);
@@ -364,7 +364,7 @@ describe('Shove Client', () => {
           json: () => Promise.resolve({ data: [], pagination: {} }),
         });
 
-        const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+        const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
         await client.listBatches({ limit: 10, offset: 5, status: 'completed' });
 
         expect(mockFetch).toHaveBeenCalledWith(
@@ -392,12 +392,12 @@ describe('Shove Client', () => {
           }),
         });
 
-        const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+        const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
         const result = await client.cancelBatch('batch_123');
 
         expect(result.status).toBe('cancelled');
         expect(mockFetch).toHaveBeenCalledWith(
-          'https://api.shove.ai/v1/batch/batch_123/cancel',
+          'https://api.check.ai/v1/batch/batch_123/cancel',
           expect.objectContaining({ method: 'POST' })
         );
       });
@@ -417,7 +417,7 @@ describe('Shove Client', () => {
           }),
         });
 
-        const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+        const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
         const result = await client.getBatchResults('batch_123');
 
         expect(result.results).toHaveLength(2);
@@ -464,7 +464,7 @@ describe('Shove Client', () => {
         });
 
         const onProgress = vi.fn();
-        const client = new Shove({ apiKey: 'vfy_test123', fetch: mockFetch });
+        const client = new Check({ apiKey: 'vfy_test123', fetch: mockFetch });
         const result = await client.createBatchAndWait(
           { items: [{ content: 'Item 1' }], methods: { reasoning: 1.0 } },
           { pollInterval: 10, onProgress }
@@ -491,7 +491,7 @@ describe('Shove Client', () => {
         }),
       });
 
-      const client = new Shove({
+      const client = new Check({
         apiKey: 'vfy_invalid',
         fetch: mockFetch,
         retry: false,
@@ -512,7 +512,7 @@ describe('Shove Client', () => {
         }),
       });
 
-      const client = new Shove({
+      const client = new Check({
         apiKey: 'vfy_test',
         fetch: mockFetch,
         retry: false,
@@ -533,7 +533,7 @@ describe('Shove Client', () => {
         }),
       });
 
-      const client = new Shove({
+      const client = new Check({
         apiKey: 'vfy_test',
         fetch: mockFetch,
         retry: false,
@@ -566,7 +566,7 @@ describe('Shove Client', () => {
         }),
       });
 
-      const client = new Shove({
+      const client = new Check({
         apiKey: 'vfy_test',
         fetch: mockFetch,
         retry: false,
@@ -592,7 +592,7 @@ describe('Shove Client', () => {
         }),
       });
 
-      const client = new Shove({
+      const client = new Check({
         apiKey: 'vfy_test',
         fetch: mockFetch,
         retry: false,
@@ -602,7 +602,7 @@ describe('Shove Client', () => {
         await client.verify({ content: 'Test', methods: { reasoning: 1.0 } });
         expect.fail('Should have thrown');
       } catch (error) {
-        expect((error as ShoveError).requestId).toBe('req_abc123');
+        expect((error as CheckError).requestId).toBe('req_abc123');
       }
     });
   });
@@ -630,7 +630,7 @@ describe('Shove Client', () => {
         });
       });
 
-      const client = new Shove({
+      const client = new Check({
         apiKey: 'vfy_test',
         fetch: mockFetch,
         retry: { maxRetries: 3, initialDelay: 10 },
@@ -662,7 +662,7 @@ describe('Shove Client', () => {
         });
       });
 
-      const client = new Shove({
+      const client = new Check({
         apiKey: 'vfy_test',
         fetch: mockFetch,
         retry: { maxRetries: 3, initialDelay: 10 },
@@ -689,7 +689,7 @@ describe('Shove Client', () => {
         });
       });
 
-      const client = new Shove({
+      const client = new Check({
         apiKey: 'vfy_test',
         fetch: mockFetch,
         retry: false,
@@ -713,7 +713,7 @@ describe('Shove Client', () => {
         });
       });
 
-      const client = new Shove({
+      const client = new Check({
         apiKey: 'vfy_test',
         fetch: mockFetch,
         retry: { maxRetries: 3, initialDelay: 10 },
@@ -737,7 +737,7 @@ describe('Shove Client', () => {
         });
       });
 
-      const client = new Shove({
+      const client = new Check({
         apiKey: 'vfy_test',
         fetch: mockFetch,
         retry: { maxRetries: 2, initialDelay: 10 },

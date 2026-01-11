@@ -41,9 +41,9 @@ Retrieve the status and details of a specific batch job.
     {
       language: 'javascript',
       label: 'Node.js',
-      code: `import { Shove } from '@shove/sdk';
+      code: `import { Check } from '@check/sdk';
 
-const client = new Shove({ apiKey: 'vfy_your_api_key' });
+const client = new Check({ apiKey: 'vfy_your_api_key' });
 
 const batch = await client.getBatch('batch_abc123def456');
 

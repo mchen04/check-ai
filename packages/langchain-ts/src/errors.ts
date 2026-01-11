@@ -1,5 +1,5 @@
 /**
- * Shove LangChain Errors
+ * Check LangChain Errors
  * Custom error classes for verification failures
  */
 

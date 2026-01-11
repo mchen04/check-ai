@@ -1,4 +1,4 @@
-"""Test fixtures for Shove SDK tests."""
+"""Test fixtures for Check SDK tests."""
 
 import pytest
 from unittest.mock import MagicMock

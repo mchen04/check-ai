@@ -1,25 +1,25 @@
-# shove-llamaindex
+# check-llamaindex
 
-LlamaIndex integration for Shove - Verify retrieved nodes before synthesis.
+LlamaIndex integration for Check - Verify retrieved nodes before synthesis.
 
 ## Installation
 
 ```bash
-pip install shove-llamaindex
+pip install check-llamaindex
 ```
 
 ## Quick Start
 
 ```python
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
-from shove import Shove
-from shove_llamaindex import ShovePostprocessor
+from check import Check
+from check_llamaindex import CheckPostprocessor
 
 # Initialize client
-client = Shove(api_key="vfy_...")
+client = Check(api_key="vfy_...")
 
 # Create postprocessor
-postprocessor = ShovePostprocessor(client)
+postprocessor = CheckPostprocessor(client)
 
 # Use with query engine
 documents = SimpleDirectoryReader("data").load_data()
@@ -38,7 +38,7 @@ response = query_engine.query("What is the main topic?")
 - **Node verification**: Verify retrieved nodes before synthesis
 - **Configurable filtering**: Filter out unverified nodes
 - **Query context**: Include query in verification for relevance checking
-- **Async support**: Full async support with AsyncShovePostprocessor
+- **Async support**: Full async support with AsyncCheckPostprocessor
 - **Metadata attachment**: Verification results attached to node metadata
 
 ## Usage
@@ -47,11 +47,11 @@ response = query_engine.query("What is the main topic?")
 
 ```python
 from llama_index.core import VectorStoreIndex
-from shove import Shove
-from shove_llamaindex import ShovePostprocessor
+from check import Check
+from check_llamaindex import CheckPostprocessor
 
-client = Shove(api_key="vfy_...")
-postprocessor = ShovePostprocessor(client)
+client = Check(api_key="vfy_...")
+postprocessor = CheckPostprocessor(client)
 
 query_engine = index.as_query_engine(
     node_postprocessors=[postprocessor]
@@ -63,7 +63,7 @@ response = query_engine.query("What is...?")
 ### Configure Methods and Filtering
 
 ```python
-postprocessor = ShovePostprocessor(
+postprocessor = CheckPostprocessor(
     client,
     methods={"reasoning": 1.0, "tool": 0.5},
     min_confidence=0.7,
@@ -74,7 +74,7 @@ postprocessor = ShovePostprocessor(
 ### Keep All Nodes (Just Add Metadata)
 
 ```python
-postprocessor = ShovePostprocessor(
+postprocessor = CheckPostprocessor(
     client,
     filter_unverified=False,  # Keep all nodes
 )
@@ -89,12 +89,12 @@ for node in response.source_nodes:
 ```python
 import asyncio
 from llama_index.core import VectorStoreIndex
-from shove import AsyncShove
-from shove_llamaindex import AsyncShovePostprocessor
+from check import AsyncCheck
+from check_llamaindex import AsyncCheckPostprocessor
 
 async def main():
-    client = AsyncShove(api_key="vfy_...")
-    postprocessor = AsyncShovePostprocessor(client)
+    client = AsyncCheck(api_key="vfy_...")
+    postprocessor = AsyncCheckPostprocessor(client)
 
     query_engine = index.as_query_engine(
         node_postprocessors=[postprocessor]
@@ -149,7 +149,7 @@ response = chat_engine.chat("Tell me more about...")
 ## Requirements
 
 - Python 3.9+
-- shove
+- check
 - llama-index-core >= 0.10.0
 
 ## License

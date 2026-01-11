@@ -1,12 +1,12 @@
 /**
- * Shove LangChain Callback Handler
+ * Check LangChain Callback Handler
  * Auto-verify LLM outputs via LangChain callbacks
  */
 
 import { BaseCallbackHandler } from '@langchain/core/callbacks/base';
 import type { LLMResult } from '@langchain/core/outputs';
 import type { Serialized } from '@langchain/core/load/serializable';
-import type { Shove, MethodsConfig, VerifyResponse } from '@shove/sdk';
+import type { Check, MethodsConfig, VerifyResponse } from '@check/sdk';
 import { VerificationRejectedError } from './errors';
 
 /**
@@ -28,9 +28,9 @@ export interface VerificationResult {
 }
 
 /**
- * Options for ShoveCallbackHandler
+ * Options for CheckCallbackHandler
  */
-export interface ShoveCallbackHandlerOptions {
+export interface CheckCallbackHandlerOptions {
   /** Verification methods to use (default: { reasoning: 1.0 }) */
   methods?: MethodsConfig;
   /** Minimum confidence threshold for acceptance */
@@ -53,11 +53,11 @@ export interface ShoveCallbackHandlerOptions {
  * @example
  * ```typescript
  * import { ChatOpenAI } from "@langchain/openai";
- * import { Shove } from "@shove/sdk";
- * import { ShoveCallbackHandler } from "@shove/langchain";
+ * import { Check } from "@check/sdk";
+ * import { CheckCallbackHandler } from "@check/langchain";
  *
- * const client = new Shove({ apiKey: "vfy_..." });
- * const handler = new ShoveCallbackHandler(client, {
+ * const client = new Check({ apiKey: "vfy_..." });
+ * const handler = new CheckCallbackHandler(client, {
  *   methods: { reasoning: 1.0, tool: 0.5 },
  *   raiseOnReject: true,
  * });
@@ -66,10 +66,10 @@ export interface ShoveCallbackHandlerOptions {
  * const response = await llm.invoke("What is the capital of France?");
  * ```
  */
-export class ShoveCallbackHandler extends BaseCallbackHandler {
-  name = 'ShoveCallbackHandler';
+export class CheckCallbackHandler extends BaseCallbackHandler {
+  name = 'CheckCallbackHandler';
 
-  private client: Shove;
+  private client: Check;
   private methods: MethodsConfig;
   private minConfidence: number;
   private raiseOnReject: boolean;
@@ -78,7 +78,7 @@ export class ShoveCallbackHandler extends BaseCallbackHandler {
   private pollInterval: number;
   private timeout: number;
 
-  constructor(client: Shove, options?: ShoveCallbackHandlerOptions) {
+  constructor(client: Check, options?: CheckCallbackHandlerOptions) {
     super();
     this.client = client;
     this.methods = options?.methods ?? { reasoning: 1.0 };

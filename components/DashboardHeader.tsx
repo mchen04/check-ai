@@ -43,7 +43,7 @@ export default async function DashboardHeader() {
             <Shield className="h-4 w-4 text-primary-foreground" />
           </div>
           <span className="hidden text-lg font-semibold tracking-tight md:inline-block">
-            Shove
+            Check
           </span>
         </Link>
 

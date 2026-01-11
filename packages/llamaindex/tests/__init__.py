@@ -1,1 +1,1 @@
-"""Tests for the Shove LlamaIndex integration."""
+"""Tests for the Check LlamaIndex integration."""

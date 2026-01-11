@@ -1,6 +1,6 @@
 /**
- * Shove SDK Types
- * TypeScript types for the Shove API
+ * Check SDK Types
+ * TypeScript types for the Check API
  */
 
 // =============================================================================
@@ -182,12 +182,12 @@ export interface RetryConfig {
 }
 
 /**
- * Options for initializing the Shove client
+ * Options for initializing the Check client
  */
-export interface ShoveOptions {
-  /** Your Shove API key (starts with vfy_) */
+export interface CheckOptions {
+  /** Your Check API key (starts with vfy_) */
   apiKey: string;
-  /** Base URL for the API (defaults to https://api.shove.ai) */
+  /** Base URL for the API (defaults to https://api.check.ai) */
   baseUrl?: string;
   /** Default timeout in milliseconds */
   timeout?: number;

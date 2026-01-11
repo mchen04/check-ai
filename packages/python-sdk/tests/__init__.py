@@ -1,1 +1,1 @@
-"""Tests for the Shove Python SDK."""
+"""Tests for the Check Python SDK."""

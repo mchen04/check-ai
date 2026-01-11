@@ -14,9 +14,9 @@ export async function sendWelcomeEmail({
 }: SendWelcomeEmailParams): Promise<{ success: boolean; error?: string }> {
   return sendEmail(
     {
-      from: 'Shove <noreply@shove.ai>',
+      from: 'Check <noreply@check.ai>',
       to,
-      subject: 'Welcome to Shove!',
+      subject: 'Welcome to Check!',
       react: WelcomeEmail({
         userName,
         dashboardUrl: `${PUBLIC_URL}/dashboard`,

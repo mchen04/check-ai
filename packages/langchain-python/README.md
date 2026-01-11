@@ -1,23 +1,23 @@
-# shove-langchain
+# check-langchain
 
-LangChain integration for Shove - Auto-verify LLM outputs with callbacks.
+LangChain integration for Check - Auto-verify LLM outputs with callbacks.
 
 ## Installation
 
 ```bash
-pip install shove-langchain
+pip install check-langchain
 ```
 
 ## Quick Start
 
 ```python
 from langchain_openai import ChatOpenAI
-from shove import Shove
-from shove_langchain import ShoveCallbackHandler
+from check import Check
+from check_langchain import CheckCallbackHandler
 
 # Initialize clients
-client = Shove(api_key="vfy_...")
-handler = ShoveCallbackHandler(client)
+client = Check(api_key="vfy_...")
+handler = CheckCallbackHandler(client)
 
 # Use with any LangChain LLM
 llm = ChatOpenAI(callbacks=[handler])
@@ -33,7 +33,7 @@ print(response.response_metadata.get("verification"))
 - **Callback-based**: Uses LangChain's callback system
 - **Flexible methods**: Configure which verification methods to use
 - **Error handling**: Optionally raise on verification rejection
-- **Async support**: Full async support with AsyncShoveCallbackHandler
+- **Async support**: Full async support with AsyncCheckCallbackHandler
 
 ## Usage
 
@@ -41,11 +41,11 @@ print(response.response_metadata.get("verification"))
 
 ```python
 from langchain_openai import ChatOpenAI
-from shove import Shove
-from shove_langchain import ShoveCallbackHandler
+from check import Check
+from check_langchain import CheckCallbackHandler
 
-client = Shove(api_key="vfy_...")
-handler = ShoveCallbackHandler(client)
+client = Check(api_key="vfy_...")
+handler = CheckCallbackHandler(client)
 
 llm = ChatOpenAI(callbacks=[handler])
 response = llm.invoke("What is 2+2?")
@@ -54,7 +54,7 @@ response = llm.invoke("What is 2+2?")
 ### Configure Methods
 
 ```python
-handler = ShoveCallbackHandler(
+handler = CheckCallbackHandler(
     client,
     methods={"reasoning": 1.0, "tool": 0.5},
     min_confidence=0.7,
@@ -64,9 +64,9 @@ handler = ShoveCallbackHandler(
 ### Raise on Rejection
 
 ```python
-from shove_langchain import ShoveCallbackHandler, VerificationRejectedError
+from check_langchain import CheckCallbackHandler, VerificationRejectedError
 
-handler = ShoveCallbackHandler(
+handler = CheckCallbackHandler(
     client,
     raise_on_reject=True,  # Raise exception if verification fails
 )
@@ -83,7 +83,7 @@ except VerificationRejectedError as e:
 def on_verification(content: str, result):
     print(f"Verified: {result.verdict} ({result.confidence:.0%})")
 
-handler = ShoveCallbackHandler(
+handler = CheckCallbackHandler(
     client,
     on_verification=on_verification,
 )
@@ -94,12 +94,12 @@ handler = ShoveCallbackHandler(
 ```python
 import asyncio
 from langchain_openai import ChatOpenAI
-from shove import AsyncShove
-from shove_langchain import AsyncShoveCallbackHandler
+from check import AsyncCheck
+from check_langchain import AsyncCheckCallbackHandler
 
 async def main():
-    client = AsyncShove(api_key="vfy_...")
-    handler = AsyncShoveCallbackHandler(client)
+    client = AsyncCheck(api_key="vfy_...")
+    handler = AsyncCheckCallbackHandler(client)
 
     llm = ChatOpenAI(callbacks=[handler])
     response = await llm.ainvoke("What is 2+2?")
@@ -137,7 +137,7 @@ result = chain.invoke({"question": "What is the speed of light?"})
 ## Requirements
 
 - Python 3.9+
-- shove
+- check
 - langchain-core >= 0.1.0
 
 ## License

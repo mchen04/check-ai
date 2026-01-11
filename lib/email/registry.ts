@@ -34,8 +34,8 @@ export const emailTemplates = {
 // =============================================================================
 
 export const emailSubjects: Record<EmailTemplateType, string> = {
-  'welcome': 'Welcome to Shove!',
-  'team-invite': "You've been invited to join {organizationName} on Shove",
+  'welcome': 'Welcome to Check!',
+  'team-invite': "You've been invited to join {organizationName} on Check",
   'escalation-alert': '[{priority}] Verification needs human review - {organizationName}',
   'weekly-report': 'Weekly Verification Report - {organizationName}',
 };
