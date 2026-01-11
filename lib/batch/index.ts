@@ -31,14 +31,13 @@ export {
   buildCompleteEvent,
 } from './progress';
 
-// QStash operations
+// Trigger.dev operations (replaces QStash)
 export {
-  getBatchQStashClient,
   queueBatchItems,
   cancelBatchItems,
-  retryBatchItem,
-  BATCH_QSTASH_CONFIG,
-} from './qstash';
+  isTriggerConfigured,
+  BATCH_TRIGGER_CONFIG,
+} from './trigger';
 
 // File parsing
 export { parseCSV, parseJSON, parseFile, detectFormat } from './parsers';

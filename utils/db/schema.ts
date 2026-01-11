@@ -376,7 +376,8 @@ export const webhookDeliveriesTable = pgTable('webhook_deliveries', {
 
   // Delivery status tracking
   status: webhookDeliveryStatusEnum('status').default('pending').notNull(),
-  qstashMessageId: text('qstash_message_id'), // QStash tracking ID
+  qstashMessageId: text('qstash_message_id'), // Legacy: QStash tracking ID
+  triggerTaskId: text('trigger_task_id'), // Trigger.dev task ID
 
   // Retry tracking
   attemptNumber: integer('attempt_number').default(1).notNull(),
@@ -502,8 +503,9 @@ export const batchJobsTable = pgTable('batch_jobs', {
   successCount: integer('success_count').default(0).notNull(),
   failureCount: integer('failure_count').default(0).notNull(),
 
-  // QStash tracking
-  qstashMessageIds: text('qstash_message_ids').array(),
+  // Task queue tracking
+  qstashMessageIds: text('qstash_message_ids').array(), // Legacy: QStash IDs
+  triggerTaskIds: text('trigger_task_ids').array(), // Trigger.dev task IDs
 
   // Error handling
   errorMessage: text('error_message'),

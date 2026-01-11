@@ -27,7 +27,8 @@ export interface BatchJob {
   processedItems: number;
   successCount: number;
   failureCount: number;
-  qstashMessageIds: string[] | null;
+  qstashMessageIds: string[] | null; // Legacy
+  triggerTaskIds: string[] | null; // Trigger.dev task IDs
   errorMessage: string | null;
   validationErrors: BatchValidationError[] | null;
   totalCostCents: number;
@@ -166,11 +167,11 @@ export interface BatchResultsResponse {
 }
 
 // =============================================================================
-// QStash Types
+// Task Queue Types (Trigger.dev)
 // =============================================================================
 
 /**
- * Payload sent to QStash for batch item processing
+ * Payload sent to Trigger.dev for batch item processing
  */
 export interface BatchItemQueuePayload {
   batchId: string;
@@ -180,7 +181,6 @@ export interface BatchItemQueuePayload {
   content: string;
   context: Record<string, unknown> | null;
   methodsConfig: MethodsConfig;
-  attempt: number;
 }
 
 /**

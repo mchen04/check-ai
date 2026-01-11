@@ -10,13 +10,13 @@ import type { Logger as PinoLogger } from 'pino';
  */
 export type LogContext =
   | 'Webhook'
+  | 'Webhook Trigger'
   | 'Batch'
   | 'Batch Process'
-  | 'Batch QStash'
+  | 'Batch Trigger'
   | 'Cleanup'
   | 'Audit'
   | 'API'
-  | 'QStash'
   | 'RateLimit'
   | 'Cache'
   | 'Verification'

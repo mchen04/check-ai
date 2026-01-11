@@ -11,7 +11,7 @@ import {
   paradigmResultsTable,
 } from '@/utils/db/schema';
 import { eq, desc, and, sql, count } from 'drizzle-orm';
-import { queueBatchItems, cancelBatchItems } from './qstash';
+import { queueBatchItems, cancelBatchItems } from './trigger';
 import { createAuditLog } from '@/lib/audit/service';
 import {
   BATCH_CONSTANTS,

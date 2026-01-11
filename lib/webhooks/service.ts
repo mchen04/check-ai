@@ -3,13 +3,10 @@ import { db } from '@/utils/db/db';
 import { webhooksTable, webhookDeliveriesTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
 import {
-  getQStashClient,
-  getWebhookHandlerBaseUrl,
-  MAX_RETRIES,
-  RETRY_DELAY_FORMULA,
-  WEBHOOK_TIMEOUT_SECONDS,
-  type QueuedWebhookPayload,
-} from './qstash';
+  isTriggerConfigured,
+  queueWebhookWithTrigger,
+  WEBHOOK_CONFIG,
+} from './trigger';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('Webhook');
@@ -81,12 +78,12 @@ export function createWebhookHeaders(
 }
 
 // =============================================================================
-// Direct Delivery (used by QStash handler or fallback)
+// Direct Delivery (used by Trigger.dev task or fallback)
 // =============================================================================
 
 /**
  * Deliver a webhook directly to a URL
- * This is called by the QStash handler endpoint or as fallback when QStash is not configured
+ * This is called by the Trigger.dev task or as fallback when Trigger.dev is not configured
  */
 export async function deliverWebhook(
   url: string,
@@ -137,12 +134,12 @@ export async function deliverWebhook(
 }
 
 // =============================================================================
-// Queue-based Delivery (with retries via QStash)
+// Queue-based Delivery (with retries via Trigger.dev)
 // =============================================================================
 
 /**
- * Queue a webhook delivery via QStash for automatic retries
- * Falls back to immediate delivery if QStash is not configured
+ * Queue a webhook delivery via Trigger.dev for automatic retries
+ * Falls back to immediate delivery if Trigger.dev is not configured
  */
 export async function queueWebhookDelivery(
   webhookId: string,
@@ -158,17 +155,15 @@ export async function queueWebhookDelivery(
       event,
       payload: data,
       status: 'pending',
-      maxAttempts: MAX_RETRIES + 1,
+      maxAttempts: WEBHOOK_CONFIG.MAX_RETRIES + 1,
       attemptNumber: 0, // Will be set to 1 on first attempt
       success: false,
     })
     .returning();
 
-  const client = getQStashClient();
-
-  if (!client) {
-    // Fallback: QStash not configured, deliver immediately without retries
-    log.warn('QStash not configured, using immediate delivery');
+  if (!isTriggerConfigured()) {
+    // Fallback: Trigger.dev not configured, deliver immediately without retries
+    log.warn('Trigger.dev not configured, using immediate delivery');
     await deliverWebhookImmediate(delivery.id, webhookId, event, data);
     return delivery.id;
   }
@@ -194,47 +189,36 @@ export async function queueWebhookDelivery(
       return delivery.id;
     }
 
-    // Queue via QStash
-    const handlerUrl = getWebhookHandlerBaseUrl();
-    const queuePayload: QueuedWebhookPayload = {
+    // Queue via Trigger.dev
+    const taskId = await queueWebhookWithTrigger({
       deliveryId: delivery.id,
       webhookId,
       orgId,
       event,
       data,
-      attempt: 1,
-    };
-
-    const response = await client.publishJSON({
-      url: handlerUrl,
-      body: queuePayload,
-      retries: MAX_RETRIES,
-      callback: `${handlerUrl}/callback`,
-      failureCallback: `${handlerUrl}/failure`,
-      timeout: WEBHOOK_TIMEOUT_SECONDS,
     });
 
-    // Update delivery with QStash message ID
+    // Update delivery with Trigger.dev task ID
     await db
       .update(webhookDeliveriesTable)
       .set({
-        qstashMessageId: response.messageId,
+        triggerTaskId: taskId,
         status: 'processing',
       })
       .where(eq(webhookDeliveriesTable.id, delivery.id));
 
     return delivery.id;
   } catch (error) {
-    log.error({ err: error, webhookId, deliveryId: delivery.id }, 'Failed to queue via QStash');
+    log.error({ err: error, webhookId, deliveryId: delivery.id }, 'Failed to queue via Trigger.dev');
 
-    // Fallback to immediate delivery on QStash error
+    // Fallback to immediate delivery on Trigger.dev error
     await deliverWebhookImmediate(delivery.id, webhookId, event, data);
     return delivery.id;
   }
 }
 
 /**
- * Deliver webhook immediately without QStash (fallback)
+ * Deliver webhook immediately without Trigger.dev (fallback)
  */
 async function deliverWebhookImmediate(
   deliveryId: string,
@@ -334,7 +318,7 @@ async function deliverWebhookImmediate(
 
 /**
  * Fire webhooks for an event to all active webhooks in an organization
- * Uses QStash for automatic retries when configured
+ * Uses Trigger.dev for automatic retries when configured
  */
 export async function fireWebhooks(
   orgId: string,
@@ -431,7 +415,7 @@ export async function retryWebhookDelivery(
 
 /**
  * Send a test webhook to verify configuration
- * Test webhooks are delivered immediately without QStash
+ * Test webhooks are delivered immediately without Trigger.dev
  */
 export async function sendTestWebhook(webhookId: string): Promise<WebhookDeliveryResult> {
   const [webhook] = await db
