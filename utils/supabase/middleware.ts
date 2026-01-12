@@ -35,7 +35,9 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
   const url = request.nextUrl.clone();
 
-  if (request.nextUrl.pathname.startsWith('/webhook')) {
+  // Skip auth redirect for webhook and API routes (they handle their own auth)
+  if (request.nextUrl.pathname.startsWith('/webhook') ||
+      request.nextUrl.pathname.startsWith('/api/')) {
     return supabaseResponse;
   }
 
