@@ -207,21 +207,28 @@ export type SelectOrgInvite = typeof orgInvitesTable.$inferSelect;
 // API KEYS (BYOK + Platform keys)
 // =============================================================================
 
-export const apiKeysTable = pgTable('api_keys', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  orgId: uuid('org_id')
-    .references(() => organizationsTable.id, { onDelete: 'cascade' })
-    .notNull(),
-  name: text('name').notNull(), // User-friendly name for the key
-  keyHash: text('key_hash').notNull(), // SHA-256 hash of the API key
-  keyPrefix: text('key_prefix').notNull(), // First 8 chars for identification (e.g., "vfy_abc1")
-  provider: text('provider').notNull(), // 'platform', 'openai', 'anthropic', 'google', 'deepseek', etc.
-  encryptedKey: text('encrypted_key'), // For BYOK: AES-256 encrypted provider API key
-  isActive: boolean('is_active').default(true).notNull(),
-  lastUsedAt: timestamp('last_used_at'),
-  expiresAt: timestamp('expires_at'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+export const apiKeysTable = pgTable(
+  'api_keys',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    orgId: uuid('org_id')
+      .references(() => organizationsTable.id, { onDelete: 'cascade' })
+      .notNull(),
+    name: text('name').notNull(), // User-friendly name for the key
+    keyHash: text('key_hash').notNull().unique(), // SHA-256 hash of the API key (must be unique)
+    keyPrefix: text('key_prefix').notNull(), // First 8 chars for identification (e.g., "vfy_abc1")
+    provider: text('provider').notNull(), // 'platform', 'openai', 'anthropic', 'google', 'deepseek', etc.
+    encryptedKey: text('encrypted_key'), // For BYOK: AES-256 encrypted provider API key
+    isActive: boolean('is_active').default(true).notNull(),
+    lastUsedAt: timestamp('last_used_at'),
+    expiresAt: timestamp('expires_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    // Unique constraint: no duplicate key names within same org
+    orgNameUnique: { columns: [table.orgId, table.name], name: 'api_keys_org_name_unique' },
+  })
+);
 
 export type InsertApiKey = typeof apiKeysTable.$inferInsert;
 export type SelectApiKey = typeof apiKeysTable.$inferSelect;
@@ -332,22 +339,29 @@ export type SelectUsage = typeof usageTable.$inferSelect;
 // WEBHOOKS (Organization webhook configurations)
 // =============================================================================
 
-export const webhooksTable = pgTable('webhooks', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  orgId: uuid('org_id')
-    .references(() => organizationsTable.id, { onDelete: 'cascade' })
-    .notNull(),
-  url: text('url').notNull(),
-  signingSecret: text('signing_secret').notNull(), // For HMAC-SHA256 signature
-  events: text('events').array().notNull(), // Array of event types
-  description: text('description'),
-  isActive: boolean('is_active').default(true).notNull(),
-  lastTriggeredAt: timestamp('last_triggered_at'),
-  lastStatus: integer('last_status'), // HTTP status from last delivery
-  failureCount: integer('failure_count').default(0).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+export const webhooksTable = pgTable(
+  'webhooks',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    orgId: uuid('org_id')
+      .references(() => organizationsTable.id, { onDelete: 'cascade' })
+      .notNull(),
+    url: text('url').notNull(),
+    signingSecret: text('signing_secret').notNull(), // For HMAC-SHA256 signature
+    events: text('events').array().notNull(), // Array of event types
+    description: text('description'),
+    isActive: boolean('is_active').default(true).notNull(),
+    lastTriggeredAt: timestamp('last_triggered_at'),
+    lastStatus: integer('last_status'), // HTTP status from last delivery
+    failureCount: integer('failure_count').default(0).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    // Unique constraint: no duplicate webhook URLs per org
+    orgUrlUnique: { columns: [table.orgId, table.url], name: 'webhooks_org_url_unique' },
+  })
+);
 
 export type InsertWebhook = typeof webhooksTable.$inferInsert;
 export type SelectWebhook = typeof webhooksTable.$inferSelect;
