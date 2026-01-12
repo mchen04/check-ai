@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { AlertCircle, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
-type CalloutType = 'info' | 'warning' | 'danger' | 'success';
+type CalloutType = 'info' | 'warning' | 'danger' | 'success' | 'tip';
 
 interface CalloutProps {
   type?: CalloutType;
@@ -26,6 +26,10 @@ const CALLOUT_STYLES: Record<CalloutType, { icon: typeof Info; className: string
   success: {
     icon: CheckCircle2,
     className: 'border-green-500/30 bg-green-500/5 text-green-700 dark:text-green-300',
+  },
+  tip: {
+    icon: Info,
+    className: 'border-purple-500/30 bg-purple-500/5 text-purple-700 dark:text-purple-300',
   },
 };
 

@@ -1,7 +1,7 @@
 'use strict';
 
 // src/errors.ts
-var ShoveError = class _ShoveError extends Error {
+var CheckError = class _CheckError extends Error {
   /** Error code for programmatic handling */
   code;
   /** HTTP status code if applicable */
@@ -12,13 +12,13 @@ var ShoveError = class _ShoveError extends Error {
   details;
   constructor(message, options) {
     super(message);
-    this.name = "ShoveError";
+    this.name = "CheckError";
     this.code = options?.code ?? "UNKNOWN_ERROR";
     this.status = options?.status;
     this.requestId = options?.requestId;
     this.details = options?.details;
     if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, _ShoveError);
+      Error.captureStackTrace(this, _CheckError);
     }
   }
   /**
@@ -34,31 +34,31 @@ var ShoveError = class _ShoveError extends Error {
     });
   }
 };
-var AuthenticationError = class extends ShoveError {
+var AuthenticationError = class extends CheckError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "AUTHENTICATION_ERROR" });
     this.name = "AuthenticationError";
   }
 };
-var AuthorizationError = class extends ShoveError {
+var AuthorizationError = class extends CheckError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "AUTHORIZATION_ERROR" });
     this.name = "AuthorizationError";
   }
 };
-var ValidationError = class extends ShoveError {
+var ValidationError = class extends CheckError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "VALIDATION_ERROR" });
     this.name = "ValidationError";
   }
 };
-var NotFoundError = class extends ShoveError {
+var NotFoundError = class extends CheckError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "NOT_FOUND" });
     this.name = "NotFoundError";
   }
 };
-var RateLimitError = class extends ShoveError {
+var RateLimitError = class extends CheckError {
   /** Seconds until rate limit resets */
   retryAfter;
   constructor(message, options) {
@@ -67,19 +67,19 @@ var RateLimitError = class extends ShoveError {
     this.retryAfter = options?.retryAfter;
   }
 };
-var QuotaExceededError = class extends ShoveError {
+var QuotaExceededError = class extends CheckError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "QUOTA_EXCEEDED" });
     this.name = "QuotaExceededError";
   }
 };
-var TimeoutError = class extends ShoveError {
+var TimeoutError = class extends CheckError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "TIMEOUT" });
     this.name = "TimeoutError";
   }
 };
-var ServerError = class extends ShoveError {
+var ServerError = class extends CheckError {
   constructor(message, options) {
     super(message, { ...options, code: options?.code ?? "SERVER_ERROR" });
     this.name = "ServerError";
@@ -121,13 +121,13 @@ function getErrorClass(code, status) {
     case 504:
       return ServerError;
     default:
-      return ShoveError;
+      return CheckError;
   }
 }
 
 // src/client.ts
 var VERSION = "0.1.0";
-var DEFAULT_BASE_URL = "https://api.shove.ai";
+var DEFAULT_BASE_URL = "https://api.check.ai";
 var DEFAULT_TIMEOUT = 3e4;
 var DEFAULT_POLL_INTERVAL = 1e3;
 var DEFAULT_WAIT_TIMEOUT = 6e4;
@@ -141,7 +141,7 @@ var DEFAULT_RETRY_CONFIG = {
   jitter: true,
   retryableStatuses: [429, 500, 502, 503, 504]
 };
-var Shove = class {
+var Check = class {
   apiKey;
   baseUrl;
   timeout;
@@ -149,7 +149,7 @@ var Shove = class {
   retryConfig;
   constructor(options) {
     if (!options.apiKey) {
-      throw new ShoveError("API key is required", { code: "MISSING_API_KEY" });
+      throw new CheckError("API key is required", { code: "MISSING_API_KEY" });
     }
     this.apiKey = options.apiKey;
     this.baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, "");
@@ -164,7 +164,7 @@ var Shove = class {
       };
     }
     if (!this.fetchFn) {
-      throw new ShoveError(
+      throw new CheckError(
         "fetch is not available. Please provide a fetch implementation or use Node.js 18+",
         { code: "FETCH_NOT_AVAILABLE" }
       );
@@ -210,7 +210,7 @@ var Shove = class {
    */
   async getVerification(id) {
     if (!id) {
-      throw new ShoveError("Verification ID is required", {
+      throw new CheckError("Verification ID is required", {
         code: "MISSING_ID"
       });
     }
@@ -275,7 +275,7 @@ var Shove = class {
         await this.sleep(delay);
       }
     }
-    throw lastError ?? new ShoveError("Request failed", { code: "UNKNOWN_ERROR" });
+    throw lastError ?? new CheckError("Request failed", { code: "UNKNOWN_ERROR" });
   }
   /**
    * Execute a single request attempt
@@ -290,7 +290,7 @@ var Shove = class {
         headers: {
           "Authorization": `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
-          "User-Agent": `@shove/sdk/${VERSION}`,
+          "User-Agent": `@check/sdk/${VERSION}`,
           ...options.headers
         },
         signal: controller.signal
@@ -309,23 +309,23 @@ var Shove = class {
             retryAfter: retryAfter ? parseInt(retryAfter, 10) : void 0
           });
         }
-        throw ShoveError.fromResponse(errorData, response.status);
+        throw CheckError.fromResponse(errorData, response.status);
       }
       return data;
     } catch (error) {
       clearTimeout(timeoutId);
-      if (error instanceof ShoveError) {
+      if (error instanceof CheckError) {
         throw error;
       }
       if (error instanceof Error && error.name === "AbortError") {
         throw new TimeoutError(`Request timed out after ${this.timeout}ms`);
       }
       if (error instanceof TypeError) {
-        throw new ShoveError(`Network error: ${error.message}`, {
+        throw new CheckError(`Network error: ${error.message}`, {
           code: "NETWORK_ERROR"
         });
       }
-      throw new ShoveError(
+      throw new CheckError(
         error instanceof Error ? error.message : "Unknown error",
         { code: "UNKNOWN_ERROR" }
       );
@@ -344,10 +344,10 @@ var Shove = class {
     if (error instanceof RateLimitError) {
       return true;
     }
-    if (error instanceof ShoveError && error.status) {
+    if (error instanceof CheckError && error.status) {
       return this.retryConfig.retryableStatuses.includes(error.status);
     }
-    if (error instanceof ShoveError && error.code === "NETWORK_ERROR") {
+    if (error instanceof CheckError && error.code === "NETWORK_ERROR") {
       return true;
     }
     if (error instanceof TimeoutError) {
@@ -425,7 +425,7 @@ var Shove = class {
    */
   async getBatch(id) {
     if (!id) {
-      throw new ShoveError("Batch ID is required", { code: "MISSING_ID" });
+      throw new CheckError("Batch ID is required", { code: "MISSING_ID" });
     }
     return this.request(`/v1/batch/${encodeURIComponent(id)}`, {
       method: "GET"
@@ -475,7 +475,7 @@ var Shove = class {
    */
   async cancelBatch(id) {
     if (!id) {
-      throw new ShoveError("Batch ID is required", { code: "MISSING_ID" });
+      throw new CheckError("Batch ID is required", { code: "MISSING_ID" });
     }
     return this.request(`/v1/batch/${encodeURIComponent(id)}/cancel`, {
       method: "POST"
@@ -502,7 +502,7 @@ var Shove = class {
    */
   async getBatchResults(id, options) {
     if (!id) {
-      throw new ShoveError("Batch ID is required", { code: "MISSING_ID" });
+      throw new CheckError("Batch ID is required", { code: "MISSING_ID" });
     }
     const params = new URLSearchParams();
     if (options?.limit) params.set("limit", String(options.limit));
@@ -538,8 +538,12 @@ var Shove = class {
     const formData = new FormData();
     if (file instanceof Blob) {
       formData.append("file", file, filename);
-    } else {
+    } else if (file instanceof ArrayBuffer) {
       const blob = new Blob([file]);
+      formData.append("file", blob, filename);
+    } else {
+      const arrayBuffer = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength);
+      const blob = new Blob([arrayBuffer]);
       formData.append("file", blob, filename);
     }
     const url = `${this.baseUrl}/v1/batch/upload`;
@@ -550,7 +554,7 @@ var Shove = class {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${this.apiKey}`,
-          "User-Agent": `@shove/sdk/${VERSION}`
+          "User-Agent": `@check/sdk/${VERSION}`
           // Note: Don't set Content-Type for FormData - browser sets it with boundary
         },
         body: formData,
@@ -559,18 +563,18 @@ var Shove = class {
       clearTimeout(timeoutId);
       const data = await response.json();
       if (!response.ok) {
-        throw ShoveError.fromResponse(data, response.status);
+        throw CheckError.fromResponse(data, response.status);
       }
       return data;
     } catch (error) {
       clearTimeout(timeoutId);
-      if (error instanceof ShoveError) {
+      if (error instanceof CheckError) {
         throw error;
       }
       if (error instanceof Error && error.name === "AbortError") {
         throw new TimeoutError(`Upload timed out after ${this.timeout}ms`);
       }
-      throw new ShoveError(
+      throw new CheckError(
         error instanceof Error ? error.message : "Upload failed",
         { code: "UPLOAD_ERROR" }
       );
@@ -634,12 +638,12 @@ var Shove = class {
 
 exports.AuthenticationError = AuthenticationError;
 exports.AuthorizationError = AuthorizationError;
+exports.Check = Check;
+exports.CheckError = CheckError;
 exports.NotFoundError = NotFoundError;
 exports.QuotaExceededError = QuotaExceededError;
 exports.RateLimitError = RateLimitError;
 exports.ServerError = ServerError;
-exports.Shove = Shove;
-exports.ShoveError = ShoveError;
 exports.TimeoutError = TimeoutError;
 exports.VERSION = VERSION;
 exports.ValidationError = ValidationError;

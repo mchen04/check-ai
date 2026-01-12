@@ -33,8 +33,8 @@ var VerificationRejectedError = class extends VerificationError {
 };
 
 // src/callback.ts
-var ShoveCallbackHandler = class extends BaseCallbackHandler {
-  name = "ShoveCallbackHandler";
+var CheckCallbackHandler = class extends BaseCallbackHandler {
+  name = "CheckCallbackHandler";
   client;
   methods;
   minConfidence;
@@ -131,7 +131,7 @@ var ShoveCallbackHandler = class extends BaseCallbackHandler {
   }
 };
 export {
-  ShoveCallbackHandler,
+  CheckCallbackHandler,
   VerificationError,
   VerificationRejectedError
 };
