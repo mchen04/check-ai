@@ -78,6 +78,13 @@
       "when": 1768320000000,
       "tag": "0010_add_uniqueness_constraints",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1768330000000,
+      "tag": "0011_production_hardening",
+      "breakpoints": true
     }
   ]
 }
