@@ -566,9 +566,13 @@ export class Check {
     // Handle different input types
     if (file instanceof Blob) {
       formData.append('file', file, filename);
-    } else {
-      // Buffer or ArrayBuffer
+    } else if (file instanceof ArrayBuffer) {
       const blob = new Blob([file]);
+      formData.append('file', blob, filename);
+    } else {
+      // Buffer - slice to get a proper ArrayBuffer for Blob compatibility
+      const arrayBuffer = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
+      const blob = new Blob([arrayBuffer]);
       formData.append('file', blob, filename);
     }
 
