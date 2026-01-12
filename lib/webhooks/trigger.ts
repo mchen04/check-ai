@@ -3,7 +3,7 @@
  * Replaces QStash for webhook delivery with automatic retries
  */
 
-import { tasks } from "@trigger.dev/sdk";
+import { tasks } from "@trigger.dev/sdk/v3";
 import type { webhookDeliveryTask } from "@/trigger/webhook-delivery";
 import { createLogger } from "@/lib/logger";
 

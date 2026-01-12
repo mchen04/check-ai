@@ -1,6 +1,10 @@
 /**
  * Logger Configuration
  * Pino-based structured logging with environment-aware configuration
+ *
+ * Note: We avoid pino transports entirely because they use worker threads
+ * via thread-stream, which causes "Cannot find module" errors during
+ * Next.js hot module reloading. JSON output is used in all environments.
  */
 
 import pino from 'pino';
@@ -26,28 +30,21 @@ function getLogLevel(): LogLevel {
 }
 
 const LOG_LEVEL = getLogLevel();
-const isProduction = process.env.NODE_ENV === 'production';
-
-// Configure transport based on environment
-const transport = isProduction
-  ? undefined // Default JSON output in production
-  : {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'SYS:standard',
-        ignore: 'pid,hostname',
-      },
-    };
 
 /**
  * Base Pino logger configuration
+ *
+ * Note: We intentionally avoid using pino transports (like pino-pretty)
+ * because they spawn worker threads via thread-stream. In Next.js dev mode,
+ * hot reloading can cause these worker threads to lose their module context,
+ * resulting in "Cannot find module '.next/server/vendor-chunks/lib/worker.js'"
+ * errors. JSON output works reliably in all environments.
+ *
+ * For pretty logs during development, pipe output through pino-pretty:
+ *   npm run dev | npx pino-pretty
  */
 const baseLogger = pino({
   level: LOG_LEVEL,
-
-  // Use transport in development for pretty printing
-  transport,
 
   // Base bindings included in all log entries
   base: {
