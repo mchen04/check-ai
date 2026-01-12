@@ -13,6 +13,12 @@ import {
 import { relations } from 'drizzle-orm';
 
 // =============================================================================
+// HELPER: Timezone-aware timestamp (TIMESTAMPTZ)
+// =============================================================================
+// All timestamps should use TIMESTAMPTZ for proper timezone handling
+const timestamptz = (name: string) => timestamp(name, { withTimezone: true });
+
+// =============================================================================
 // ENUMS
 // =============================================================================
 
@@ -139,8 +145,8 @@ export const organizationsTable = pgTable('organizations', {
   stripeSubscriptionId: text('stripe_subscription_id'),
   verificationsUsed: integer('verifications_used').default(0).notNull(),
   verificationsLimit: integer('verifications_limit').default(100).notNull(), // Free tier default
-  billingCycleStart: timestamp('billing_cycle_start'),
-  billingCycleEnd: timestamp('billing_cycle_end'),
+  billingCycleStart: timestamptz('billing_cycle_start'),
+  billingCycleEnd: timestamptz('billing_cycle_end'),
   // Settings columns
   defaultVerificationMethod: text('default_verification_method').default('ensemble').notNull(),
   autoEscalateThreshold: decimal('auto_escalate_threshold', { precision: 3, scale: 2 }).default('0.50').notNull(),
@@ -150,8 +156,8 @@ export const organizationsTable = pgTable('organizations', {
   verificationRetentionDays: integer('verification_retention_days').default(30).notNull(),
   batchRetentionDays: integer('batch_retention_days').default(30).notNull(),
   dataRetentionEnabled: boolean('data_retention_enabled').default(true).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdAt: timestamptz('created_at').defaultNow().notNull(),
+  updatedAt: timestamptz('updated_at').defaultNow().notNull(),
 });
 
 export type InsertOrganization = typeof organizationsTable.$inferInsert;
@@ -171,7 +177,7 @@ export const orgMembersTable = pgTable(
       .references(() => usersTable.id, { onDelete: 'cascade' })
       .notNull(),
     role: orgRoleEnum('role').default('member').notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+    createdAt: timestamptz('created_at').defaultNow().notNull(),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.orgId, table.userId] }),
@@ -195,9 +201,9 @@ export const orgInvitesTable = pgTable('org_invites', {
   token: text('token').notNull().unique(),
   invitedBy: text('invited_by').references(() => usersTable.id, { onDelete: 'set null' }),
   status: inviteStatusEnum('status').default('pending').notNull(),
-  expiresAt: timestamp('expires_at').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  acceptedAt: timestamp('accepted_at'),
+  expiresAt: timestamptz('expires_at').notNull(),
+  createdAt: timestamptz('created_at').defaultNow().notNull(),
+  acceptedAt: timestamptz('accepted_at'),
 });
 
 export type InsertOrgInvite = typeof orgInvitesTable.$inferInsert;
@@ -215,17 +221,18 @@ export const apiKeysTable = pgTable(
       .references(() => organizationsTable.id, { onDelete: 'cascade' })
       .notNull(),
     name: text('name').notNull(), // User-friendly name for the key
-    keyHash: text('key_hash').notNull().unique(), // SHA-256 hash of the API key (must be unique)
+    keyHash: text('key_hash').notNull(), // SHA-256 hash of the API key (unique among non-deleted via partial index)
     keyPrefix: text('key_prefix').notNull(), // First 8 chars for identification (e.g., "vfy_abc1")
     provider: text('provider').notNull(), // 'platform', 'openai', 'anthropic', 'google', 'deepseek', etc.
     encryptedKey: text('encrypted_key'), // For BYOK: AES-256 encrypted provider API key
     isActive: boolean('is_active').default(true).notNull(),
-    lastUsedAt: timestamp('last_used_at'),
-    expiresAt: timestamp('expires_at'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+    lastUsedAt: timestamptz('last_used_at'),
+    expiresAt: timestamptz('expires_at'),
+    createdAt: timestamptz('created_at').defaultNow().notNull(),
+    deletedAt: timestamptz('deleted_at'), // Soft delete
   },
   (table) => ({
-    // Unique constraint: no duplicate key names within same org
+    // Unique constraint: no duplicate key names within same org (among non-deleted)
     orgNameUnique: { columns: [table.orgId, table.name], name: 'api_keys_org_name_unique' },
   })
 );
@@ -254,9 +261,10 @@ export const verificationsTable = pgTable('verifications', {
   processingTimeMs: integer('processing_time_ms'),
   costCents: integer('cost_cents'), // Total cost in cents
   cachedResult: boolean('cached_result').default(false).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  completedAt: timestamp('completed_at'),
-  expiresAt: timestamp('expires_at'), // For data retention cleanup
+  createdAt: timestamptz('created_at').defaultNow().notNull(),
+  completedAt: timestamptz('completed_at'),
+  expiresAt: timestamptz('expires_at'), // For data retention cleanup
+  deletedAt: timestamptz('deleted_at'), // Soft delete
 });
 
 export type InsertVerification = typeof verificationsTable.$inferInsert;
@@ -283,7 +291,7 @@ export const paradigmResultsTable = pgTable('paradigm_results', {
   processingTimeMs: integer('processing_time_ms'),
   costCents: integer('cost_cents'),
   errorMessage: text('error_message'), // If paradigm failed
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: timestamptz('created_at').defaultNow().notNull(),
 });
 
 export type InsertParadigmResult = typeof paradigmResultsTable.$inferInsert;
@@ -301,12 +309,12 @@ export const escalationsTable = pgTable('escalations', {
   reason: escalationReasonEnum('reason').notNull(),
   details: jsonb('details'), // Additional context for escalation
   priority: integer('priority').default(1).notNull(), // 1 = low, 2 = medium, 3 = high
-  deadline: timestamp('deadline'), // Optional deadline for resolution
-  resolvedAt: timestamp('resolved_at'),
+  deadline: timestamptz('deadline'), // Optional deadline for resolution
+  resolvedAt: timestamptz('resolved_at'),
   resolvedBy: text('resolved_by').references(() => usersTable.id),
   resolution: text('resolution'), // Human decision/notes
   humanVerdict: text('human_verdict'), // 'true', 'false', 'uncertain'
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: timestamptz('created_at').defaultNow().notNull(),
 });
 
 export type InsertEscalation = typeof escalationsTable.$inferInsert;
@@ -329,7 +337,7 @@ export const usageTable = pgTable('usage', {
   inputTokens: integer('input_tokens').notNull(),
   outputTokens: integer('output_tokens').notNull(),
   costCents: integer('cost_cents').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: timestamptz('created_at').defaultNow().notNull(),
 });
 
 export type InsertUsage = typeof usageTable.$inferInsert;
@@ -351,14 +359,15 @@ export const webhooksTable = pgTable(
     events: text('events').array().notNull(), // Array of event types
     description: text('description'),
     isActive: boolean('is_active').default(true).notNull(),
-    lastTriggeredAt: timestamp('last_triggered_at'),
+    lastTriggeredAt: timestamptz('last_triggered_at'),
     lastStatus: integer('last_status'), // HTTP status from last delivery
     failureCount: integer('failure_count').default(0).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    createdAt: timestamptz('created_at').defaultNow().notNull(),
+    updatedAt: timestamptz('updated_at').defaultNow().notNull(),
+    deletedAt: timestamptz('deleted_at'), // Soft delete
   },
   (table) => ({
-    // Unique constraint: no duplicate webhook URLs per org
+    // Unique constraint: no duplicate webhook URLs per org (among non-deleted)
     orgUrlUnique: { columns: [table.orgId, table.url], name: 'webhooks_org_url_unique' },
   })
 );
@@ -396,7 +405,7 @@ export const webhookDeliveriesTable = pgTable('webhook_deliveries', {
   // Retry tracking
   attemptNumber: integer('attempt_number').default(1).notNull(),
   maxAttempts: integer('max_attempts').default(6).notNull(),
-  nextRetryAt: timestamp('next_retry_at'),
+  nextRetryAt: timestamptz('next_retry_at'),
 
   // Response data (from latest attempt)
   responseStatus: integer('response_status'),
@@ -411,9 +420,9 @@ export const webhookDeliveriesTable = pgTable('webhook_deliveries', {
   attemptHistory: jsonb('attempt_history').$type<WebhookAttemptRecord[]>(),
 
   // Timestamps
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  deliveredAt: timestamp('delivered_at'),
-  failedAt: timestamp('failed_at'), // When moved to DLQ
+  createdAt: timestamptz('created_at').defaultNow().notNull(),
+  deliveredAt: timestamptz('delivered_at'),
+  failedAt: timestamptz('failed_at'), // When moved to DLQ
 
   // Legacy field for backward compatibility
   success: boolean('success').default(false).notNull(),
@@ -443,8 +452,8 @@ export const userPreferencesTable = pgTable('user_preferences', {
   hasCreatedApiKey: boolean('has_created_api_key').default(false).notNull(),
   hasRunVerification: boolean('has_run_verification').default(false).notNull(),
   hasVisitedPlayground: boolean('has_visited_playground').default(false).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdAt: timestamptz('created_at').defaultNow().notNull(),
+  updatedAt: timestamptz('updated_at').defaultNow().notNull(),
 });
 
 export type InsertUserPreferences = typeof userPreferencesTable.$inferInsert;
@@ -479,7 +488,7 @@ export const auditLogsTable = pgTable('audit_logs', {
   resourceId: text('resource_id'),
   changes: jsonb('changes').$type<AuditChanges>(),
   metadata: jsonb('metadata').$type<AuditMetadata>(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: timestamptz('created_at').defaultNow().notNull(),
 });
 
 export type InsertAuditLog = typeof auditLogsTable.$inferInsert;
@@ -531,10 +540,11 @@ export const batchJobsTable = pgTable('batch_jobs', {
   totalOutputTokens: integer('total_output_tokens').default(0).notNull(),
 
   // Timestamps
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  startedAt: timestamp('started_at'),
-  completedAt: timestamp('completed_at'),
-  expiresAt: timestamp('expires_at'), // Auto-cleanup
+  createdAt: timestamptz('created_at').defaultNow().notNull(),
+  startedAt: timestamptz('started_at'),
+  completedAt: timestamptz('completed_at'),
+  expiresAt: timestamptz('expires_at'), // Auto-cleanup
+  deletedAt: timestamptz('deleted_at'), // Soft delete
 });
 
 export type InsertBatchJob = typeof batchJobsTable.$inferInsert;
@@ -577,9 +587,9 @@ export const batchItemsTable = pgTable('batch_items', {
   processingTimeMs: integer('processing_time_ms'),
 
   // Timestamps
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  startedAt: timestamp('started_at'),
-  completedAt: timestamp('completed_at'),
+  createdAt: timestamptz('created_at').defaultNow().notNull(),
+  startedAt: timestamptz('started_at'),
+  completedAt: timestamptz('completed_at'),
 });
 
 export type InsertBatchItem = typeof batchItemsTable.$inferInsert;
@@ -615,7 +625,7 @@ export const analyticsDailySnapshotsTable = pgTable('analytics_daily_snapshots',
   orgId: uuid('org_id')
     .references(() => organizationsTable.id, { onDelete: 'cascade' })
     .notNull(),
-  date: timestamp('date').notNull(), // Date of the snapshot (midnight UTC)
+  date: timestamptz('date').notNull(), // Date of the snapshot (midnight UTC)
 
   // Per-paradigm metrics
   paradigmType: paradigmTypeEnum('paradigm_type').notNull(),
@@ -639,8 +649,8 @@ export const analyticsDailySnapshotsTable = pgTable('analytics_daily_snapshots',
   avgConfidence: decimal('avg_confidence', { precision: 5, scale: 4 }),
   avgProcessingTimeMs: integer('avg_processing_time_ms'),
 
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdAt: timestamptz('created_at').defaultNow().notNull(),
+  updatedAt: timestamptz('updated_at').defaultNow().notNull(),
 });
 
 export type InsertAnalyticsDailySnapshot = typeof analyticsDailySnapshotsTable.$inferInsert;
@@ -655,7 +665,7 @@ export const waitlistTable = pgTable('waitlist', {
   email: text('email').notNull().unique(),
   source: text('source').default('landing').notNull(),
   referrer: text('referrer'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: timestamptz('created_at').defaultNow().notNull(),
 });
 
 export type InsertWaitlist = typeof waitlistTable.$inferInsert;

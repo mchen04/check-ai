@@ -85,6 +85,13 @@
       "when": 1768330000000,
       "tag": "0011_production_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1768340000000,
+      "tag": "0012_timestamptz_and_soft_delete",
+      "breakpoints": true
     }
   ]
 }
