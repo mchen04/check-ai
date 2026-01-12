@@ -3,7 +3,7 @@ import { defineConfig } from "@trigger.dev/sdk";
 export default defineConfig({
   // IMPORTANT: Replace with your actual project ref from https://cloud.trigger.dev
   // You'll get this when you create a project in the Trigger.dev dashboard
-  project: "check-background-jobs",
+  project: "proj_jejfugrkepausszrfumh",
   // Maximum task duration in seconds (5 minutes)
   maxDuration: 300,
   // Set default retry configuration
