@@ -178,6 +178,7 @@ export const orgMembersTable = pgTable(
       .notNull(),
     role: orgRoleEnum('role').default('member').notNull(),
     createdAt: timestamptz('created_at').defaultNow().notNull(),
+    updatedAt: timestamptz('updated_at').defaultNow().notNull(),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.orgId, table.userId] }),
@@ -203,6 +204,7 @@ export const orgInvitesTable = pgTable('org_invites', {
   status: inviteStatusEnum('status').default('pending').notNull(),
   expiresAt: timestamptz('expires_at').notNull(),
   createdAt: timestamptz('created_at').defaultNow().notNull(),
+  updatedAt: timestamptz('updated_at').defaultNow().notNull(),
   acceptedAt: timestamptz('accepted_at'),
 });
 
@@ -229,6 +231,7 @@ export const apiKeysTable = pgTable(
     lastUsedAt: timestamptz('last_used_at'),
     expiresAt: timestamptz('expires_at'),
     createdAt: timestamptz('created_at').defaultNow().notNull(),
+    updatedAt: timestamptz('updated_at').defaultNow().notNull(),
     deletedAt: timestamptz('deleted_at'), // Soft delete
   },
   (table) => ({
@@ -262,6 +265,7 @@ export const verificationsTable = pgTable('verifications', {
   costCents: integer('cost_cents'), // Total cost in cents
   cachedResult: boolean('cached_result').default(false).notNull(),
   createdAt: timestamptz('created_at').defaultNow().notNull(),
+  updatedAt: timestamptz('updated_at').defaultNow().notNull(),
   completedAt: timestamptz('completed_at'),
   expiresAt: timestamptz('expires_at'), // For data retention cleanup
   deletedAt: timestamptz('deleted_at'), // Soft delete
@@ -315,6 +319,7 @@ export const escalationsTable = pgTable('escalations', {
   resolution: text('resolution'), // Human decision/notes
   humanVerdict: text('human_verdict'), // 'true', 'false', 'uncertain'
   createdAt: timestamptz('created_at').defaultNow().notNull(),
+  updatedAt: timestamptz('updated_at').defaultNow().notNull(),
 });
 
 export type InsertEscalation = typeof escalationsTable.$inferInsert;
@@ -421,6 +426,7 @@ export const webhookDeliveriesTable = pgTable('webhook_deliveries', {
 
   // Timestamps
   createdAt: timestamptz('created_at').defaultNow().notNull(),
+  updatedAt: timestamptz('updated_at').defaultNow().notNull(),
   deliveredAt: timestamptz('delivered_at'),
   failedAt: timestamptz('failed_at'), // When moved to DLQ
 
@@ -541,6 +547,7 @@ export const batchJobsTable = pgTable('batch_jobs', {
 
   // Timestamps
   createdAt: timestamptz('created_at').defaultNow().notNull(),
+  updatedAt: timestamptz('updated_at').defaultNow().notNull(),
   startedAt: timestamptz('started_at'),
   completedAt: timestamptz('completed_at'),
   expiresAt: timestamptz('expires_at'), // Auto-cleanup
@@ -588,6 +595,7 @@ export const batchItemsTable = pgTable('batch_items', {
 
   // Timestamps
   createdAt: timestamptz('created_at').defaultNow().notNull(),
+  updatedAt: timestamptz('updated_at').defaultNow().notNull(),
   startedAt: timestamptz('started_at'),
   completedAt: timestamptz('completed_at'),
 });

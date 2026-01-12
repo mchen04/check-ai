@@ -92,6 +92,13 @@
       "when": 1768340000000,
       "tag": "0012_timestamptz_and_soft_delete",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1768350000000,
+      "tag": "0013_add_missing_updated_at",
+      "breakpoints": true
     }
   ]
 }
