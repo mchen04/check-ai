@@ -1,42 +1,75 @@
 ---
 title: Introduction
-description: Learn about Verifact's content verification API and how it can help you detect misinformation at scale.
+description: Learn about Check's LLM verification API and how it can help you detect hallucinations and verify AI-generated content at scale.
 order: 1
 ---
 
-# Welcome to Verifact
+# Welcome to Check
 
-Verifact is an AI-powered content verification platform that helps you detect misinformation, verify claims, and ensure content integrity at scale.
+Check is an AI-powered LLM verification platform that helps you detect hallucinations, verify claims, and ensure the accuracy of AI-generated content at scale. Think of it as "the Stripe for LLM Verification" — a developer-first solution for organizations building on top of large language models.
 
-## What is Verifact?
+## What is Check?
 
-Verifact uses a multi-paradigm verification approach combining:
+Check uses a multi-paradigm verification approach combining seven distinct verification methods, each with different False Positive Rates (FPR) and strengths:
 
-- **LLM reasoning** - Advanced language models analyze claims contextually
-- **Search verification** - Cross-referencing against authoritative sources
-- **Logical consistency** - Detecting internal contradictions
-- **Source reputation** - Evaluating the credibility of cited sources
-- **Temporal analysis** - Checking if information is outdated
-- **Synthetic detection** - Identifying AI-generated content
-- **Contextual analysis** - Understanding nuance and framing
+| Method | FPR | Description |
+|--------|-----|-------------|
+| **Semantic** | 50-100% | Embedding similarity checking for basic content matching |
+| **Reasoning** | ~7% | LLM-based reasoning judge that analyzes claims contextually |
+| **Tool** | ~2% | Web search-augmented fact-checking against authoritative sources |
+| **BIPRM** | ~10% | Bidirectional reasoning from multiple angles |
+| **Ensemble** | ~30% | Multi-model voting consensus across different LLMs |
+| **Entropy** | ~15% | Consistency checking across prompt variations |
+| **Formal** | 0% | Mathematical and logical proof verification |
 
 ## Key Features
 
 ### Multi-Paradigm Verification
 
-Each piece of content is analyzed through multiple verification methods simultaneously, providing a comprehensive assessment with confidence scores.
+Each piece of content is analyzed through multiple verification methods simultaneously, providing a comprehensive assessment with confidence scores. Results are aggregated using FPR-weighted voting to produce the most accurate verdicts.
+
+### Intelligent Decision Making
+
+Based on confidence scores, Check automatically recommends actions:
+
+| Confidence | Decision |
+|------------|----------|
+| 0.95+ | **Accept** - High confidence, auto-approve |
+| 0.7 – 0.95 | **Refine** - Needs clarification |
+| 0.5 – 0.7 | **Escalate** - Flag for human review |
+| < 0.3 | **Reject** - Low confidence, reject |
 
 ### Automatic Escalation
 
-Low-confidence verifications are automatically flagged for human review, ensuring accuracy on edge cases.
+Low-confidence verifications are automatically flagged for human review, ensuring accuracy on edge cases with priority levels and optional SLA deadlines.
 
 ### Real-time Webhooks
 
-Get instant notifications when verifications complete or require attention.
+Get instant notifications when verifications complete or require attention. Supports `verification.completed`, `verification.escalated`, and usage limit events.
+
+### Batch Processing
+
+Process thousands of claims efficiently with CSV/JSON upload, real-time progress tracking, and automatic retries.
 
 ### Team Collaboration
 
-Invite team members, assign roles, and manage permissions for your organization.
+Invite team members, assign roles (Owner, Admin, Member, Viewer), and manage permissions with full RBAC support.
+
+### Bring Your Own Key (BYOK)
+
+Use your own LLM provider API keys for cost control and compliance. Check supports 16+ providers including OpenAI, Anthropic, Google, DeepSeek, Groq, and more.
+
+## SDKs & Integrations
+
+Check provides official SDKs for seamless integration:
+
+| Package | Description |
+|---------|-------------|
+| `@check/sdk` | TypeScript/Node.js SDK |
+| `check` | Python SDK |
+| `@check/langchain` | LangChain TypeScript integration |
+| `check-langchain` | LangChain Python integration |
+| `@check/llamaindex` | LlamaIndex integration |
 
 ## Getting Started
 
@@ -46,8 +79,18 @@ Ready to start verifying content? Follow our [Quickstart Guide](/docs/quickstart
 You'll need an API key to authenticate requests. Generate one from your [Dashboard](/dashboard/keys).
 </Callout>
 
+## Use Cases
+
+- **AI Chatbots** - Verify responses before sending to users
+- **Content Generation** - Fact-check AI-written articles and summaries
+- **RAG Applications** - Validate retrieved information accuracy
+- **Legal & Compliance** - Ensure AI outputs meet accuracy requirements
+- **Healthcare** - Verify medical information with high confidence
+- **Financial Services** - Fact-check market analysis and reports
+
 ## Support
 
 - **Documentation** - You're looking at it!
 - **API Playground** - Test endpoints interactively at `/dashboard/playground`
-- **Email** - Contact support@verifact.ai for help
+- **GitHub** - Report issues and request features
+- **Email** - Contact support@check.ai for help

@@ -1,6 +1,6 @@
 ---
 title: Batch Processing
-description: Process multiple verifications efficiently with the Batch API.
+description: Process multiple verifications efficiently with the Check Batch API.
 order: 1
 ---
 
@@ -9,7 +9,7 @@ order: 1
 The Batch API allows you to verify multiple pieces of content in a single request. This is ideal for bulk content moderation, historical data verification, and automated pipelines.
 
 <Callout type="info">
-Batch processing is available on Pro and Enterprise plans only.
+Batch processing is available on Starter, Pro, and Enterprise plans.
 </Callout>
 
 ## How It Works
@@ -17,7 +17,7 @@ Batch processing is available on Pro and Enterprise plans only.
 1. **Upload** (optional) - Upload a CSV or JSON file via `/v1/batch/upload`
 2. **Create** - Create a batch job via `/v1/batch` with items or a file reference
 3. **Process** - Items are verified asynchronously in parallel
-4. **Retrieve** - Poll for status or fetch results when complete
+4. **Retrieve** - Poll for status or use webhooks, then fetch results when complete
 
 ## Batch Lifecycle
 
@@ -32,13 +32,13 @@ Batch processing is available on Pro and Enterprise plans only.
 
 ## Limits
 
-| Limit | Value |
-|-------|-------|
-| Maximum items per batch | 100 |
-| Maximum file upload size | 10 MB |
-| Maximum content length per item | 50,000 characters |
-| File reference expiry | 1 hour |
-| Results retention | 30 days |
+| Limit | Free | Starter | Pro | Enterprise |
+|-------|------|---------|-----|------------|
+| Items per batch | N/A | 100 | 1,000 | 10,000 |
+| File upload size | N/A | 1 MB | 10 MB | 100 MB |
+| Content per item | N/A | 10,000 chars | 50,000 chars | 50,000 chars |
+| File reference expiry | N/A | 1 hour | 1 hour | 24 hours |
+| Results retention | N/A | 7 days | 30 days | 90 days |
 
 ## Available Endpoints
 
@@ -56,28 +56,8 @@ Batch processing is available on Pro and Enterprise plans only.
 <CodeTabs
   examples={[
     {
-      language: 'curl',
-      label: 'cURL',
-      code: `# Create a batch with inline items
-curl -X POST https://api.verifact.ai/v1/batch \\
-  -H "Authorization: Bearer vfy_your_api_key" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "name": "Article verification batch",
-    "items": [
-      { "content": "The Earth is approximately 4.5 billion years old." },
-      { "content": "Water freezes at 0 degrees Celsius at sea level." },
-      { "content": "The Great Wall of China is visible from space." }
-    ],
-    "methods": {
-      "reasoning": 1,
-      "tool": 1
-    }
-  }'`
-    },
-    {
-      language: 'javascript',
-      label: 'Node.js',
+      language: 'typescript',
+      label: 'TypeScript SDK',
       code: `import { Check } from '@check/sdk';
 
 const client = new Check({ apiKey: 'vfy_your_api_key' });
@@ -90,35 +70,61 @@ const batch = await client.createBatchAndWait({
     { content: 'Water freezes at 0 degrees Celsius at sea level.' },
     { content: 'The Great Wall of China is visible from space.' }
   ],
-  methods: { reasoning: 1, tool: 1 }
+  methods: { reasoning: 1.0, tool: 0.5 }
 });
 
-console.log(\`Completed: \${batch.successCount}/\${batch.totalItems}\`);`
+console.log(\`Completed: \${batch.successCount}/\${batch.totalItems}\`);
+
+// Get results
+const results = await client.getBatchResults(batch.id);
+for (const result of results) {
+  console.log(\`\${result.content.slice(0, 50)}...: \${result.verdict}\`);
+}`
     },
     {
       language: 'python',
-      label: 'Python',
-      code: `import requests
+      label: 'Python SDK',
+      code: `from check import Check
 
-response = requests.post(
-    'https://api.verifact.ai/v1/batch',
-    headers={
-        'Authorization': 'Bearer vfy_your_api_key',
-        'Content-Type': 'application/json',
-    },
-    json={
-        'name': 'Article verification batch',
-        'items': [
-            {'content': 'The Earth is approximately 4.5 billion years old.'},
-            {'content': 'Water freezes at 0 degrees Celsius at sea level.'},
-            {'content': 'The Great Wall of China is visible from space.'}
-        ],
-        'methods': {'reasoning': 1, 'tool': 1}
-    }
+client = Check(api_key="vfy_your_api_key")
+
+# Create and wait for batch completion
+batch = client.create_batch_and_wait(
+    name="Article verification batch",
+    items=[
+        {"content": "The Earth is approximately 4.5 billion years old."},
+        {"content": "Water freezes at 0 degrees Celsius at sea level."},
+        {"content": "The Great Wall of China is visible from space."}
+    ],
+    methods={"reasoning": 1.0, "tool": 0.5}
 )
 
-batch = response.json()
-print(f"Batch ID: {batch['id']}")`
+print(f"Completed: {batch.success_count}/{batch.total_items}")
+
+# Get results
+results = client.get_batch_results(batch.id)
+for result in results:
+    print(f"{result.content[:50]}...: {result.verdict}")`
+    },
+    {
+      language: 'curl',
+      label: 'cURL',
+      code: `# Create a batch with inline items
+curl -X POST https://api.check.ai/v1/batch \\
+  -H "Authorization: Bearer vfy_your_api_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "name": "Article verification batch",
+    "items": [
+      { "content": "The Earth is approximately 4.5 billion years old." },
+      { "content": "Water freezes at 0 degrees Celsius at sea level." },
+      { "content": "The Great Wall of China is visible from space." }
+    ],
+    "methods": {
+      "reasoning": 1.0,
+      "tool": 0.5
+    }
+  }'`
     },
   ]}
 />
@@ -129,23 +135,225 @@ print(f"Batch ID: {batch['id']}")`
 {
   "id": "batch_abc123def456",
   "status": "processing",
+  "name": "Article verification batch",
   "totalItems": 3,
+  "processedItems": 0,
+  "successCount": 0,
+  "failureCount": 0,
+  "methods": { "reasoning": 1.0, "tool": 0.5 },
+  "createdAt": "2024-01-15T10:30:00Z",
   "message": "Batch created successfully. Items are being processed."
 }
 ```
 
-## Real-time Updates
+## Uploading Files
 
-Subscribe to batch progress via Supabase Realtime:
+For large batches, upload a file first:
 
-```javascript
+<CodeTabs
+  examples={[
+    {
+      language: 'typescript',
+      label: 'TypeScript SDK',
+      code: `import fs from 'fs';
+
+// Upload CSV file
+const file = await client.uploadBatchFile(
+  fs.createReadStream('claims.csv'),
+  'claims.csv'
+);
+
+console.log(file.id);  // 'file_abc123'
+console.log(file.itemCount);  // 150
+
+// Create batch from file
+const batch = await client.createBatch({
+  name: 'CSV verification',
+  fileId: file.id,
+  methods: { reasoning: 1.0 }
+});`
+    },
+    {
+      language: 'python',
+      label: 'Python SDK',
+      code: `# Upload CSV file
+with open("claims.csv", "rb") as f:
+    file = client.upload_batch_file(f, "claims.csv")
+
+print(file.id)  # 'file_abc123'
+print(file.item_count)  # 150
+
+# Create batch from file
+batch = client.create_batch(
+    name="CSV verification",
+    file_id=file.id,
+    methods={"reasoning": 1.0}
+)`
+    },
+    {
+      language: 'curl',
+      label: 'cURL',
+      code: `# Upload file
+curl -X POST https://api.check.ai/v1/batch/upload \\
+  -H "Authorization: Bearer vfy_your_api_key" \\
+  -F "file=@claims.csv"
+
+# Response: {"id": "file_abc123", "itemCount": 150, ...}
+
+# Create batch from file
+curl -X POST https://api.check.ai/v1/batch \\
+  -H "Authorization: Bearer vfy_your_api_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "name": "CSV verification",
+    "fileId": "file_abc123",
+    "methods": { "reasoning": 1.0 }
+  }'`
+    },
+  ]}
+/>
+
+## Real-time Progress Updates
+
+Subscribe to batch progress via webhooks or polling:
+
+### Using Webhooks (Recommended)
+
+```typescript
+// Create batch with webhook
+const batch = await client.createBatch({
+  name: 'Large batch',
+  items: largeItemList,
+  methods: { reasoning: 1.0 },
+  webhookUrl: 'https://your-app.com/webhooks/check'
+});
+
+// Webhook events:
+// - batch.progress (every 10% or 100 items)
+// - batch.completed
+// - batch.failed
+```
+
+### Using Polling
+
+```typescript
+// Create batch
+const batch = await client.createBatch({
+  name: 'Large batch',
+  items: largeItemList,
+  methods: { reasoning: 1.0 }
+});
+
+// Poll for progress
+let status = await client.getBatch(batch.id);
+while (status.status === 'pending' || status.status === 'processing') {
+  console.log(`Progress: ${status.processedItems}/${status.totalItems}`);
+  await new Promise(r => setTimeout(r, 5000));  // Wait 5 seconds
+  status = await client.getBatch(batch.id);
+}
+
+console.log(`Completed: ${status.successCount} succeeded, ${status.failureCount} failed`);
+```
+
+### Using Supabase Realtime
+
+For real-time updates in your UI:
+
+```typescript
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Subscribe to batch updates
 const channel = supabase.channel(`batch:${batchId}`);
 
 channel.on('broadcast', { event: 'progress' }, ({ payload }) => {
   console.log(`Progress: ${payload.processedItems}/${payload.totalItems}`);
+  console.log(`Current item: ${payload.currentItem}`);
+});
+
+channel.on('broadcast', { event: 'item_completed' }, ({ payload }) => {
+  console.log(`Item ${payload.itemId}: ${payload.verdict}`);
+});
+
+channel.on('broadcast', { event: 'completed' }, ({ payload }) => {
+  console.log(`Batch completed: ${payload.successCount} succeeded`);
+  channel.unsubscribe();
 });
 
 channel.subscribe();
+```
+
+## Processing Results
+
+```typescript
+// Get all results
+const results = await client.getBatchResults(batch.id);
+
+// Results are paginated
+console.log(results.data);  // Array of verification results
+console.log(results.pagination.total);  // Total items
+console.log(results.pagination.hasMore);  // More pages available
+
+// Filter by verdict
+const falseResults = await client.getBatchResults(batch.id, {
+  verdict: 'false'
+});
+
+// Export results
+const csvExport = await client.exportBatchResults(batch.id, 'csv');
+```
+
+## Best Practices
+
+### 1. Use File Upload for Large Batches
+
+```typescript
+// For 100+ items, upload a file instead of inline items
+if (items.length > 100) {
+  const csv = items.map(i => i.content).join('\n');
+  const file = await client.uploadBatchFile(csv, 'batch.csv');
+  await client.createBatch({ fileId: file.id, ... });
+}
+```
+
+### 2. Set Webhooks for Long-Running Batches
+
+```typescript
+// Don't poll - use webhooks
+await client.createBatch({
+  items: manyItems,
+  webhookUrl: process.env.WEBHOOK_URL
+});
+```
+
+### 3. Handle Partial Failures
+
+```typescript
+const batch = await client.getBatch(batchId);
+
+if (batch.failureCount > 0) {
+  const failures = await client.getBatchResults(batchId, {
+    status: 'failed'
+  });
+
+  for (const failure of failures.data) {
+    console.error(`Failed: ${failure.content.slice(0, 50)}...`);
+    console.error(`Reason: ${failure.error}`);
+  }
+}
+```
+
+### 4. Use Idempotency Keys
+
+```typescript
+// Prevent duplicate batches on retry
+await client.createBatch({
+  items: items,
+  methods: { reasoning: 1.0 }
+}, {
+  idempotencyKey: `batch-${jobId}-${date}`
+});
 ```
 
 ## Next Steps
@@ -153,3 +361,4 @@ channel.subscribe();
 - [Create a Batch](/docs/api-reference/batch/create-batch) - Full API reference
 - [File Formats](/docs/api-reference/batch/file-formats) - CSV and JSON specifications
 - [Get Results](/docs/api-reference/batch/get-results) - Retrieve batch results
+- [Webhooks](/docs/webhooks) - Real-time notifications

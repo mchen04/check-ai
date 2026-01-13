@@ -1,18 +1,18 @@
 ---
 title: Quickstart
-description: Get up and running with Verifact in under 5 minutes.
+description: Get up and running with Check in under 5 minutes.
 order: 2
 ---
 
 # Quickstart
 
-This guide will help you verify your first piece of content using the Verifact API.
+This guide will help you verify your first piece of AI-generated content using the Check API.
 
 ## Prerequisites
 
 Before you begin, make sure you have:
 
-1. A Verifact account - [Sign up here](/signup) if you don't have one
+1. A Check account - [Sign up here](/signup) if you don't have one
 2. An API key - Generate one from your [Dashboard](/dashboard/keys)
 
 ## Step 1: Get Your API Key
@@ -23,64 +23,104 @@ Navigate to **Dashboard → API Keys** and click "Create New Key". Give it a des
 Your API key grants access to your account. Never expose it in client-side code or public repositories.
 </Callout>
 
-## Step 2: Make Your First Request
+## Step 2: Install the SDK (Optional)
+
+While you can use the REST API directly, our SDKs make integration easier:
+
+<CodeTabs
+  examples={[
+    {
+      language: 'bash',
+      label: 'npm',
+      code: `npm install @check/sdk`
+    },
+    {
+      language: 'bash',
+      label: 'yarn',
+      code: `yarn add @check/sdk`
+    },
+    {
+      language: 'bash',
+      label: 'pip',
+      code: `pip install check`
+    },
+  ]}
+/>
+
+## Step 3: Make Your First Request
 
 Use the following code to verify a piece of content:
 
 <CodeTabs
   examples={[
     {
+      language: 'typescript',
+      label: 'TypeScript SDK',
+      code: `import { Check } from '@check/sdk';
+
+const client = new Check({ apiKey: 'vfy_your_api_key' });
+
+const result = await client.verifyAndWait({
+  content: 'The Eiffel Tower is located in Paris, France and was built in 1889.',
+  methods: { reasoning: 1.0, tool: 0.5 }
+});
+
+console.log(result.verdict);     // 'true'
+console.log(result.confidence);  // 0.95
+console.log(result.decision);    // 'accept'`
+    },
+    {
+      language: 'python',
+      label: 'Python SDK',
+      code: `from check import Check
+
+client = Check(api_key="vfy_your_api_key")
+
+result = client.verify_and_wait(
+    content="The Eiffel Tower is located in Paris, France and was built in 1889.",
+    methods={"reasoning": 1.0, "tool": 0.5}
+)
+
+print(result.verdict)     # 'true'
+print(result.confidence)  # 0.95
+print(result.decision)    # 'accept'`
+    },
+    {
       language: 'curl',
       label: 'cURL',
-      code: `curl -X POST https://api.verifact.ai/v1/verify \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
+      code: `curl -X POST https://api.check.ai/v1/verify \\
+  -H "Authorization: Bearer vfy_your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{
     "content": "The Eiffel Tower is located in Paris, France and was built in 1889.",
-    "mode": "standard"
+    "methods": {
+      "reasoning": 1.0,
+      "tool": 0.5
+    }
   }'`
     },
     {
       language: 'javascript',
-      label: 'Node.js',
-      code: `const response = await fetch('https://api.verifact.ai/v1/verify', {
+      label: 'Node.js (fetch)',
+      code: `const response = await fetch('https://api.check.ai/v1/verify', {
   method: 'POST',
   headers: {
-    'Authorization': 'Bearer YOUR_API_KEY',
+    'Authorization': 'Bearer vfy_your_api_key',
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
     content: 'The Eiffel Tower is located in Paris, France and was built in 1889.',
-    mode: 'standard',
+    methods: { reasoning: 1.0, tool: 0.5 },
   }),
 });
 
 const result = await response.json();
 console.log(result);`
     },
-    {
-      language: 'python',
-      label: 'Python',
-      code: `import requests
-
-response = requests.post(
-    'https://api.verifact.ai/v1/verify',
-    headers={
-        'Authorization': 'Bearer YOUR_API_KEY',
-        'Content-Type': 'application/json',
-    },
-    json={
-        'content': 'The Eiffel Tower is located in Paris, France and was built in 1889.',
-        'mode': 'standard',
-    }
-)
-
-print(response.json())`
-    },
   ]}
 />
 
-## Step 3: Understand the Response
+## Step 4: Understand the Response
 
 A successful response looks like this:
 
@@ -91,19 +131,24 @@ A successful response looks like this:
   "verdict": "true",
   "confidence": 0.95,
   "decision": "accept",
-  "reasoning": "The claim is factually accurate. The Eiffel Tower is indeed located in Paris, France, and construction was completed in 1889.",
+  "reasoning": "The claim is factually accurate. The Eiffel Tower is indeed located in Paris, France, and construction was completed in 1889 for the World's Fair.",
   "paradigmResults": [
     {
-      "paradigm": "llm_analysis",
+      "paradigm": "reasoning",
       "verdict": "true",
-      "confidence": 0.94
+      "confidence": 0.94,
+      "reasoning": "The claim aligns with established historical facts"
     },
     {
-      "paradigm": "search_verification",
+      "paradigm": "tool",
       "verdict": "true",
-      "confidence": 0.97
+      "confidence": 0.97,
+      "reasoning": "Confirmed via multiple authoritative sources"
     }
-  ]
+  ],
+  "processingTimeMs": 1850,
+  "createdAt": "2024-01-15T10:30:00Z",
+  "completedAt": "2024-01-15T10:30:02Z"
 }
 ```
 
@@ -111,15 +156,69 @@ A successful response looks like this:
 
 | Field | Description |
 |-------|-------------|
-| `id` | Unique verification identifier |
-| `status` | `completed`, `pending`, or `escalated` |
+| `id` | Unique verification identifier (prefixed with `ver_`) |
+| `status` | `pending`, `processing`, `completed`, or `escalated` |
 | `verdict` | `true`, `false`, or `uncertain` |
 | `confidence` | Confidence score from 0 to 1 |
-| `decision` | `accept`, `reject`, or `review` |
-| `reasoning` | Human-readable explanation |
+| `decision` | Recommended action: `accept`, `refine`, `escalate`, or `reject` |
+| `reasoning` | Human-readable explanation of the verdict |
+| `paradigmResults` | Individual results from each verification method |
+| `processingTimeMs` | Total processing time in milliseconds |
+
+### Understanding Decisions
+
+| Decision | Confidence Range | What It Means |
+|----------|------------------|---------------|
+| `accept` | 0.95+ | High confidence - safe to use |
+| `refine` | 0.7 – 0.95 | Moderate confidence - may need clarification |
+| `escalate` | 0.5 – 0.7 | Low confidence - flag for human review |
+| `reject` | < 0.3 | Very low confidence - do not use |
+
+## Step 5: Choose Your Verification Methods
+
+Check offers 7 verification methods with different accuracy/speed tradeoffs:
+
+| Method | FPR | Speed | Best For |
+|--------|-----|-------|----------|
+| `semantic` | 50-100% | Fast | Basic similarity checking |
+| `reasoning` | ~7% | Medium | General fact verification |
+| `tool` | ~2% | Slow | Real-time fact-checking |
+| `biprm` | ~10% | Medium | Complex reasoning chains |
+| `ensemble` | ~30% | Slow | High-stakes decisions |
+| `entropy` | ~15% | Medium | Consistency validation |
+| `formal` | 0% | Fast | Mathematical claims |
+
+Configure methods with weights (0.0 to 1.0) based on your needs:
+
+```typescript
+// Fast verification for chatbots
+const result = await client.verifyAndWait({
+  content: 'Your claim here',
+  methods: { reasoning: 1.0 }
+});
+
+// High-accuracy verification for important content
+const result = await client.verifyAndWait({
+  content: 'Your claim here',
+  methods: {
+    reasoning: 1.0,
+    tool: 1.0,
+    ensemble: 0.5
+  }
+});
+
+// Mathematical claims
+const result = await client.verifyAndWait({
+  content: '2 + 2 = 4',
+  methods: { formal: 1.0 }
+});
+```
 
 ## Next Steps
 
 - Learn about [Authentication](/docs/authentication) for production use
 - Explore the full [API Reference](/docs/api-reference/overview)
 - Set up [Webhooks](/docs/webhooks) for async notifications
+- Try [Batch Processing](/docs/api-reference/batch/overview) for bulk verification
+- Read about [Verification Methods](/docs/paradigms) in depth
+- See [Rate Limiting](/docs/rate-limiting) for usage limits

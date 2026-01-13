@@ -1,127 +1,326 @@
-# NextJs SaaS Starter Template
+# Check - The Stripe for LLM Verification
 
-<img width="1122" alt="image" src="https://github.com/user-attachments/assets/63e761c4-aece-47c2-a320-f1cc18bf916b">
+<p align="center">
+  <strong>Detect hallucinations, verify claims, and ensure accuracy of AI-generated content at scale.</strong>
+</p>
 
-<img width="920" alt="image" src="https://github.com/user-attachments/assets/55384d22-cd09-46e4-b92d-e535b7d948fd">
-<img width="1115" alt="image" src="https://github.com/user-attachments/assets/9ec724e6-d46f-4849-a790-efca329d1102">
-<img width="1115" alt="image" src="https://github.com/user-attachments/assets/c5c1a61b-7ff3-49fd-9dea-8104026dd1e6">
-<img width="1141" alt="image" src="https://github.com/user-attachments/assets/06559a5a-ca19-40bb-bf00-d3d2cbd94ee1">
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#verification-methods">Verification Methods</a> •
+  <a href="#sdks">SDKs</a> •
+  <a href="#documentation">Documentation</a>
+</p>
 
-This is the ultimate [Next.js](https://nextjs.org/) SAAS starter kit that includes a landing page, integrations with Supabase auth(Oauth, forget password, etc), PostgresDB with DrizzleORM and Stripe to collect payments, setup subscriptions and allow users to edit subscriptions/payment options.
+---
 
-- Full sign up/ sign in/ logout/ forget password/ password reset flow
-- Oauth with Google and Github
-- Utilize Stripe Pricing Table and Stripe Checkout to setup customer billing
-- Integration with Stripe Customer Portal to allow users to manage billing settings
-- Protected routes under /dashboard
-- Drizzle ORM/Postgres integration
-- Tailwind CSS/shadcn
-- Stripe webhooks/ API hook to get customer current plan
+## Overview
 
-## Getting Started
+Check is a production-grade SaaS platform for verifying the truthfulness and accuracy of Large Language Model (LLM) outputs. It's a developer-first solution that helps organizations detect hallucinations, false claims, and AI-generated inaccuracies through multiple verification paradigms.
 
-As we will be setting up both dev and prod environments, simply use `.env.local` to develop locally and `.env` for production environments
+## Features
 
-### Setup Supabase
+### Multi-Paradigm Verification
 
-1. Create a new project on [Supabase](https://app.supabase.io/)
-2. ADD `SUPABASE_URL` and `SUPABASE_ANON_KEY` to your .env file
-3. ![image](https://github.com/user-attachments/assets/c8eb5236-96f1-4824-9998-3c54a4bcce12)
-4. Add `NEXT_PUBLIC_WEBSITE_URL` to let Supabase know where to redirect the user after the Oauth flow(if using oauth).
+Seven distinct verification methods work together to determine truth:
 
-#### Setup Google OAUTH Social Auth
+| Method | FPR | Description |
+|--------|-----|-------------|
+| **Semantic** | 50-100% | Embedding similarity checking |
+| **Reasoning** | ~7% | LLM judge evaluating statements |
+| **Tool** | ~2% | Web search-augmented verification |
+| **BIPRM** | ~10% | Bidirectional reasoning from multiple angles |
+| **Ensemble** | ~30% | Multi-model voting consensus |
+| **Entropy** | ~15% | Consistency checking across variations |
+| **Formal** | 0% | Mathematical/logical proof verification |
 
-You can easily set up social auth with this template. First navigate to google cloud and create a new project. All code is written. You just need to add the `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` to your `.env` file.
+### Enterprise-Grade
 
-1. Follow these [instructions](https://supabase.com/docs/guides/auth/social-login/auth-google?queryGroups=environment&environment=server) to set up Google OAuth.
+- **RBAC** - Role-based access control (Owner, Admin, Member, Viewer)
+- **Audit Logs** - Immutable activity trail for compliance
+- **Webhooks** - Real-time event notifications with retry logic
+- **Team Management** - Invite members, assign roles, manage permissions
 
-#### Setup Github OAUTH Social Auth
+### Developer-Friendly
 
-You can easily set up social auth with this template. First navigate to google cloud and create a new project. All code is written. You just need to add the `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET` to your `.env` file.
+- **SDKs** - TypeScript, Python, LangChain, LlamaIndex
+- **Streaming APIs** - Real-time verification results
+- **Batch Processing** - CSV/JSON upload for bulk verification
+- **Comprehensive Docs** - API reference, guides, and examples
 
-1. Follow these [instructions](https://supabase.com/docs/guides/auth/social-login/auth-github?queryGroups=environment&environment=server) to set up Github OAuth.
+### Flexible & Cost-Effective
 
-### Setup Postgres DB
+- **BYOK** - Bring Your Own Key for LLM providers
+- **16+ Providers** - OpenAI, Anthropic, Google, DeepSeek, Groq, and more
+- **Usage Tracking** - Detailed cost breakdown per verification
 
-You can use any Postgres db with this boilerplate code. Feel free to use [Vercel's Marketplace](https://vercel.com/marketplace) to browse through a collection of first-party services to add to your Vercel project.
+## Quick Start
 
-Add `DATABASE_URL` to `.env` file e.g `postgresql://${USER}:${PASSWORD}@xxxx.us-east-2.aws.neon.tech/saas-template?sslmode=require`
+### Installation
 
-### Setup OAuth with Social Providers
+```bash
+# TypeScript/Node.js
+npm install @check/sdk
 
-#### Setup redirect url
+# Python
+pip install check
+```
 
-1. Go to Supabase dashboard
-2. Go to Authentication > Url Configuration
-3. Place production url into "Site URL".
-   <img width="1093" alt="image" src="https://github.com/user-attachments/assets/c10a5233-ad47-4005-b9ae-ad80fc626022">
+### Basic Usage
 
-### Setup Stripe
+```typescript
+import { Check } from '@check/sdk';
 
-In order to collect payments and setup subscriptions for your users, we will be making use of [Stripe Checkout](https://stripe.com/payments/checkout) and [Stripe Pricing Tables](https://docs.stripe.com/payments/checkout/pricing-table) and [Stripe Webhooks](https://docs.stripe.com/webhooks)
+const client = new Check({ apiKey: 'vfy_...' });
 
-1. [Register for Stripe](https://dashboard.stripe.com/register)
-2. get your `STRIPE_SECRET_KEY` key and add it to `.env`. Stripe has both a Test and Production API key. Once you verify your business on Stripe, you will be able to get access to production mode in Stripe which would come with a production API key. But until then, we can use [Stripe's Test Mode](https://docs.stripe.com/test-mode) to build our app
+const result = await client.verifyAndWait({
+  content: 'The speed of light is approximately 299,792 km/s.',
+  methods: { reasoning: 1.0, tool: 0.5 }
+});
 
-![image](https://github.com/user-attachments/assets/01da4beb-ae1d-45df-9de8-ca5e2b2c3470)
+console.log(result.verdict);     // 'true'
+console.log(result.confidence);  // 0.95
+console.log(result.decision);    // 'accept'
+```
 
-4. Open up `stripeSetup.ts` and change your product information
-5. run `npm run stripe:setup` to setup your Stripe product
-6. [Create a new Pricing Table](https://dashboard.stripe.com/test/pricing-tables) and add your newly created products
-7. When creating your new Pricing Table, set the _Confirmation Page_ to _Don't show confirmation page_. Add [YOUR_PUBLIC_URL/subscribe/success](YOUR_PUBLIC_URL/subscribe/success) as the value(use [http://localhost:3001/subscribe/success](http://localhost:3001/subscribe/success) for local development). This will redirect the user to your main dashboard when they have completed their checkout. For prod, this will be your public url
+```python
+from check import Check
 
-![image](https://github.com/user-attachments/assets/af8e9dda-3297-4e04-baa0-de7eac2a1579)
+client = Check(api_key="vfy_...")
 
-8. Add `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` and `NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID` to `.env`
-   ![image](https://github.com/user-attachments/assets/3b1a53d3-d2d4-4523-9e0e-87b63d9108a8)
+result = client.verify_and_wait(
+    content="The speed of light is approximately 299,792 km/s.",
+    methods={"reasoning": 1.0, "tool": 0.5}
+)
 
-Your pricing table should now be set up
+print(result.verdict)     # 'true'
+print(result.confidence)  # 0.95
+print(result.decision)    # 'accept'
+```
 
-### Setup Database
+### REST API
 
-This boilerplate uses Drizzle ORM to interact with a PostgresDb.
+```bash
+curl -X POST https://api.check.ai/v1/verify \
+  -H "Authorization: Bearer vfy_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "The speed of light is approximately 299,792 km/s.",
+    "methods": { "reasoning": 1.0, "tool": 0.5 }
+  }'
+```
 
-Before we start, please ensure that you have `DATABASE_URL` set.
+## Verification Methods
 
-To create the necessary tables to start, run `npm run db:migrate`
+Choose methods based on your accuracy/speed requirements:
 
-#### To alter or add a table
+### Fast Verification (Chatbots, Real-time)
 
-1. navigate to `/utils/db/schema.ts`
-2. Edit/add a table
-3. run `npm run db:generate` to generate migration files
-4. run `npm run db:migrate` to apply migration
+```typescript
+const result = await client.verifyAndWait({
+  content: 'Your claim here',
+  methods: { reasoning: 1.0 }
+});
+```
+
+### High-Accuracy Verification (Important Content)
+
+```typescript
+const result = await client.verifyAndWait({
+  content: 'Your claim here',
+  methods: {
+    reasoning: 1.0,
+    tool: 1.0,
+    ensemble: 0.5
+  }
+});
+```
+
+### Mathematical Claims
+
+```typescript
+const result = await client.verifyAndWait({
+  content: '2 + 2 = 4',
+  methods: { formal: 1.0 }
+});
+```
+
+## SDKs
+
+| Package | Description | Install |
+|---------|-------------|---------|
+| `@check/sdk` | TypeScript/Node.js SDK | `npm install @check/sdk` |
+| `check` | Python SDK | `pip install check` |
+| `@check/langchain` | LangChain TypeScript integration | `npm install @check/langchain` |
+| `check-langchain` | LangChain Python integration | `pip install check-langchain` |
+| `@check/llamaindex` | LlamaIndex integration | `npm install @check/llamaindex` |
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 14, React 18, TypeScript, Tailwind CSS, shadcn/ui |
+| Backend | Next.js API Routes, Drizzle ORM |
+| Database | PostgreSQL |
+| Auth | Supabase Auth (OAuth + Email/Password) |
+| Real-time | Supabase Realtime (WebSockets) |
+| Payments | Stripe (subscriptions, webhooks, customer portal) |
+| Caching/Rate Limiting | Upstash Redis |
+| Async Jobs | Trigger.dev |
+| Email | Resend |
+| LLM Providers | OpenAI, Anthropic, Google, DeepSeek, Groq, Together, Mistral, Cohere, Azure, AWS Bedrock |
+
+## Project Structure
+
+```
+/
+├── app/                      # Next.js App Router
+│   ├── api/                  # API routes
+│   │   ├── v1/               # Public API (verify, batch)
+│   │   ├── dashboard/        # Dashboard APIs
+│   │   ├── webhooks/         # Webhook endpoints
+│   │   └── cron/             # Scheduled jobs
+│   ├── dashboard/            # Dashboard pages
+│   ├── auth/                 # Authentication pages
+│   └── (marketing)/          # Landing, pricing, legal
+├── lib/                      # Core business logic
+│   ├── verification/         # 7 verification paradigms
+│   ├── llm/                  # Multi-provider LLM client
+│   ├── consensus/            # FPR-weighted voting
+│   └── ...
+├── packages/                 # SDK packages
+│   ├── typescript-sdk/
+│   ├── python-sdk/
+│   ├── langchain-ts/
+│   ├── langchain-python/
+│   └── llamaindex/
+└── docs/                     # Documentation
+```
+
+## Getting Started (Development)
+
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL
+- Supabase account
+- Stripe account (for billing)
+
+### Setup
+
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/your-org/check.git
+cd check
+```
+
+2. **Install dependencies**
+
+```bash
+npm install
+```
+
+3. **Set up environment variables**
+
+```bash
+cp .env.example .env.local
+```
+
+Required environment variables:
+
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Database
+DATABASE_URL=
+
+# Stripe
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+
+# Upstash Redis
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+
+# Resend (Email)
+RESEND_API_KEY=
+
+# LLM Providers (optional - for platform keys)
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+```
+
+4. **Run database migrations**
+
+```bash
+npm run db:migrate
+```
+
+5. **Start the development server**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the application.
 
-### Setup Stripe for Local Development
+### Setting Up Stripe
 
-To receive webhook events from Stripe while developing locally, follow these steps:
+See [docs/stripe-setup.md](docs/stripe-setup.md) for detailed Stripe configuration instructions.
 
-1. **Install the Stripe CLI**  
-   Download and install the [Stripe CLI](https://docs.stripe.com/stripe-cli) if you haven’t already. This tool allows your local server to receive webhook events from Stripe.
+## API Reference
 
-2. **Start the webhook listener**  
-   Run the following command to forward Stripe events to your local server:
+### Verify Content
 
-```bash
-npm run stripe:listen
+```
+POST /api/v1/verify
 ```
 
-This command starts the Stripe CLI in listening mode and forwards incoming webhook events to `http://localhost:3001/webhook/stripe`.
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `content` | string | Yes | Content to verify (max 50,000 chars) |
+| `methods` | object | Yes | Verification methods with weights (0-1) |
+| `context` | object | No | Additional context for verification |
+| `webhookUrl` | string | No | URL for result notification |
+| `metadata` | object | No | Custom metadata (max 1KB) |
 
-## Deploy on Vercel
+### Batch Processing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+POST /api/v1/batch
+GET  /api/v1/batch/:id
+GET  /api/v1/batch/:id/results
+POST /api/v1/batch/:id/cancel
+POST /api/v1/batch/upload
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Pricing
+
+| Plan | Verifications/mo | Rate Limit | Methods |
+|------|-----------------|------------|---------|
+| Free | 100 | 10 req/min | Semantic only |
+| Starter | 1,000 | 60 req/min | All methods |
+| Pro | 10,000 | 300 req/min | All methods |
+| Enterprise | Custom | Custom | All methods |
+
+## Documentation
+
+- [Platform Overview](docs/overview.md)
+- [Product Guide](docs/guide.md)
+- [Implementation Plan](docs/plan.md)
+- [Stripe Setup](docs/stripe-setup.md)
+
+## License
+
+MIT
+
+## Support
+
+- **Documentation**: [/docs](/docs)
+- **API Playground**: [/dashboard/playground](/dashboard/playground)
+- **Email**: support@check.ai

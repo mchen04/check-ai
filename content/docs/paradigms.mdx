@@ -1,0 +1,440 @@
+---
+title: Verification Methods
+description: Deep dive into Check's 7 verification paradigms and when to use each one.
+order: 7
+---
+
+# Verification Methods
+
+Check uses a multi-paradigm approach to verification, combining seven distinct methods to determine the truthfulness of claims. Each method has different strengths, False Positive Rates (FPR), and use cases.
+
+## Overview
+
+| Method | FPR | Speed | Best For |
+|--------|-----|-------|----------|
+| [Semantic](#semantic) | 50-100% | Fast | Basic similarity checking |
+| [Reasoning](#reasoning) | ~7% | Medium | General fact verification |
+| [Tool](#tool) | ~2% | Slow | Real-time fact-checking |
+| [BIPRM](#biprm) | ~10% | Medium | Complex reasoning chains |
+| [Ensemble](#ensemble) | ~30% | Slow | High-stakes decisions |
+| [Entropy](#entropy) | ~15% | Medium | Consistency validation |
+| [Formal](#formal) | 0% | Fast | Mathematical claims |
+
+**FPR (False Positive Rate)** = Probability of incorrectly verifying a false claim as true. Lower is better.
+
+## Method Details
+
+### Semantic
+
+The simplest verification method using embedding similarity to compare claims against known facts.
+
+| Property | Value |
+|----------|-------|
+| FPR | 50-100% |
+| Speed | Fast (~100ms) |
+| Cost | Low |
+
+**How it works:**
+1. Converts the claim to a vector embedding
+2. Compares against a knowledge base of verified facts
+3. Returns similarity score as confidence
+
+**Best for:**
+- Quick sanity checks
+- Filtering obviously false claims
+- High-volume, low-stakes verification
+
+**Limitations:**
+- High false positive rate
+- Cannot verify novel claims
+- Struggles with nuanced statements
+
+```typescript
+const result = await client.verifyAndWait({
+  content: 'Paris is the capital of France.',
+  methods: { semantic: 1.0 }
+});
+```
+
+---
+
+### Reasoning
+
+Uses a large language model as a reasoning judge to analyze claims contextually.
+
+| Property | Value |
+|----------|-------|
+| FPR | ~7% |
+| Speed | Medium (~1-2s) |
+| Cost | Medium |
+
+**How it works:**
+1. Sends the claim to an LLM with a verification prompt
+2. LLM analyzes the claim using its training knowledge
+3. Returns verdict with reasoning explanation
+
+**Best for:**
+- General fact verification
+- Claims requiring contextual understanding
+- Balance of speed and accuracy
+
+**Limitations:**
+- Relies on LLM's training data
+- May not have recent information
+- Can hallucinate reasoning
+
+```typescript
+const result = await client.verifyAndWait({
+  content: 'The Great Wall of China is visible from space.',
+  methods: { reasoning: 1.0 }
+});
+```
+
+---
+
+### Tool
+
+Augments verification with real-time web search and authoritative source checking.
+
+| Property | Value |
+|----------|-------|
+| FPR | ~2% |
+| Speed | Slow (~2-5s) |
+| Cost | High |
+
+**How it works:**
+1. Extracts key claims from the content
+2. Searches authoritative sources (Wikipedia, academic databases, official sites)
+3. Cross-references findings with the claim
+4. Returns verdict with source citations
+
+**Best for:**
+- Fact-checking current events
+- Verifying statistics and numbers
+- Claims about real-world entities
+
+**Limitations:**
+- Slower due to web requests
+- Depends on source availability
+- Higher cost per verification
+
+```typescript
+const result = await client.verifyAndWait({
+  content: 'The population of Tokyo is over 14 million.',
+  methods: { tool: 1.0 }
+});
+
+// Returns sources in paradigmResults
+console.log(result.paradigmResults[0].sources);
+// ['https://en.wikipedia.org/wiki/Tokyo', ...]
+```
+
+---
+
+### BIPRM
+
+Bidirectional Iterative Prompting for Reasoning and Metacognition. Analyzes claims from multiple angles.
+
+| Property | Value |
+|----------|-------|
+| FPR | ~10% |
+| Speed | Medium (~1-3s) |
+| Cost | Medium-High |
+
+**How it works:**
+1. Generates arguments supporting the claim
+2. Generates arguments against the claim
+3. Synthesizes both perspectives
+4. Produces balanced verdict with nuanced reasoning
+
+**Best for:**
+- Controversial or debatable claims
+- Claims with multiple interpretations
+- Content requiring nuanced analysis
+
+**Limitations:**
+- May be indecisive on clear-cut claims
+- Higher cost than single-pass reasoning
+- Can be slower for simple claims
+
+```typescript
+const result = await client.verifyAndWait({
+  content: 'Electric vehicles are better for the environment than gas cars.',
+  methods: { biprm: 1.0 }
+});
+```
+
+---
+
+### Ensemble
+
+Multi-model voting using multiple LLMs to reach consensus.
+
+| Property | Value |
+|----------|-------|
+| FPR | ~30% |
+| Speed | Slow (~3-5s) |
+| Cost | High |
+
+**How it works:**
+1. Sends claim to multiple LLM providers (GPT-4, Claude, Gemini, etc.)
+2. Collects verdicts from each model
+3. Aggregates results using weighted voting
+4. Returns consensus verdict with confidence
+
+**Best for:**
+- High-stakes decisions requiring agreement
+- Reducing single-model bias
+- Important content where accuracy is critical
+
+**Limitations:**
+- Highest cost (multiple API calls)
+- Slowest method
+- Can still have correlated errors
+
+```typescript
+const result = await client.verifyAndWait({
+  content: 'This medication is safe for children under 12.',
+  methods: { ensemble: 1.0 }
+});
+```
+
+---
+
+### Entropy
+
+Consistency checking by rephrasing and re-verifying across prompt variations.
+
+| Property | Value |
+|----------|-------|
+| FPR | ~15% |
+| Speed | Medium (~2-3s) |
+| Cost | Medium |
+
+**How it works:**
+1. Generates multiple rephrasings of the claim
+2. Verifies each rephrasing independently
+3. Measures consistency across responses
+4. Low entropy = high confidence, high entropy = uncertainty
+
+**Best for:**
+- Detecting hallucinations
+- Checking reasoning consistency
+- Claims that might be phrasing-dependent
+
+**Limitations:**
+- Can give false confidence on consistently wrong claims
+- Additional latency for rephrasings
+- May struggle with phrasing-sensitive facts
+
+```typescript
+const result = await client.verifyAndWait({
+  content: 'The CEO of Apple in 2023 was Tim Cook.',
+  methods: { entropy: 1.0 }
+});
+```
+
+---
+
+### Formal
+
+Mathematical and logical proof verification for provable claims.
+
+| Property | Value |
+|----------|-------|
+| FPR | 0% |
+| Speed | Fast (~100-500ms) |
+| Cost | Low |
+
+**How it works:**
+1. Parses mathematical expressions and logical statements
+2. Applies formal verification rules
+3. For complex proofs, uses theorem prover integration
+4. Returns definitive true/false for formalizable claims
+
+**Best for:**
+- Arithmetic calculations
+- Logical propositions
+- Mathematical proofs
+- Code correctness claims
+
+**Limitations:**
+- Only works for formalizable claims
+- Cannot verify subjective statements
+- Limited to mathematical domain
+
+```typescript
+// Arithmetic verification
+const result = await client.verifyAndWait({
+  content: 'The square root of 144 is 12.',
+  methods: { formal: 1.0 }
+});
+
+// Logical verification
+const result = await client.verifyAndWait({
+  content: 'If A implies B and B implies C, then A implies C.',
+  methods: { formal: 1.0 }
+});
+```
+
+## Combining Methods
+
+Methods can be combined with weights to balance accuracy and speed:
+
+### Fast + Reasonably Accurate (Chatbots)
+
+```typescript
+const result = await client.verifyAndWait({
+  content: 'Your claim here',
+  methods: { reasoning: 1.0 }
+});
+```
+- ~1-2 second response
+- ~7% FPR
+- Good for real-time applications
+
+### High Accuracy (Important Content)
+
+```typescript
+const result = await client.verifyAndWait({
+  content: 'Critical claim requiring verification',
+  methods: {
+    reasoning: 1.0,
+    tool: 1.0,
+    biprm: 0.5
+  }
+});
+```
+- 3-5 second response
+- ~2-5% FPR
+- Good for healthcare, legal, financial
+
+### Maximum Confidence (Critical Decisions)
+
+```typescript
+const result = await client.verifyAndWait({
+  content: 'Claim with major consequences if wrong',
+  methods: {
+    reasoning: 1.0,
+    tool: 1.0,
+    ensemble: 1.0,
+    biprm: 0.5
+  }
+});
+```
+- 5-10 second response
+- ~1-2% FPR
+- Good for publication, legal documents
+
+### Mathematical Claims
+
+```typescript
+const result = await client.verifyAndWait({
+  content: '2^10 = 1024',
+  methods: { formal: 1.0 }
+});
+```
+- ~100ms response
+- 0% FPR
+- Perfect for calculations
+
+## How Results Are Aggregated
+
+Check uses FPR-weighted voting to combine results from multiple methods:
+
+1. **Each method returns:**
+   - Verdict: `true`, `false`, or `uncertain`
+   - Confidence: 0.0 to 1.0
+
+2. **Weights are calculated based on:**
+   - Method's FPR (lower FPR = higher weight)
+   - User-specified method weight
+   - Method's confidence in its verdict
+
+3. **Final verdict is determined by:**
+   - Weighted vote across all methods
+   - If methods strongly disagree, verdict becomes `uncertain`
+
+4. **Decision thresholds:**
+   | Confidence | Decision |
+   |------------|----------|
+   | 0.95+ | `accept` |
+   | 0.7 – 0.95 | `refine` |
+   | 0.5 – 0.7 | `escalate` |
+   | < 0.3 | `reject` |
+
+## Choosing Methods by Use Case
+
+### Real-Time Applications
+
+**Chatbots, live responses:**
+```typescript
+methods: { reasoning: 1.0 }
+```
+
+### Content Moderation
+
+**Social media, user-generated content:**
+```typescript
+methods: { reasoning: 1.0, tool: 0.5 }
+```
+
+### Healthcare
+
+**Medical information verification:**
+```typescript
+methods: { reasoning: 1.0, tool: 1.0, ensemble: 1.0 }
+```
+
+### Finance
+
+**Financial claims and data:**
+```typescript
+methods: { reasoning: 1.0, tool: 1.0, formal: 0.5 }
+```
+
+### Legal
+
+**Legal documents and claims:**
+```typescript
+methods: { reasoning: 1.0, tool: 1.0, biprm: 1.0 }
+```
+
+### Education
+
+**Textbook content verification:**
+```typescript
+methods: { reasoning: 1.0, tool: 1.0 }
+```
+
+### Scientific
+
+**Research claims:**
+```typescript
+methods: { reasoning: 1.0, tool: 1.0, formal: 0.5, entropy: 0.5 }
+```
+
+## Cost Optimization
+
+Methods have different costs. Optimize by:
+
+1. **Start with reasoning** - Best balance of cost/accuracy
+2. **Add tool for factual claims** - When current info needed
+3. **Use ensemble sparingly** - Only for critical decisions
+4. **Use formal for math** - Cheapest and most accurate for calculations
+
+```typescript
+// Cost-effective pipeline
+async function verify(content: string, importance: 'low' | 'medium' | 'high') {
+  const methods = {
+    low: { reasoning: 1.0 },
+    medium: { reasoning: 1.0, tool: 0.5 },
+    high: { reasoning: 1.0, tool: 1.0, ensemble: 0.5 }
+  };
+
+  return client.verifyAndWait({
+    content,
+    methods: methods[importance]
+  });
+}
+```

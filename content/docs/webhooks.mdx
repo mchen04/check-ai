@@ -1,6 +1,6 @@
 ---
 title: Webhooks
-description: Receive real-time notifications when events occur in your Verifact account.
+description: Receive real-time notifications when events occur in your Check account.
 order: 4
 ---
 
@@ -14,17 +14,21 @@ Webhooks allow you to receive real-time HTTP callbacks when events occur in your
 
 1. Navigate to **Dashboard → Settings → Webhooks**
 2. Click **Add Webhook**
-3. Enter your endpoint URL
+3. Enter your endpoint URL (must be HTTPS in production)
 4. Select the events you want to subscribe to
-5. Save the webhook
+5. Copy the signing secret for signature verification
+6. Save the webhook
 
 ### Webhook Events
 
 | Event | Description |
 |-------|-------------|
 | `verification.completed` | A verification has finished processing |
+| `verification.failed` | A verification encountered an error |
 | `verification.escalated` | A verification was escalated for human review |
 | `escalation.resolved` | An escalation was resolved by a reviewer |
+| `batch.completed` | A batch job has finished processing |
+| `batch.failed` | A batch job encountered an error |
 | `usage.limit.warning` | Approaching monthly usage limit (80%) |
 | `usage.limit.reached` | Monthly usage limit reached |
 
@@ -34,7 +38,7 @@ All webhooks send a POST request with a JSON payload:
 
 ```json
 {
-  "id": "evt_abc123",
+  "id": "evt_abc123def456",
   "type": "verification.completed",
   "createdAt": "2024-01-15T10:30:02Z",
   "data": {
@@ -42,7 +46,20 @@ All webhooks send a POST request with a JSON payload:
     "status": "completed",
     "verdict": "true",
     "confidence": 0.95,
-    "decision": "accept"
+    "decision": "accept",
+    "reasoning": "The claim is factually accurate.",
+    "paradigmResults": [
+      {
+        "paradigm": "reasoning",
+        "verdict": "true",
+        "confidence": 0.94
+      },
+      {
+        "paradigm": "tool",
+        "verdict": "true",
+        "confidence": 0.97
+      }
+    ]
   }
 }
 ```
@@ -54,7 +71,7 @@ All webhooks send a POST request with a JSON payload:
     {
       name: 'id',
       type: 'string',
-      description: 'Unique event identifier',
+      description: 'Unique event identifier (prefixed with evt_)',
     },
     {
       name: 'type',
@@ -76,55 +93,71 @@ All webhooks send a POST request with a JSON payload:
 
 ## Verifying Signatures
 
-Every webhook request includes a signature header that you should verify to ensure the request came from Verifact.
+Every webhook request includes a signature header that you should verify to ensure the request came from Check. This prevents malicious actors from sending fake webhook events.
 
 ### Signature Header
 
 ```
-X-Verifact-Signature: t=1705317002,v1=5257a869e7ecebeda32affa62cdca3fa51c
+X-Check-Signature: t=1705317002,v1=5257a869e7ecebeda32affa62cdca3fa51cef28a...
 ```
+
+The header contains:
+- `t` - Unix timestamp when the signature was generated
+- `v1` - HMAC-SHA256 signature of the payload
 
 ### Verification Steps
 
 1. Extract the timestamp (`t`) and signature (`v1`) from the header
 2. Construct the signed payload: `${timestamp}.${rawBody}`
 3. Compute HMAC-SHA256 using your webhook signing secret
-4. Compare with the provided signature
+4. Compare with the provided signature using constant-time comparison
+5. Verify the timestamp is recent (within 5 minutes)
 
 <CodeTabs
   examples={[
     {
-      language: 'javascript',
-      label: 'Node.js',
+      language: 'typescript',
+      label: 'TypeScript',
       code: `import crypto from 'crypto';
 
-function verifyWebhookSignature(payload, signature, secret) {
-  const parts = signature.split(',');
-  const timestamp = parts[0].split('=')[1];
-  const providedSig = parts[1].split('=')[1];
+interface VerifyResult {
+  valid: boolean;
+  error?: string;
+}
 
-  // Check timestamp is recent (within 5 minutes)
-  const age = Date.now() / 1000 - parseInt(timestamp);
-  if (age > 300) {
-    throw new Error('Webhook timestamp too old');
+function verifyWebhookSignature(
+  payload: string,
+  signature: string,
+  secret: string
+): VerifyResult {
+  try {
+    const parts = signature.split(',');
+    const timestamp = parts[0].split('=')[1];
+    const providedSig = parts[1].split('=')[1];
+
+    // Check timestamp is recent (within 5 minutes)
+    const age = Date.now() / 1000 - parseInt(timestamp);
+    if (age > 300) {
+      return { valid: false, error: 'Webhook timestamp too old' };
+    }
+
+    // Compute expected signature
+    const signedPayload = \`\${timestamp}.\${payload}\`;
+    const expectedSig = crypto
+      .createHmac('sha256', secret)
+      .update(signedPayload)
+      .digest('hex');
+
+    // Constant-time comparison
+    const valid = crypto.timingSafeEqual(
+      Buffer.from(expectedSig),
+      Buffer.from(providedSig)
+    );
+
+    return { valid };
+  } catch (error) {
+    return { valid: false, error: 'Invalid signature format' };
   }
-
-  // Compute expected signature
-  const signedPayload = \`\${timestamp}.\${payload}\`;
-  const expectedSig = crypto
-    .createHmac('sha256', secret)
-    .update(signedPayload)
-    .digest('hex');
-
-  // Constant-time comparison
-  if (!crypto.timingSafeEqual(
-    Buffer.from(expectedSig),
-    Buffer.from(providedSig)
-  )) {
-    throw new Error('Invalid webhook signature');
-  }
-
-  return true;
 }`
     },
     {
@@ -133,50 +166,66 @@ function verifyWebhookSignature(payload, signature, secret) {
       code: `import hmac
 import hashlib
 import time
+from typing import Tuple
 
-def verify_webhook_signature(payload: str, signature: str, secret: str) -> bool:
-    parts = dict(p.split('=') for p in signature.split(','))
-    timestamp = parts['t']
-    provided_sig = parts['v1']
+def verify_webhook_signature(
+    payload: str,
+    signature: str,
+    secret: str
+) -> Tuple[bool, str | None]:
+    """Verify webhook signature. Returns (is_valid, error_message)."""
+    try:
+        parts = dict(p.split('=') for p in signature.split(','))
+        timestamp = parts['t']
+        provided_sig = parts['v1']
 
-    # Check timestamp is recent (within 5 minutes)
-    age = time.time() - int(timestamp)
-    if age > 300:
-        raise ValueError('Webhook timestamp too old')
+        # Check timestamp is recent (within 5 minutes)
+        age = time.time() - int(timestamp)
+        if age > 300:
+            return False, 'Webhook timestamp too old'
 
-    # Compute expected signature
-    signed_payload = f'{timestamp}.{payload}'
-    expected_sig = hmac.new(
-        secret.encode(),
-        signed_payload.encode(),
-        hashlib.sha256
-    ).hexdigest()
+        # Compute expected signature
+        signed_payload = f'{timestamp}.{payload}'
+        expected_sig = hmac.new(
+            secret.encode(),
+            signed_payload.encode(),
+            hashlib.sha256
+        ).hexdigest()
 
-    # Constant-time comparison
-    if not hmac.compare_digest(expected_sig, provided_sig):
-        raise ValueError('Invalid webhook signature')
+        # Constant-time comparison
+        if not hmac.compare_digest(expected_sig, provided_sig):
+            return False, 'Invalid signature'
 
-    return True`
+        return True, None
+    except Exception as e:
+        return False, f'Verification failed: {str(e)}'`
     },
   ]}
 />
 
 ## Handling Webhooks
 
-### Example Endpoint
+### Example Endpoint (Next.js)
 
-```javascript
-// Next.js API route example
+```typescript
+// app/api/webhooks/check/route.ts
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
+
+const WEBHOOK_SECRET = process.env.CHECK_WEBHOOK_SECRET!;
 
 export async function POST(request: NextRequest) {
-  const signature = request.headers.get('X-Verifact-Signature');
+  const signature = request.headers.get('X-Check-Signature');
   const body = await request.text();
 
+  if (!signature) {
+    return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
+  }
+
   // Verify signature
-  try {
-    verifyWebhookSignature(body, signature, process.env.WEBHOOK_SECRET);
-  } catch (error) {
+  const { valid, error } = verifyWebhookSignature(body, signature, WEBHOOK_SECRET);
+  if (!valid) {
+    console.error('Webhook verification failed:', error);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
@@ -190,12 +239,104 @@ export async function POST(request: NextRequest) {
     case 'verification.escalated':
       await handleEscalation(event.data);
       break;
-    // ... handle other events
+    case 'batch.completed':
+      await handleBatchComplete(event.data);
+      break;
+    case 'usage.limit.warning':
+      await handleUsageWarning(event.data);
+      break;
+    default:
+      console.log('Unhandled event type:', event.type);
   }
 
   // Return 200 to acknowledge receipt
   return NextResponse.json({ received: true });
 }
+
+async function handleVerificationComplete(data: any) {
+  console.log('Verification completed:', data.verificationId);
+  // Update your database, notify users, etc.
+}
+
+async function handleEscalation(data: any) {
+  console.log('Verification escalated:', data.verificationId);
+  // Alert your review team
+}
+
+async function handleBatchComplete(data: any) {
+  console.log('Batch completed:', data.batchId);
+  // Process batch results
+}
+
+async function handleUsageWarning(data: any) {
+  console.log('Usage warning:', data.usedPercentage);
+  // Alert administrators
+}
+```
+
+### Example Endpoint (Express)
+
+```typescript
+import express from 'express';
+
+const app = express();
+
+// Important: Use raw body for signature verification
+app.post(
+  '/webhooks/check',
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    const signature = req.headers['x-check-signature'] as string;
+    const body = req.body.toString();
+
+    const { valid } = verifyWebhookSignature(body, signature, WEBHOOK_SECRET);
+    if (!valid) {
+      return res.status(401).json({ error: 'Invalid signature' });
+    }
+
+    const event = JSON.parse(body);
+
+    // Handle event asynchronously
+    processWebhookEvent(event).catch(console.error);
+
+    // Return 200 immediately
+    res.json({ received: true });
+  }
+);
+```
+
+### Example Endpoint (Python/FastAPI)
+
+```python
+from fastapi import FastAPI, Request, HTTPException
+import json
+
+app = FastAPI()
+
+@app.post("/webhooks/check")
+async def handle_webhook(request: Request):
+    signature = request.headers.get("X-Check-Signature")
+    body = await request.body()
+    body_str = body.decode()
+
+    if not signature:
+        raise HTTPException(status_code=401, detail="Missing signature")
+
+    valid, error = verify_webhook_signature(body_str, signature, WEBHOOK_SECRET)
+    if not valid:
+        raise HTTPException(status_code=401, detail=error)
+
+    event = json.loads(body_str)
+
+    match event["type"]:
+        case "verification.completed":
+            await handle_verification_complete(event["data"])
+        case "verification.escalated":
+            await handle_escalation(event["data"])
+        case "batch.completed":
+            await handle_batch_complete(event["data"])
+
+    return {"received": True}
 ```
 
 ## Best Practices
@@ -204,7 +345,7 @@ export async function POST(request: NextRequest) {
 
 Return a `200` status code immediately after receiving the webhook. Process the event asynchronously if needed.
 
-```javascript
+```typescript
 // Queue for async processing
 await queue.add('process-webhook', event);
 return NextResponse.json({ received: true });
@@ -214,7 +355,7 @@ return NextResponse.json({ received: true });
 
 Webhooks may occasionally be delivered more than once. Use the `id` field to deduplicate:
 
-```javascript
+```typescript
 const processed = await db.webhookEvents.findUnique({
   where: { eventId: event.id }
 });
@@ -222,27 +363,114 @@ const processed = await db.webhookEvents.findUnique({
 if (processed) {
   return NextResponse.json({ received: true }); // Already processed
 }
+
+// Mark as processed before handling
+await db.webhookEvents.create({ data: { eventId: event.id } });
 ```
 
 ### Retry Logic
 
-Verifact retries failed webhooks with exponential backoff:
+Check retries failed webhooks with exponential backoff:
 
-- 1st retry: 1 minute
-- 2nd retry: 5 minutes
-- 3rd retry: 30 minutes
-- 4th retry: 2 hours
-- 5th retry: 24 hours
+| Attempt | Delay |
+|---------|-------|
+| 1st retry | 1 minute |
+| 2nd retry | 5 minutes |
+| 3rd retry | 30 minutes |
+| 4th retry | 2 hours |
+| 5th retry | 24 hours |
 
-After 5 failed attempts, the webhook is marked as failed.
+After 5 failed attempts, the webhook is marked as failed and appears in your dashboard for manual inspection.
 
 <Callout type="warning" title="Endpoint Requirements">
 Your webhook endpoint must:
 - Accept HTTPS connections (HTTP not supported in production)
 - Respond within 30 seconds
 - Return a 2xx status code on success
+- Be publicly accessible (not behind VPN/firewall)
 </Callout>
 
 ## Testing Webhooks
 
-Use the **Test** button in the Dashboard to send a test event to your endpoint. You can also use tools like [ngrok](https://ngrok.com) to expose your local development server.
+### Dashboard Testing
+
+Use the **Test** button in Dashboard → Settings → Webhooks to send a test event to your endpoint.
+
+### Local Development
+
+Use tools like [ngrok](https://ngrok.com) or [localtunnel](https://localtunnel.github.io/www/) to expose your local development server:
+
+```bash
+# Install ngrok
+npm install -g ngrok
+
+# Expose local port 3000
+ngrok http 3000
+
+# Use the ngrok URL as your webhook endpoint
+# https://abc123.ngrok.io/api/webhooks/check
+```
+
+### Webhook Logs
+
+View delivery history and debug failed webhooks in **Dashboard → Settings → Webhooks → Delivery Logs**. Each log entry shows:
+
+- Timestamp
+- Event type
+- HTTP status code
+- Response body
+- Retry count
+
+## Event-Specific Payloads
+
+### verification.completed
+
+```json
+{
+  "verificationId": "ver_abc123",
+  "status": "completed",
+  "verdict": "true",
+  "confidence": 0.95,
+  "decision": "accept",
+  "reasoning": "The claim is factually accurate.",
+  "paradigmResults": [...],
+  "processingTimeMs": 1850
+}
+```
+
+### verification.escalated
+
+```json
+{
+  "verificationId": "ver_abc123",
+  "escalationId": "esc_xyz789",
+  "priority": "high",
+  "reason": "Low confidence score (0.52) with conflicting paradigm results",
+  "deadline": "2024-01-16T10:30:00Z"
+}
+```
+
+### batch.completed
+
+```json
+{
+  "batchId": "batch_abc123",
+  "status": "completed",
+  "totalItems": 100,
+  "successCount": 98,
+  "failureCount": 2,
+  "processingTimeMs": 45000
+}
+```
+
+### usage.limit.warning
+
+```json
+{
+  "organizationId": "org_abc123",
+  "currentUsage": 800,
+  "limit": 1000,
+  "usedPercentage": 80,
+  "resetDate": "2024-02-01T00:00:00Z"
+}
+```

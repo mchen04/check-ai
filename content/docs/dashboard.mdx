@@ -1,0 +1,321 @@
+---
+title: Dashboard Guide
+description: Complete guide to using the Check dashboard for verification management.
+order: 8
+---
+
+# Dashboard Guide
+
+The Check dashboard provides a web interface for managing verifications, API keys, team members, and monitoring usage. This guide covers all dashboard features.
+
+## Getting Started
+
+### Signing In
+
+1. Navigate to your Check dashboard URL
+2. Sign in with email/password or OAuth (Google, GitHub)
+3. If you're new, you'll be prompted to create an organization
+
+### Dashboard Overview
+
+After signing in, you'll see the main dashboard with:
+
+- **Verification Stats** - Daily counts, success rates, confidence distribution
+- **Recent Verifications** - Latest verification results
+- **Usage Summary** - Current usage against your plan limits
+- **Quick Actions** - Links to common tasks
+
+## Navigation
+
+The sidebar provides access to all dashboard sections:
+
+| Section | Description |
+|---------|-------------|
+| **Dashboard** | Overview and quick stats |
+| **Verify** | Single verification interface |
+| **Batch** | Batch processing management |
+| **Playground** | API testing environment |
+| **Keys** | API key management |
+| **Usage** | Detailed usage analytics |
+| **Escalations** | Human review queue |
+| **Team** | Team member management |
+| **Settings** | Organization and provider settings |
+
+## Single Verification
+
+### Using the Verify Page
+
+1. Navigate to **Verify** in the sidebar
+2. Enter the content you want to verify
+3. Select verification methods (reasoning, tool, etc.)
+4. Optionally add context (domain, source)
+5. Click **Verify**
+
+### Understanding Results
+
+The results panel shows:
+
+- **Verdict** - `true`, `false`, or `uncertain`
+- **Confidence** - 0-100% confidence score
+- **Decision** - Recommended action (accept, refine, escalate, reject)
+- **Reasoning** - Explanation of the verdict
+- **Method Results** - Individual results from each verification method
+
+### Copying Results
+
+Click the copy icon to copy:
+- Full JSON response
+- Verification ID for API reference
+- Shareable link (for team members)
+
+## Batch Processing
+
+### Creating a Batch
+
+1. Navigate to **Batch** in the sidebar
+2. Click **New Batch**
+3. Choose input method:
+   - **Paste** - Enter claims directly
+   - **Upload** - Upload CSV or JSON file
+4. Configure verification methods
+5. Click **Start Batch**
+
+### CSV Format
+
+```csv
+content
+"The Earth is approximately 4.5 billion years old."
+"Water freezes at 0 degrees Celsius."
+"The Great Wall is visible from space."
+```
+
+### JSON Format
+
+```json
+{
+  "items": [
+    { "content": "Claim 1...", "metadata": { "id": "1" } },
+    { "content": "Claim 2...", "metadata": { "id": "2" } }
+  ]
+}
+```
+
+### Monitoring Progress
+
+The batch detail page shows:
+- Real-time progress bar
+- Items processed / total
+- Success and failure counts
+- Estimated time remaining
+
+### Downloading Results
+
+1. Wait for batch completion
+2. Click **Download Results**
+3. Choose format: CSV or JSON
+4. Results include all verification data
+
+## API Playground
+
+### Testing Endpoints
+
+1. Navigate to **Playground**
+2. Select an endpoint (verify, batch, etc.)
+3. Fill in request parameters
+4. Click **Send Request**
+5. View formatted response
+
+### Saving Requests
+
+Save frequently-used requests:
+1. Configure your request
+2. Click **Save**
+3. Name your saved request
+4. Access from the **Saved** tab
+
+## API Keys
+
+### Creating Keys
+
+1. Navigate to **Keys**
+2. Click **Create New Key**
+3. Enter a descriptive name (e.g., "Production Server")
+4. Copy the key immediately (shown only once)
+
+<Callout type="warning">
+API keys are only displayed once. Store them securely.
+</Callout>
+
+### Managing Keys
+
+- **View Usage** - See request counts and last used timestamp
+- **Rename** - Update key names for organization
+- **Delete** - Revoke keys that are no longer needed
+
+### Best Practices
+
+- Use different keys for development and production
+- Name keys descriptively (include environment, purpose)
+- Rotate keys periodically
+- Delete unused keys promptly
+
+## Usage Analytics
+
+### Overview Metrics
+
+The usage page displays:
+
+- **Verifications This Month** - Count against your plan limit
+- **API Requests** - Total API calls
+- **Average Response Time** - p50 and p95 latency
+- **Cost Breakdown** - By provider and method
+
+### Charts and Trends
+
+- **Daily Verifications** - Time series of verification volume
+- **Verdict Distribution** - Pie chart of true/false/uncertain
+- **Method Performance** - Accuracy and latency by method
+- **Confidence Histogram** - Distribution of confidence scores
+
+### Exporting Data
+
+1. Select date range
+2. Click **Export**
+3. Choose format (CSV, JSON)
+4. Download analytics data
+
+## Escalations
+
+### Understanding Escalations
+
+Verifications with low confidence (0.5-0.7) are automatically escalated for human review.
+
+### Reviewing Escalations
+
+1. Navigate to **Escalations**
+2. View queue sorted by priority
+3. Click an escalation to review
+4. See original content, verification results, and reasoning
+5. Make a decision: **Approve**, **Reject**, or **Request More Info**
+
+### Escalation Fields
+
+| Field | Description |
+|-------|-------------|
+| Priority | low, medium, high |
+| Deadline | SLA deadline (if configured) |
+| Status | pending, in_review, resolved |
+| Assigned To | Team member handling review |
+
+### Resolution
+
+1. Review the content and verification results
+2. Conduct any additional research needed
+3. Select verdict: `true`, `false`, or `uncertain`
+4. Add notes explaining your decision
+5. Click **Resolve**
+
+## Team Management
+
+### Inviting Members
+
+1. Navigate to **Team**
+2. Click **Invite Member**
+3. Enter email address
+4. Select role
+5. Send invitation
+
+### Roles and Permissions
+
+| Role | Permissions |
+|------|-------------|
+| **Owner** | Full access, billing, delete organization |
+| **Admin** | Manage team, settings, API keys, webhooks |
+| **Member** | Run verifications, view results |
+| **Viewer** | Read-only access to results |
+
+### Managing Members
+
+- **Change Role** - Update member permissions
+- **Remove** - Revoke access immediately
+- **Resend Invite** - For pending invitations
+
+## Settings
+
+### Organization Settings
+
+- **Name** - Your organization's display name
+- **Logo** - Upload organization logo
+- **Timezone** - Default timezone for reports
+- **Notification Email** - Where to send alerts
+
+### Webhook Configuration
+
+1. Navigate to **Settings → Webhooks**
+2. Click **Add Webhook**
+3. Enter endpoint URL
+4. Select events to receive
+5. Copy signing secret for verification
+6. Save
+
+### Provider Keys (BYOK)
+
+1. Navigate to **Settings → Provider Keys**
+2. Click **Add Provider**
+3. Select provider (OpenAI, Anthropic, etc.)
+4. Enter API key (encrypted at rest)
+5. Save
+
+### Billing
+
+Access billing settings to:
+- View current plan and usage
+- Upgrade/downgrade plan
+- Update payment method
+- Download invoices
+- Access Stripe customer portal
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl/Cmd + K` | Quick search |
+| `Ctrl/Cmd + Enter` | Submit verification |
+| `Ctrl/Cmd + /` | Toggle sidebar |
+| `?` | Show keyboard shortcuts |
+
+## Mobile Access
+
+The dashboard is responsive and works on mobile devices. Some features optimized for mobile:
+
+- Simplified navigation
+- Touch-friendly controls
+- Condensed data views
+
+## Troubleshooting
+
+### Dashboard Not Loading
+
+1. Check your internet connection
+2. Clear browser cache
+3. Try incognito/private mode
+4. Check for service status
+
+### Verification Taking Too Long
+
+1. Check selected methods (ensemble is slowest)
+2. Reduce content length
+3. Check API status page
+
+### Missing Data
+
+1. Verify date range selection
+2. Check role permissions
+3. Refresh the page
+
+## Need Help?
+
+- **Documentation** - Browse the full docs
+- **API Reference** - Technical documentation
+- **Support** - Contact support@check.ai
+- **Status** - Check service status

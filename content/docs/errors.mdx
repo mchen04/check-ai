@@ -1,12 +1,12 @@
 ---
 title: Error Handling
-description: Understanding and handling errors from the Verifact API.
+description: Understanding and handling errors from the Check API.
 order: 5
 ---
 
 # Error Handling
 
-The Verifact API uses conventional HTTP status codes and returns detailed error information to help you handle issues gracefully.
+The Check API uses conventional HTTP status codes and returns detailed error information to help you handle issues gracefully.
 
 ## Error Response Format
 
@@ -22,7 +22,8 @@ All errors return a consistent JSON structure:
         "field": "content",
         "message": "Field-specific error message"
       }
-    ]
+    ],
+    "requestId": "req_abc123"
   }
 }
 ```
@@ -31,11 +32,20 @@ All errors return a consistent JSON structure:
 
 | Field | Description |
 |-------|-------------|
-| `code` | Machine-readable error code |
-| `message` | Human-readable description |
+| `code` | Machine-readable error code for programmatic handling |
+| `message` | Human-readable description of the error |
 | `details` | Array of field-specific errors (for validation errors) |
+| `requestId` | Unique identifier for this request (useful for support) |
 
 ## HTTP Status Codes
+
+### Success Codes (2xx)
+
+| Status | Description |
+|--------|-------------|
+| 200 | Success - Request completed successfully |
+| 201 | Created - Resource created successfully |
+| 202 | Accepted - Request accepted for async processing |
 
 ### Client Errors (4xx)
 
@@ -54,8 +64,9 @@ All errors return a consistent JSON structure:
 | Status | Code | Description |
 |--------|------|-------------|
 | 500 | `internal_error` | Unexpected server error |
-| 502 | `bad_gateway` | Upstream service error |
-| 503 | `service_unavailable` | Temporary maintenance |
+| 502 | `bad_gateway` | Upstream service error (LLM provider) |
+| 503 | `service_unavailable` | Temporary maintenance or overload |
+| 504 | `gateway_timeout` | Upstream service timeout |
 
 ## Common Error Codes
 
@@ -66,7 +77,8 @@ All errors return a consistent JSON structure:
 {
   "error": {
     "code": "unauthorized",
-    "message": "API key is required"
+    "message": "API key is required. Include it in the Authorization header as 'Bearer vfy_...'",
+    "requestId": "req_abc123"
   }
 }
 ```
@@ -76,7 +88,19 @@ All errors return a consistent JSON structure:
 {
   "error": {
     "code": "unauthorized",
-    "message": "Invalid API key"
+    "message": "Invalid API key. Check that your key is correct and active.",
+    "requestId": "req_abc123"
+  }
+}
+```
+
+**401 - Expired API Key**
+```json
+{
+  "error": {
+    "code": "unauthorized",
+    "message": "API key has been revoked. Generate a new key from your dashboard.",
+    "requestId": "req_abc123"
   }
 }
 ```
@@ -94,7 +118,8 @@ All errors return a consistent JSON structure:
         "field": "content",
         "message": "Content is required"
       }
-    ]
+    ],
+    "requestId": "req_abc123"
   }
 }
 ```
@@ -107,10 +132,28 @@ All errors return a consistent JSON structure:
     "message": "Validation failed",
     "details": [
       {
-        "field": "mode",
-        "message": "Must be 'fast' or 'standard'"
+        "field": "methods.reasoning",
+        "message": "Method weight must be between 0 and 1"
       }
-    ]
+    ],
+    "requestId": "req_abc123"
+  }
+}
+```
+
+**400 - Content Too Long**
+```json
+{
+  "error": {
+    "code": "validation_error",
+    "message": "Validation failed",
+    "details": [
+      {
+        "field": "content",
+        "message": "Content exceeds maximum length of 50,000 characters"
+      }
+    ],
+    "requestId": "req_abc123"
   }
 }
 ```
@@ -123,7 +166,8 @@ All errors return a consistent JSON structure:
   "error": {
     "code": "rate_limited",
     "message": "Rate limit exceeded. Try again in 60 seconds.",
-    "retryAfter": 60
+    "retryAfter": 60,
+    "requestId": "req_abc123"
   }
 }
 ```
@@ -137,81 +181,255 @@ All errors return a consistent JSON structure:
     "code": "usage_limit_exceeded",
     "message": "Monthly verification limit reached. Upgrade your plan for more verifications.",
     "limit": 1000,
-    "used": 1000
+    "used": 1000,
+    "resetDate": "2024-02-01T00:00:00Z",
+    "requestId": "req_abc123"
+  }
+}
+```
+
+### Resource Errors
+
+**404 - Verification Not Found**
+```json
+{
+  "error": {
+    "code": "not_found",
+    "message": "Verification ver_abc123 not found",
+    "requestId": "req_abc123"
+  }
+}
+```
+
+**404 - Batch Not Found**
+```json
+{
+  "error": {
+    "code": "not_found",
+    "message": "Batch batch_abc123 not found or you don't have access to it",
+    "requestId": "req_abc123"
+  }
+}
+```
+
+### Provider Errors
+
+**502 - LLM Provider Error**
+```json
+{
+  "error": {
+    "code": "provider_error",
+    "message": "The LLM provider returned an error. This is usually temporary.",
+    "provider": "openai",
+    "providerError": "Rate limit exceeded",
+    "requestId": "req_abc123"
+  }
+}
+```
+
+**504 - Provider Timeout**
+```json
+{
+  "error": {
+    "code": "provider_timeout",
+    "message": "The LLM provider took too long to respond. Please retry.",
+    "provider": "anthropic",
+    "requestId": "req_abc123"
   }
 }
 ```
 
 ## Handling Errors
 
-### JavaScript/TypeScript
+### TypeScript SDK
+
+The SDK provides typed error classes for easy handling:
 
 ```typescript
-async function verifyContent(content: string) {
-  const response = await fetch('https://api.verifact.ai/v1/verify', {
+import {
+  Check,
+  CheckError,
+  AuthenticationError,
+  ValidationError,
+  RateLimitError,
+  QuotaExceededError,
+  NotFoundError,
+  ProviderError,
+} from '@check/sdk';
+
+const client = new Check({ apiKey: 'vfy_...' });
+
+try {
+  const result = await client.verifyAndWait({
+    content: 'Your content',
+    methods: { reasoning: 1.0 }
+  });
+} catch (error) {
+  if (error instanceof AuthenticationError) {
+    // Invalid or missing API key
+    console.error('Authentication failed:', error.message);
+    // Redirect to login or show API key configuration
+
+  } else if (error instanceof ValidationError) {
+    // Invalid request parameters
+    console.error('Validation failed:', error.message);
+    for (const detail of error.details) {
+      console.error(`  ${detail.field}: ${detail.message}`);
+    }
+
+  } else if (error instanceof RateLimitError) {
+    // Rate limited - wait and retry
+    console.error(`Rate limited. Retry after ${error.retryAfter}s`);
+    await sleep(error.retryAfter * 1000);
+    // Retry the request
+
+  } else if (error instanceof QuotaExceededError) {
+    // Monthly quota exceeded
+    console.error('Monthly quota exceeded');
+    console.error(`Used: ${error.used}/${error.limit}`);
+    console.error(`Resets: ${error.resetDate}`);
+    // Prompt user to upgrade
+
+  } else if (error instanceof NotFoundError) {
+    // Resource not found
+    console.error('Resource not found:', error.message);
+
+  } else if (error instanceof ProviderError) {
+    // LLM provider error
+    console.error(`Provider error (${error.provider}):`, error.message);
+    // Usually temporary - retry with backoff
+
+  } else if (error instanceof CheckError) {
+    // Generic API error
+    console.error('API error:', error.message);
+    console.error('Request ID:', error.requestId);
+
+  } else {
+    // Network or unexpected error
+    console.error('Unexpected error:', error);
+  }
+}
+```
+
+### Python SDK
+
+```python
+from check import (
+    Check,
+    CheckError,
+    AuthenticationError,
+    ValidationError,
+    RateLimitError,
+    QuotaExceededError,
+    NotFoundError,
+    ProviderError,
+)
+import time
+
+client = Check(api_key="vfy_...")
+
+try:
+    result = client.verify_and_wait(
+        content="Your content",
+        methods={"reasoning": 1.0}
+    )
+except AuthenticationError as e:
+    # Invalid or missing API key
+    print(f"Authentication failed: {e.message}")
+
+except ValidationError as e:
+    # Invalid request parameters
+    print(f"Validation failed: {e.message}")
+    for detail in e.details:
+        print(f"  {detail['field']}: {detail['message']}")
+
+except RateLimitError as e:
+    # Rate limited - wait and retry
+    print(f"Rate limited. Retry after {e.retry_after}s")
+    time.sleep(e.retry_after)
+    # Retry the request
+
+except QuotaExceededError as e:
+    # Monthly quota exceeded
+    print(f"Monthly quota exceeded: {e.used}/{e.limit}")
+    print(f"Resets: {e.reset_date}")
+
+except NotFoundError as e:
+    # Resource not found
+    print(f"Resource not found: {e.message}")
+
+except ProviderError as e:
+    # LLM provider error
+    print(f"Provider error ({e.provider}): {e.message}")
+
+except CheckError as e:
+    # Generic API error
+    print(f"API error: {e.message}")
+    print(f"Request ID: {e.request_id}")
+
+except Exception as e:
+    # Network or unexpected error
+    print(f"Unexpected error: {e}")
+```
+
+### REST API (fetch)
+
+```typescript
+async function verifyContent(content: string): Promise<any> {
+  const response = await fetch('https://api.check.ai/v1/verify', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ content }),
+    body: JSON.stringify({ content, methods: { reasoning: 1.0 } }),
   });
 
   if (!response.ok) {
     const error = await response.json();
+    const requestId = error.error?.requestId;
 
     switch (response.status) {
       case 401:
-        throw new Error('Invalid API key');
-      case 429:
-        // Wait and retry
-        const retryAfter = error.error.retryAfter || 60;
-        await sleep(retryAfter * 1000);
-        return verifyContent(content);
+        throw new Error(`Authentication failed: ${error.error.message}`);
+
       case 400:
-        throw new Error(`Validation error: ${error.error.message}`);
+      case 422:
+        const details = error.error.details
+          ?.map((d: any) => `${d.field}: ${d.message}`)
+          .join(', ');
+        throw new Error(`Validation error: ${details || error.error.message}`);
+
+      case 429:
+        const retryAfter = error.error.retryAfter || 60;
+        console.log(`Rate limited. Waiting ${retryAfter}s...`);
+        await new Promise(r => setTimeout(r, retryAfter * 1000));
+        return verifyContent(content); // Retry
+
+      case 403:
+        if (error.error.code === 'usage_limit_exceeded') {
+          throw new Error(`Monthly limit reached: ${error.error.used}/${error.error.limit}`);
+        }
+        throw new Error(`Forbidden: ${error.error.message}`);
+
+      case 404:
+        throw new Error(`Not found: ${error.error.message}`);
+
+      case 502:
+      case 503:
+      case 504:
+        // Server errors - retry with backoff
+        console.log(`Server error (${response.status}). Retrying...`);
+        await new Promise(r => setTimeout(r, 5000));
+        return verifyContent(content);
+
       default:
-        throw new Error(`API error: ${error.error.message}`);
+        throw new Error(`API error (${response.status}): ${error.error.message} [${requestId}]`);
     }
   }
 
   return response.json();
 }
-```
-
-### Python
-
-```python
-import time
-import requests
-
-def verify_content(content: str, max_retries: int = 3):
-    for attempt in range(max_retries):
-        response = requests.post(
-            'https://api.verifact.ai/v1/verify',
-            headers={'Authorization': f'Bearer {api_key}'},
-            json={'content': content}
-        )
-
-        if response.ok:
-            return response.json()
-
-        error = response.json().get('error', {})
-
-        if response.status_code == 429:
-            retry_after = error.get('retryAfter', 60)
-            time.sleep(retry_after)
-            continue
-        elif response.status_code == 401:
-            raise AuthenticationError('Invalid API key')
-        elif response.status_code >= 500:
-            # Retry server errors
-            time.sleep(2 ** attempt)
-            continue
-        else:
-            raise APIError(error.get('message', 'Unknown error'))
-
-    raise MaxRetriesExceeded()
 ```
 
 ## Best Practices
@@ -220,35 +438,90 @@ def verify_content(content: str, max_retries: int = 3):
 For transient errors (429, 5xx), implement exponential backoff with jitter to avoid thundering herd problems.
 </Callout>
 
-### Implement Retries
+### Implement Retries for Transient Errors
 
 Retry these status codes with exponential backoff:
-- `429` - Rate limited (use `retryAfter` header)
+- `429` - Rate limited (use `retryAfter` value)
 - `500` - Internal server error
-- `502` - Bad gateway
+- `502` - Bad gateway (provider issues)
 - `503` - Service unavailable
+- `504` - Gateway timeout
 
-### Don't Retry These
+```typescript
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  baseDelay = 1000
+): Promise<T> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      const isRetryable = [429, 500, 502, 503, 504].includes(error.status);
+      const isLastAttempt = attempt === maxRetries;
 
-- `400` - Fix the request
+      if (!isRetryable || isLastAttempt) {
+        throw error;
+      }
+
+      // Use retryAfter for 429, otherwise exponential backoff
+      const delay = error.retryAfter
+        ? error.retryAfter * 1000
+        : baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
+
+      console.log(`Attempt ${attempt + 1} failed. Retrying in ${delay}ms...`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+  throw new Error('Unreachable');
+}
+```
+
+### Don't Retry These Errors
+
+- `400` - Fix the request parameters
 - `401` - Check your API key
-- `403` - Check your permissions/plan
+- `403` - Check your permissions or plan
 - `404` - Resource doesn't exist
+- `422` - Fix validation errors
 
-### Log Errors
+### Log Errors with Request IDs
 
-Log error responses for debugging:
+Always log the `requestId` for debugging:
 
 ```typescript
 if (!response.ok) {
+  const error = await response.json();
   console.error('API Error', {
     status: response.status,
-    error: await response.json(),
-    requestId: response.headers.get('X-Request-Id'),
+    code: error.error.code,
+    message: error.error.message,
+    requestId: error.error.requestId,
+    timestamp: new Date().toISOString(),
   });
 }
 ```
 
-### Use Request IDs
+### Use Request IDs for Support
 
-Include the `X-Request-Id` header from the response when contacting support. It helps us trace the exact request in our logs.
+When contacting support, include:
+1. The `requestId` from the error response
+2. The timestamp of the error
+3. The request you were making (without sensitive data)
+
+This helps us trace the exact request in our logs.
+
+## Error Code Reference
+
+| Code | HTTP Status | Description | Retry? |
+|------|-------------|-------------|--------|
+| `unauthorized` | 401 | Invalid API key | No |
+| `forbidden` | 403 | Insufficient permissions | No |
+| `not_found` | 404 | Resource not found | No |
+| `validation_error` | 400/422 | Invalid parameters | No |
+| `rate_limited` | 429 | Too many requests | Yes |
+| `usage_limit_exceeded` | 403 | Monthly quota exceeded | No |
+| `provider_error` | 502 | LLM provider error | Yes |
+| `provider_timeout` | 504 | Provider timeout | Yes |
+| `internal_error` | 500 | Server error | Yes |
+| `service_unavailable` | 503 | Maintenance | Yes |

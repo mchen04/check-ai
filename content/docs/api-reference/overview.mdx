@@ -1,19 +1,19 @@
 ---
 title: API Overview
-description: An overview of the Verifact REST API endpoints and conventions.
+description: An overview of the Check REST API endpoints and conventions.
 order: 1
 ---
 
 # API Overview
 
-The Verifact API is a RESTful API that allows you to programmatically verify content, retrieve verification results, and manage your account.
+The Check API is a RESTful API that allows you to programmatically verify content, retrieve verification results, manage batch jobs, and integrate LLM verification into your applications.
 
 ## Base URL
 
 All API requests should be made to:
 
 ```
-https://api.verifact.ai/v1
+https://api.check.ai/v1
 ```
 
 ## Authentication
@@ -30,7 +30,8 @@ See [Authentication](/docs/authentication) for details on obtaining and managing
 
 - Use `Content-Type: application/json` for all POST/PUT/PATCH requests
 - Request bodies should be valid JSON
-- All timestamps use ISO 8601 format
+- All timestamps use ISO 8601 format (e.g., `2024-01-15T10:30:00Z`)
+- Character encoding: UTF-8
 
 ## Response Format
 
@@ -42,7 +43,13 @@ All responses return JSON with a consistent structure:
 {
   "id": "ver_abc123",
   "status": "completed",
-  // ... additional fields
+  "verdict": "true",
+  "confidence": 0.95,
+  "decision": "accept",
+  "reasoning": "The claim is factually accurate.",
+  "paradigmResults": [...],
+  "processingTimeMs": 1850,
+  "createdAt": "2024-01-15T10:30:00Z"
 }
 ```
 
@@ -51,14 +58,15 @@ All responses return JSON with a consistent structure:
 ```json
 {
   "error": {
-    "code": "invalid_request",
+    "code": "validation_error",
     "message": "Content is required",
     "details": [
       {
         "field": "content",
         "message": "Required field is missing"
       }
-    ]
+    ],
+    "requestId": "req_abc123"
   }
 }
 ```
@@ -69,19 +77,19 @@ All responses return JSON with a consistent structure:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/v1/verify` | Submit content for verification |
-| `GET` | `/v1/verify/:id` | Get verification result by ID |
+| `POST` | [`/v1/verify`](/docs/api-reference/verify) | Submit content for verification |
+| `GET` | [`/v1/verify/:id`](/docs/api-reference/get-verification) | Get verification result by ID |
 
 ### Batch Processing
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/v1/batch` | Create a batch job |
-| `GET` | `/v1/batch` | List batch jobs |
-| `GET` | `/v1/batch/:id` | Get batch status |
-| `GET` | `/v1/batch/:id/results` | Get batch results |
-| `POST` | `/v1/batch/:id/cancel` | Cancel a batch |
-| `POST` | `/v1/batch/upload` | Upload batch file |
+| `POST` | [`/v1/batch`](/docs/api-reference/batch/create-batch) | Create a batch job |
+| `GET` | [`/v1/batch`](/docs/api-reference/batch/list-batches) | List batch jobs |
+| `GET` | [`/v1/batch/:id`](/docs/api-reference/batch/get-batch) | Get batch status |
+| `GET` | [`/v1/batch/:id/results`](/docs/api-reference/batch/get-results) | Get batch results |
+| `POST` | [`/v1/batch/:id/cancel`](/docs/api-reference/batch/cancel-batch) | Cancel a batch |
+| `POST` | [`/v1/batch/upload`](/docs/api-reference/batch/upload-file) | Upload batch file |
 
 ### Status
 
@@ -93,34 +101,146 @@ All responses return JSON with a consistent structure:
 
 | Code | Meaning |
 |------|---------|
-| `200` | Success |
-| `201` | Created |
+| `200` | Success - Request completed |
+| `201` | Created - Resource created |
+| `202` | Accepted - Request accepted for async processing |
 | `400` | Bad Request - Invalid parameters |
 | `401` | Unauthorized - Invalid or missing API key |
-| `403` | Forbidden - Insufficient permissions |
+| `403` | Forbidden - Insufficient permissions or quota exceeded |
 | `404` | Not Found - Resource doesn't exist |
+| `422` | Unprocessable Entity - Validation failed |
 | `429` | Too Many Requests - Rate limited |
 | `500` | Internal Server Error |
+| `502` | Bad Gateway - Upstream provider error |
+| `503` | Service Unavailable - Maintenance |
+| `504` | Gateway Timeout - Provider timeout |
+
+## Rate Limiting
+
+Rate limits vary by plan:
+
+| Plan | Requests/Minute |
+|------|-----------------|
+| Free | 10 |
+| Starter | 60 |
+| Pro | 300 |
+| Enterprise | Custom |
+
+Every response includes rate limit headers:
+
+```
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 45
+X-RateLimit-Reset: 1705317060
+```
+
+See [Rate Limiting](/docs/rate-limiting) for handling strategies.
 
 ## Pagination
 
 List endpoints support pagination with these query parameters:
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `limit` | integer | Number of items to return (default: 20, max: 100) |
-| `offset` | integer | Number of items to skip |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | integer | 20 | Number of items to return (max: 100) |
+| `offset` | integer | 0 | Number of items to skip |
+
+### Example
+
+```bash
+GET /v1/batch?limit=10&offset=20
+```
+
+### Paginated Response
+
+```json
+{
+  "data": [...],
+  "pagination": {
+    "total": 156,
+    "limit": 10,
+    "offset": 20,
+    "hasMore": true
+  }
+}
+```
 
 ## Idempotency
 
 For POST requests that create resources, you can include an `Idempotency-Key` header:
 
 ```
-Idempotency-Key: unique-request-id
+Idempotency-Key: unique-request-id-12345
 ```
 
-Requests with the same idempotency key within 24 hours will return the same response.
+- Requests with the same idempotency key within 24 hours return the same response
+- Keys are scoped to your organization
+- Use UUIDs or unique identifiers from your system
+
+### Example
+
+```bash
+curl -X POST https://api.check.ai/v1/verify \
+  -H "Authorization: Bearer vfy_..." \
+  -H "Idempotency-Key: order-12345-verification" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "...", "methods": {"reasoning": 1.0}}'
+```
 
 ## Versioning
 
-The API version is included in the URL path (`/v1`). We maintain backwards compatibility within major versions. Breaking changes will be released under new version numbers.
+The API version is included in the URL path (`/v1`). We maintain backwards compatibility within major versions:
+
+- **v1** - Current stable version
+- Breaking changes will be released under new version numbers
+- Deprecation notices will be communicated at least 6 months in advance
+
+## SDKs
+
+We recommend using our official SDKs for the best developer experience:
+
+<CodeTabs
+  examples={[
+    {
+      language: 'typescript',
+      label: 'TypeScript',
+      code: `import { Check } from '@check/sdk';
+
+const client = new Check({ apiKey: 'vfy_...' });
+
+const result = await client.verifyAndWait({
+  content: 'Your content to verify',
+  methods: { reasoning: 1.0 }
+});`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `from check import Check
+
+client = Check(api_key="vfy_...")
+
+result = client.verify_and_wait(
+    content="Your content to verify",
+    methods={"reasoning": 1.0}
+)`
+    },
+  ]}
+/>
+
+## Request IDs
+
+Every response includes an `X-Request-Id` header with a unique identifier:
+
+```
+X-Request-Id: req_abc123def456
+```
+
+Include this ID when contacting support for faster issue resolution.
+
+## Next Steps
+
+- [Verify Content](/docs/api-reference/verify) - Submit your first verification
+- [Batch Processing](/docs/api-reference/batch/overview) - Process multiple items
+- [Webhooks](/docs/webhooks) - Set up real-time notifications
+- [Error Handling](/docs/errors) - Handle errors gracefully
