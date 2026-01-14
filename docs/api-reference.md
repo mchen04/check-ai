@@ -34,13 +34,13 @@ POST /v1/verify
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `content` | string | Yes | Content to verify (1-50,000 chars) |
-| `methods` | object | Yes* | Verification methods with weights (0-1) |
+| `content` | string | Yes | Content to verify (1-100,000 chars) |
+| `methods` | object | No* | Verification methods with weights (0-1) |
 | `context` | object | No | Additional context for verification |
 | `options` | object | No | Request options (timeout, thresholds) |
 | `idempotencyKey` | string | No | Deduplication key (max 255 chars) |
 
-*Required unless API key has default paradigm configuration.
+*Optional if API key has default paradigm configuration. If not provided and no defaults configured, request will fail.
 
 **Methods Object:**
 
@@ -52,7 +52,7 @@ POST /v1/verify
 | `biprm` | number (0-1) | Bidirectional premise reasoning |
 | `ensemble` | number (0-1) | Multi-model voting consensus |
 | `entropy` | number (0-1) | Consistency checking |
-| `formal` | number (0-1) | Mathematical proof verification |
+| `formal` | number (0-1) | Mathematical verification (direct arithmetic + LLM reasoning) |
 
 **Options Object:**
 
@@ -204,7 +204,7 @@ POST /v1/batch
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `content` | string | Yes | Content to verify |
+| `content` | string | Yes | Content to verify (1-50,000 chars) |
 | `context` | object | No | Item-specific context |
 | `idempotencyKey` | string | No | Item deduplication key |
 
@@ -296,9 +296,16 @@ GET /v1/batch/{id}/results
 {
   "batchId": "batch_xyz789",
   "status": "completed",
-  "results": [
+  "summary": {
+    "totalItems": 3,
+    "processedItems": 3,
+    "successCount": 3,
+    "failureCount": 0,
+    "totalCostCents": 0.45
+  },
+  "items": [
     {
-      "index": 0,
+      "itemIndex": 0,
       "verificationId": "ver_123",
       "status": "completed",
       "verdict": "true",
@@ -306,7 +313,7 @@ GET /v1/batch/{id}/results
       "decision": "accept"
     },
     {
-      "index": 1,
+      "itemIndex": 1,
       "verificationId": "ver_124",
       "status": "completed",
       "verdict": "true",
@@ -314,17 +321,17 @@ GET /v1/batch/{id}/results
       "decision": "accept"
     },
     {
-      "index": 2,
+      "itemIndex": 2,
       "verificationId": "ver_125",
       "status": "completed",
       "verdict": "false",
       "confidence": 0.88,
-      "decision": "accept"
+      "decision": "reject"
     }
   ],
   "pagination": {
     "total": 3,
-    "limit": 100,
+    "limit": 50,
     "offset": 0,
     "hasMore": false
   }
@@ -462,11 +469,11 @@ All errors follow this format:
 
 Rate limits vary by plan:
 
-| Plan | Requests/Minute |
-|------|-----------------|
-| Free | 10 |
-| Pro | 100 |
-| Enterprise | 1000 |
+| Plan | Requests/Minute | Verifications/Month |
+|------|-----------------|---------------------|
+| Free | 10 | 100 |
+| Pro | 100 | 5,000 |
+| Enterprise | 1,000 | Unlimited |
 
 Rate limit headers:
 

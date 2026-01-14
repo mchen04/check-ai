@@ -29,7 +29,9 @@ Instead of relying on a single verification method, Check.ai employs seven disti
 | **BIPRM** | Bidirectional premise reasoning | ~10% | Logical arguments |
 | **Ensemble** | Multi-model voting consensus | ~30% | Diverse perspectives |
 | **Entropy** | Semantic consistency checking | ~15% | Confidence assessment |
-| **Formal** | Mathematical proof verification | 0% | Mathematical claims |
+| **Formal** | Mathematical/logical verification* | 0%* | Mathematical claims |
+
+*\*Note: Formal verification handles simple arithmetic (e.g., `2 + 2 = 4`) with 0% FPR (mathematical certainty). Complex mathematical claims use LLM-based reasoning (~5-7% FPR). Full theorem prover integration (Lean, Coq, Z3) is planned.*
 
 ### Weighted Consensus
 
@@ -69,12 +71,12 @@ Based on the consensus, Check.ai provides an actionable **decision**:
                     │  (7 Paradigms)        │
                     └───────────┬───────────┘
                                 │
-          ┌─────────────────────┼─────────────────────┐
-          │                     │                     │
-    ┌─────▼─────┐         ┌─────▼─────┐         ┌─────▼─────┐
-    │  LLM Hub  │         │  Tool Hub │         │  Formal   │
-    │ (16+ LLMs)│         │  (Search) │         │  Verifier │
-    └───────────┘         └───────────┘         └───────────┘
+                ┌─────────────────┴─────────────────┐
+                │                                   │
+          ┌─────▼─────┐                       ┌─────▼─────┐
+          │  LLM Hub  │                       │  Tool Hub │
+          │ (16+ LLMs)│                       │  (Search) │
+          └───────────┘                       └───────────┘
 ```
 
 ## Key Features
@@ -197,7 +199,7 @@ Audit trail of all verification decisions for regulatory requirements.
 3. **Install an SDK** or use the REST API
 4. **Start verifying** your LLM outputs
 
-See the [Quick Start Guide](./guide.md) for detailed setup instructions.
+See the [SDK Guide](./sdk-guide.md) for detailed setup instructions.
 
 ## Support
 

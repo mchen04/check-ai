@@ -68,9 +68,9 @@ const accurate = await client.verifyAndWait({
   },
 });
 
-// Mathematical claims
+// Mathematical claims (simple arithmetic is verified directly, other claims use LLM reasoning)
 const math = await client.verifyAndWait({
-  content: 'The square root of 144 is 12.',
+  content: '12 * 12 = 144',
   methods: { formal: 1.0 },
 });
 
@@ -116,36 +116,43 @@ if (result.status === 'completed') {
 Verify multiple claims efficiently:
 
 ```typescript
-// Create a batch
-const batch = await client.createBatch({
-  items: [
-    { content: 'The Earth is round.' },
-    { content: 'Water boils at 100°C.' },
-    { content: 'Grass is purple.' },
-  ],
-  methods: { reasoning: 1.0 },
-});
+// Create a batch and wait for completion
+const batch = await client.createBatchAndWait(
+  {
+    items: [
+      { content: 'The Earth is round.' },
+      { content: 'Water boils at 100°C.' },
+      { content: 'Grass is purple.' },
+    ],
+    methods: { reasoning: 1.0 },
+  },
+  {
+    onProgress: (b) => console.log(`Progress: ${b.progress}%`),
+  }
+);
 
 console.log(batch.id);          // 'batch_xyz789'
-console.log(batch.totalItems);  // 3
-
-// Wait for completion
-const completed = await client.waitForBatch(batch.id, {
-  onProgress: (b) => console.log(`Progress: ${b.progress}%`),
-});
+console.log(batch.status);      // 'completed'
 
 // Get results
 const results = await client.getBatchResults(batch.id);
-for (const result of results.results) {
-  console.log(`Item ${result.index}: ${result.verdict} (${result.confidence})`);
+for (const item of results.items) {
+  console.log(`Item ${item.itemIndex}: ${item.verdict} (${item.confidence})`);
 }
 ```
 
 ### File Upload for Batch
 
 ```typescript
-// Upload a CSV or JSON file
-const upload = await client.uploadBatchFile('./claims.csv');
+// Browser: Upload from file input
+const fileInput = document.getElementById('file') as HTMLInputElement;
+const file = fileInput.files![0];
+const upload = await client.uploadBatchFile(file, file.name);
+
+// Node.js: Upload from Buffer
+import { readFileSync } from 'fs';
+const buffer = readFileSync('./claims.csv');
+const upload = await client.uploadBatchFile(buffer, 'claims.csv');
 
 // Create batch from uploaded file
 const batch = await client.createBatch({
@@ -287,8 +294,8 @@ completed = client.create_batch_and_wait(
 
 # Get results
 results = client.get_batch_results(completed.id)
-for result in results.results:
-    print(f"Item {result.index}: {result.verdict}")
+for item in results.items:
+    print(f"Item {item.item_index}: {item.verdict}")
 ```
 
 ### File Upload
@@ -538,19 +545,24 @@ async function verifyDataset(claims: string[]) {
   const results: Map<string, VerifyResponse> = new Map();
 
   for (let i = 0; i < claims.length; i += batchSize) {
-    const batch = claims.slice(i, i + batchSize);
+    const batchItems = claims.slice(i, i + batchSize);
+    const batchNumber = Math.floor(i / batchSize) + 1;
 
-    const completed = await client.createBatchAndWait({
-      items: batch.map(c => ({ content: c })),
-      methods: { reasoning: 1.0 },
-      onProgress: (b) => {
-        console.log(`Batch ${i / batchSize + 1}: ${b.progress}%`);
+    const completed = await client.createBatchAndWait(
+      {
+        items: batchItems.map(c => ({ content: c })),
+        methods: { reasoning: 1.0 },
       },
-    });
+      {
+        onProgress: (b) => {
+          console.log(`Batch ${batchNumber}: ${b.progress}%`);
+        },
+      }
+    );
 
     const batchResults = await client.getBatchResults(completed.id);
     for (const result of batchResults.results) {
-      results.set(batch[result.index], result);
+      results.set(batchItems[result.index], result);
     }
   }
 
@@ -608,7 +620,7 @@ try {
 | Chatbots | `reasoning: 1.0` | ~2s |
 | Content moderation | `reasoning: 1.0, tool: 0.5` | ~5s |
 | Important decisions | `reasoning: 1.0, tool: 1.0, ensemble: 0.5` | ~10s |
-| Mathematical claims | `formal: 1.0` | ~3s |
+| Simple arithmetic | `formal: 1.0` | ~1s |
 | Full verification | All methods | ~20s |
 
 ### 2. Use Batch for Bulk Operations

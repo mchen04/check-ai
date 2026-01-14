@@ -19,7 +19,7 @@ The platform is feature-complete for beta launch with all core verification func
   - [x] BIPRM (bidirectional reasoning)
   - [x] Ensemble (multi-model voting)
   - [x] Entropy (consistency checking)
-  - [x] Formal (mathematical verification)
+  - [x] Formal (direct arithmetic verification + LLM-based mathematical reasoning)
 - [x] FPR-weighted consensus algorithm
 - [x] Configurable decision thresholds
 - [x] Per-paradigm retry logic
@@ -103,8 +103,14 @@ The platform is feature-complete for beta launch with all core verification func
   - [x] Retry logic
 - [x] LangChain TypeScript (`@check/langchain`)
 - [x] LlamaIndex TypeScript (`@check/llamaindex`)
-- [ ] Python SDK (in progress)
-- [ ] LangChain Python (in progress)
+- [x] Python SDK (`check`)
+  - [x] Sync and async clients
+  - [x] Full API coverage (verify, batch, file upload)
+  - [x] Error handling
+  - [x] Retry logic with exponential backoff
+- [x] LangChain Python (`check-langchain`)
+  - [x] Sync and async callback handlers
+  - [x] Auto-verification of LLM outputs
 
 ### Dashboard
 
@@ -130,11 +136,15 @@ The platform is feature-complete for beta launch with all core verification func
 
 ### Testing
 
-- [x] Verification logic unit tests
-- [x] API error handling tests
-- [x] Schema validation tests
-- [ ] Integration tests
-- [ ] E2E tests
+- [x] Verification logic unit tests (`lib/verification/types.test.ts`, `lib/verification/orchestrator.test.ts`)
+- [x] API error handling tests (`lib/api/errors.test.ts`, `lib/api/types.test.ts`)
+- [x] Schema validation tests (`lib/verification/validator.test.ts`)
+- [x] Prompt tests (`lib/verification/prompts/prompts.test.ts`)
+- [x] Batch parser tests (`lib/batch/parsers.test.ts`)
+- [x] Formal verification tests (`lib/verification/methods/formal.test.ts`)
+- [x] TypeScript SDK tests (`packages/typescript-sdk/__tests__/errors.test.ts`)
+- [x] LangChain integration tests (`packages/langchain-ts/__tests__/callback.test.ts`)
+- [ ] Integration tests (E2E API testing)
 - [ ] Load testing
 
 ### Monitoring
@@ -147,11 +157,12 @@ The platform is feature-complete for beta launch with all core verification func
 ### Documentation
 
 - [x] README with quick start
-- [x] Platform overview
-- [x] Stripe setup guide
-- [x] API key configuration design doc
-- [ ] Full API reference
-- [ ] SDK usage guides
+- [x] Platform overview (`docs/overview.md`)
+- [x] Stripe setup guide (`docs/stripe-setup.md`)
+- [x] API key configuration design doc (`docs/design/api-key-configuration-final.md`)
+- [x] Full API reference (`docs/api-reference.md`)
+- [x] SDK usage guides (`docs/sdk-guide.md`)
+- [x] TypeScript SDK guides (Express, Next.js, batch processing)
 - [ ] Deployment guide
 
 ---
@@ -257,11 +268,17 @@ The platform is feature-complete for beta launch with all core verification func
 ### v0.1.0 (Current)
 
 - Initial beta release
-- Core verification engine
-- Multi-provider LLM support
-- Enterprise features (RBAC, audit, webhooks)
-- TypeScript SDK
-- Dashboard UI
+- Core verification engine with 7 paradigms
+- Multi-provider LLM support (16+ providers)
+- Enterprise features (RBAC, audit logs, webhooks, org-level billing)
+- TypeScript SDK (`@check/sdk`)
+- Python SDK (`check`)
+- LangChain integrations (TypeScript & Python)
+- LlamaIndex integration
+- Dashboard UI with verification playground
+- Batch processing with file upload
+- Provider credential vault with BYOK support
+- Per-key paradigm and model configuration
 
 ---
 

@@ -33,7 +33,7 @@ const batch = await client.createBatchAndWait({
 });
 
 console.log(`Status: ${batch.status}`);
-console.log(`Success: ${batch.successCount}/${batch.totalItems}`);
+console.log(`Success: ${batch.summary?.successCount ?? 0}/${batch.totalItems}`);
 ```
 
 ### Manual Polling
@@ -54,7 +54,7 @@ const { id } = await client.createBatch({
 let batch;
 do {
   batch = await client.getBatch(id);
-  console.log(`Progress: ${batch.processedItems}/${batch.totalItems}`);
+  console.log(`Progress: ${batch.processedItems ?? 0}/${batch.totalItems}`);
 
   if (batch.status === 'processing') {
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -188,11 +188,12 @@ async function getAllResults(client: Check, batchId: string) {
 
 ```typescript
 const results = await client.getBatchResults(batchId);
+const items = results.items ?? [];
 
-const trueItems = results.items.filter(i => i.verdict === 'true');
-const falseItems = results.items.filter(i => i.verdict === 'false');
-const uncertainItems = results.items.filter(i => i.verdict === 'uncertain');
-const failedItems = results.items.filter(i => i.status === 'failed');
+const trueItems = items.filter(i => i.verdict === 'true');
+const falseItems = items.filter(i => i.verdict === 'false');
+const uncertainItems = items.filter(i => i.verdict === 'uncertain');
+const failedItems = items.filter(i => i.status === 'failed');
 
 console.log(`True: ${trueItems.length}`);
 console.log(`False: ${falseItems.length}`);
@@ -203,10 +204,10 @@ console.log(`Failed: ${failedItems.length}`);
 ### Export Results
 
 ```typescript
-function exportToCSV(results: BatchItemResult[]): string {
-  const headers = ['content', 'verdict', 'confidence', 'decision', 'error'];
-  const rows = results.map(item => [
-    `"${item.content.replace(/"/g, '""')}"`,
+function exportToCSV(items: BatchItemResult[]): string {
+  const headers = ['itemIndex', 'verdict', 'confidence', 'decision', 'error'];
+  const rows = items.map(item => [
+    item.itemIndex?.toString() || '',
     item.verdict || '',
     item.confidence?.toString() || '',
     item.decision || '',
@@ -248,11 +249,11 @@ try {
 
 ```typescript
 const results = await client.getBatchResults(batchId);
+const items = results.items ?? [];
 
-for (const item of results.items) {
+for (const item of items) {
   if (item.status === 'failed') {
     console.error(`Item ${item.itemIndex} failed: ${item.errorMessage}`);
-    console.error(`  Retry count: ${item.retryCount}`);
   }
 }
 ```

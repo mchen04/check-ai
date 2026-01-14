@@ -32,7 +32,7 @@ Seven distinct verification methods work together to determine truth:
 | **BIPRM** | ~10% | Bidirectional reasoning from multiple angles |
 | **Ensemble** | ~30% | Multi-model voting consensus |
 | **Entropy** | ~15% | Consistency checking across variations |
-| **Formal** | 0% | Mathematical/logical proof verification |
+| **Formal** | 0%* | Mathematical/logical verification (see note) |
 
 ### Enterprise-Grade
 
@@ -145,6 +145,8 @@ const result = await client.verifyAndWait({
 });
 ```
 
+> **Note on Formal Verification:** The formal method verifies simple arithmetic operations (e.g., `2 + 2 = 4`) with mathematical certainty (0% FPR). For more complex mathematical and logical claims, it uses LLM-based reasoning (~5-7% FPR). Full theorem prover integration (Lean, Coq, Z3) is on the roadmap.
+
 ## SDKs
 
 | Package | Description | Install |
@@ -168,7 +170,7 @@ const result = await client.verifyAndWait({
 | Caching/Rate Limiting | Upstash Redis |
 | Async Jobs | Trigger.dev |
 | Email | Resend |
-| LLM Providers | OpenAI, Anthropic, Google, DeepSeek, Groq, Together, Mistral, Cohere, Azure, AWS Bedrock |
+| LLM Providers | OpenAI, Anthropic, Google, DeepSeek, Mistral, Cohere, X.ai, Azure, AWS Bedrock, Groq, Together, Fireworks, Cerebras, Perplexity, OpenRouter |
 
 ## Project Structure
 
@@ -283,7 +285,7 @@ POST /api/v1/verify
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `content` | string | Yes | Content to verify (max 50,000 chars) |
+| `content` | string | Yes | Content to verify (max 100,000 chars) |
 | `methods` | object | Yes | Verification methods with weights (0-1) |
 | `context` | object | No | Additional context for verification |
 | `webhookUrl` | string | No | URL for result notification |
@@ -304,14 +306,14 @@ POST /api/v1/batch/upload
 | Plan | Verifications/mo | Rate Limit | Methods |
 |------|-----------------|------------|---------|
 | Free | 100 | 10 req/min | Semantic only |
-| Starter | 1,000 | 60 req/min | All methods |
-| Pro | 10,000 | 300 req/min | All methods |
-| Enterprise | Custom | Custom | All methods |
+| Pro | 5,000 | 100 req/min | All methods |
+| Enterprise | Unlimited | 1,000 req/min | All methods |
 
 ## Documentation
 
 - [Platform Overview](docs/overview.md)
-- [Product Guide](docs/guide.md)
+- [API Reference](docs/api-reference.md)
+- [SDK Guide](docs/sdk-guide.md)
 - [Implementation Plan](docs/plan.md)
 - [Stripe Setup](docs/stripe-setup.md)
 

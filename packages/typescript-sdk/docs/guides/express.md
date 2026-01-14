@@ -209,7 +209,7 @@ app.post('/verify/batch', async (req, res) => {
     res.json({
       batchId: batch.id,
       status: batch.status,
-      results: results.items,
+      items: results.items ?? [],
     });
   } catch (error) {
     console.error('Batch verification failed:', error);
