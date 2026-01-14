@@ -39,9 +39,7 @@ function validateAuth(req: NextRequest): NextResponse | null {
   }
 
   // Vercel sends: Authorization: Bearer <CRON_SECRET>
-  // Also support x-cron-secret header for backwards compatibility
-  const providedSecret =
-    authHeader?.replace('Bearer ', '') || req.headers.get('x-cron-secret');
+  const providedSecret = authHeader?.replace('Bearer ', '');
 
   if (providedSecret !== cronSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -106,7 +104,7 @@ export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
 
   // No auth header = return documentation (health check endpoint)
-  if (!authHeader && !req.headers.get('x-cron-secret')) {
+  if (!authHeader) {
     return NextResponse.json({
       endpoint: '/api/cron/cleanup-batches',
       description: 'Daily batch cleanup cron job - deletes expired batch jobs',

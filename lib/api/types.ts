@@ -41,7 +41,6 @@ export type { InternalParadigmResult };
 export interface ApiKeyConfiguration {
   id: string;
   name: string;
-  providerCredentialId: string | null;
   paradigmConfig: ApiKeyParadigmConfig | null;
   defaultThresholds: ApiKeyThresholds | null;
 }

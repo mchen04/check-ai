@@ -24,7 +24,6 @@ export const GET = withDashboardAuth(
       id: key.id,
       name: key.name,
       keyPrefix: key.keyPrefix,
-      providerCredentialId: key.providerCredentialId, // Legacy
       providerCredential: key.providerCredential
         ? {
             id: key.providerCredential.id,
@@ -32,7 +31,6 @@ export const GET = withDashboardAuth(
             provider: key.providerCredential.provider,
           }
         : null,
-      // New: multiple credentials
       credentials: key.credentials?.map((c) => ({
         id: c.id,
         providerCredentialId: c.providerCredentialId,
@@ -91,7 +89,7 @@ export const POST = withDashboardAuth(
         after: {
           name: parsed.data.name,
           keyPrefix: result.prefix,
-          providerCredentialIds: parsed.data.providerCredentialIds || [parsed.data.providerCredentialId],
+          providerCredentialIds: parsed.data.providerCredentialIds,
           paradigmConfig: parsed.data.paradigmConfig,
         },
       },
@@ -162,11 +160,10 @@ export const PATCH = withDashboardAuth(
     }
 
     const body = await req.json();
-    const { name, providerCredentialId, paradigmConfig, defaultThresholds, isActive } = body;
+    const { name, paradigmConfig, defaultThresholds, isActive } = body;
 
     const updated = await updateApiKey(context.orgId, keyId, {
       name,
-      providerCredentialId,
       paradigmConfig,
       defaultThresholds,
       isActive,

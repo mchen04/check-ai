@@ -71,7 +71,6 @@ function generateApiKey(name: string): { key: string; hash: string; prefix: stri
 
 /**
  * Create a new API key with configuration
- * Supports both single credential (legacy) and multiple credentials (new)
  */
 export async function createApiKey(
   orgId: string,
@@ -79,9 +78,7 @@ export async function createApiKey(
 ): Promise<{ id: string; apiKey: string; prefix: string }> {
   const { key, hash, prefix } = generateApiKey(request.name);
 
-  // Normalize credential IDs - support both legacy single and new multiple
-  const credentialIds: string[] = request.providerCredentialIds ||
-    (request.providerCredentialId ? [request.providerCredentialId] : []);
+  const credentialIds = request.providerCredentialIds;
 
   if (credentialIds.length === 0) {
     throw new Error('At least one provider credential is required');
@@ -115,7 +112,7 @@ export async function createApiKey(
   // Determine default credential
   const defaultCredentialId = request.defaultCredentialId || credentialIds[0];
 
-  // Insert API key (keep providerCredentialId for backward compat - use default)
+  // Insert API key
   const [result] = await db
     .insert(apiKeysTable)
     .values({
@@ -123,7 +120,6 @@ export async function createApiKey(
       name: request.name,
       keyHash: hash,
       keyPrefix: prefix,
-      providerCredentialId: defaultCredentialId, // Legacy field - set to default
       paradigmConfig: request.paradigmConfig,
       defaultThresholds: request.defaultThresholds || null,
       expiresAt: request.expiresAt ? new Date(request.expiresAt) : null,
@@ -159,7 +155,6 @@ export async function getApiKeyByHash(keyHash: string): Promise<ApiKeyWithConfig
       orgId: apiKeysTable.orgId,
       name: apiKeysTable.name,
       keyPrefix: apiKeysTable.keyPrefix,
-      providerCredentialId: apiKeysTable.providerCredentialId,
       paradigmConfig: apiKeysTable.paradigmConfig,
       defaultThresholds: apiKeysTable.defaultThresholds,
       isActive: apiKeysTable.isActive,
@@ -199,7 +194,6 @@ export async function getApiKeyWithCredential(
       orgId: apiKeysTable.orgId,
       name: apiKeysTable.name,
       keyPrefix: apiKeysTable.keyPrefix,
-      providerCredentialId: apiKeysTable.providerCredentialId,
       paradigmConfig: apiKeysTable.paradigmConfig,
       defaultThresholds: apiKeysTable.defaultThresholds,
       isActive: apiKeysTable.isActive,
@@ -254,11 +248,11 @@ export async function getApiKeyWithCredential(
       isActive: c.credentialIsActive,
       validationStatus: (c.credentialValidationStatus || 'pending') as 'valid' | 'invalid' | 'pending',
       createdAt: c.createdAt,
-      updatedAt: c.createdAt, // Junction table doesn't track updates
+      updatedAt: c.createdAt,
     },
   }));
 
-  // Find default credential for legacy providerCredential field
+  // Find default credential
   const defaultCred = credentials.find((c) => c.isDefault);
 
   return {
@@ -266,7 +260,6 @@ export async function getApiKeyWithCredential(
     orgId: key.orgId,
     name: key.name,
     keyPrefix: key.keyPrefix,
-    providerCredentialId: key.providerCredentialId,
     paradigmConfig: key.paradigmConfig as ApiKeyParadigmConfig | null,
     defaultThresholds: key.defaultThresholds as ApiKeyThresholds | null,
     isActive: key.isActive,
@@ -283,13 +276,13 @@ export async function getApiKeyWithCredential(
  * List all API keys for an organization
  */
 export async function listApiKeys(orgId: string): Promise<ApiKeyWithConfig[]> {
+  // Get all keys
   const keys = await db
     .select({
       id: apiKeysTable.id,
       orgId: apiKeysTable.orgId,
       name: apiKeysTable.name,
       keyPrefix: apiKeysTable.keyPrefix,
-      providerCredentialId: apiKeysTable.providerCredentialId,
       paradigmConfig: apiKeysTable.paradigmConfig,
       defaultThresholds: apiKeysTable.defaultThresholds,
       isActive: apiKeysTable.isActive,
@@ -297,42 +290,63 @@ export async function listApiKeys(orgId: string): Promise<ApiKeyWithConfig[]> {
       lastUsedAt: apiKeysTable.lastUsedAt,
       createdAt: apiKeysTable.createdAt,
       updatedAt: apiKeysTable.updatedAt,
-      // Provider credential fields
-      credentialId: providerCredentialsTable.id,
-      credentialName: providerCredentialsTable.name,
-      credentialProvider: providerCredentialsTable.provider,
     })
     .from(apiKeysTable)
-    .leftJoin(providerCredentialsTable, eq(apiKeysTable.providerCredentialId, providerCredentialsTable.id))
     .where(and(eq(apiKeysTable.orgId, orgId), isNull(apiKeysTable.deletedAt)))
     .orderBy(apiKeysTable.createdAt);
 
-  return keys.map((key) => ({
-    id: key.id,
-    orgId: key.orgId,
-    name: key.name,
-    keyPrefix: key.keyPrefix,
-    providerCredentialId: key.providerCredentialId,
-    paradigmConfig: key.paradigmConfig as ApiKeyParadigmConfig | null,
-    defaultThresholds: key.defaultThresholds as ApiKeyThresholds | null,
-    isActive: key.isActive,
-    expiresAt: key.expiresAt || undefined,
-    lastUsedAt: key.lastUsedAt || undefined,
-    createdAt: key.createdAt,
-    updatedAt: key.updatedAt,
-    providerCredential: key.credentialId
-      ? {
-          id: key.credentialId,
-          orgId: key.orgId,
-          name: key.credentialName!,
-          provider: key.credentialProvider as CredentialProvider,
-          isActive: true,
-          validationStatus: 'valid' as const,
-          createdAt: key.createdAt,
-          updatedAt: key.updatedAt,
-        }
-      : undefined,
-  }));
+  // Get default credentials for each key via junction table
+  const keyIds = keys.map((k) => k.id);
+  const defaultCredentials = keyIds.length > 0
+    ? await db
+        .select({
+          apiKeyId: apiKeyCredentialsTable.apiKeyId,
+          credentialId: providerCredentialsTable.id,
+          credentialName: providerCredentialsTable.name,
+          credentialProvider: providerCredentialsTable.provider,
+        })
+        .from(apiKeyCredentialsTable)
+        .innerJoin(
+          providerCredentialsTable,
+          eq(apiKeyCredentialsTable.providerCredentialId, providerCredentialsTable.id)
+        )
+        .where(and(
+          inArray(apiKeyCredentialsTable.apiKeyId, keyIds),
+          eq(apiKeyCredentialsTable.isDefault, true)
+        ))
+    : [];
+
+  // Build map for quick lookup
+  const credMap = new Map(defaultCredentials.map((c) => [c.apiKeyId, c]));
+
+  return keys.map((key) => {
+    const cred = credMap.get(key.id);
+    return {
+      id: key.id,
+      orgId: key.orgId,
+      name: key.name,
+      keyPrefix: key.keyPrefix,
+      paradigmConfig: key.paradigmConfig as ApiKeyParadigmConfig | null,
+      defaultThresholds: key.defaultThresholds as ApiKeyThresholds | null,
+      isActive: key.isActive,
+      expiresAt: key.expiresAt || undefined,
+      lastUsedAt: key.lastUsedAt || undefined,
+      createdAt: key.createdAt,
+      updatedAt: key.updatedAt,
+      providerCredential: cred
+        ? {
+            id: cred.credentialId,
+            orgId: key.orgId,
+            name: cred.credentialName,
+            provider: cred.credentialProvider as CredentialProvider,
+            isActive: true,
+            validationStatus: 'valid' as const,
+            createdAt: key.createdAt,
+            updatedAt: key.updatedAt,
+          }
+        : undefined,
+    };
+  });
 }
 
 /**
@@ -343,7 +357,6 @@ export async function updateApiKey(
   keyId: string,
   updates: {
     name?: string;
-    providerCredentialId?: string;
     paradigmConfig?: ApiKeyParadigmConfig;
     defaultThresholds?: ApiKeyThresholds;
     isActive?: boolean;
@@ -354,8 +367,6 @@ export async function updateApiKey(
   };
 
   if (updates.name !== undefined) updateData.name = updates.name;
-  if (updates.providerCredentialId !== undefined)
-    updateData.providerCredentialId = updates.providerCredentialId;
   if (updates.paradigmConfig !== undefined) updateData.paradigmConfig = updates.paradigmConfig;
   if (updates.defaultThresholds !== undefined) updateData.defaultThresholds = updates.defaultThresholds;
   if (updates.isActive !== undefined) updateData.isActive = updates.isActive;
@@ -485,7 +496,7 @@ export async function resolveVerificationConfig(
   const requestOptions = request.options || {};
 
   return {
-    // New: multiple credentials
+    // Multiple credentials
     credentials: credentialsMap,
     defaultCredential: {
       provider: defaultCred.provider as CredentialProvider,
@@ -493,11 +504,6 @@ export async function resolveVerificationConfig(
       config: defaultCred.config,
       isDefault: true,
     },
-    // Legacy fields (for backward compat)
-    providerCredentialId: apiKey.providerCredentialId || credentialLinks[0].providerCredentialId,
-    decryptedApiKey: defaultCred.decryptedKey,
-    provider: defaultCred.provider as CredentialProvider,
-    providerConfig: defaultCred.config,
     // Paradigms and thresholds
     paradigms,
     acceptThreshold: requestOptions.acceptThreshold ?? keyThresholds.acceptThreshold ?? DEFAULT_THRESHOLDS.acceptThreshold,
@@ -626,12 +632,6 @@ export async function addCredentialToApiKey(
       .where(
         and(eq(apiKeyCredentialsTable.apiKeyId, apiKeyId), eq(apiKeyCredentialsTable.isDefault, true))
       );
-
-    // Also update legacy providerCredentialId field
-    await db
-      .update(apiKeysTable)
-      .set({ providerCredentialId: credentialId, updatedAt: new Date() })
-      .where(eq(apiKeysTable.id, apiKeyId));
   }
 
   // Check if this is the first credential (should be default)
@@ -730,12 +730,6 @@ export async function removeCredentialFromApiKey(
         .update(apiKeyCredentialsTable)
         .set({ isDefault: true })
         .where(eq(apiKeyCredentialsTable.id, nextCredential.id));
-
-      // Update legacy providerCredentialId field
-      await db
-        .update(apiKeysTable)
-        .set({ providerCredentialId: nextCredential.providerCredentialId, updatedAt: new Date() })
-        .where(eq(apiKeysTable.id, apiKeyId));
     }
   }
 
@@ -789,12 +783,6 @@ export async function setDefaultCredential(
     .update(apiKeyCredentialsTable)
     .set({ isDefault: true })
     .where(eq(apiKeyCredentialsTable.id, link.id));
-
-  // Update legacy providerCredentialId field
-  await db
-    .update(apiKeysTable)
-    .set({ providerCredentialId: credentialId, updatedAt: new Date() })
-    .where(eq(apiKeysTable.id, apiKeyId));
 
   log.info({ apiKeyId, credentialId }, 'Default credential updated');
   return { success: true };

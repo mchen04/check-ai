@@ -173,9 +173,8 @@ export async function verify(input: VerifyServiceRequest): Promise<VerifyService
   recordCacheMiss();
 
   // Get decrypted API keys for the organization
-  // If API key has a provider credential, it will be used in the orchestrator
   const keys = await getDecryptedApiKeys(organization.id);
-  if (Object.keys(keys).length === 0 && !apiKeyConfig?.providerCredentialId) {
+  if (Object.keys(keys).length === 0) {
     return {
       success: false,
       error: {

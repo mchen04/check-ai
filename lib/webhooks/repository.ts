@@ -58,7 +58,6 @@ export interface WebhookDelivery {
   event: string;
   payload: unknown;
   status: 'pending' | 'processing' | 'delivered' | 'failed' | 'retrying';
-  qstashMessageId: string | null; // Legacy
   triggerTaskId: string | null; // Trigger.dev task ID
   attemptNumber: number;
   maxAttempts: number;

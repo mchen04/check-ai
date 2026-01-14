@@ -300,19 +300,11 @@ export const apiKeysTable = pgTable(
     keyHash: text('key_hash').notNull(), // SHA-256 hash of the API key
     keyPrefix: text('key_prefix').notNull(), // First 12 chars for identification (e.g., "vfy_prod_abc")
 
-    // Link to provider credential (required for new keys)
-    providerCredentialId: uuid('provider_credential_id')
-      .references(() => providerCredentialsTable.id, { onDelete: 'set null' }),
-
     // Per-paradigm configuration
     paradigmConfig: jsonb('paradigm_config').$type<ApiKeyParadigmConfig>(),
 
     // Default thresholds
     defaultThresholds: jsonb('default_thresholds').$type<ApiKeyDefaultThresholds>(),
-
-    // Legacy fields (for backward compatibility during migration)
-    provider: text('provider'), // 'platform', 'openai', etc. - DEPRECATED
-    encryptedKey: text('encrypted_key'), // For BYOK - DEPRECATED
 
     // Status
     isActive: boolean('is_active').default(true).notNull(),
@@ -521,7 +513,6 @@ export const webhookDeliveriesTable = pgTable('webhook_deliveries', {
 
   // Delivery status tracking
   status: webhookDeliveryStatusEnum('status').default('pending').notNull(),
-  qstashMessageId: text('qstash_message_id'), // Legacy: QStash tracking ID
   triggerTaskId: text('trigger_task_id'), // Trigger.dev task ID
 
   // Retry tracking
@@ -547,8 +538,6 @@ export const webhookDeliveriesTable = pgTable('webhook_deliveries', {
   deliveredAt: timestamptz('delivered_at'),
   failedAt: timestamptz('failed_at'), // When moved to DLQ
 
-  // Legacy field for backward compatibility
-  success: boolean('success').default(false).notNull(),
 });
 
 export type InsertWebhookDelivery = typeof webhookDeliveriesTable.$inferInsert;
@@ -651,7 +640,6 @@ export const batchJobsTable = pgTable('batch_jobs', {
   failureCount: integer('failure_count').default(0).notNull(),
 
   // Task queue tracking
-  qstashMessageIds: text('qstash_message_ids').array(), // Legacy: QStash IDs
   triggerTaskIds: text('trigger_task_ids').array(), // Trigger.dev task IDs
 
   // Error handling
@@ -842,8 +830,7 @@ export const providerCredentialsRelations = relations(providerCredentialsTable, 
     fields: [providerCredentialsTable.orgId],
     references: [organizationsTable.id],
   }),
-  apiKeys: many(apiKeysTable), // Legacy: direct FK relation
-  apiKeyCredentials: many(apiKeyCredentialsTable), // New: junction table relation
+  apiKeyCredentials: many(apiKeyCredentialsTable), // Junction table relation
 }));
 
 export const apiKeysRelations = relations(apiKeysTable, ({ one, many }) => ({
@@ -851,11 +838,7 @@ export const apiKeysRelations = relations(apiKeysTable, ({ one, many }) => ({
     fields: [apiKeysTable.orgId],
     references: [organizationsTable.id],
   }),
-  providerCredential: one(providerCredentialsTable, {
-    fields: [apiKeysTable.providerCredentialId],
-    references: [providerCredentialsTable.id],
-  }), // Legacy: single credential
-  credentials: many(apiKeyCredentialsTable), // New: multiple credentials via junction
+  credentials: many(apiKeyCredentialsTable), // Multiple credentials via junction table
 }));
 
 export const apiKeyCredentialsRelations = relations(apiKeyCredentialsTable, ({ one }) => ({

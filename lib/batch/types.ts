@@ -29,7 +29,6 @@ export interface BatchJob {
   processedItems: number;
   successCount: number;
   failureCount: number;
-  qstashMessageIds: string[] | null; // Legacy
   triggerTaskIds: string[] | null; // Trigger.dev task IDs
   errorMessage: string | null;
   validationErrors: BatchValidationError[] | null;

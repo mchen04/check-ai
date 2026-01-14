@@ -6,7 +6,7 @@
  */
 
 import { db } from '@/utils/db/db';
-import { providerCredentialsTable, apiKeysTable } from '@/utils/db/schema';
+import { providerCredentialsTable, apiKeyCredentialsTable } from '@/utils/db/schema';
 import { eq, and, isNull, sql } from 'drizzle-orm';
 import { encrypt, decrypt } from '@/lib/llm/key-manager';
 import {
@@ -149,15 +149,14 @@ export async function getDecryptedCredential(
  * List all provider credentials for an organization with API key counts
  */
 export async function listProviderCredentials(orgId: string): Promise<(ProviderCredential & { apiKeyCount: number })[]> {
-  // Subquery to count API keys for each credential
+  // Subquery to count API keys for each credential (via junction table)
   const apiKeyCountSubquery = db
     .select({
-      providerCredentialId: apiKeysTable.providerCredentialId,
-      count: sql<number>`count(*)`.as('count'),
+      providerCredentialId: apiKeyCredentialsTable.providerCredentialId,
+      count: sql<number>`count(DISTINCT ${apiKeyCredentialsTable.apiKeyId})`.as('count'),
     })
-    .from(apiKeysTable)
-    .where(and(eq(apiKeysTable.orgId, orgId), isNull(apiKeysTable.deletedAt)))
-    .groupBy(apiKeysTable.providerCredentialId)
+    .from(apiKeyCredentialsTable)
+    .groupBy(apiKeyCredentialsTable.providerCredentialId)
     .as('api_key_counts');
 
   const credentials = await db

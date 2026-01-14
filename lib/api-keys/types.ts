@@ -149,7 +149,6 @@ export interface ApiKeyWithConfig {
   orgId: string;
   name: string;
   keyPrefix: string;
-  providerCredentialId: string | null; // Legacy: single credential (kept for backward compat)
   paradigmConfig: ApiKeyParadigmConfig | null;
   defaultThresholds: ApiKeyThresholds | null;
   isActive: boolean;
@@ -159,8 +158,8 @@ export interface ApiKeyWithConfig {
   updatedAt: Date;
 
   // Joined data
-  providerCredential?: ProviderCredential; // Legacy: single credential
-  credentials?: ApiKeyCredential[]; // New: multiple credentials via junction table
+  providerCredential?: ProviderCredential; // Default credential (from junction table)
+  credentials?: ApiKeyCredential[]; // All credentials via junction table
 }
 
 // =============================================================================
@@ -213,12 +212,9 @@ const ensembleConfigSchema = z.union([
  */
 export const createApiKeySchema = z.object({
   name: z.string().min(1).max(100),
-  // Support both single credential (legacy) and multiple credentials (new)
-  providerCredentialId: z.string().uuid().optional(), // Legacy: single credential
   providerCredentialIds: z
     .array(z.string().uuid())
-    .min(1, 'At least one provider credential is required')
-    .optional(), // New: multiple credentials
+    .min(1, 'At least one provider credential is required'),
   defaultCredentialId: z.string().uuid().optional(), // Which credential is default (if multiple)
   paradigmConfig: z.object({
     reasoning: z
@@ -357,12 +353,6 @@ export interface ResolvedVerificationConfig {
 
   // Default credential for fallback
   defaultCredential: DecryptedCredential;
-
-  // Legacy fields (for backward compat)
-  providerCredentialId: string;
-  decryptedApiKey: string;
-  provider: CredentialProvider;
-  providerConfig?: ProviderConfig;
 
   // Paradigms to run
   paradigms: ResolvedParadigm[];

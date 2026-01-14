@@ -120,6 +120,27 @@
       "when": 1768360000000,
       "tag": "0016_provider_credentials_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1768362191552,
+      "tag": "0017_api_key_credentials",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1768362287235,
+      "tag": "0018_youthful_nico_minoru",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1768362941192,
+      "tag": "0019_neat_emma_frost",
+      "breakpoints": true
     }
   ]
 }

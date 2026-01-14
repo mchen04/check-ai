@@ -27,7 +27,6 @@ export interface BatchJobRecord {
   processedItems: number;
   successCount: number;
   failureCount: number;
-  qstashMessageIds: string[] | null; // Legacy
   triggerTaskIds: string[] | null; // Trigger.dev task IDs
   errorMessage: string | null;
   validationErrors: BatchValidationError[] | null;
@@ -85,7 +84,6 @@ export interface UpdateBatchJobInput {
   processedItems?: number;
   successCount?: number;
   failureCount?: number;
-  qstashMessageIds?: string[]; // Legacy
   triggerTaskIds?: string[]; // Trigger.dev task IDs
   errorMessage?: string | null;
   validationErrors?: BatchValidationError[];

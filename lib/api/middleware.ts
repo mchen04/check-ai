@@ -57,7 +57,6 @@ export function withApiAuth(handler: ApiHandler): PublicApiHandler {
           orgId: apiKeysTable.orgId,
           name: apiKeysTable.name,
           keyPrefix: apiKeysTable.keyPrefix,
-          providerCredentialId: apiKeysTable.providerCredentialId,
           paradigmConfig: apiKeysTable.paradigmConfig,
           defaultThresholds: apiKeysTable.defaultThresholds,
           isActive: apiKeysTable.isActive,
@@ -129,7 +128,6 @@ export function withApiAuth(handler: ApiHandler): PublicApiHandler {
       authenticatedReq.apiKeyConfig = {
         id: keyRecord.id,
         name: keyRecord.name,
-        providerCredentialId: keyRecord.providerCredentialId,
         paradigmConfig: keyRecord.paradigmConfig as ApiKeyParadigmConfig | null,
         defaultThresholds: keyRecord.defaultThresholds as ApiKeyThresholds | null,
       };

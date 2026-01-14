@@ -23,6 +23,10 @@ node_modules/
 # python
 __pycache__/
 *.pyc
+*.pyo
+
+# claude code
+.claude/
 
 # trigger.dev
 .trigger/
