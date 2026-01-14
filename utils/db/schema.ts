@@ -212,7 +212,81 @@ export type InsertOrgInvite = typeof orgInvitesTable.$inferInsert;
 export type SelectOrgInvite = typeof orgInvitesTable.$inferSelect;
 
 // =============================================================================
-// API KEYS (BYOK + Platform keys)
+// PROVIDER CREDENTIALS (LLM Provider API Keys - Vault)
+// =============================================================================
+
+export const providerCredentialsTable = pgTable(
+  'provider_credentials',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    orgId: uuid('org_id')
+      .references(() => organizationsTable.id, { onDelete: 'cascade' })
+      .notNull(),
+    name: text('name').notNull(), // User-defined: "openrouter-prod", "openai-direct"
+    provider: text('provider').notNull(), // 'openrouter', 'openai', 'anthropic', 'google', etc.
+    encryptedCredentials: text('encrypted_credentials').notNull(), // AES-256-GCM encrypted API key/config
+
+    // Provider-specific config (for Azure, Bedrock, etc.)
+    config: jsonb('config'), // { endpoint?: string, region?: string, deploymentId?: string }
+
+    // Status
+    isActive: boolean('is_active').default(true).notNull(),
+    validationStatus: text('validation_status').default('pending'), // 'valid', 'invalid', 'pending'
+    lastValidatedAt: timestamptz('last_validated_at'),
+    lastUsedAt: timestamptz('last_used_at'),
+
+    // Timestamps
+    createdAt: timestamptz('created_at').defaultNow().notNull(),
+    updatedAt: timestamptz('updated_at').defaultNow().notNull(),
+    deletedAt: timestamptz('deleted_at'), // Soft delete
+  },
+  (table) => ({
+    // Unique constraint: no duplicate credential names within same org (among non-deleted)
+    orgNameUnique: { columns: [table.orgId, table.name], name: 'provider_credentials_org_name_unique' },
+  })
+);
+
+export type InsertProviderCredential = typeof providerCredentialsTable.$inferInsert;
+export type SelectProviderCredential = typeof providerCredentialsTable.$inferSelect;
+
+// =============================================================================
+// PARADIGM CONFIGURATION TYPES (for API Key config)
+// =============================================================================
+
+// Base paradigm configuration
+export interface ParadigmConfigBase {
+  enabled: boolean;
+  weight: number; // 0-1
+  model: string; // e.g., "anthropic/claude-3.5-sonnet"
+}
+
+// Ensemble requires multiple models
+export interface EnsembleParadigmConfig {
+  enabled: boolean;
+  weight: number;
+  models: string[]; // Multiple models for voting
+}
+
+// Full paradigm configuration for an API key
+export interface ApiKeyParadigmConfig {
+  reasoning?: ParadigmConfigBase;
+  tool?: ParadigmConfigBase;
+  semantic?: ParadigmConfigBase;
+  ensemble?: EnsembleParadigmConfig;
+  biprm?: ParadigmConfigBase;
+  entropy?: ParadigmConfigBase;
+  formal?: ParadigmConfigBase;
+}
+
+// Default thresholds for an API key
+export interface ApiKeyDefaultThresholds {
+  acceptThreshold?: number; // Default: 0.95
+  escalateThreshold?: number; // Default: 0.5
+  timeout?: number; // Default: 30000ms
+}
+
+// =============================================================================
+// API KEYS (Platform keys with full verification config)
 // =============================================================================
 
 export const apiKeysTable = pgTable(
@@ -222,11 +296,25 @@ export const apiKeysTable = pgTable(
     orgId: uuid('org_id')
       .references(() => organizationsTable.id, { onDelete: 'cascade' })
       .notNull(),
-    name: text('name').notNull(), // User-friendly name for the key
-    keyHash: text('key_hash').notNull(), // SHA-256 hash of the API key (unique among non-deleted via partial index)
-    keyPrefix: text('key_prefix').notNull(), // First 8 chars for identification (e.g., "vfy_abc1")
-    provider: text('provider').notNull(), // 'platform', 'openai', 'anthropic', 'google', 'deepseek', etc.
-    encryptedKey: text('encrypted_key'), // For BYOK: AES-256 encrypted provider API key
+    name: text('name').notNull(), // User-friendly name: "Production", "Fast Screening"
+    keyHash: text('key_hash').notNull(), // SHA-256 hash of the API key
+    keyPrefix: text('key_prefix').notNull(), // First 12 chars for identification (e.g., "vfy_prod_abc")
+
+    // Link to provider credential (required for new keys)
+    providerCredentialId: uuid('provider_credential_id')
+      .references(() => providerCredentialsTable.id, { onDelete: 'set null' }),
+
+    // Per-paradigm configuration
+    paradigmConfig: jsonb('paradigm_config').$type<ApiKeyParadigmConfig>(),
+
+    // Default thresholds
+    defaultThresholds: jsonb('default_thresholds').$type<ApiKeyDefaultThresholds>(),
+
+    // Legacy fields (for backward compatibility during migration)
+    provider: text('provider'), // 'platform', 'openai', etc. - DEPRECATED
+    encryptedKey: text('encrypted_key'), // For BYOK - DEPRECATED
+
+    // Status
     isActive: boolean('is_active').default(true).notNull(),
     lastUsedAt: timestamptz('last_used_at'),
     expiresAt: timestamptz('expires_at'),
@@ -523,6 +611,7 @@ export const batchJobsTable = pgTable('batch_jobs', {
 
   // Configuration
   methodsConfig: jsonb('methods_config').notNull(), // Same as verification
+  verifyOptions: jsonb('verify_options'), // Optional verification options (thresholds, retries)
   context: jsonb('context'), // Shared context for all items
 
   // Processing state
@@ -686,6 +775,7 @@ export type SelectWaitlist = typeof waitlistTable.$inferSelect;
 export const organizationsRelations = relations(organizationsTable, ({ many }) => ({
   members: many(orgMembersTable),
   invites: many(orgInvitesTable),
+  providerCredentials: many(providerCredentialsTable),
   apiKeys: many(apiKeysTable),
   verifications: many(verificationsTable),
   usage: many(usageTable),
@@ -718,10 +808,22 @@ export const orgInvitesRelations = relations(orgInvitesTable, ({ one }) => ({
   }),
 }));
 
+export const providerCredentialsRelations = relations(providerCredentialsTable, ({ one, many }) => ({
+  organization: one(organizationsTable, {
+    fields: [providerCredentialsTable.orgId],
+    references: [organizationsTable.id],
+  }),
+  apiKeys: many(apiKeysTable),
+}));
+
 export const apiKeysRelations = relations(apiKeysTable, ({ one }) => ({
   organization: one(organizationsTable, {
     fields: [apiKeysTable.orgId],
     references: [organizationsTable.id],
+  }),
+  providerCredential: one(providerCredentialsTable, {
+    fields: [apiKeysTable.providerCredentialId],
+    references: [providerCredentialsTable.id],
   }),
 }));
 

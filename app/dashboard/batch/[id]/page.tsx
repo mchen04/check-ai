@@ -46,6 +46,15 @@ import { useBatchStatus } from '@/hooks/useBatchStatus';
 // TYPES
 // =============================================================================
 
+interface VerifyOptions {
+  timeout?: number;
+  minConfidence?: number;
+  acceptThreshold?: number;
+  escalateThreshold?: number;
+  maxRetries?: number;
+  retryOnLowConfidence?: boolean;
+}
+
 interface BatchDetail {
   id: string;
   name: string | null;
@@ -53,6 +62,7 @@ interface BatchDetail {
   inputFormat: string;
   originalFileName: string | null;
   methodsConfig: Record<string, number>;
+  verifyOptions: VerifyOptions | null;
   context: Record<string, unknown> | null;
   totalItems: number;
   processedItems: number;
@@ -93,6 +103,8 @@ function getStatusBadge(status: string) {
       return <Badge className="bg-blue-100 text-blue-800">Processing</Badge>;
     case 'pending':
       return <Badge className="bg-gray-100 text-gray-800">Pending</Badge>;
+    case 'validating':
+      return <Badge className="bg-yellow-100 text-yellow-800">Validating</Badge>;
     case 'queued':
       return <Badge className="bg-purple-100 text-purple-800">Queued</Badge>;
     case 'failed':
@@ -169,8 +181,10 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
   // Ref to track current page for polling (avoids stale closure)
   const currentPageRef = useRef(1);
 
-  // Use real-time hook for live updates
-  const liveStatus = useBatchStatus(batch?.status === 'processing' ? id : null);
+  // Use real-time hook for live updates (also subscribe during validating phase)
+  const liveStatus = useBatchStatus(
+    batch?.status === 'processing' || batch?.status === 'validating' ? id : null
+  );
 
   const fetchBatch = useCallback(async () => {
     try {
@@ -240,9 +254,9 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
     }
   }, [liveStatus, batch, fetchBatch, fetchItems]);
 
-  // Poll for updates when processing
+  // Poll for updates when processing or validating
   useEffect(() => {
-    if (batch?.status !== 'processing') return;
+    if (batch?.status !== 'processing' && batch?.status !== 'validating') return;
 
     const interval = setInterval(() => {
       fetchBatch();
@@ -330,7 +344,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
     );
   }
 
-  const isProcessing = batch.status === 'processing' || batch.status === 'pending';
+  const isProcessing = batch.status === 'processing' || batch.status === 'pending' || batch.status === 'validating';
   const progress = batch.totalItems > 0 ? (batch.processedItems / batch.totalItems) * 100 : 0;
 
   return (
@@ -587,6 +601,57 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
               </div>
             </CardContent>
           </Card>
+
+          {/* Verify Options */}
+          {batch.verifyOptions && Object.keys(batch.verifyOptions).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Verification Options</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {batch.verifyOptions.timeout && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Timeout</span>
+                      <span className="text-sm">{(batch.verifyOptions.timeout / 1000).toFixed(0)}s</span>
+                    </div>
+                  )}
+                  {batch.verifyOptions.acceptThreshold !== undefined && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Accept Threshold</span>
+                      <Badge variant="outline">{(batch.verifyOptions.acceptThreshold * 100).toFixed(0)}%</Badge>
+                    </div>
+                  )}
+                  {batch.verifyOptions.escalateThreshold !== undefined && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Escalate Threshold</span>
+                      <Badge variant="outline">{(batch.verifyOptions.escalateThreshold * 100).toFixed(0)}%</Badge>
+                    </div>
+                  )}
+                  {batch.verifyOptions.minConfidence !== undefined && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Min Confidence</span>
+                      <Badge variant="outline">{(batch.verifyOptions.minConfidence * 100).toFixed(0)}%</Badge>
+                    </div>
+                  )}
+                  {batch.verifyOptions.maxRetries !== undefined && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Max Retries</span>
+                      <span className="text-sm">{batch.verifyOptions.maxRetries}</span>
+                    </div>
+                  )}
+                  {batch.verifyOptions.retryOnLowConfidence !== undefined && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Retry on Low Confidence</span>
+                      <Badge variant={batch.verifyOptions.retryOnLowConfidence ? 'default' : 'secondary'}>
+                        {batch.verifyOptions.retryOnLowConfidence ? 'Yes' : 'No'}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Context */}
           {batch.context && Object.keys(batch.context).length > 0 && (

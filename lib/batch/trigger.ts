@@ -10,6 +10,7 @@ import { batchJobsTable, batchItemsTable } from "@/utils/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
 import { createLogger } from "@/lib/logger";
 import type { MethodsConfig } from "./types";
+import type { VerifyOptions } from "@/lib/verification/types";
 
 const log = createLogger("Batch Trigger");
 
@@ -35,6 +36,7 @@ export interface BatchItemPayload {
   content: string;
   context: Record<string, unknown> | null;
   methodsConfig: MethodsConfig;
+  options?: VerifyOptions;
 }
 
 // =============================================================================
@@ -60,7 +62,8 @@ export async function queueBatchItems(
     itemContext: Record<string, unknown> | null;
   }>,
   orgId: string,
-  methodsConfig: MethodsConfig
+  methodsConfig: MethodsConfig,
+  options?: VerifyOptions
 ): Promise<{ queued: number; taskIds: string[] }> {
   if (!isTriggerConfigured()) {
     throw new Error("Trigger.dev not configured for batch processing");
@@ -83,6 +86,7 @@ export async function queueBatchItems(
         content: item.content,
         context: item.itemContext,
         methodsConfig,
+        options,
       };
 
       try {

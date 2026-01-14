@@ -21,7 +21,7 @@ interface ApiKeyData {
   id: string;
   name: string;
   keyPrefix: string;
-  provider: string;
+  provider: string | null;
   isActive: boolean;
   lastUsedAt: Date | null;
   createdAt: Date;
@@ -91,7 +91,7 @@ export function ApiKeysList({ initialKeys }: ApiKeysListProps) {
                     {key.keyPrefix}...
                   </code>
                   <span>•</span>
-                  <span className="capitalize">{key.provider}</span>
+                  <span className="capitalize">{key.provider || 'platform'}</span>
                   <span>•</span>
                   <span>
                     Created{' '}

@@ -32,7 +32,7 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
   }
 
   // Build organization context
-  const { organization } = req;
+  const { organization, apiKeyConfig } = req;
   const orgContext: OrganizationContext = {
     id: organization.id,
     name: organization.name,
@@ -45,6 +45,7 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
   const result = await verify({
     organization: orgContext,
     request: validation.data,
+    apiKeyConfig,
   });
 
   // Handle service errors using unified mapper

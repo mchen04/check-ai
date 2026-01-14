@@ -49,6 +49,58 @@ Submit content for AI-powered verification analysis using Check's multi-paradigm
       required: false,
       description: 'Custom metadata to attach to the verification (max 1KB). Returned in responses.',
     },
+    {
+      name: 'options',
+      type: 'object',
+      required: false,
+      description: 'Advanced verification options for custom thresholds and retry behavior.',
+    },
+  ]}
+/>
+
+### Verification Options
+
+Fine-tune verification behavior with the optional `options` object:
+
+<ParameterTable
+  title="Options Parameters"
+  parameters={[
+    {
+      name: 'options.timeout',
+      type: 'number',
+      required: false,
+      description: 'Timeout in milliseconds (1000-300000). Default: 30000.',
+    },
+    {
+      name: 'options.minConfidence',
+      type: 'number',
+      required: false,
+      description: 'Minimum confidence threshold (0-1). Used with retryOnLowConfidence.',
+    },
+    {
+      name: 'options.acceptThreshold',
+      type: 'number',
+      required: false,
+      description: 'Override default accept threshold (default: 0.95). Auto-approve if confidence >= this value.',
+    },
+    {
+      name: 'options.escalateThreshold',
+      type: 'number',
+      required: false,
+      description: 'Override default escalate threshold (default: 0.5). Trigger human review if confidence < this with disagreement.',
+    },
+    {
+      name: 'options.maxRetries',
+      type: 'number',
+      required: false,
+      description: 'Per-paradigm retry count (0-5). Retries failed paradigm executions with exponential backoff.',
+    },
+    {
+      name: 'options.retryOnLowConfidence',
+      type: 'boolean',
+      required: false,
+      description: 'Retry all paradigms once if final confidence < minConfidence. Requires minConfidence to be set.',
+    },
   ]}
 />
 
@@ -111,6 +163,19 @@ const result = await client.verifyAndWait({
     patientId: 'patient-123',
     noteId: 'note-456'
   }
+});
+
+// With custom thresholds and retries
+const result = await client.verifyAndWait({
+  content: 'Critical safety claim that needs high confidence.',
+  methods: { reasoning: 1.0, tool: 1.0, ensemble: 0.5 },
+  options: {
+    acceptThreshold: 0.98,      // Require 98% confidence to auto-accept
+    escalateThreshold: 0.7,     // Escalate below 70%
+    maxRetries: 2,              // Retry failed paradigms up to 2 times
+    minConfidence: 0.8,         // Target 80% confidence
+    retryOnLowConfidence: true  // Retry if below minConfidence
+  }
 });`
     },
     {
@@ -138,6 +203,19 @@ result = client.verify_and_wait(
         "patientId": "patient-123",
         "noteId": "note-456"
     }
+)
+
+# With custom thresholds and retries
+result = client.verify_and_wait(
+    content="Critical safety claim that needs high confidence.",
+    methods={"reasoning": 1.0, "tool": 1.0, "ensemble": 0.5},
+    options={
+        "acceptThreshold": 0.98,      # Require 98% confidence to auto-accept
+        "escalateThreshold": 0.7,     # Escalate below 70%
+        "maxRetries": 2,              # Retry failed paradigms up to 2 times
+        "minConfidence": 0.8,         # Target 80% confidence
+        "retryOnLowConfidence": True  # Retry if below minConfidence
+    }
 )`
     },
     {
@@ -154,6 +232,10 @@ result = client.verify_and_wait(
     },
     "metadata": {
       "source": "article-123"
+    },
+    "options": {
+      "acceptThreshold": 0.9,
+      "maxRetries": 2
     }
   }'`
     },

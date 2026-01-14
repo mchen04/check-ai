@@ -5,8 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
-import { apiKeysTable, organizationsTable } from '@/utils/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { apiKeysTable, organizationsTable, providerCredentialsTable } from '@/utils/db/schema';
+import { eq, and, isNull } from 'drizzle-orm';
 import { ApiHandler, AuthenticatedRequest, PublicApiHandler } from './types';
 import {
   AuthenticationError,
@@ -18,6 +18,7 @@ import { hashApiKey } from '@/lib/llm/key-manager';
 import { PLAN_LIMITS, type PlanType } from '@/utils/db/schema';
 import { checkRateLimit, cleanupInMemoryRateLimits } from '@/lib/cache/ratelimit';
 import { createLogger, createRequestLogger, generateRequestId } from '@/lib/logger';
+import type { ApiKeyParadigmConfig, ApiKeyThresholds } from '@/lib/api-keys/types';
 
 const log = createLogger('API');
 
@@ -48,13 +49,17 @@ export function withApiAuth(handler: ApiHandler): PublicApiHandler {
 
       // Hash the API key for lookup
       const keyHash = hashApiKey(apiKey);
-      const keyPrefix = apiKey.slice(0, 12); // vfy_XXXXXXXX
 
-      // Look up the API key
+      // Look up the API key with its configuration
       const [keyRecord] = await db
         .select({
           id: apiKeysTable.id,
           orgId: apiKeysTable.orgId,
+          name: apiKeysTable.name,
+          keyPrefix: apiKeysTable.keyPrefix,
+          providerCredentialId: apiKeysTable.providerCredentialId,
+          paradigmConfig: apiKeysTable.paradigmConfig,
+          defaultThresholds: apiKeysTable.defaultThresholds,
           isActive: apiKeysTable.isActive,
           expiresAt: apiKeysTable.expiresAt,
         })
@@ -62,8 +67,7 @@ export function withApiAuth(handler: ApiHandler): PublicApiHandler {
         .where(
           and(
             eq(apiKeysTable.keyHash, keyHash),
-            eq(apiKeysTable.keyPrefix, keyPrefix),
-            eq(apiKeysTable.provider, 'platform')
+            isNull(apiKeysTable.deletedAt)
           )
         )
         .limit(1);
@@ -120,6 +124,15 @@ export function withApiAuth(handler: ApiHandler): PublicApiHandler {
         dataRetentionEnabled: org.dataRetentionEnabled,
       };
       authenticatedReq.apiKeyId = keyRecord.id;
+
+      // Attach API key configuration
+      authenticatedReq.apiKeyConfig = {
+        id: keyRecord.id,
+        name: keyRecord.name,
+        providerCredentialId: keyRecord.providerCredentialId,
+        paradigmConfig: keyRecord.paradigmConfig as ApiKeyParadigmConfig | null,
+        defaultThresholds: keyRecord.defaultThresholds as ApiKeyThresholds | null,
+      };
 
       // Call the handler
       const response = await handler(authenticatedReq, context);

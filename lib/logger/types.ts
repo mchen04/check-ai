@@ -23,7 +23,10 @@ export type LogContext =
   | 'Email'
   | 'Cron'
   | 'Auth'
-  | 'Stripe';
+  | 'Stripe'
+  | 'ProviderCredentials'
+  | 'ApiKeys'
+  | 'ApiKeyService';
 
 /**
  * Metadata that can be attached to log entries

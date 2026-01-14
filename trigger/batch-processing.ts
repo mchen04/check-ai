@@ -3,6 +3,10 @@
  * Processes individual batch verification items with automatic retries
  */
 
+// Load environment variables from .env.local for local development
+import { config } from "dotenv";
+config({ path: ".env.local" });
+
 import { task, logger, AbortTaskRunError } from "@trigger.dev/sdk";
 import { db } from "@/utils/db/db";
 import {
@@ -28,6 +32,7 @@ import {
   broadcastBatchComplete,
 } from "@/utils/supabase/realtime";
 import type { MethodsConfig } from "@/lib/batch/types";
+import type { VerifyOptions } from "@/lib/verification/types";
 
 // =============================================================================
 // Types
@@ -41,6 +46,7 @@ export interface BatchItemPayload {
   content: string;
   context: Record<string, unknown> | null;
   methodsConfig: MethodsConfig;
+  options?: VerifyOptions;
 }
 
 // =============================================================================
@@ -66,7 +72,7 @@ export const batchItemProcessingTask = task({
     randomize: false,
   },
   run: async (payload: BatchItemPayload, { ctx }) => {
-    const { batchId, itemId, itemIndex, orgId, content, context, methodsConfig } = payload;
+    const { batchId, itemId, itemIndex, orgId, content, context, methodsConfig, options } = payload;
     const attemptNumber = ctx.attempt.number;
 
     logger.info("Processing batch item", {
@@ -102,10 +108,16 @@ export const batchItemProcessingTask = task({
         defaultTimeout: BATCH_CONFIG.TIMEOUT_MS,
       });
 
-      // Run verification
+      // Run verification with user-configurable options
       const result = await orchestrator.verify(content, {
         context: context || undefined,
         methods: methodsConfig,
+        timeout: options?.timeout,
+        minConfidence: options?.minConfidence,
+        acceptThreshold: options?.acceptThreshold,
+        escalateThreshold: options?.escalateThreshold,
+        maxRetries: options?.maxRetries,
+        retryOnLowConfidence: options?.retryOnLowConfidence,
       });
 
       const processingTimeMs = Date.now() - startTime;

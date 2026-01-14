@@ -25,6 +25,7 @@ import {
   Decision,
   ParadigmResult as InternalParadigmResult,
 } from '@/lib/verification/types';
+import type { ApiKeyParadigmConfig, ApiKeyThresholds } from '@/lib/api-keys/types';
 
 // Re-export verification types for convenience
 export { methodsConfigSchema };
@@ -32,6 +33,18 @@ export type { MethodsConfig, Verdict, Decision };
 
 // Re-export internal type for mapper access
 export type { InternalParadigmResult };
+
+// =============================================================================
+// API KEY CONFIGURATION
+// =============================================================================
+
+export interface ApiKeyConfiguration {
+  id: string;
+  name: string;
+  providerCredentialId: string | null;
+  paradigmConfig: ApiKeyParadigmConfig | null;
+  defaultThresholds: ApiKeyThresholds | null;
+}
 
 // =============================================================================
 // API REQUEST TYPES
@@ -49,6 +62,7 @@ export interface AuthenticatedRequest extends NextRequest {
     dataRetentionEnabled: boolean;
   };
   apiKeyId: string;
+  apiKeyConfig?: ApiKeyConfiguration;
 }
 
 // =============================================================================
@@ -65,6 +79,10 @@ export const verifyRequestSchema = z.object({
     .object({
       timeout: z.number().min(1000).max(300000).optional(),
       minConfidence: z.number().min(0).max(1).optional(),
+      acceptThreshold: z.number().min(0).max(1).optional(),
+      escalateThreshold: z.number().min(0).max(1).optional(),
+      maxRetries: z.number().int().min(0).max(5).optional(),
+      retryOnLowConfidence: z.boolean().optional(),
     })
     .optional(),
   idempotencyKey: z.string().max(255).optional(),
@@ -240,12 +258,12 @@ export type ApiDecision = 'accept' | 'refine' | 'escalate' | 'reject';
 /**
  * Batch status for API responses
  */
-export type BatchStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+export type BatchStatus = 'pending' | 'validating' | 'processing' | 'completed' | 'failed' | 'cancelled';
 
 /**
  * Batch item status for API responses
  */
-export type BatchItemStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'skipped';
+export type BatchItemStatus = 'pending' | 'queued' | 'processing' | 'completed' | 'failed' | 'skipped';
 
 /**
  * Batch creation request
@@ -261,12 +279,16 @@ export const createBatchSchema = z.object({
       })
     )
     .min(1)
-    .max(1000),
+    .max(100),
   methods: methodsConfigSchema,
   options: z
     .object({
       timeout: z.number().min(1000).max(300000).optional(),
       minConfidence: z.number().min(0).max(1).optional(),
+      acceptThreshold: z.number().min(0).max(1).optional(),
+      escalateThreshold: z.number().min(0).max(1).optional(),
+      maxRetries: z.number().int().min(0).max(5).optional(),
+      retryOnLowConfidence: z.boolean().optional(),
       concurrency: z.number().min(1).max(10).optional(),
     })
     .optional(),

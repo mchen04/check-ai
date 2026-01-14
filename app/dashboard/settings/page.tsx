@@ -11,7 +11,8 @@ import { OrganizationSettingsCard } from './OrganizationSettingsCard';
 import { NotificationSettingsCard } from './NotificationSettingsCard';
 import { SecuritySettingsCard } from './SecuritySettingsCard';
 import { WebhooksCard } from './WebhooksCard';
-import { ProviderKeysCard } from './ProviderKeysCard';
+import { ProviderCredentialsCard } from './ProviderCredentialsCard';
+import { ApiKeysCard } from './ApiKeysCard';
 import { DataRetentionCard } from './DataRetentionCard';
 import { AuditLogsCard } from './AuditLogsCard';
 import { DangerZoneCard } from './DangerZoneCard';
@@ -119,8 +120,11 @@ export default async function SettingsPage() {
         {/* Webhooks */}
         <WebhooksCard orgId={orgContext.orgId} canEdit={canEdit} />
 
-        {/* Provider Keys (BYOK) */}
-        <ProviderKeysCard canEdit={canEdit} />
+        {/* Provider Credentials */}
+        <ProviderCredentialsCard canEdit={canEdit} />
+
+        {/* API Keys */}
+        <ApiKeysCard canEdit={canEdit} />
 
         {/* Data Retention */}
         <DataRetentionCard

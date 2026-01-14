@@ -29,7 +29,7 @@ export default async function ApiKeysPage() {
     id: string;
     name: string;
     keyPrefix: string;
-    provider: string;
+    provider: string | null;
     isActive: boolean;
     lastUsedAt: Date | null;
     createdAt: Date;

@@ -71,8 +71,31 @@ Batch processing requires a Pro or Enterprise plan.
       required: false,
       description: 'Global context applied to all items in the batch.',
     },
+    {
+      name: 'options',
+      type: 'object',
+      required: false,
+      description: 'Advanced verification options applied to all items (thresholds, retries).',
+    },
   ]}
 />
+
+### Verification Options
+
+Fine-tune verification behavior for all batch items with the optional `options` object:
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `timeout` | number | Timeout per item in ms (1000-300000). Default: 30000 |
+| `minConfidence` | number | Minimum confidence threshold (0-1). Used with retryOnLowConfidence |
+| `acceptThreshold` | number | Override default accept threshold (0.95) |
+| `escalateThreshold` | number | Override default escalate threshold (0.5) |
+| `maxRetries` | number | Per-paradigm retry count (0-5) |
+| `retryOnLowConfidence` | boolean | Retry all paradigms if confidence < minConfidence |
+
+<Callout type="warning">
+Note: `acceptThreshold` must be greater than `escalateThreshold`. Using `retryOnLowConfidence` requires `minConfidence` to be set.
+</Callout>
 
 ### Available Methods
 
@@ -112,6 +135,10 @@ Batch processing requires a Pro or Enterprise plan.
     "methods": {
       "reasoning": 1,
       "tool": 0.5
+    },
+    "options": {
+      "acceptThreshold": 0.9,
+      "maxRetries": 2
     }
   }'`
     },
@@ -138,6 +165,12 @@ const batch = await client.createBatch({
   methods: {
     reasoning: 1,
     tool: 0.5
+  },
+  options: {
+    acceptThreshold: 0.9,
+    maxRetries: 2,
+    minConfidence: 0.8,
+    retryOnLowConfidence: true
   }
 });
 

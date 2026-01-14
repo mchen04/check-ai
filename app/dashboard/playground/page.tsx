@@ -34,6 +34,15 @@ interface MethodsState {
   formal: MethodConfig;
 }
 
+interface OptionsState {
+  showAdvanced: boolean;
+  acceptThreshold: number;
+  escalateThreshold: number;
+  minConfidence: number;
+  maxRetries: number;
+  retryOnLowConfidence: boolean;
+}
+
 interface ParadigmResult {
   paradigm: string;
   verdict: string | null;
@@ -117,6 +126,15 @@ const DEFAULT_METHODS: MethodsState = {
   formal: { enabled: false, weight: 1.0 },
 };
 
+const DEFAULT_OPTIONS: OptionsState = {
+  showAdvanced: false,
+  acceptThreshold: 0.95,
+  escalateThreshold: 0.5,
+  minConfidence: 0.8,
+  maxRetries: 0,
+  retryOnLowConfidence: false,
+};
+
 // =============================================================================
 // HELPERS
 // =============================================================================
@@ -157,6 +175,7 @@ export default function PlaygroundPage() {
   const router = useRouter();
   const [content, setContent] = useState('');
   const [methods, setMethods] = useState<MethodsState>(DEFAULT_METHODS);
+  const [options, setOptions] = useState<OptionsState>(DEFAULT_OPTIONS);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<VerificationResponse | null>(null);
@@ -191,8 +210,41 @@ export default function PlaygroundPage() {
     return config;
   };
 
+  const buildOptionsConfig = (): Record<string, unknown> | undefined => {
+    if (!options.showAdvanced) return undefined;
+
+    const config: Record<string, unknown> = {};
+
+    // Only include non-default values
+    if (options.acceptThreshold !== DEFAULT_OPTIONS.acceptThreshold) {
+      config.acceptThreshold = options.acceptThreshold;
+    }
+    if (options.escalateThreshold !== DEFAULT_OPTIONS.escalateThreshold) {
+      config.escalateThreshold = options.escalateThreshold;
+    }
+    if (options.maxRetries > 0) {
+      config.maxRetries = options.maxRetries;
+    }
+    if (options.retryOnLowConfidence) {
+      config.minConfidence = options.minConfidence;
+      config.retryOnLowConfidence = true;
+    }
+
+    return Object.keys(config).length > 0 ? config : undefined;
+  };
+
   const generateCodeSnippet = (): string => {
-    const config = buildMethodsConfig();
+    const methodsConfig = buildMethodsConfig();
+    const optionsConfig = buildOptionsConfig();
+
+    const bodyObj: Record<string, unknown> = {
+      content,
+      methods: methodsConfig,
+    };
+    if (optionsConfig) {
+      bodyObj.options = optionsConfig;
+    }
+
     return `// Using fetch
 const response = await fetch('https://api.check.ai/v1/verify', {
   method: 'POST',
@@ -200,10 +252,7 @@ const response = await fetch('https://api.check.ai/v1/verify', {
     'Authorization': 'Bearer YOUR_API_KEY',
     'Content-Type': 'application/json',
   },
-  body: JSON.stringify({
-    content: ${JSON.stringify(content)},
-    methods: ${JSON.stringify(config, null, 6).replace(/\n/g, '\n    ')},
-  }),
+  body: JSON.stringify(${JSON.stringify(bodyObj, null, 4).replace(/\n/g, '\n  ')}),
 });
 
 const result = await response.json();
@@ -228,20 +277,27 @@ console.log(result);`;
       return;
     }
 
+    const optionsConfig = buildOptionsConfig();
+
     setIsSubmitting(true);
     setError(null);
     setResult(null);
 
     try {
+      const body: Record<string, unknown> = {
+        content,
+        methods: methodsConfig,
+      };
+      if (optionsConfig) {
+        body.options = optionsConfig;
+      }
+
       const response = await fetch('/api/v1/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          content,
-          methods: methodsConfig,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -378,6 +434,109 @@ console.log(result);`;
                 })}
               </TooltipProvider>
             </CardContent>
+          </Card>
+
+          {/* Advanced Options */}
+          <Card>
+            <CardHeader className="cursor-pointer" onClick={() => setOptions(prev => ({ ...prev, showAdvanced: !prev.showAdvanced }))}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base">Advanced Options</CardTitle>
+                  <CardDescription>Configure thresholds and retry behavior</CardDescription>
+                </div>
+                <Switch
+                  checked={options.showAdvanced}
+                  onCheckedChange={(checked) => setOptions(prev => ({ ...prev, showAdvanced: checked }))}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+            </CardHeader>
+            {options.showAdvanced && (
+              <CardContent className="space-y-4">
+                {/* Accept Threshold */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Accept Threshold</Label>
+                    <span className="font-mono text-sm">{(options.acceptThreshold * 100).toFixed(0)}%</span>
+                  </div>
+                  <Slider
+                    value={[options.acceptThreshold]}
+                    onValueChange={([value]) => setOptions(prev => ({ ...prev, acceptThreshold: value }))}
+                    min={0.5}
+                    max={1}
+                    step={0.05}
+                  />
+                  <p className="text-xs text-muted-foreground">Auto-approve if confidence ≥ this value</p>
+                </div>
+
+                <Separator />
+
+                {/* Escalate Threshold */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Escalate Threshold</Label>
+                    <span className="font-mono text-sm">{(options.escalateThreshold * 100).toFixed(0)}%</span>
+                  </div>
+                  <Slider
+                    value={[options.escalateThreshold]}
+                    onValueChange={([value]) => setOptions(prev => ({ ...prev, escalateThreshold: value }))}
+                    min={0.1}
+                    max={0.9}
+                    step={0.05}
+                  />
+                  <p className="text-xs text-muted-foreground">Trigger human review if confidence &lt; this with disagreement</p>
+                </div>
+
+                <Separator />
+
+                {/* Max Retries */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Max Retries</Label>
+                    <span className="font-mono text-sm">{options.maxRetries}</span>
+                  </div>
+                  <Slider
+                    value={[options.maxRetries]}
+                    onValueChange={([value]) => setOptions(prev => ({ ...prev, maxRetries: value }))}
+                    min={0}
+                    max={5}
+                    step={1}
+                  />
+                  <p className="text-xs text-muted-foreground">Retry failed paradigm executions (0-5)</p>
+                </div>
+
+                <Separator />
+
+                {/* Retry on Low Confidence */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-sm">Retry on Low Confidence</Label>
+                      <p className="text-xs text-muted-foreground">Retry all paradigms if confidence is too low</p>
+                    </div>
+                    <Switch
+                      checked={options.retryOnLowConfidence}
+                      onCheckedChange={(checked) => setOptions(prev => ({ ...prev, retryOnLowConfidence: checked }))}
+                    />
+                  </div>
+                  {options.retryOnLowConfidence && (
+                    <div className="space-y-2 pl-4 border-l-2 border-muted">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Min Confidence Target</Label>
+                        <span className="font-mono text-sm">{(options.minConfidence * 100).toFixed(0)}%</span>
+                      </div>
+                      <Slider
+                        value={[options.minConfidence]}
+                        onValueChange={([value]) => setOptions(prev => ({ ...prev, minConfidence: value }))}
+                        min={0.5}
+                        max={0.99}
+                        step={0.01}
+                      />
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            )}
           </Card>
 
           {/* Submit Button */}

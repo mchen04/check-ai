@@ -17,7 +17,7 @@ export interface ApiKeyRecord {
   name: string;
   keyHash: string;
   keyPrefix: string;
-  provider: string;
+  provider: string | null;
   isActive: boolean;
   lastUsedAt: Date | null;
   createdAt: Date;
@@ -28,7 +28,7 @@ export interface ApiKeyListItem {
   id: string;
   name: string;
   keyPrefix: string;
-  provider: string;
+  provider: string | null;
   isActive: boolean;
   lastUsedAt: Date | null;
   createdAt: Date;

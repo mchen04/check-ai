@@ -11,8 +11,10 @@ import {
   ParadigmResult,
   VerificationResult,
   MethodsConfig,
+  VerifyOptions as VerifyOptionsType,
   calculateConsensus,
   determineDecision,
+  resolveThresholds,
   createErrorParadigmResult,
 } from './types';
 import {
@@ -38,12 +40,28 @@ interface OrchestratorConfig {
   maxParallelMethods?: number;
 }
 
-interface VerifyOptions {
+interface OrchestratorVerifyOptions {
   context?: Record<string, unknown>;
   methods: MethodsConfig;
   idempotencyKey?: string;
   timeout?: number;
+  // User-configurable options from VerifyOptionsType
+  minConfidence?: number;
+  acceptThreshold?: number;
+  escalateThreshold?: number;
+  maxRetries?: number;
+  retryOnLowConfidence?: boolean;
 }
+
+// =============================================================================
+// RETRY CONFIGURATION
+// =============================================================================
+
+const RETRY_DEFAULTS = {
+  maxRetries: 0,
+  retryDelayMs: 1000,
+  maxRetryAttempts: 5, // Hard cap regardless of user setting
+} as const;
 
 // =============================================================================
 // PARADIGM REGISTRY
@@ -94,10 +112,16 @@ export class VerificationOrchestrator {
 
   /**
    * Run verification with selected methods
+   * Supports custom thresholds and retry options
    */
-  async verify(content: string, options: VerifyOptions): Promise<VerificationResult> {
+  async verify(content: string, options: OrchestratorVerifyOptions): Promise<VerificationResult> {
     const startTime = Date.now();
     const id = uuidv4();
+    const maxRetries = Math.min(
+      options.maxRetries ?? RETRY_DEFAULTS.maxRetries,
+      RETRY_DEFAULTS.maxRetryAttempts
+    );
+    const timeout = options.timeout ?? this.defaultTimeout;
 
     // Parse methods configuration
     const methodsToRun = this.parseMethodsConfig(options.methods);
@@ -106,31 +130,62 @@ export class VerificationOrchestrator {
       return this.createErrorResult(id, content, 'No verification methods specified');
     }
 
-    // Execute methods in parallel (with limit)
-    const results = await this.executeParadigms(
-      content,
-      options.context || {},
-      methodsToRun,
-      options.timeout || this.defaultTimeout
+    // Resolve thresholds with user overrides
+    const thresholds = resolveThresholds({
+      acceptThreshold: options.acceptThreshold,
+      escalateThreshold: options.escalateThreshold,
+    });
+
+    // Track low confidence retry attempts
+    let lowConfidenceAttempt = 0;
+    const maxLowConfidenceRetries =
+      options.retryOnLowConfidence && options.minConfidence !== undefined ? 1 : 0;
+
+    let results: ParadigmResult[];
+    let consensus: { verdict: ReturnType<typeof calculateConsensus>['verdict']; confidence: number; reasoning: string };
+
+    do {
+      if (lowConfidenceAttempt > 0) {
+        log.info(
+          { confidence: consensus!.confidence, minConfidence: options.minConfidence, attempt: lowConfidenceAttempt },
+          'Retrying all paradigms due to low confidence'
+        );
+      }
+
+      // Execute methods in parallel (with limit and per-paradigm retries)
+      results = await this.executeParadigms(
+        content,
+        options.context || {},
+        methodsToRun,
+        timeout,
+        maxRetries
+      );
+
+      // Calculate consensus from results
+      consensus = calculateConsensus(results);
+
+      lowConfidenceAttempt++;
+    } while (
+      options.retryOnLowConfidence &&
+      options.minConfidence !== undefined &&
+      consensus.confidence < options.minConfidence &&
+      lowConfidenceAttempt <= maxLowConfidenceRetries
     );
 
-    // Calculate consensus from results
-    const { verdict, confidence, reasoning } = calculateConsensus(results);
+    // Determine decision based on confidence and agreement with custom thresholds
+    const decision = determineDecision(consensus.verdict, consensus.confidence, results, thresholds);
 
-    // Determine decision based on confidence and agreement
-    const decision = determineDecision(verdict, confidence, results);
-
-    // Calculate total cost
+    // Calculate total cost (includes all retry attempts)
     const totalCost = results.reduce((sum, r) => sum + r.costCents, 0);
 
     return {
       id,
       content,
       status: 'completed',
-      verdict,
-      confidence,
+      verdict: consensus.verdict,
+      confidence: consensus.confidence,
       decision,
-      reasoning,
+      reasoning: consensus.reasoning,
       paradigmResults: results,
       processingTimeMs: Date.now() - startTime,
       costCents: totalCost,
@@ -167,13 +222,62 @@ export class VerificationOrchestrator {
   }
 
   /**
-   * Execute paradigms in parallel with concurrency limit
+   * Execute a single paradigm with retry logic
+   */
+  protected async executeParadigmWithRetry(
+    content: string,
+    context: Record<string, unknown>,
+    paradigm: ParadigmType,
+    weight: number,
+    timeout: number,
+    maxRetries: number
+  ): Promise<ParadigmResult> {
+    let lastError: unknown = null;
+    let attempts = 0;
+
+    while (attempts <= maxRetries) {
+      try {
+        const executor = this.getExecutor(paradigm);
+        const result = await executor.execute(content, context, {
+          weight,
+          timeout,
+        });
+
+        // Success - return result
+        return result;
+      } catch (error) {
+        lastError = error;
+        attempts++;
+
+        if (attempts <= maxRetries) {
+          log.warn(
+            { paradigm, attempt: attempts, maxRetries },
+            'Paradigm execution failed, retrying'
+          );
+          // Exponential backoff: 1s, 2s, 4s, 8s, 16s (capped at 16s)
+          const delay = Math.min(RETRY_DEFAULTS.retryDelayMs * Math.pow(2, attempts - 1), 16000);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    // All retries exhausted - return error result
+    log.error(
+      { paradigm, attempts, error: lastError instanceof Error ? lastError.message : 'Unknown error' },
+      'Paradigm execution failed after all retries'
+    );
+    return createErrorParadigmResult(paradigm, weight, lastError);
+  }
+
+  /**
+   * Execute paradigms in parallel with concurrency limit and per-paradigm retries
    */
   protected async executeParadigms(
     content: string,
     context: Record<string, unknown>,
     methods: Array<{ paradigm: ParadigmType; weight: number }>,
-    timeout: number
+    timeout: number,
+    maxRetries: number = 0
   ): Promise<ParadigmResult[]> {
     // Execute in batches if exceeding max parallel
     const results: ParadigmResult[] = [];
@@ -181,18 +285,9 @@ export class VerificationOrchestrator {
     for (let i = 0; i < methods.length; i += this.maxParallelMethods) {
       const batch = methods.slice(i, i + this.maxParallelMethods);
 
-      const batchPromises = batch.map(async ({ paradigm, weight }) => {
-        try {
-          const executor = this.getExecutor(paradigm);
-          return await executor.execute(content, context, {
-            weight,
-            timeout,
-          });
-        } catch (error) {
-          // Return error result for failed paradigm
-          return createErrorParadigmResult(paradigm, weight, error);
-        }
-      });
+      const batchPromises = batch.map(({ paradigm, weight }) =>
+        this.executeParadigmWithRetry(content, context, paradigm, weight, timeout, maxRetries)
+      );
 
       const batchResults = await Promise.all(batchPromises);
       results.push(...batchResults);
@@ -310,13 +405,67 @@ export class StreamingVerificationOrchestrator extends VerificationOrchestrator 
   }
 
   /**
-   * Override executeParadigms to emit per-paradigm events
+   * Execute a single paradigm with retry logic and streaming updates
+   */
+  private async executeParadigmWithRetryAndUpdates(
+    content: string,
+    context: Record<string, unknown>,
+    paradigm: ParadigmType,
+    weight: number,
+    timeout: number,
+    maxRetries: number
+  ): Promise<ParadigmResult> {
+    // Emit paradigm_started event
+    if (this.currentVerificationId) {
+      this.emitUpdate({
+        type: 'paradigm_started',
+        verificationId: this.currentVerificationId,
+        timestamp: Date.now(),
+        data: { paradigm },
+      });
+    }
+
+    // Use parent's retry logic
+    const result = await super.executeParadigmWithRetry(
+      content,
+      context,
+      paradigm,
+      weight,
+      timeout,
+      maxRetries
+    );
+
+    this.completedMethods++;
+
+    // Emit paradigm_completed event
+    if (this.currentVerificationId) {
+      this.emitUpdate({
+        type: 'paradigm_completed',
+        verificationId: this.currentVerificationId,
+        timestamp: Date.now(),
+        data: {
+          paradigm,
+          result,
+          progress: {
+            completed: this.completedMethods,
+            total: this.totalMethods,
+          },
+        },
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * Override executeParadigms to emit per-paradigm events with retry support
    */
   protected async executeParadigms(
     content: string,
     context: Record<string, unknown>,
     methods: Array<{ paradigm: ParadigmType; weight: number }>,
-    timeout: number
+    timeout: number,
+    maxRetries: number = 0
   ): Promise<ParadigmResult[]> {
     const results: ParadigmResult[] = [];
     this.totalMethods = methods.length;
@@ -325,70 +474,16 @@ export class StreamingVerificationOrchestrator extends VerificationOrchestrator 
     for (let i = 0; i < methods.length; i += this.maxParallelMethods) {
       const batch = methods.slice(i, i + this.maxParallelMethods);
 
-      const batchPromises = batch.map(async ({ paradigm, weight }) => {
-        // Emit paradigm_started event
-        if (this.currentVerificationId) {
-          this.emitUpdate({
-            type: 'paradigm_started',
-            verificationId: this.currentVerificationId,
-            timestamp: Date.now(),
-            data: { paradigm },
-          });
-        }
-
-        try {
-          const executor = this.getExecutor(paradigm);
-          const result = await executor.execute(content, context, {
-            weight,
-            timeout,
-          });
-
-          this.completedMethods++;
-
-          // Emit paradigm_completed event
-          if (this.currentVerificationId) {
-            this.emitUpdate({
-              type: 'paradigm_completed',
-              verificationId: this.currentVerificationId,
-              timestamp: Date.now(),
-              data: {
-                paradigm,
-                result,
-                progress: {
-                  completed: this.completedMethods,
-                  total: this.totalMethods,
-                },
-              },
-            });
-          }
-
-          return result;
-        } catch (error) {
-          this.completedMethods++;
-
-          // Create error result
-          const errorResult = createErrorParadigmResult(paradigm, weight, error);
-
-          // Emit paradigm_completed event (even for errors)
-          if (this.currentVerificationId) {
-            this.emitUpdate({
-              type: 'paradigm_completed',
-              verificationId: this.currentVerificationId,
-              timestamp: Date.now(),
-              data: {
-                paradigm,
-                result: errorResult,
-                progress: {
-                  completed: this.completedMethods,
-                  total: this.totalMethods,
-                },
-              },
-            });
-          }
-
-          return errorResult;
-        }
-      });
+      const batchPromises = batch.map(({ paradigm, weight }) =>
+        this.executeParadigmWithRetryAndUpdates(
+          content,
+          context,
+          paradigm,
+          weight,
+          timeout,
+          maxRetries
+        )
+      );
 
       const batchResults = await Promise.all(batchPromises);
       results.push(...batchResults);
@@ -401,7 +496,7 @@ export class StreamingVerificationOrchestrator extends VerificationOrchestrator 
    * Run verification with streaming updates
    * Use setVerificationId() before calling this to use an existing ID
    */
-  async verifyWithUpdates(content: string, options: VerifyOptions): Promise<VerificationResult> {
+  async verifyWithUpdates(content: string, options: OrchestratorVerifyOptions): Promise<VerificationResult> {
     const verificationId = this.currentVerificationId || uuidv4();
     this.currentVerificationId = verificationId;
 

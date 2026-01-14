@@ -21,7 +21,7 @@ export interface BatchProgress {
 }
 
 export interface BatchStatusState {
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  status: 'pending' | 'validating' | 'processing' | 'completed' | 'failed' | 'cancelled';
   progress: BatchProgress;
   lastItemId: string | null;
   lastItemIndex: number | null;

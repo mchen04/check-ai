@@ -146,9 +146,9 @@ export default function BatchListPage() {
   useEffect(() => {
     fetchBatches();
 
-    // Refresh every 10 seconds if there are processing batches
+    // Refresh every 10 seconds if there are processing or validating batches
     const interval = setInterval(() => {
-      if (batches.some((b) => b.status === 'processing')) {
+      if (batches.some((b) => b.status === 'processing' || b.status === 'validating')) {
         fetchBatches(1, false);
       }
     }, 10000);

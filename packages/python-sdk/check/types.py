@@ -104,10 +104,45 @@ class VerifyOptions(BaseModel):
         ge=0,
         le=1,
         alias="minConfidence",
-        description="Minimum confidence threshold"
+        description="Minimum confidence threshold - used with retry_on_low_confidence"
+    )
+    accept_threshold: Optional[float] = Field(
+        default=None,
+        ge=0,
+        le=1,
+        alias="acceptThreshold",
+        description="Override default accept threshold (0.95) - auto-approve if confidence >= this"
+    )
+    escalate_threshold: Optional[float] = Field(
+        default=None,
+        ge=0,
+        le=1,
+        alias="escalateThreshold",
+        description="Override default escalate threshold (0.5) - human review if confidence < this with disagreement"
+    )
+    max_retries: Optional[int] = Field(
+        default=None,
+        ge=0,
+        le=5,
+        alias="maxRetries",
+        description="Per-paradigm retry count (0-5) - retries failed paradigm executions"
+    )
+    retry_on_low_confidence: Optional[bool] = Field(
+        default=None,
+        alias="retryOnLowConfidence",
+        description="Retry all paradigms once if final confidence < min_confidence"
     )
 
     model_config = {"extra": "forbid", "populate_by_name": True}
+
+
+class MethodOverride(BaseModel):
+    """Override config for a method in a single request."""
+
+    weight: float = Field(ge=0, le=1, description="Weight for this method")
+    model: Optional[str] = Field(default=None, description="Override model for this request")
+
+    model_config = {"extra": "forbid"}
 
 
 class VerifyRequest(BaseModel):
@@ -123,9 +158,9 @@ class VerifyRequest(BaseModel):
         default=None,
         description="Optional context for verification"
     )
-    methods: MethodsConfig = Field(
-        ...,
-        description="Verification methods to use"
+    methods: Optional[MethodsConfig] = Field(
+        default=None,
+        description="Verification methods to use. Optional if API key has paradigm config."
     )
     options: Optional[VerifyOptions] = Field(
         default=None,
@@ -341,6 +376,10 @@ class CreateBatchRequest(BaseModel):
     methods: MethodsConfig = Field(
         ...,
         description="Verification methods to use"
+    )
+    options: Optional[VerifyOptions] = Field(
+        default=None,
+        description="Optional verification options (thresholds, retries)"
     )
     webhook_url: Optional[str] = Field(
         default=None,

@@ -99,6 +99,27 @@
       "when": 1768350000000,
       "tag": "0013_add_missing_updated_at",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1768269544398,
+      "tag": "0014_tricky_scarlet_spider",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1768353374021,
+      "tag": "0015_zippy_strong_guy",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1768360000000,
+      "tag": "0016_provider_credentials_indexes",
+      "breakpoints": true
     }
   ]
 }

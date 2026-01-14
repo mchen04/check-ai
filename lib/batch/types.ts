@@ -4,7 +4,8 @@
  */
 
 import { z } from 'zod';
-import { methodsConfigSchema, MethodsConfig } from '@/lib/verification/types';
+import { methodsConfigSchema, MethodsConfig, VerifyOptions } from '@/lib/verification/types';
+import { VerifyOptionsSchema } from '@/lib/verification/validator';
 import type { BatchStatus, BatchItemStatus } from '@/utils/db/schema';
 
 // Re-export MethodsConfig for consumers of this module
@@ -21,6 +22,7 @@ export interface BatchJob {
   inputFormat: 'json' | 'csv';
   originalFileName: string | null;
   methodsConfig: MethodsConfig;
+  verifyOptions: VerifyOptions | null;
   context: Record<string, unknown> | null;
   status: BatchStatus;
   totalItems: number;
@@ -99,6 +101,7 @@ export const createBatchSchema = z.object({
     .optional(),
   fileId: z.string().uuid().optional(),
   methods: methodsConfigSchema,
+  options: VerifyOptionsSchema,
   context: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -111,6 +114,11 @@ export interface BatchJobResponse {
   id: string;
   name: string | null;
   status: BatchStatus;
+  inputFormat: string;
+  originalFileName: string | null;
+  methodsConfig: MethodsConfig;
+  verifyOptions: VerifyOptions | null;
+  context: Record<string, unknown> | null;
   totalItems: number;
   processedItems: number;
   successCount: number;
@@ -119,6 +127,8 @@ export interface BatchJobResponse {
   errorMessage: string | null;
   validationErrors: BatchValidationError[] | null;
   totalCostCents: number;
+  totalInputTokens: number;
+  totalOutputTokens: number;
   createdAt: string;
   startedAt: string | null;
   completedAt: string | null;

@@ -1,0 +1,623 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  Key,
+  MoreHorizontal,
+  Trash2,
+  TestTube,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  Plus,
+  AlertCircle,
+  Pencil,
+} from 'lucide-react';
+
+// Provider configurations
+const PROVIDERS = [
+  { value: 'openrouter', label: 'OpenRouter', description: 'Recommended - access all models' },
+  { value: 'openai', label: 'OpenAI', description: 'GPT-4o, GPT-4o-mini' },
+  { value: 'anthropic', label: 'Anthropic', description: 'Claude 3.5 Sonnet, Opus' },
+  { value: 'google', label: 'Google AI', description: 'Gemini 2.0' },
+  { value: 'groq', label: 'Groq', description: 'Fast Llama inference' },
+  { value: 'together', label: 'Together AI', description: 'Open-source models' },
+  { value: 'mistral', label: 'Mistral', description: 'Mistral models' },
+  { value: 'cohere', label: 'Cohere', description: 'Command models' },
+  { value: 'deepseek', label: 'DeepSeek', description: 'DeepSeek models' },
+  { value: 'xai', label: 'xAI', description: 'Grok models' },
+  { value: 'fireworks', label: 'Fireworks', description: 'Fast inference' },
+  { value: 'cerebras', label: 'Cerebras', description: 'Ultra-fast inference' },
+  { value: 'perplexity', label: 'Perplexity', description: 'Search-enhanced models' },
+] as const;
+
+const PROVIDER_COLORS: Record<string, string> = {
+  openrouter: 'bg-violet-500',
+  openai: 'bg-emerald-500',
+  anthropic: 'bg-orange-500',
+  google: 'bg-blue-500',
+  groq: 'bg-red-500',
+  together: 'bg-cyan-500',
+  mistral: 'bg-yellow-500',
+  cohere: 'bg-pink-500',
+  deepseek: 'bg-purple-500',
+  xai: 'bg-gray-500',
+  fireworks: 'bg-rose-500',
+  cerebras: 'bg-indigo-500',
+  perplexity: 'bg-teal-500',
+};
+
+interface ProviderCredential {
+  id: string;
+  name: string;
+  provider: string;
+  isActive: boolean;
+  validationStatus: 'valid' | 'invalid' | 'pending';
+  lastValidatedAt: string | null;
+  lastUsedAt: string | null;
+  createdAt: string;
+  apiKeyCount?: number;
+}
+
+interface ProviderCredentialsCardProps {
+  canEdit: boolean;
+}
+
+export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProps) {
+  const [credentials, setCredentials] = useState<ProviderCredential[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [testResult, setTestResult] = useState<{ id: string; valid: boolean } | null>(null);
+
+  // Form state for create
+  const [formData, setFormData] = useState({
+    name: '',
+    provider: '',
+    apiKey: '',
+  });
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Edit state
+  const [editCredential, setEditCredential] = useState<ProviderCredential | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    apiKey: '',
+  });
+  const [editError, setEditError] = useState<string | null>(null);
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetchCredentials();
+  }, []);
+
+  const fetchCredentials = async () => {
+    try {
+      const response = await fetch('/api/dashboard/provider-credentials');
+      if (response.ok) {
+        const data = await response.json();
+        setCredentials(data.credentials);
+      }
+    } catch (error) {
+      console.error('Error fetching credentials:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setFormError(null);
+
+    if (!formData.name.trim()) {
+      setFormError('Name is required');
+      return;
+    }
+    if (!formData.provider) {
+      setFormError('Provider is required');
+      return;
+    }
+    if (!formData.apiKey.trim()) {
+      setFormError('API key is required');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/dashboard/provider-credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setFormError(data.error || 'Failed to add credential');
+        return;
+      }
+
+      // Reset form and close dialog
+      setFormData({ name: '', provider: '', apiKey: '' });
+      setIsDialogOpen(false);
+      fetchCredentials();
+    } catch (error) {
+      setFormError('Failed to add credential');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const testCredential = async (credentialId: string) => {
+    setActionLoading(credentialId);
+    setTestResult(null);
+
+    try {
+      const response = await fetch(`/api/dashboard/provider-credentials/${credentialId}/validate`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+      setTestResult({ id: credentialId, valid: data.valid });
+
+      // Refresh to get updated validation status
+      fetchCredentials();
+
+      setTimeout(() => setTestResult(null), 3000);
+    } catch (error) {
+      setTestResult({ id: credentialId, valid: false });
+      setTimeout(() => setTestResult(null), 3000);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const deleteCredential = async () => {
+    if (!deleteId) return;
+
+    setActionLoading(deleteId);
+    try {
+      const response = await fetch(`/api/dashboard/provider-credentials/${deleteId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setCredentials((prev) => prev.filter((c) => c.id !== deleteId));
+      }
+    } catch (error) {
+      console.error('Error deleting credential:', error);
+    } finally {
+      setActionLoading(null);
+      setDeleteId(null);
+    }
+  };
+
+  const openEditDialog = (credential: ProviderCredential) => {
+    setEditCredential(credential);
+    setEditFormData({
+      name: credential.name,
+      apiKey: '',
+    });
+    setEditError(null);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editCredential) return;
+    setEditError(null);
+
+    if (!editFormData.name.trim()) {
+      setEditError('Name is required');
+      return;
+    }
+
+    setIsEditSubmitting(true);
+
+    try {
+      const response = await fetch(`/api/dashboard/provider-credentials/${editCredential.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editFormData.name,
+          ...(editFormData.apiKey.trim() ? { apiKey: editFormData.apiKey } : {}),
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setEditError(data.error || 'Failed to update credential');
+        return;
+      }
+
+      setEditCredential(null);
+      fetchCredentials();
+    } catch (error) {
+      setEditError('Failed to update credential');
+    } finally {
+      setIsEditSubmitting(false);
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Never';
+    return new Date(dateString).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const getStatusBadge = (credential: ProviderCredential) => {
+    // Show test result if available
+    if (testResult?.id === credential.id) {
+      return testResult.valid ? (
+        <Badge variant="default" className="bg-green-500">
+          <CheckCircle className="mr-1 h-3 w-3" />
+          Valid
+        </Badge>
+      ) : (
+        <Badge variant="destructive">
+          <XCircle className="mr-1 h-3 w-3" />
+          Invalid
+        </Badge>
+      );
+    }
+
+    if (!credential.isActive) {
+      return <Badge variant="secondary">Inactive</Badge>;
+    }
+
+    switch (credential.validationStatus) {
+      case 'valid':
+        return (
+          <Badge variant="default" className="bg-green-500">
+            Valid
+          </Badge>
+        );
+      case 'invalid':
+        return <Badge variant="destructive">Invalid</Badge>;
+      default:
+        return (
+          <Badge variant="secondary">
+            <AlertCircle className="mr-1 h-3 w-3" />
+            Pending
+          </Badge>
+        );
+    }
+  };
+
+  const getProviderLabel = (provider: string) => {
+    const p = PROVIDERS.find((p) => p.value === provider);
+    return p?.label || provider;
+  };
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Key className="h-5 w-5 text-muted-foreground" />
+              <CardTitle>Provider Credentials</CardTitle>
+            </div>
+            {canEdit && (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Credential
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add Provider Credential</DialogTitle>
+                    <DialogDescription>
+                      Add your LLM provider API key. Your credentials are encrypted and stored securely.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Name</Label>
+                      <Input
+                        id="name"
+                        placeholder="e.g., openrouter-prod"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="provider">Provider</Label>
+                      <Select
+                        value={formData.provider}
+                        onValueChange={(value) => setFormData({ ...formData, provider: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select provider" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PROVIDERS.map((provider) => (
+                            <SelectItem key={provider.value} value={provider.value}>
+                              <div>
+                                <div className="font-medium">{provider.label}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {provider.description}
+                                </div>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="apiKey">API Key</Label>
+                      <Input
+                        id="apiKey"
+                        type="password"
+                        placeholder="sk-..."
+                        value={formData.apiKey}
+                        onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                      />
+                    </div>
+                    {formError && (
+                      <div className="text-sm text-destructive">{formError}</div>
+                    )}
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSubmit} disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Add Credential
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+          <CardDescription>
+            Store your LLM provider API keys securely. These are used by your Check.ai API keys
+            to access models.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : credentials.length === 0 ? (
+            <div className="rounded-lg bg-muted p-4">
+              <p className="mb-3 text-sm text-muted-foreground">
+                No provider credentials configured. Add credentials to use with your API keys:
+              </p>
+              <ul className="space-y-1 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  OpenRouter is recommended for access to all models
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  Or use direct provider keys (OpenAI, Anthropic, etc.)
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  All credentials are encrypted at rest
+                </li>
+              </ul>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Provider</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Used By</TableHead>
+                  <TableHead>Last Used</TableHead>
+                  {canEdit && <TableHead className="w-[70px]"></TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {credentials.map((credential) => (
+                  <TableRow key={credential.id}>
+                    <TableCell className="font-medium">{credential.name}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-2 w-2 rounded-full ${PROVIDER_COLORS[credential.provider] || 'bg-gray-500'}`}
+                        />
+                        <span>{getProviderLabel(credential.provider)}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{getStatusBadge(credential)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {credential.apiKeyCount === 0
+                        ? 'No keys'
+                        : credential.apiKeyCount === 1
+                          ? '1 API key'
+                          : `${credential.apiKeyCount} API keys`}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {formatDate(credential.lastUsedAt)}
+                    </TableCell>
+                    {canEdit && (
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={actionLoading === credential.id}
+                            >
+                              {actionLoading === credential.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <MoreHorizontal className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEditDialog(credential)}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => testCredential(credential.id)}>
+                              <TestTube className="mr-2 h-4 w-4" />
+                              Test Credential
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => setDeleteId(credential.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editCredential} onOpenChange={(open) => !open && setEditCredential(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Provider Credential</DialogTitle>
+            <DialogDescription>
+              Update the credential name or replace the API key.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                value={editFormData.name}
+                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-provider">Provider</Label>
+              <Input
+                id="edit-provider"
+                value={getProviderLabel(editCredential?.provider || '')}
+                disabled
+                className="bg-muted"
+              />
+              <p className="text-xs text-muted-foreground">
+                Provider cannot be changed. Create a new credential for a different provider.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-apiKey">New API Key (optional)</Label>
+              <Input
+                id="edit-apiKey"
+                type="password"
+                placeholder="Leave blank to keep existing key"
+                value={editFormData.apiKey}
+                onChange={(e) => setEditFormData({ ...editFormData, apiKey: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Only fill this if you want to replace the existing API key.
+              </p>
+            </div>
+            {editError && (
+              <div className="text-sm text-destructive">{editError}</div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditCredential(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEditSubmit} disabled={isEditSubmitting}>
+              {isEditSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Provider Credential</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this credential? API keys using this credential will
+              no longer be able to make verifications. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={deleteCredential}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}

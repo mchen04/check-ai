@@ -22,6 +22,7 @@ from check.types import (
     VerificationStatus,
     # Request types
     MethodsConfig,
+    MethodOverride,
     VerifyOptions,
     VerifyRequest,
     # Response types
@@ -68,6 +69,7 @@ __all__ = [
     "VerificationStatus",
     # Request types
     "MethodsConfig",
+    "MethodOverride",
     "VerifyOptions",
     "VerifyRequest",
     # Response types

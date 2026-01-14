@@ -3,7 +3,7 @@
  * Main coordination layer for verification operations
  */
 
-import { MethodsConfig, ParadigmResult, Verdict, Decision } from './types';
+import { MethodsConfig, ParadigmResult, Verdict, Decision, VerifyOptions } from './types';
 import { ValidatedVerifyRequest, getMethodsCount } from './validator';
 import {
   checkMethodsAllowed,
@@ -33,6 +33,9 @@ import {
   broadcastParadigmComplete,
   broadcastFinalResult,
 } from '@/utils/supabase/realtime';
+import type { ApiKeyConfiguration } from '@/lib/api/types';
+import { resolveVerificationConfig } from '@/lib/api-keys/service';
+import type { ApiKeyWithConfig, ResolvedVerificationConfig } from '@/lib/api-keys/types';
 
 // =============================================================================
 // TYPES
@@ -49,6 +52,7 @@ export interface OrganizationContext {
 export interface VerifyServiceRequest {
   organization: OrganizationContext;
   request: ValidatedVerifyRequest;
+  apiKeyConfig?: ApiKeyConfiguration;
 }
 
 export interface VerifyServiceResponse {
@@ -91,11 +95,35 @@ export type VerifyServiceResult =
  * Handles the complete verification flow
  */
 export async function verify(input: VerifyServiceRequest): Promise<VerifyServiceResult> {
-  const { organization, request } = input;
-  const { content, context, methods, idempotencyKey } = request;
+  const { organization, request, apiKeyConfig } = input;
+  const { content, context, methods, options, idempotencyKey } = request;
+
+  // Resolve effective methods - use API key's paradigm config if methods not specified in request
+  let effectiveMethods: MethodsConfig = methods || {};
+  if (apiKeyConfig?.paradigmConfig && (!methods || Object.keys(methods).length === 0)) {
+    // Convert paradigm config to methods config
+    effectiveMethods = {};
+    for (const [paradigm, config] of Object.entries(apiKeyConfig.paradigmConfig)) {
+      if (config && config.enabled && config.weight > 0) {
+        effectiveMethods[paradigm as keyof MethodsConfig] = config.weight;
+      }
+    }
+  }
+
+  // Ensure at least one method is configured
+  if (!effectiveMethods || Object.values(effectiveMethods).filter((w) => w !== undefined && w > 0).length === 0) {
+    return {
+      success: false,
+      error: {
+        type: 'methods_not_allowed',
+        message: 'No verification methods specified. Either provide methods in the request or configure paradigms on your API key.',
+        details: {},
+      },
+    };
+  }
 
   // Check if requested methods are allowed for plan
-  const methodsCheck = checkMethodsAllowed(methods, organization.planType);
+  const methodsCheck = checkMethodsAllowed(effectiveMethods, organization.planType);
   if (!methodsCheck.allowed) {
     return {
       success: false,
@@ -133,7 +161,7 @@ export async function verify(input: VerifyServiceRequest): Promise<VerifyService
   }
 
   // Check Redis cache for identical content + methods
-  const cachedResult = await getCachedVerification(content, methods);
+  const cachedResult = await getCachedVerification(content, effectiveMethods);
   if (cachedResult) {
     recordCacheHit();
     return {
@@ -145,13 +173,14 @@ export async function verify(input: VerifyServiceRequest): Promise<VerifyService
   recordCacheMiss();
 
   // Get decrypted API keys for the organization
+  // If API key has a provider credential, it will be used in the orchestrator
   const keys = await getDecryptedApiKeys(organization.id);
-  if (Object.keys(keys).length === 0) {
+  if (Object.keys(keys).length === 0 && !apiKeyConfig?.providerCredentialId) {
     return {
       success: false,
       error: {
         type: 'no_api_keys',
-        message: 'No API keys configured. Please add at least one LLM provider API key in settings.',
+        message: 'No API keys configured. Please add a provider credential or LLM provider API key in settings.',
       },
     };
   }
@@ -166,7 +195,7 @@ export async function verify(input: VerifyServiceRequest): Promise<VerifyService
     orgId: organization.id,
     content,
     context: context || null,
-    methods,
+    methods: effectiveMethods,
     idempotencyKey: idempotencyKey || null,
     expiresAt,
   });
@@ -178,13 +207,15 @@ export async function verify(input: VerifyServiceRequest): Promise<VerifyService
       organizationName: organization.name,
       content,
       context,
-      methods,
+      methods: effectiveMethods,
       keys,
+      options,
+      apiKeyConfig,
     });
 
     // Cache the result for future requests
     // Construct VerificationResult for caching (need content and proper paradigmResults)
-    await cacheVerification(content, methods, {
+    await cacheVerification(content, effectiveMethods, {
       id: verification.id,
       content,
       status: result.status,
@@ -252,6 +283,8 @@ interface ExecuteVerificationInput {
   context?: Record<string, unknown>;
   methods: MethodsConfig;
   keys: ProviderKeys;
+  options?: VerifyOptions;
+  apiKeyConfig?: ApiKeyConfiguration;
 }
 
 interface ExecutionResult {
@@ -275,7 +308,7 @@ interface ExecutionResult {
 }
 
 async function executeVerification(input: ExecuteVerificationInput): Promise<ExecutionResult> {
-  const { verificationId, orgId, organizationName, content, context, methods, keys } = input;
+  const { verificationId, orgId, organizationName, content, context, methods, keys, options } = input;
   const methodsCount = getMethodsCount(methods);
 
   // Create streaming orchestrator with real-time broadcasts
@@ -316,6 +349,12 @@ async function executeVerification(input: ExecuteVerificationInput): Promise<Exe
   const result = await orchestrator.verifyWithUpdates(content, {
     context,
     methods,
+    timeout: options?.timeout,
+    minConfidence: options?.minConfidence,
+    acceptThreshold: options?.acceptThreshold,
+    escalateThreshold: options?.escalateThreshold,
+    maxRetries: options?.maxRetries,
+    retryOnLowConfidence: options?.retryOnLowConfidence,
   });
 
   // Check if verification should be escalated

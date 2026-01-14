@@ -136,6 +136,29 @@ export interface ParadigmOptions {
 }
 
 // =============================================================================
+// VERIFY OPTIONS (User-configurable thresholds and retries)
+// =============================================================================
+
+/**
+ * User-configurable options for verification requests
+ * All options are optional with sensible defaults for backwards compatibility
+ */
+export interface VerifyOptions {
+  /** Timeout in milliseconds (1000-300000) */
+  timeout?: number;
+  /** Minimum confidence threshold - triggers retryOnLowConfidence if set */
+  minConfidence?: number;
+  /** Override DECISION_THRESHOLDS.accept (0-1) - auto-approve if confidence >= this */
+  acceptThreshold?: number;
+  /** Override DECISION_THRESHOLDS.escalate (0-1) - human review if confidence < this with disagreement */
+  escalateThreshold?: number;
+  /** Per-paradigm retry count (0-5) - retries failed paradigm executions */
+  maxRetries?: number;
+  /** Retry all paradigms once if final confidence < minConfidence */
+  retryOnLowConfidence?: boolean;
+}
+
+// =============================================================================
 // FPR (FALSE POSITIVE RATE) WEIGHTS
 // =============================================================================
 
@@ -163,6 +186,29 @@ export const DECISION_THRESHOLDS = {
   escalate: 0.5, // Low confidence with disagreement - human review
   reject: 0.3, // Low confidence with agreement - reject
 } as const;
+
+/**
+ * Resolved thresholds with user overrides applied
+ */
+export interface ResolvedThresholds {
+  accept: number;
+  refine: number;
+  escalate: number;
+  reject: number;
+}
+
+/**
+ * Resolve thresholds with user-provided overrides
+ * Falls back to DECISION_THRESHOLDS defaults for unspecified values
+ */
+export function resolveThresholds(options?: VerifyOptions): ResolvedThresholds {
+  return {
+    accept: options?.acceptThreshold ?? DECISION_THRESHOLDS.accept,
+    refine: DECISION_THRESHOLDS.refine, // Not user-configurable
+    escalate: options?.escalateThreshold ?? DECISION_THRESHOLDS.escalate,
+    reject: DECISION_THRESHOLDS.reject, // Not user-configurable
+  };
+}
 
 // =============================================================================
 // HELPER FUNCTIONS
@@ -257,12 +303,17 @@ export function createErrorParadigmResult(
 
 /**
  * Determine decision based on confidence and verdict
+ * Optionally accepts custom thresholds to override defaults
  */
 export function determineDecision(
   verdict: Verdict,
   confidence: number,
-  results: ParadigmResult[]
+  results: ParadigmResult[],
+  thresholds?: ResolvedThresholds
 ): Decision {
+  // Use provided thresholds or defaults
+  const t = thresholds ?? DECISION_THRESHOLDS;
+
   // Check for high disagreement (paradigms strongly disagree)
   const trueCount = results.filter((r) => r.verdict === 'true').length;
   const falseCount = results.filter((r) => r.verdict === 'false').length;
@@ -270,15 +321,15 @@ export function determineDecision(
 
   const disagreementRatio = validCount > 0 ? Math.min(trueCount, falseCount) / validCount : 0;
 
-  if (confidence >= DECISION_THRESHOLDS.accept && verdict !== 'uncertain') {
+  if (confidence >= t.accept && verdict !== 'uncertain') {
     return 'accept';
   }
 
-  if (confidence >= DECISION_THRESHOLDS.refine && verdict !== 'uncertain') {
+  if (confidence >= t.refine && verdict !== 'uncertain') {
     return 'refine';
   }
 
-  if (confidence < DECISION_THRESHOLDS.refine && disagreementRatio > 0.3) {
+  if (confidence < t.refine && disagreementRatio > 0.3) {
     return 'escalate'; // High disagreement - needs human review
   }
 

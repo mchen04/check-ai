@@ -1,239 +1,180 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/utils/db/db';
-import { apiKeysTable } from '@/utils/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
-import { createHash, randomBytes } from 'crypto';
 import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api';
+import {
+  createApiKey,
+  listApiKeys,
+  deleteApiKey,
+  updateApiKey,
+} from '@/lib/api-keys/service';
+import { createApiKeySchema } from '@/lib/api-keys/types';
 
 // =============================================================================
-// HELPERS
+// GET - List API keys with paradigm config
 // =============================================================================
 
-function generateApiKey(): { key: string; prefix: string; hash: string } {
-  const keyBytes = randomBytes(32);
-  const key = `vfy_${keyBytes.toString('base64url')}`;
-  const prefix = key.slice(0, 12); // "vfy_" + 8 chars
-  const hash = createHash('sha256').update(key).digest('hex');
-  return { key, prefix, hash };
-}
+export const GET = withDashboardAuth(
+  async (req: DashboardRequest) => {
+    const { context } = req;
+
+    const keys = await listApiKeys(context.orgId);
+
+    // Transform for API response
+    const response = keys.map((key) => ({
+      id: key.id,
+      name: key.name,
+      keyPrefix: key.keyPrefix,
+      providerCredentialId: key.providerCredentialId,
+      providerCredential: key.providerCredential
+        ? {
+            id: key.providerCredential.id,
+            name: key.providerCredential.name,
+            provider: key.providerCredential.provider,
+          }
+        : null,
+      paradigmConfig: key.paradigmConfig,
+      defaultThresholds: key.defaultThresholds,
+      isActive: key.isActive,
+      lastUsedAt: key.lastUsedAt,
+      createdAt: key.createdAt,
+      expiresAt: key.expiresAt,
+    }));
+
+    return NextResponse.json({ keys: response });
+  },
+  { permission: 'api_keys:view' }
+);
 
 // =============================================================================
-// GET - List API keys
+// POST - Create new API key with paradigm config
 // =============================================================================
 
-export const GET = withDashboardAuth(async (req: DashboardRequest) => {
-  const { context } = req;
+export const POST = withDashboardAuth(
+  async (req: DashboardRequest) => {
+    const { context } = req;
 
-  const keys = await db
-    .select({
-      id: apiKeysTable.id,
-      name: apiKeysTable.name,
-      keyPrefix: apiKeysTable.keyPrefix,
-      provider: apiKeysTable.provider,
-      isActive: apiKeysTable.isActive,
-      lastUsedAt: apiKeysTable.lastUsedAt,
-      createdAt: apiKeysTable.createdAt,
-      expiresAt: apiKeysTable.expiresAt,
-    })
-    .from(apiKeysTable)
-    .where(eq(apiKeysTable.orgId, context.orgId))
-    .orderBy(desc(apiKeysTable.createdAt))
-    .limit(50);
+    const body = await req.json();
+    const parsed = createApiKeySchema.safeParse(body);
 
-  return NextResponse.json({ keys });
-}, { permission: 'api_keys:view' });
-
-// =============================================================================
-// POST - Create new API key
-// =============================================================================
-
-export const POST = withDashboardAuth(async (req: DashboardRequest) => {
-  const { context } = req;
-
-  const body = await req.json();
-  const { name, expiresIn } = body;
-
-  if (!name || typeof name !== 'string' || name.trim().length === 0) {
-    return NextResponse.json({ error: 'Name is required' }, { status: 400 });
-  }
-
-  // Generate the API key
-  const { key, prefix, hash } = generateApiKey();
-
-  // Calculate expiration date if specified
-  let expiresAt: Date | null = null;
-  if (expiresIn && expiresIn !== 'never') {
-    const daysMap: Record<string, number> = {
-      '30d': 30,
-      '90d': 90,
-      '1y': 365,
-    };
-    const days = daysMap[expiresIn];
-    if (days) {
-      expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request', details: parsed.error.flatten() },
+        { status: 400 }
+      );
     }
-  }
 
-  // Insert the new key
-  const [newKey] = await db
-    .insert(apiKeysTable)
-    .values({
+    const result = await createApiKey(context.orgId, parsed.data);
+
+    // Log audit event
+    logAuditEvent({
       orgId: context.orgId,
-      name: name.trim(),
-      keyHash: hash,
-      keyPrefix: prefix,
-      provider: 'platform',
-      isActive: true,
-      expiresAt,
-    })
-    .returning({
-      id: apiKeysTable.id,
-      name: apiKeysTable.name,
-      keyPrefix: apiKeysTable.keyPrefix,
-      createdAt: apiKeysTable.createdAt,
-      expiresAt: apiKeysTable.expiresAt,
+      userId: context.userId,
+      eventType: 'api_key.created',
+      description: `API key "${parsed.data.name}" created`,
+      resourceType: 'api_key',
+      resourceId: result.id,
+      changes: {
+        after: {
+          name: parsed.data.name,
+          keyPrefix: result.prefix,
+          providerCredentialId: parsed.data.providerCredentialId,
+          paradigmConfig: parsed.data.paradigmConfig,
+        },
+      },
+      metadata: extractRequestMetadata(req),
     });
 
-  // Log audit event
-  logAuditEvent({
-    orgId: context.orgId,
-    userId: context.userId,
-    eventType: 'api_key.created',
-    description: `API key "${name.trim()}" created`,
-    resourceType: 'api_key',
-    resourceId: newKey.id,
-    changes: { after: { name: name.trim(), keyPrefix: prefix, provider: 'platform', expiresAt } },
-    metadata: extractRequestMetadata(req),
-  });
-
-  // Return the full key - this is the only time it will be shown
-  return NextResponse.json({
-    key,
-    id: newKey.id,
-    name: newKey.name,
-    keyPrefix: newKey.keyPrefix,
-    createdAt: newKey.createdAt,
-    expiresAt: newKey.expiresAt,
-  });
-}, { permission: 'api_keys:create' });
+    // Return the full key - this is the only time it will be shown
+    return NextResponse.json({
+      id: result.id,
+      apiKey: result.apiKey,
+      keyPrefix: result.prefix,
+      name: parsed.data.name,
+    });
+  },
+  { permission: 'api_keys:create' }
+);
 
 // =============================================================================
 // DELETE - Delete an API key
 // =============================================================================
 
-export const DELETE = withDashboardAuth(async (req: DashboardRequest) => {
-  const { context } = req;
+export const DELETE = withDashboardAuth(
+  async (req: DashboardRequest) => {
+    const { context } = req;
 
-  const { searchParams } = new URL(req.url);
-  const keyId = searchParams.get('id');
+    const { searchParams } = new URL(req.url);
+    const keyId = searchParams.get('id');
 
-  if (!keyId) {
-    return NextResponse.json({ error: 'Key ID is required' }, { status: 400 });
-  }
+    if (!keyId) {
+      return NextResponse.json({ error: 'Key ID is required' }, { status: 400 });
+    }
 
-  // Ensure key belongs to this org
-  const [keyToDelete] = await db
-    .select({ orgId: apiKeysTable.orgId, name: apiKeysTable.name })
-    .from(apiKeysTable)
-    .where(and(eq(apiKeysTable.id, keyId), eq(apiKeysTable.orgId, context.orgId)));
+    const deleted = await deleteApiKey(context.orgId, keyId);
 
-  if (!keyToDelete) {
-    return NextResponse.json({ error: 'Key not found' }, { status: 404 });
-  }
+    if (!deleted) {
+      return NextResponse.json({ error: 'Key not found' }, { status: 404 });
+    }
 
-  // Soft delete
-  await db
-    .update(apiKeysTable)
-    .set({ isActive: false })
-    .where(eq(apiKeysTable.id, keyId));
-
-  // Log audit event
-  logAuditEvent({
-    orgId: context.orgId,
-    userId: context.userId,
-    eventType: 'api_key.deleted',
-    description: `API key "${keyToDelete.name}" deleted`,
-    resourceType: 'api_key',
-    resourceId: keyId,
-    metadata: extractRequestMetadata(req),
-  });
-
-  return NextResponse.json({ success: true });
-}, { permission: 'api_keys:delete' });
-
-// =============================================================================
-// PATCH - Rotate an API key
-// =============================================================================
-
-export const PATCH = withDashboardAuth(async (req: DashboardRequest) => {
-  const { context } = req;
-
-  const { searchParams } = new URL(req.url);
-  const keyId = searchParams.get('id');
-
-  if (!keyId) {
-    return NextResponse.json({ error: 'Key ID is required' }, { status: 400 });
-  }
-
-  // Verify key belongs to user's org
-  const [existingKey] = await db
-    .select({
-      id: apiKeysTable.id,
-      orgId: apiKeysTable.orgId,
-      name: apiKeysTable.name,
-      expiresAt: apiKeysTable.expiresAt,
-    })
-    .from(apiKeysTable)
-    .where(and(eq(apiKeysTable.id, keyId), eq(apiKeysTable.orgId, context.orgId)));
-
-  if (!existingKey) {
-    return NextResponse.json({ error: 'Key not found' }, { status: 404 });
-  }
-
-  // Deactivate old key
-  await db.update(apiKeysTable).set({ isActive: false }).where(eq(apiKeysTable.id, keyId));
-
-  // Generate new key with same name
-  const { key, prefix, hash } = generateApiKey();
-
-  const [newKey] = await db
-    .insert(apiKeysTable)
-    .values({
+    // Log audit event
+    logAuditEvent({
       orgId: context.orgId,
-      name: existingKey.name,
-      keyHash: hash,
-      keyPrefix: prefix,
-      provider: 'platform',
-      isActive: true,
-      expiresAt: existingKey.expiresAt,
-    })
-    .returning({
-      id: apiKeysTable.id,
-      keyPrefix: apiKeysTable.keyPrefix,
-      createdAt: apiKeysTable.createdAt,
-      expiresAt: apiKeysTable.expiresAt,
+      userId: context.userId,
+      eventType: 'api_key.deleted',
+      description: `API key deleted`,
+      resourceType: 'api_key',
+      resourceId: keyId,
+      metadata: extractRequestMetadata(req),
     });
 
-  // Log audit event
-  logAuditEvent({
-    orgId: context.orgId,
-    userId: context.userId,
-    eventType: 'api_key.created',
-    description: `API key "${existingKey.name}" rotated`,
-    resourceType: 'api_key',
-    resourceId: newKey.id,
-    changes: { before: { keyId }, after: { keyId: newKey.id } },
-    metadata: extractRequestMetadata(req),
-  });
+    return NextResponse.json({ success: true });
+  },
+  { permission: 'api_keys:delete' }
+);
 
-  return NextResponse.json({
-    key,
-    id: newKey.id,
-    name: existingKey.name,
-    keyPrefix: newKey.keyPrefix,
-    previousKeyId: keyId,
-    createdAt: newKey.createdAt,
-    expiresAt: newKey.expiresAt,
-  });
-}, { permission: 'api_keys:create' });
+// =============================================================================
+// PATCH - Update an API key
+// =============================================================================
+
+export const PATCH = withDashboardAuth(
+  async (req: DashboardRequest) => {
+    const { context } = req;
+
+    const { searchParams } = new URL(req.url);
+    const keyId = searchParams.get('id');
+
+    if (!keyId) {
+      return NextResponse.json({ error: 'Key ID is required' }, { status: 400 });
+    }
+
+    const body = await req.json();
+    const { name, providerCredentialId, paradigmConfig, defaultThresholds, isActive } = body;
+
+    const updated = await updateApiKey(context.orgId, keyId, {
+      name,
+      providerCredentialId,
+      paradigmConfig,
+      defaultThresholds,
+      isActive,
+    });
+
+    if (!updated) {
+      return NextResponse.json({ error: 'Key not found' }, { status: 404 });
+    }
+
+    // Log audit event
+    logAuditEvent({
+      orgId: context.orgId,
+      userId: context.userId,
+      eventType: 'api_key.created', // Reusing for updates
+      description: `API key "${name || keyId}" updated`,
+      resourceType: 'api_key',
+      resourceId: keyId,
+      changes: { after: { name, paradigmConfig, isActive } },
+      metadata: extractRequestMetadata(req),
+    });
+
+    return NextResponse.json({ success: true });
+  },
+  { permission: 'api_keys:create' }
+);

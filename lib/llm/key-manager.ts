@@ -298,7 +298,7 @@ export class KeyManager {
     Array<{
       id: string;
       name: string;
-      provider: string;
+      provider: string | null;
       keyPrefix: string;
       isActive: boolean;
       lastUsedAt: Date | null;

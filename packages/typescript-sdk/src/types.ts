@@ -70,9 +70,27 @@ export interface MethodsConfig {
 export interface VerifyOptions {
   /** Timeout in milliseconds (1000-300000) */
   timeout?: number;
-  /** Minimum confidence threshold (0-1) */
+  /** Minimum confidence threshold (0-1) - used with retryOnLowConfidence */
   minConfidence?: number;
+  /** Override default accept threshold (0.95) - auto-approve if confidence >= this */
+  acceptThreshold?: number;
+  /** Override default escalate threshold (0.5) - human review if confidence < this with disagreement */
+  escalateThreshold?: number;
+  /** Per-paradigm retry count (0-5) - retries failed paradigm executions */
+  maxRetries?: number;
+  /** Retry all paradigms once if final confidence < minConfidence */
+  retryOnLowConfidence?: boolean;
 }
+
+/**
+ * Method override - can be just a weight or full config
+ */
+export type MethodOverride = number | {
+  /** Weight for this method */
+  weight: number;
+  /** Override model for this request */
+  model?: string;
+};
 
 /**
  * Verification request payload
@@ -82,8 +100,12 @@ export interface VerifyRequest {
   content: string;
   /** Optional context for verification */
   context?: Record<string, unknown>;
-  /** Verification methods to use */
-  methods: MethodsConfig;
+  /**
+   * Verification methods to use.
+   * Optional if API key has paradigm config.
+   * Can use MethodsConfig (weights only) or MethodOverride (with model overrides)
+   */
+  methods?: MethodsConfig | Record<string, MethodOverride>;
   /** Optional request options */
   options?: VerifyOptions;
   /** Idempotency key for deduplication (max 255 chars) */
@@ -262,6 +284,8 @@ export interface CreateBatchRequest {
   fileId?: string;
   /** Verification methods to use */
   methods: MethodsConfig;
+  /** Optional verification options (thresholds, retries) */
+  options?: VerifyOptions;
   /** Optional webhook URL for completion notification */
   webhookUrl?: string;
   /** Optional metadata */
@@ -280,8 +304,8 @@ export interface CreateBatchResponse {
   totalItems: number;
   /** Validation errors (if any) */
   validationErrors?: Array<{
-    index: number;
-    message: string;
+    row: number;
+    error: string;
   }>;
   /** Status message */
   message: string;
@@ -401,8 +425,8 @@ export interface FileUploadResponse {
   itemCount: number;
   /** Validation errors (items were skipped) */
   validationErrors?: Array<{
-    line: number;
-    message: string;
+    row: number;
+    error: string;
   }>;
   /** ISO 8601 timestamp when file expires */
   expiresAt: string;

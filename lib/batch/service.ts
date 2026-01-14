@@ -24,6 +24,7 @@ import {
   type BatchValidationError,
   type MethodsConfig,
 } from './types';
+import type { VerifyOptions } from '@/lib/verification/types';
 
 // =============================================================================
 // Batch Creation
@@ -98,6 +99,7 @@ export async function createBatch(
       name: request.name || null,
       inputFormat: 'json',
       methodsConfig: request.methods,
+      verifyOptions: request.options || null,
       context: request.context || null,
       status: 'pending',
       totalItems: items.length,
@@ -128,7 +130,8 @@ export async function createBatch(
         itemContext: item.itemContext as Record<string, unknown> | null,
       })),
       orgId,
-      request.methods as MethodsConfig
+      request.methods as MethodsConfig,
+      request.options
     );
 
     await createAuditLog({
@@ -384,6 +387,11 @@ function formatBatchResponse(batch: typeof batchJobsTable.$inferSelect): BatchJo
     id: batch.id,
     name: batch.name,
     status: batch.status,
+    inputFormat: batch.inputFormat,
+    originalFileName: batch.originalFileName,
+    methodsConfig: batch.methodsConfig as MethodsConfig,
+    verifyOptions: batch.verifyOptions as VerifyOptions | null,
+    context: batch.context as Record<string, unknown> | null,
     totalItems: batch.totalItems,
     processedItems: batch.processedItems,
     successCount: batch.successCount,
@@ -392,6 +400,8 @@ function formatBatchResponse(batch: typeof batchJobsTable.$inferSelect): BatchJo
     errorMessage: batch.errorMessage,
     validationErrors: batch.validationErrors as BatchValidationError[] | null,
     totalCostCents: batch.totalCostCents,
+    totalInputTokens: batch.totalInputTokens,
+    totalOutputTokens: batch.totalOutputTokens,
     createdAt: batch.createdAt.toISOString(),
     startedAt: batch.startedAt?.toISOString() || null,
     completedAt: batch.completedAt?.toISOString() || null,
