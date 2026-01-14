@@ -332,6 +332,35 @@ export type InsertApiKey = typeof apiKeysTable.$inferInsert;
 export type SelectApiKey = typeof apiKeysTable.$inferSelect;
 
 // =============================================================================
+// API KEY CREDENTIALS (Junction table for multi-provider support)
+// =============================================================================
+
+export const apiKeyCredentialsTable = pgTable(
+  'api_key_credentials',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    apiKeyId: uuid('api_key_id')
+      .references(() => apiKeysTable.id, { onDelete: 'cascade' })
+      .notNull(),
+    providerCredentialId: uuid('provider_credential_id')
+      .references(() => providerCredentialsTable.id, { onDelete: 'cascade' })
+      .notNull(),
+    isDefault: boolean('is_default').default(false).notNull(),
+    createdAt: timestamptz('created_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    // Unique: one credential assignment per API key
+    uniqueCredential: {
+      columns: [table.apiKeyId, table.providerCredentialId],
+      name: 'api_key_credentials_unique',
+    },
+  })
+);
+
+export type InsertApiKeyCredential = typeof apiKeyCredentialsTable.$inferInsert;
+export type SelectApiKeyCredential = typeof apiKeyCredentialsTable.$inferSelect;
+
+// =============================================================================
 // VERIFICATIONS (Core verification requests)
 // =============================================================================
 
@@ -813,16 +842,29 @@ export const providerCredentialsRelations = relations(providerCredentialsTable, 
     fields: [providerCredentialsTable.orgId],
     references: [organizationsTable.id],
   }),
-  apiKeys: many(apiKeysTable),
+  apiKeys: many(apiKeysTable), // Legacy: direct FK relation
+  apiKeyCredentials: many(apiKeyCredentialsTable), // New: junction table relation
 }));
 
-export const apiKeysRelations = relations(apiKeysTable, ({ one }) => ({
+export const apiKeysRelations = relations(apiKeysTable, ({ one, many }) => ({
   organization: one(organizationsTable, {
     fields: [apiKeysTable.orgId],
     references: [organizationsTable.id],
   }),
   providerCredential: one(providerCredentialsTable, {
     fields: [apiKeysTable.providerCredentialId],
+    references: [providerCredentialsTable.id],
+  }), // Legacy: single credential
+  credentials: many(apiKeyCredentialsTable), // New: multiple credentials via junction
+}));
+
+export const apiKeyCredentialsRelations = relations(apiKeyCredentialsTable, ({ one }) => ({
+  apiKey: one(apiKeysTable, {
+    fields: [apiKeyCredentialsTable.apiKeyId],
+    references: [apiKeysTable.id],
+  }),
+  providerCredential: one(providerCredentialsTable, {
+    fields: [apiKeyCredentialsTable.providerCredentialId],
     references: [providerCredentialsTable.id],
   }),
 }));

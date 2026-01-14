@@ -7,23 +7,30 @@
 
 import crypto from 'crypto';
 import { db } from '@/utils/db/db';
-import { apiKeysTable, providerCredentialsTable } from '@/utils/db/schema';
-import { eq, and, isNull } from 'drizzle-orm';
+import { apiKeysTable, providerCredentialsTable, apiKeyCredentialsTable } from '@/utils/db/schema';
+import { eq, and, isNull, inArray, sql } from 'drizzle-orm';
 import { decrypt } from '@/lib/llm/key-manager';
 import {
   ApiKeyWithConfig,
   ApiKeyParadigmConfig,
   ApiKeyThresholds,
+  ApiKeyCredential,
   CreateApiKeyRequest,
   VerifyRequest,
   ResolvedVerificationConfig,
   ResolvedParadigm,
+  DecryptedCredential,
   DEFAULT_THRESHOLDS,
   DEFAULT_MODELS,
   DEFAULT_ENSEMBLE_MODELS,
   CredentialProvider,
   ProviderConfig,
 } from './types';
+import {
+  validateParadigmCredentials,
+  findCredentialForModel,
+  DecryptedCredentialInfo,
+} from './credential-validator';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('ApiKeyService');
@@ -64,6 +71,7 @@ function generateApiKey(name: string): { key: string; hash: string; prefix: stri
 
 /**
  * Create a new API key with configuration
+ * Supports both single credential (legacy) and multiple credentials (new)
  */
 export async function createApiKey(
   orgId: string,
@@ -71,6 +79,43 @@ export async function createApiKey(
 ): Promise<{ id: string; apiKey: string; prefix: string }> {
   const { key, hash, prefix } = generateApiKey(request.name);
 
+  // Normalize credential IDs - support both legacy single and new multiple
+  const credentialIds: string[] = request.providerCredentialIds ||
+    (request.providerCredentialId ? [request.providerCredentialId] : []);
+
+  if (credentialIds.length === 0) {
+    throw new Error('At least one provider credential is required');
+  }
+
+  // Validate credentials exist and belong to org
+  const credentials = await db
+    .select({ id: providerCredentialsTable.id, provider: providerCredentialsTable.provider })
+    .from(providerCredentialsTable)
+    .where(
+      and(
+        eq(providerCredentialsTable.orgId, orgId),
+        isNull(providerCredentialsTable.deletedAt),
+        inArray(providerCredentialsTable.id, credentialIds)
+      )
+    );
+
+  if (credentials.length !== credentialIds.length) {
+    throw new Error('One or more provider credentials not found');
+  }
+
+  // Validate paradigms have required credentials
+  if (request.paradigmConfig) {
+    const availableProviders = new Set(credentials.map((c) => c.provider));
+    const validation = validateParadigmCredentials(request.paradigmConfig, availableProviders);
+    if (!validation.valid) {
+      throw new Error(`Missing credentials for providers: ${validation.missingProviders.join(', ')}`);
+    }
+  }
+
+  // Determine default credential
+  const defaultCredentialId = request.defaultCredentialId || credentialIds[0];
+
+  // Insert API key (keep providerCredentialId for backward compat - use default)
   const [result] = await db
     .insert(apiKeysTable)
     .values({
@@ -78,7 +123,7 @@ export async function createApiKey(
       name: request.name,
       keyHash: hash,
       keyPrefix: prefix,
-      providerCredentialId: request.providerCredentialId,
+      providerCredentialId: defaultCredentialId, // Legacy field - set to default
       paradigmConfig: request.paradigmConfig,
       defaultThresholds: request.defaultThresholds || null,
       expiresAt: request.expiresAt ? new Date(request.expiresAt) : null,
@@ -86,7 +131,16 @@ export async function createApiKey(
     })
     .returning({ id: apiKeysTable.id });
 
-  log.info({ orgId, name: request.name }, 'API key created');
+  // Insert into junction table
+  await db.insert(apiKeyCredentialsTable).values(
+    credentialIds.map((credId) => ({
+      apiKeyId: result.id,
+      providerCredentialId: credId,
+      isDefault: credId === defaultCredentialId,
+    }))
+  );
+
+  log.info({ orgId, name: request.name, credentialCount: credentialIds.length }, 'API key created');
 
   return {
     id: result.id,
@@ -132,12 +186,13 @@ export async function getApiKeyByHash(keyHash: string): Promise<ApiKeyWithConfig
 }
 
 /**
- * Get an API key by ID with its provider credential
+ * Get an API key by ID with its provider credentials (from junction table)
  */
 export async function getApiKeyWithCredential(
   orgId: string,
   keyId: string
 ): Promise<ApiKeyWithConfig | null> {
+  // Fetch API key
   const [key] = await db
     .select({
       id: apiKeysTable.id,
@@ -152,16 +207,8 @@ export async function getApiKeyWithCredential(
       lastUsedAt: apiKeysTable.lastUsedAt,
       createdAt: apiKeysTable.createdAt,
       updatedAt: apiKeysTable.updatedAt,
-      // Provider credential fields
-      credentialId: providerCredentialsTable.id,
-      credentialName: providerCredentialsTable.name,
-      credentialProvider: providerCredentialsTable.provider,
-      credentialConfig: providerCredentialsTable.config,
-      credentialIsActive: providerCredentialsTable.isActive,
-      credentialValidationStatus: providerCredentialsTable.validationStatus,
     })
     .from(apiKeysTable)
-    .leftJoin(providerCredentialsTable, eq(apiKeysTable.providerCredentialId, providerCredentialsTable.id))
     .where(
       and(eq(apiKeysTable.id, keyId), eq(apiKeysTable.orgId, orgId), isNull(apiKeysTable.deletedAt))
     )
@@ -170,6 +217,49 @@ export async function getApiKeyWithCredential(
   if (!key) {
     return null;
   }
+
+  // Fetch all linked credentials from junction table
+  const credentialLinks = await db
+    .select({
+      id: apiKeyCredentialsTable.id,
+      providerCredentialId: apiKeyCredentialsTable.providerCredentialId,
+      isDefault: apiKeyCredentialsTable.isDefault,
+      createdAt: apiKeyCredentialsTable.createdAt,
+      credentialName: providerCredentialsTable.name,
+      credentialProvider: providerCredentialsTable.provider,
+      credentialConfig: providerCredentialsTable.config,
+      credentialIsActive: providerCredentialsTable.isActive,
+      credentialValidationStatus: providerCredentialsTable.validationStatus,
+    })
+    .from(apiKeyCredentialsTable)
+    .innerJoin(
+      providerCredentialsTable,
+      eq(apiKeyCredentialsTable.providerCredentialId, providerCredentialsTable.id)
+    )
+    .where(eq(apiKeyCredentialsTable.apiKeyId, keyId));
+
+  // Build credentials array
+  const credentials: ApiKeyCredential[] = credentialLinks.map((c) => ({
+    id: c.id,
+    apiKeyId: keyId,
+    providerCredentialId: c.providerCredentialId,
+    isDefault: c.isDefault,
+    createdAt: c.createdAt,
+    credential: {
+      id: c.providerCredentialId,
+      orgId: key.orgId,
+      name: c.credentialName,
+      provider: c.credentialProvider as CredentialProvider,
+      config: c.credentialConfig as ProviderConfig | undefined,
+      isActive: c.credentialIsActive,
+      validationStatus: (c.credentialValidationStatus || 'pending') as 'valid' | 'invalid' | 'pending',
+      createdAt: c.createdAt,
+      updatedAt: c.createdAt, // Junction table doesn't track updates
+    },
+  }));
+
+  // Find default credential for legacy providerCredential field
+  const defaultCred = credentials.find((c) => c.isDefault);
 
   return {
     id: key.id,
@@ -184,19 +274,8 @@ export async function getApiKeyWithCredential(
     lastUsedAt: key.lastUsedAt || undefined,
     createdAt: key.createdAt,
     updatedAt: key.updatedAt,
-    providerCredential: key.credentialId
-      ? {
-          id: key.credentialId,
-          orgId: key.orgId,
-          name: key.credentialName!,
-          provider: key.credentialProvider as CredentialProvider,
-          config: key.credentialConfig as ProviderConfig | undefined,
-          isActive: key.credentialIsActive!,
-          validationStatus: (key.credentialValidationStatus || 'pending') as 'valid' | 'invalid' | 'pending',
-          createdAt: key.createdAt,
-          updatedAt: key.updatedAt,
-        }
-      : undefined,
+    credentials,
+    providerCredential: defaultCred?.credential,
   };
 }
 
@@ -328,34 +407,60 @@ export async function updateLastUsed(keyId: string): Promise<void> {
 
 /**
  * Resolve the full verification configuration for a request
- * Merges API key defaults with request overrides
+ * Fetches all credentials from junction table, merges API key defaults with request overrides
  */
 export async function resolveVerificationConfig(
   apiKey: ApiKeyWithConfig,
   request: VerifyRequest
 ): Promise<ResolvedVerificationConfig> {
-  // Get the provider credential
-  if (!apiKey.providerCredentialId) {
-    throw new Error('API key has no provider credential configured');
-  }
-
-  // Fetch and decrypt the provider credential
-  const [credential] = await db
+  // Fetch all linked credentials from junction table
+  const credentialLinks = await db
     .select({
+      providerCredentialId: apiKeyCredentialsTable.providerCredentialId,
+      isDefault: apiKeyCredentialsTable.isDefault,
       encryptedCredentials: providerCredentialsTable.encryptedCredentials,
       provider: providerCredentialsTable.provider,
       config: providerCredentialsTable.config,
       isActive: providerCredentialsTable.isActive,
     })
-    .from(providerCredentialsTable)
-    .where(eq(providerCredentialsTable.id, apiKey.providerCredentialId))
-    .limit(1);
+    .from(apiKeyCredentialsTable)
+    .innerJoin(
+      providerCredentialsTable,
+      eq(apiKeyCredentialsTable.providerCredentialId, providerCredentialsTable.id)
+    )
+    .where(eq(apiKeyCredentialsTable.apiKeyId, apiKey.id));
 
-  if (!credential || !credential.isActive) {
-    throw new Error('Provider credential not found or inactive');
+  if (credentialLinks.length === 0) {
+    throw new Error('API key has no provider credentials configured');
   }
 
-  const decryptedApiKey = decrypt(credential.encryptedCredentials);
+  // Decrypt all active credentials
+  const decryptedCredentials: DecryptedCredentialInfo[] = credentialLinks
+    .filter((c) => c.isActive)
+    .map((c) => ({
+      provider: c.provider,
+      isDefault: c.isDefault,
+      decryptedKey: decrypt(c.encryptedCredentials),
+      config: c.config as ProviderConfig | undefined,
+    }));
+
+  if (decryptedCredentials.length === 0) {
+    throw new Error('All provider credentials are inactive');
+  }
+
+  // Build credentials map keyed by provider
+  const credentialsMap = new Map<string, DecryptedCredential>();
+  for (const cred of decryptedCredentials) {
+    credentialsMap.set(cred.provider, {
+      provider: cred.provider as CredentialProvider,
+      apiKey: cred.decryptedKey,
+      config: cred.config,
+      isDefault: cred.isDefault,
+    });
+  }
+
+  // Find default credential
+  const defaultCred = decryptedCredentials.find((c) => c.isDefault) || decryptedCredentials[0];
 
   // Resolve paradigms
   const paradigms = resolveParadigms(apiKey.paradigmConfig, request.methods);
@@ -364,15 +469,36 @@ export async function resolveVerificationConfig(
     throw new Error('No paradigms configured. At least one paradigm must be enabled.');
   }
 
+  // Validate each paradigm has a usable credential
+  for (const paradigm of paradigms) {
+    const models = paradigm.models || [paradigm.model];
+    for (const model of models) {
+      const cred = findCredentialForModel(model, decryptedCredentials);
+      if (!cred) {
+        throw new Error(`No credential available for model: ${model}`);
+      }
+    }
+  }
+
   // Resolve thresholds
   const keyThresholds = apiKey.defaultThresholds || {};
   const requestOptions = request.options || {};
 
   return {
-    providerCredentialId: apiKey.providerCredentialId,
-    decryptedApiKey,
-    provider: credential.provider as CredentialProvider,
-    providerConfig: credential.config as ProviderConfig | undefined,
+    // New: multiple credentials
+    credentials: credentialsMap,
+    defaultCredential: {
+      provider: defaultCred.provider as CredentialProvider,
+      apiKey: defaultCred.decryptedKey,
+      config: defaultCred.config,
+      isDefault: true,
+    },
+    // Legacy fields (for backward compat)
+    providerCredentialId: apiKey.providerCredentialId || credentialLinks[0].providerCredentialId,
+    decryptedApiKey: defaultCred.decryptedKey,
+    provider: defaultCred.provider as CredentialProvider,
+    providerConfig: defaultCred.config,
+    // Paradigms and thresholds
     paradigms,
     acceptThreshold: requestOptions.acceptThreshold ?? keyThresholds.acceptThreshold ?? DEFAULT_THRESHOLDS.acceptThreshold,
     escalateThreshold: requestOptions.escalateThreshold ?? keyThresholds.escalateThreshold ?? DEFAULT_THRESHOLDS.escalateThreshold,
@@ -449,6 +575,287 @@ function resolveParadigms(
   }
 
   return paradigms;
+}
+
+// =============================================================================
+// CREDENTIAL MANAGEMENT
+// =============================================================================
+
+/**
+ * Add a credential to an API key
+ */
+export async function addCredentialToApiKey(
+  orgId: string,
+  apiKeyId: string,
+  credentialId: string,
+  setAsDefault: boolean = false
+): Promise<{ success: boolean; error?: string }> {
+  // Verify API key ownership
+  const [apiKey] = await db
+    .select({ id: apiKeysTable.id })
+    .from(apiKeysTable)
+    .where(
+      and(eq(apiKeysTable.id, apiKeyId), eq(apiKeysTable.orgId, orgId), isNull(apiKeysTable.deletedAt))
+    );
+
+  if (!apiKey) {
+    return { success: false, error: 'API key not found' };
+  }
+
+  // Verify credential ownership
+  const [credential] = await db
+    .select({ id: providerCredentialsTable.id })
+    .from(providerCredentialsTable)
+    .where(
+      and(
+        eq(providerCredentialsTable.id, credentialId),
+        eq(providerCredentialsTable.orgId, orgId),
+        isNull(providerCredentialsTable.deletedAt)
+      )
+    );
+
+  if (!credential) {
+    return { success: false, error: 'Provider credential not found' };
+  }
+
+  // If setting as default, unset existing default
+  if (setAsDefault) {
+    await db
+      .update(apiKeyCredentialsTable)
+      .set({ isDefault: false })
+      .where(
+        and(eq(apiKeyCredentialsTable.apiKeyId, apiKeyId), eq(apiKeyCredentialsTable.isDefault, true))
+      );
+
+    // Also update legacy providerCredentialId field
+    await db
+      .update(apiKeysTable)
+      .set({ providerCredentialId: credentialId, updatedAt: new Date() })
+      .where(eq(apiKeysTable.id, apiKeyId));
+  }
+
+  // Check if this is the first credential (should be default)
+  const existingCount = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(apiKeyCredentialsTable)
+    .where(eq(apiKeyCredentialsTable.apiKeyId, apiKeyId));
+
+  const isFirstCredential = Number(existingCount[0].count) === 0;
+  const shouldBeDefault = setAsDefault || isFirstCredential;
+
+  // Insert (or update if duplicate)
+  try {
+    await db.insert(apiKeyCredentialsTable).values({
+      apiKeyId,
+      providerCredentialId: credentialId,
+      isDefault: shouldBeDefault,
+    });
+  } catch (err: unknown) {
+    // Check for unique constraint violation
+    if (err instanceof Error && err.message.includes('unique')) {
+      return { success: false, error: 'Credential already attached to this API key' };
+    }
+    throw err;
+  }
+
+  log.info({ apiKeyId, credentialId, isDefault: shouldBeDefault }, 'Credential added to API key');
+  return { success: true };
+}
+
+/**
+ * Remove a credential from an API key
+ */
+export async function removeCredentialFromApiKey(
+  orgId: string,
+  apiKeyId: string,
+  credentialId: string
+): Promise<{ success: boolean; error?: string }> {
+  // Verify API key ownership
+  const [apiKey] = await db
+    .select({ id: apiKeysTable.id })
+    .from(apiKeysTable)
+    .where(
+      and(eq(apiKeysTable.id, apiKeyId), eq(apiKeysTable.orgId, orgId), isNull(apiKeysTable.deletedAt))
+    );
+
+  if (!apiKey) {
+    return { success: false, error: 'API key not found' };
+  }
+
+  // Count remaining credentials
+  const countResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(apiKeyCredentialsTable)
+    .where(eq(apiKeyCredentialsTable.apiKeyId, apiKeyId));
+
+  if (Number(countResult[0].count) <= 1) {
+    return { success: false, error: 'Cannot remove last credential. API key must have at least one credential.' };
+  }
+
+  // Check if removing default
+  const [link] = await db
+    .select({ isDefault: apiKeyCredentialsTable.isDefault })
+    .from(apiKeyCredentialsTable)
+    .where(
+      and(
+        eq(apiKeyCredentialsTable.apiKeyId, apiKeyId),
+        eq(apiKeyCredentialsTable.providerCredentialId, credentialId)
+      )
+    );
+
+  if (!link) {
+    return { success: false, error: 'Credential not attached to this API key' };
+  }
+
+  // Delete the link
+  await db
+    .delete(apiKeyCredentialsTable)
+    .where(
+      and(
+        eq(apiKeyCredentialsTable.apiKeyId, apiKeyId),
+        eq(apiKeyCredentialsTable.providerCredentialId, credentialId)
+      )
+    );
+
+  // If we removed the default, promote another
+  if (link.isDefault) {
+    const [nextCredential] = await db
+      .select({ id: apiKeyCredentialsTable.id, providerCredentialId: apiKeyCredentialsTable.providerCredentialId })
+      .from(apiKeyCredentialsTable)
+      .where(eq(apiKeyCredentialsTable.apiKeyId, apiKeyId))
+      .limit(1);
+
+    if (nextCredential) {
+      await db
+        .update(apiKeyCredentialsTable)
+        .set({ isDefault: true })
+        .where(eq(apiKeyCredentialsTable.id, nextCredential.id));
+
+      // Update legacy providerCredentialId field
+      await db
+        .update(apiKeysTable)
+        .set({ providerCredentialId: nextCredential.providerCredentialId, updatedAt: new Date() })
+        .where(eq(apiKeysTable.id, apiKeyId));
+    }
+  }
+
+  log.info({ apiKeyId, credentialId }, 'Credential removed from API key');
+  return { success: true };
+}
+
+/**
+ * Set a credential as default for an API key
+ */
+export async function setDefaultCredential(
+  orgId: string,
+  apiKeyId: string,
+  credentialId: string
+): Promise<{ success: boolean; error?: string }> {
+  // Verify API key ownership
+  const [apiKey] = await db
+    .select({ id: apiKeysTable.id })
+    .from(apiKeysTable)
+    .where(
+      and(eq(apiKeysTable.id, apiKeyId), eq(apiKeysTable.orgId, orgId), isNull(apiKeysTable.deletedAt))
+    );
+
+  if (!apiKey) {
+    return { success: false, error: 'API key not found' };
+  }
+
+  // Verify the credential is attached to this API key
+  const [link] = await db
+    .select({ id: apiKeyCredentialsTable.id })
+    .from(apiKeyCredentialsTable)
+    .where(
+      and(
+        eq(apiKeyCredentialsTable.apiKeyId, apiKeyId),
+        eq(apiKeyCredentialsTable.providerCredentialId, credentialId)
+      )
+    );
+
+  if (!link) {
+    return { success: false, error: 'Credential not attached to this API key' };
+  }
+
+  // Unset existing default
+  await db
+    .update(apiKeyCredentialsTable)
+    .set({ isDefault: false })
+    .where(eq(apiKeyCredentialsTable.apiKeyId, apiKeyId));
+
+  // Set new default
+  await db
+    .update(apiKeyCredentialsTable)
+    .set({ isDefault: true })
+    .where(eq(apiKeyCredentialsTable.id, link.id));
+
+  // Update legacy providerCredentialId field
+  await db
+    .update(apiKeysTable)
+    .set({ providerCredentialId: credentialId, updatedAt: new Date() })
+    .where(eq(apiKeysTable.id, apiKeyId));
+
+  log.info({ apiKeyId, credentialId }, 'Default credential updated');
+  return { success: true };
+}
+
+/**
+ * List all credentials for an API key
+ */
+export async function listApiKeyCredentials(
+  orgId: string,
+  apiKeyId: string
+): Promise<ApiKeyCredential[]> {
+  // Verify API key ownership
+  const [apiKey] = await db
+    .select({ id: apiKeysTable.id })
+    .from(apiKeysTable)
+    .where(
+      and(eq(apiKeysTable.id, apiKeyId), eq(apiKeysTable.orgId, orgId), isNull(apiKeysTable.deletedAt))
+    );
+
+  if (!apiKey) {
+    return [];
+  }
+
+  const links = await db
+    .select({
+      id: apiKeyCredentialsTable.id,
+      providerCredentialId: apiKeyCredentialsTable.providerCredentialId,
+      isDefault: apiKeyCredentialsTable.isDefault,
+      createdAt: apiKeyCredentialsTable.createdAt,
+      credentialName: providerCredentialsTable.name,
+      credentialProvider: providerCredentialsTable.provider,
+      credentialConfig: providerCredentialsTable.config,
+      credentialIsActive: providerCredentialsTable.isActive,
+      credentialValidationStatus: providerCredentialsTable.validationStatus,
+    })
+    .from(apiKeyCredentialsTable)
+    .innerJoin(
+      providerCredentialsTable,
+      eq(apiKeyCredentialsTable.providerCredentialId, providerCredentialsTable.id)
+    )
+    .where(eq(apiKeyCredentialsTable.apiKeyId, apiKeyId));
+
+  return links.map((c) => ({
+    id: c.id,
+    apiKeyId,
+    providerCredentialId: c.providerCredentialId,
+    isDefault: c.isDefault,
+    createdAt: c.createdAt,
+    credential: {
+      id: c.providerCredentialId,
+      orgId,
+      name: c.credentialName,
+      provider: c.credentialProvider as CredentialProvider,
+      config: c.credentialConfig as ProviderConfig | undefined,
+      isActive: c.credentialIsActive,
+      validationStatus: (c.credentialValidationStatus || 'pending') as 'valid' | 'invalid' | 'pending',
+      createdAt: c.createdAt,
+      updatedAt: c.createdAt,
+    },
+  }));
 }
 
 // =============================================================================

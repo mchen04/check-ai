@@ -121,6 +121,23 @@ export interface ApiKeyThresholds {
 }
 
 // =============================================================================
+// API KEY CREDENTIAL (Junction table type)
+// =============================================================================
+
+/**
+ * API key to provider credential link
+ */
+export interface ApiKeyCredential {
+  id: string;
+  apiKeyId: string;
+  providerCredentialId: string;
+  isDefault: boolean;
+  createdAt: Date;
+  // Joined data
+  credential?: ProviderCredential;
+}
+
+// =============================================================================
 // API KEY TYPES
 // =============================================================================
 
@@ -132,7 +149,7 @@ export interface ApiKeyWithConfig {
   orgId: string;
   name: string;
   keyPrefix: string;
-  providerCredentialId: string | null;
+  providerCredentialId: string | null; // Legacy: single credential (kept for backward compat)
   paradigmConfig: ApiKeyParadigmConfig | null;
   defaultThresholds: ApiKeyThresholds | null;
   isActive: boolean;
@@ -142,7 +159,8 @@ export interface ApiKeyWithConfig {
   updatedAt: Date;
 
   // Joined data
-  providerCredential?: ProviderCredential;
+  providerCredential?: ProviderCredential; // Legacy: single credential
+  credentials?: ApiKeyCredential[]; // New: multiple credentials via junction table
 }
 
 // =============================================================================
@@ -191,10 +209,17 @@ const ensembleConfigSchema = z.union([
 
 /**
  * Create API key request
+ * Supports multiple provider credentials for multi-provider paradigm configurations
  */
 export const createApiKeySchema = z.object({
   name: z.string().min(1).max(100),
-  providerCredentialId: z.string().uuid(),
+  // Support both single credential (legacy) and multiple credentials (new)
+  providerCredentialId: z.string().uuid().optional(), // Legacy: single credential
+  providerCredentialIds: z
+    .array(z.string().uuid())
+    .min(1, 'At least one provider credential is required')
+    .optional(), // New: multiple credentials
+  defaultCredentialId: z.string().uuid().optional(), // Which credential is default (if multiple)
   paradigmConfig: z.object({
     reasoning: z
       .object({
@@ -254,7 +279,10 @@ export const createApiKeySchema = z.object({
     })
     .optional(),
   expiresAt: z.string().datetime().optional(),
-});
+}).refine(
+  (data) => data.providerCredentialId || (data.providerCredentialIds && data.providerCredentialIds.length > 0),
+  { message: 'Either providerCredentialId or providerCredentialIds must be provided' }
+);
 
 export type CreateApiKeyRequest = z.infer<typeof createApiKeySchema>;
 
@@ -311,10 +339,26 @@ export interface ResolvedParadigm {
 }
 
 /**
+ * Decrypted credential ready for use
+ */
+export interface DecryptedCredential {
+  provider: CredentialProvider;
+  apiKey: string;
+  config?: ProviderConfig;
+  isDefault: boolean;
+}
+
+/**
  * Fully resolved configuration for verification
  */
 export interface ResolvedVerificationConfig {
-  // Provider credential to use
+  // All available credentials (keyed by provider)
+  credentials: Map<string, DecryptedCredential>;
+
+  // Default credential for fallback
+  defaultCredential: DecryptedCredential;
+
+  // Legacy fields (for backward compat)
   providerCredentialId: string;
   decryptedApiKey: string;
   provider: CredentialProvider;

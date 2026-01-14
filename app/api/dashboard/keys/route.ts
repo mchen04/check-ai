@@ -24,7 +24,7 @@ export const GET = withDashboardAuth(
       id: key.id,
       name: key.name,
       keyPrefix: key.keyPrefix,
-      providerCredentialId: key.providerCredentialId,
+      providerCredentialId: key.providerCredentialId, // Legacy
       providerCredential: key.providerCredential
         ? {
             id: key.providerCredential.id,
@@ -32,6 +32,20 @@ export const GET = withDashboardAuth(
             provider: key.providerCredential.provider,
           }
         : null,
+      // New: multiple credentials
+      credentials: key.credentials?.map((c) => ({
+        id: c.id,
+        providerCredentialId: c.providerCredentialId,
+        isDefault: c.isDefault,
+        credential: c.credential
+          ? {
+              id: c.credential.id,
+              name: c.credential.name,
+              provider: c.credential.provider,
+              isActive: c.credential.isActive,
+            }
+          : null,
+      })),
       paradigmConfig: key.paradigmConfig,
       defaultThresholds: key.defaultThresholds,
       isActive: key.isActive,
@@ -77,7 +91,7 @@ export const POST = withDashboardAuth(
         after: {
           name: parsed.data.name,
           keyPrefix: result.prefix,
-          providerCredentialId: parsed.data.providerCredentialId,
+          providerCredentialIds: parsed.data.providerCredentialIds || [parsed.data.providerCredentialId],
           paradigmConfig: parsed.data.paradigmConfig,
         },
       },
