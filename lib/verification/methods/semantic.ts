@@ -10,6 +10,7 @@
 import OpenAI from 'openai';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions, Verdict } from '../types';
 import { calculateCostCents } from '@/lib/llm/types';
+import { createParadigmErrorResult } from './shared';
 
 // =============================================================================
 // EMBEDDING CONFIGURATION
@@ -112,18 +113,14 @@ export class SemanticParadigm implements ParadigmExecutor {
         },
       };
     } catch (error) {
-      return {
-        paradigm: 'semantic',
-        weight: options.weight,
-        provider: 'openai',
-        model: EMBEDDING_MODEL,
-        verdict: null,
-        confidence: 0,
-        reasoning: null,
-        processingTimeMs: Date.now() - startTime,
-        costCents: 0,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
+      return createParadigmErrorResult(
+        'semantic',
+        options.weight,
+        'openai',
+        EMBEDDING_MODEL,
+        Date.now() - startTime,
+        error
+      );
     }
   }
 

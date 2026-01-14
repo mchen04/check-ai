@@ -11,6 +11,12 @@ import { LLMClient } from '@/lib/llm/client';
 import { ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm/types';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions, Verdict } from '../types';
 import { ENTROPY_SYSTEM_PROMPT, ENTROPY_USER_PROMPT } from '../prompts';
+import {
+  createParadigmErrorResult,
+  normalizeVerdict,
+  normalizeConfidence,
+  extractJsonFromResponse,
+} from './shared';
 
 // =============================================================================
 // ENTROPY CONFIGURATION
@@ -32,60 +38,28 @@ interface EntropyResponse {
   reasoning: string;
 }
 
+const DEFAULT_ENTROPY_RESPONSE: EntropyResponse = {
+  verdict: 'uncertain',
+  confidence: 0.5,
+  paraphrases: [],
+  consistencyScore: 0.5,
+  reasoning: 'No reasoning provided',
+};
+
 function parseEntropyResponse(response: string): EntropyResponse {
-  try {
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No JSON found in response');
-    }
+  const parsed = extractJsonFromResponse<Record<string, unknown>>(response, {});
 
-    const parsed = JSON.parse(jsonMatch[0]);
-
-    // Normalize verdict
-    let verdict: Verdict = 'uncertain';
-    if (parsed.verdict) {
-      const v = parsed.verdict.toString().toLowerCase();
-      if (v === 'true' || v === 'yes' || v === 'accurate') {
-        verdict = 'true';
-      } else if (v === 'false' || v === 'no' || v === 'inaccurate') {
-        verdict = 'false';
-      }
-    }
-
-    // Normalize confidence
-    let confidence = 0.5;
-    if (typeof parsed.confidence === 'number') {
-      confidence = Math.max(0, Math.min(1, parsed.confidence));
-    }
-
-    // Extract consistency score
-    let consistencyScore = 0.5;
-    if (
-      typeof parsed.consistency_score === 'number' ||
-      typeof parsed.consistencyScore === 'number'
-    ) {
-      consistencyScore = Math.max(
-        0,
-        Math.min(1, parsed.consistency_score || parsed.consistencyScore)
-      );
-    }
-
-    return {
-      verdict,
-      confidence,
-      paraphrases: parsed.paraphrases || [],
-      consistencyScore,
-      reasoning: parsed.reasoning || 'No reasoning provided',
-    };
-  } catch {
-    return {
-      verdict: 'uncertain',
-      confidence: 0.5,
-      paraphrases: [],
-      consistencyScore: 0.5,
-      reasoning: response.slice(0, 500),
-    };
+  if (Object.keys(parsed).length === 0) {
+    return { ...DEFAULT_ENTROPY_RESPONSE, reasoning: response.slice(0, 500) };
   }
+
+  return {
+    verdict: normalizeVerdict(parsed.verdict),
+    confidence: normalizeConfidence(parsed.confidence),
+    paraphrases: Array.isArray(parsed.paraphrases) ? parsed.paraphrases : [],
+    consistencyScore: normalizeConfidence(parsed.consistency_score ?? parsed.consistencyScore),
+    reasoning: String(parsed.reasoning || 'No reasoning provided'),
+  };
 }
 
 // =============================================================================
@@ -297,18 +271,14 @@ ${parsed.reasoning}
         },
       };
     } catch (error) {
-      return {
-        paradigm: 'entropy',
-        weight: options.weight,
+      return createParadigmErrorResult(
+        'entropy',
+        options.weight,
         provider,
         model,
-        verdict: null,
-        confidence: 0,
-        reasoning: null,
-        processingTimeMs: Date.now() - startTime,
-        costCents: 0,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
+        Date.now() - startTime,
+        error
+      );
     }
   }
 

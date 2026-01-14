@@ -7,15 +7,16 @@
  * Security: Requires authenticated user with organization access
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
 import { verificationsTable, paradigmResultsTable } from '@/utils/db/schema';
 import { eq, and, gte, lte, desc } from 'drizzle-orm';
-import { getUserOrgContext, checkPermission } from '@/lib/rbac/get-user-org';
+import { withDashboardAuth, type DashboardRequest } from '@/lib/api/dashboard-middleware';
+import { parseDecimal, formatRequiredDateToISO, formatDateToISO, formatDateForFilename } from '@/lib/api/formatters';
+import { parseAndValidate } from '@/lib/api/validation';
 import {
-  ExportRequest,
+  ExportRequestSchema,
   VerificationExport,
-  MAX_EXPORT_LIMIT,
 } from '@/lib/export/types';
 
 /**
@@ -88,177 +89,135 @@ function convertToCSV(
   return [headers.join(','), ...rows].join('\n');
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    // Authenticate user
-    const context = await getUserOrgContext();
-    if (!context) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+async function postHandler(req: DashboardRequest) {
+  const { context } = req;
 
-    // Check permission for viewing usage/exports
-    const { allowed, reason } = checkPermission(context, 'usage:view');
-    if (!allowed) {
-      return NextResponse.json({ error: reason }, { status: 403 });
-    }
+  // Parse and validate request body using shared utility
+  const result = await parseAndValidate(req, ExportRequestSchema);
+  if (!result.success) return result.error;
 
-    // Parse request body
-    let body: ExportRequest;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-    }
+  const { format, startDate: startDateStr, endDate: endDateStr, includeParadigmResults, limit } = result.data;
 
-    // Validate format
-    if (!body.format || !['csv', 'json'].includes(body.format)) {
-      return NextResponse.json(
-        { error: 'Invalid format. Must be "csv" or "json"' },
-        { status: 400 }
-      );
-    }
+  // Convert date strings to Date objects
+  const startDate = startDateStr ? new Date(startDateStr) : undefined;
+  const endDate = endDateStr ? new Date(endDateStr) : undefined;
 
-    // Parse and validate dates
-    let startDate: Date | undefined;
-    let endDate: Date | undefined;
+  // Build query conditions
+  const conditions = [eq(verificationsTable.orgId, context.orgId)];
 
-    if (body.startDate) {
-      startDate = new Date(body.startDate);
-      if (isNaN(startDate.getTime())) {
-        return NextResponse.json({ error: 'Invalid startDate' }, { status: 400 });
-      }
-    }
+  if (startDate) {
+    conditions.push(gte(verificationsTable.createdAt, startDate));
+  }
 
-    if (body.endDate) {
-      endDate = new Date(body.endDate);
-      if (isNaN(endDate.getTime())) {
-        return NextResponse.json({ error: 'Invalid endDate' }, { status: 400 });
-      }
-    }
+  if (endDate) {
+    conditions.push(lte(verificationsTable.createdAt, endDate));
+  }
 
-    // Validate and set limit
-    const limit = Math.min(body.limit || MAX_EXPORT_LIMIT, MAX_EXPORT_LIMIT);
-    const includeParadigmResults = body.includeParadigmResults ?? false;
+  // Fetch verifications
+  const verifications = await db
+    .select({
+      id: verificationsTable.id,
+      content: verificationsTable.content,
+      verdict: verificationsTable.finalVerdict,
+      confidence: verificationsTable.confidenceScore,
+      decision: verificationsTable.decision,
+      status: verificationsTable.status,
+      processingTimeMs: verificationsTable.processingTimeMs,
+      costCents: verificationsTable.costCents,
+      createdAt: verificationsTable.createdAt,
+      completedAt: verificationsTable.completedAt,
+    })
+    .from(verificationsTable)
+    .where(and(...conditions))
+    .orderBy(desc(verificationsTable.createdAt))
+    .limit(limit);
 
-    // Build query conditions
-    const conditions = [eq(verificationsTable.orgId, context.orgId)];
+  // Format export data using shared formatters
+  let exportData: VerificationExport[] = verifications.map((v) => ({
+    id: v.id,
+    content: v.content,
+    verdict: v.verdict,
+    confidence: parseDecimal(v.confidence),
+    decision: v.decision,
+    status: v.status,
+    processingTimeMs: v.processingTimeMs,
+    costCents: v.costCents,
+    createdAt: formatRequiredDateToISO(v.createdAt),
+    completedAt: formatDateToISO(v.completedAt),
+  }));
 
-    if (startDate) {
-      conditions.push(gte(verificationsTable.createdAt, startDate));
-    }
+  // Fetch paradigm results if requested
+  if (includeParadigmResults && exportData.length > 0) {
+    const verificationIds = exportData.map((v) => v.id);
 
-    if (endDate) {
-      conditions.push(lte(verificationsTable.createdAt, endDate));
-    }
-
-    // Fetch verifications
-    const verifications = await db
+    // Fetch all paradigm results for these verifications using IN clause
+    const { inArray } = await import('drizzle-orm');
+    const allParadigmResults = await db
       .select({
-        id: verificationsTable.id,
-        content: verificationsTable.content,
-        verdict: verificationsTable.finalVerdict,
-        confidence: verificationsTable.confidenceScore,
-        decision: verificationsTable.decision,
-        status: verificationsTable.status,
-        processingTimeMs: verificationsTable.processingTimeMs,
-        costCents: verificationsTable.costCents,
-        createdAt: verificationsTable.createdAt,
-        completedAt: verificationsTable.completedAt,
+        verificationId: paradigmResultsTable.verificationId,
+        paradigm: paradigmResultsTable.paradigmType,
+        verdict: paradigmResultsTable.verdict,
+        confidence: paradigmResultsTable.confidence,
+        reasoning: paradigmResultsTable.reasoning,
       })
-      .from(verificationsTable)
-      .where(and(...conditions))
-      .orderBy(desc(verificationsTable.createdAt))
-      .limit(limit);
+      .from(paradigmResultsTable)
+      .where(inArray(paradigmResultsTable.verificationId, verificationIds));
 
-    // Format export data
-    let exportData: VerificationExport[] = verifications.map((v) => ({
-      id: v.id,
-      content: v.content,
-      verdict: v.verdict,
-      confidence: v.confidence ? parseFloat(v.confidence) : null,
-      decision: v.decision,
-      status: v.status,
-      processingTimeMs: v.processingTimeMs,
-      costCents: v.costCents,
-      createdAt: v.createdAt.toISOString(),
-      completedAt: v.completedAt?.toISOString() || null,
-    }));
+    // Group paradigm results by verification ID
+    const paradigmResultsMap = new Map<
+      string,
+      Array<{
+        paradigm: string;
+        verdict: string | null;
+        confidence: number | null;
+        reasoning: string | null;
+      }>
+    >();
 
-    // Fetch paradigm results if requested
-    if (includeParadigmResults && exportData.length > 0) {
-      const verificationIds = exportData.map((v) => v.id);
-
-      // Fetch all paradigm results for these verifications using IN clause
-      const { inArray } = await import('drizzle-orm');
-      const allParadigmResults = await db
-        .select({
-          verificationId: paradigmResultsTable.verificationId,
-          paradigm: paradigmResultsTable.paradigmType,
-          verdict: paradigmResultsTable.verdict,
-          confidence: paradigmResultsTable.confidence,
-          reasoning: paradigmResultsTable.reasoning,
-        })
-        .from(paradigmResultsTable)
-        .where(inArray(paradigmResultsTable.verificationId, verificationIds));
-
-      // Group paradigm results by verification ID
-      const paradigmResultsMap = new Map<
-        string,
-        Array<{
-          paradigm: string;
-          verdict: string | null;
-          confidence: number | null;
-          reasoning: string | null;
-        }>
-      >();
-
-      for (const result of allParadigmResults) {
-        const existing = paradigmResultsMap.get(result.verificationId) || [];
-        existing.push({
-          paradigm: result.paradigm,
-          verdict: result.verdict,
-          confidence: result.confidence ? parseFloat(result.confidence) : null,
-          reasoning: result.reasoning,
-        });
-        paradigmResultsMap.set(result.verificationId, existing);
-      }
-
-      // Attach paradigm results to export data
-      exportData = exportData.map((v) => ({
-        ...v,
-        paradigmResults: paradigmResultsMap.get(v.id) || [],
-      }));
-    }
-
-    // Generate response based on format
-    if (body.format === 'csv') {
-      const csv = convertToCSV(exportData, includeParadigmResults);
-      const filename = `verifications-export-${new Date().toISOString().split('T')[0]}.csv`;
-
-      return new NextResponse(csv, {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/csv',
-          'Content-Disposition': `attachment; filename="${filename}"`,
-        },
+    for (const result of allParadigmResults) {
+      const existing = paradigmResultsMap.get(result.verificationId) || [];
+      existing.push({
+        paradigm: result.paradigm,
+        verdict: result.verdict,
+        confidence: parseDecimal(result.confidence),
+        reasoning: result.reasoning,
       });
+      paradigmResultsMap.set(result.verificationId, existing);
     }
 
-    // JSON format
-    const filename = `verifications-export-${new Date().toISOString().split('T')[0]}.json`;
+    // Attach paradigm results to export data
+    exportData = exportData.map((v) => ({
+      ...v,
+      paradigmResults: paradigmResultsMap.get(v.id) || [],
+    }));
+  }
 
-    return new NextResponse(JSON.stringify({ data: exportData, count: exportData.length }, null, 2), {
+  // Generate response based on format
+  const dateStr = formatDateForFilename();
+
+  if (format === 'csv') {
+    const csv = convertToCSV(exportData, includeParadigmResults);
+
+    return new NextResponse(csv, {
       status: 200,
       headers: {
-        'Content-Type': 'application/json',
-        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Type': 'text/csv',
+        'Content-Disposition': `attachment; filename="verifications-export-${dateStr}.csv"`,
       },
     });
-  } catch (error) {
-    console.error('Error exporting data:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+
+  // JSON format
+  return new NextResponse(JSON.stringify({ data: exportData, count: exportData.length }, null, 2), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Disposition': `attachment; filename="verifications-export-${dateStr}.json"`,
+    },
+  });
 }
+
+export const POST = withDashboardAuth(postHandler, { permission: 'usage:view' });
 
 // GET endpoint for documentation
 export async function GET() {

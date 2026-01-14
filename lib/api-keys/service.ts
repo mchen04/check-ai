@@ -10,6 +10,7 @@ import { db, withTransaction, DbOrTx } from '@/utils/db/db';
 import { apiKeysTable, providerCredentialsTable, apiKeyCredentialsTable } from '@/utils/db/schema';
 import { eq, and, isNull, inArray, sql } from 'drizzle-orm';
 import { decrypt } from '@/lib/llm/key-manager';
+import { isDateExpired } from '@/lib/api/formatters';
 import {
   ApiKeyWithConfig,
   ApiKeyParadigmConfig,
@@ -891,7 +892,7 @@ export async function authenticateApiKey(
     return { success: false, error: 'API key is inactive' };
   }
 
-  if (apiKey.expiresAt && new Date(apiKey.expiresAt) < new Date()) {
+  if (isDateExpired(apiKey.expiresAt)) {
     return { success: false, error: 'API key has expired' };
   }
 

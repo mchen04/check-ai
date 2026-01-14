@@ -15,6 +15,12 @@ import {
   REASONING_USER_PROMPT,
   parseVerificationResponse,
 } from '../prompts';
+import {
+  getDefaultModel,
+  selectBestProvider,
+  createParadigmErrorResult,
+  REASONING_PROVIDER_PREFERENCE,
+} from './shared';
 
 // =============================================================================
 // REASONING PARADIGM EXECUTOR
@@ -35,9 +41,9 @@ export class ReasoningParadigm implements ParadigmExecutor {
   ): Promise<ParadigmResult> {
     const startTime = Date.now();
 
-    // Determine provider and model
-    const provider: LLMProvider = options.provider || this.selectBestProvider();
-    const model = options.model || this.getDefaultModel(provider);
+    // Determine provider and model using shared utilities
+    const provider: LLMProvider = options.provider || selectBestProvider(this.llmClient, REASONING_PROVIDER_PREFERENCE);
+    const model = options.model || getDefaultModel(provider);
 
     try {
       const response = await this.llmClient.complete(
@@ -77,65 +83,15 @@ export class ReasoningParadigm implements ParadigmExecutor {
         },
       };
     } catch (error) {
-      return {
-        paradigm: 'reasoning',
-        weight: options.weight,
+      return createParadigmErrorResult(
+        'reasoning',
+        options.weight,
         provider,
         model,
-        verdict: null,
-        confidence: 0,
-        reasoning: null,
-        processingTimeMs: Date.now() - startTime,
-        costCents: 0,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
+        Date.now() - startTime,
+        error
+      );
     }
-  }
-
-  private selectBestProvider(): LLMProvider {
-    // Prefer providers in order of quality for reasoning tasks
-    const preferredOrder: LLMProvider[] = [
-      'anthropic', // Claude excels at reasoning
-      'openai',
-      'google',
-      'deepseek',
-      'groq',
-    ];
-
-    for (const provider of preferredOrder) {
-      if (this.llmClient.hasProvider(provider)) {
-        return provider;
-      }
-    }
-
-    return 'openai'; // Default fallback
-  }
-
-  private getDefaultModel(provider: LLMProvider): string {
-    const models: Record<LLMProvider, string> = {
-      // Tier 1: First-party providers
-      openai: 'gpt-4.1',
-      anthropic: 'claude-sonnet-4-5-20250929',
-      google: 'gemini-2.5-flash',
-      xai: 'grok-4',
-      mistral: 'mistral-large-latest',
-      cohere: 'command-r-plus',
-      deepseek: 'deepseek-chat',
-      // Tier 2: Cloud providers
-      azure: 'gpt-4o',
-      bedrock: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
-      // Tier 3: Inference providers
-      groq: 'llama-3.3-70b-versatile',
-      together: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
-      fireworks: 'accounts/fireworks/models/llama-v3p3-70b-instruct',
-      cerebras: 'llama3.3-70b',
-      perplexity: 'sonar-pro',
-      // Tier 4: Gateways
-      openrouter: 'anthropic/claude-3.5-sonnet',
-      // Legacy
-      replicate: 'meta/llama-2-70b-chat',
-    };
-    return models[provider] || 'gpt-4.1';
   }
 }
 

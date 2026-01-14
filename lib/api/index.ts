@@ -2,8 +2,15 @@
  * API Module Exports
  */
 
-// Types
+// Types and Utilities
 export * from './types';
+export { parsePagination, createPaginationResponse, PAGINATION_DEFAULTS } from './types';
+
+// Formatters
+export * from './formatters';
+
+// Validation
+export * from './validation';
 
 // Errors
 export * from './errors';

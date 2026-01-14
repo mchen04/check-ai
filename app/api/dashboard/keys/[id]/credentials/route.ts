@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
+import { createAuditLogger } from '@/lib/audit';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api';
 import {
   listApiKeyCredentials,
@@ -53,6 +53,7 @@ const addCredentialSchema = z.object({
 export const POST = withDashboardAuth(
   async (req: DashboardRequest, routeContext) => {
     const { context } = req;
+    const audit = createAuditLogger(context, req);
     const { id: keyId } = await routeContext!.params;
 
     const body = await req.json();
@@ -76,10 +77,7 @@ export const POST = withDashboardAuth(
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    // Log audit event (using api_key.created for credential changes)
-    logAuditEvent({
-      orgId: context.orgId,
-      userId: context.userId,
+    audit.log({
       eventType: 'api_key.created',
       description: `Credential added to API key`,
       resourceType: 'api_key',
@@ -90,7 +88,6 @@ export const POST = withDashboardAuth(
           setAsDefault: parsed.data.setAsDefault,
         },
       },
-      metadata: extractRequestMetadata(req),
     });
 
     return NextResponse.json({ success: true });
@@ -105,6 +102,7 @@ export const POST = withDashboardAuth(
 export const DELETE = withDashboardAuth(
   async (req: DashboardRequest, routeContext) => {
     const { context } = req;
+    const audit = createAuditLogger(context, req);
     const { id: keyId } = await routeContext!.params;
 
     const { searchParams } = new URL(req.url);
@@ -120,10 +118,7 @@ export const DELETE = withDashboardAuth(
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    // Log audit event (using api_key.deleted for credential removal)
-    logAuditEvent({
-      orgId: context.orgId,
-      userId: context.userId,
+    audit.log({
       eventType: 'api_key.deleted',
       description: `Credential removed from API key`,
       resourceType: 'api_key',
@@ -131,7 +126,6 @@ export const DELETE = withDashboardAuth(
       changes: {
         before: { credentialId },
       },
-      metadata: extractRequestMetadata(req),
     });
 
     return NextResponse.json({ success: true });
@@ -150,6 +144,7 @@ const setDefaultSchema = z.object({
 export const PATCH = withDashboardAuth(
   async (req: DashboardRequest, routeContext) => {
     const { context } = req;
+    const audit = createAuditLogger(context, req);
     const { id: keyId } = await routeContext!.params;
 
     const body = await req.json();
@@ -168,10 +163,7 @@ export const PATCH = withDashboardAuth(
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    // Log audit event (using api_key.created for credential changes)
-    logAuditEvent({
-      orgId: context.orgId,
-      userId: context.userId,
+    audit.log({
       eventType: 'api_key.created',
       description: `Default credential changed for API key`,
       resourceType: 'api_key',
@@ -179,7 +171,6 @@ export const PATCH = withDashboardAuth(
       changes: {
         after: { defaultCredentialId: parsed.data.credentialId },
       },
-      metadata: extractRequestMetadata(req),
     });
 
     return NextResponse.json({ success: true });

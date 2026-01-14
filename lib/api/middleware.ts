@@ -14,6 +14,7 @@ import {
   QuotaExceededError,
   createErrorResponse,
 } from './errors';
+import { isDateExpired } from './formatters';
 import { hashApiKey } from '@/lib/llm/key-manager';
 import { PLAN_LIMITS, type PlanType } from '@/utils/db/schema';
 import { checkRateLimit, cleanupInMemoryRateLimits } from '@/lib/cache/ratelimit';
@@ -79,7 +80,7 @@ export function withApiAuth(handler: ApiHandler): PublicApiHandler {
         throw new AuthenticationError('API key is inactive');
       }
 
-      if (keyRecord.expiresAt && new Date(keyRecord.expiresAt) < new Date()) {
+      if (isDateExpired(keyRecord.expiresAt)) {
         throw new AuthenticationError('API key has expired');
       }
 

@@ -22,7 +22,9 @@ import {
   REASON_DISPLAY_MAP,
 } from '@/lib/escalation';
 import { fireWebhooks } from '@/lib/webhooks/service';
-import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
+import { createAuditLogger } from '@/lib/audit';
+import { formatDateToISO, formatRequiredDateToISO, parseDecimal } from '@/lib/api/formatters';
+import { errorResponse, parseAndValidate } from '@/lib/api/validation';
 
 // =============================================================================
 // REQUEST VALIDATION
@@ -53,7 +55,7 @@ export async function GET(
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return errorResponse.unauthorized();
     }
 
     // Get user's organization
@@ -62,7 +64,7 @@ export async function GET(
     });
 
     if (!orgMember) {
-      return NextResponse.json({ error: 'No organization found' }, { status: 404 });
+      return errorResponse.notFound('No organization found');
     }
 
     // Fetch escalation with verification and paradigm results
@@ -79,15 +81,15 @@ export async function GET(
     });
 
     if (!escalation) {
-      return NextResponse.json({ error: 'Escalation not found' }, { status: 404 });
+      return errorResponse.notFound('Escalation not found');
     }
 
     // Check organization ownership
     if (escalation.verification.orgId !== orgMember.orgId) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return errorResponse.forbidden();
     }
 
-    // Format response with full details
+    // Format response with full details using shared formatters
     return NextResponse.json({
       id: escalation.id,
       verificationId: escalation.verificationId,
@@ -98,8 +100,8 @@ export async function GET(
       details: escalation.details,
       priority: escalation.priority,
       status: getEscalationStatus(escalation.resolvedAt, escalation.humanVerdict),
-      deadline: escalation.deadline?.toISOString() || null,
-      resolvedAt: escalation.resolvedAt?.toISOString() || null,
+      deadline: formatDateToISO(escalation.deadline),
+      resolvedAt: formatDateToISO(escalation.resolvedAt),
       resolvedBy: escalation.resolvedByUser
         ? {
             id: escalation.resolvedByUser.id,
@@ -109,28 +111,26 @@ export async function GET(
         : null,
       resolution: escalation.resolution,
       humanVerdict: escalation.humanVerdict,
-      createdAt: escalation.createdAt.toISOString(),
+      createdAt: formatRequiredDateToISO(escalation.createdAt),
       verification: {
         id: escalation.verification.id,
         content: escalation.verification.content,
         verdict: escalation.verification.finalVerdict,
-        confidence: escalation.verification.confidenceScore
-          ? parseFloat(escalation.verification.confidenceScore)
-          : null,
+        confidence: parseDecimal(escalation.verification.confidenceScore),
         decision: escalation.verification.decision,
         reasoning: escalation.verification.reasoning,
         processingTimeMs: escalation.verification.processingTimeMs,
         costCents: escalation.verification.costCents,
-        createdAt: escalation.verification.createdAt.toISOString(),
-        completedAt: escalation.verification.completedAt?.toISOString() || null,
+        createdAt: formatRequiredDateToISO(escalation.verification.createdAt),
+        completedAt: formatDateToISO(escalation.verification.completedAt),
         paradigmResults: escalation.verification.paradigmResults.map((pr) => ({
           id: pr.id,
           paradigm: pr.paradigmType,
-          weight: pr.weight ? parseFloat(pr.weight) : null,
+          weight: parseDecimal(pr.weight),
           provider: pr.provider,
           model: pr.model,
           verdict: pr.verdict,
-          confidence: pr.confidence ? parseFloat(pr.confidence) : null,
+          confidence: parseDecimal(pr.confidence),
           reasoning: pr.reasoning,
           processingTimeMs: pr.processingTimeMs,
           error: pr.errorMessage,
@@ -139,7 +139,7 @@ export async function GET(
     });
   } catch (error) {
     console.error('Failed to fetch escalation:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return errorResponse.internalError();
   }
 }
 
@@ -162,7 +162,7 @@ export async function PATCH(
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return errorResponse.unauthorized();
     }
 
     // Get user's organization
@@ -171,38 +171,18 @@ export async function PATCH(
     });
 
     if (!orgMember) {
-      return NextResponse.json({ error: 'No organization found' }, { status: 404 });
+      return errorResponse.notFound('No organization found');
     }
 
-    // Parse and validate request body
-    let body: z.infer<typeof ResolveEscalationSchema>;
-    try {
-      const rawBody = await req.json();
-      body = ResolveEscalationSchema.parse(rawBody);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return NextResponse.json(
-          {
-            error: 'Validation failed',
-            details: error.issues.map((e) => ({
-              field: e.path.join('.'),
-              message: e.message,
-            })),
-          },
-          { status: 400 }
-        );
-      }
-      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
-    }
+    // Parse and validate request body using shared utility
+    const result = await parseAndValidate(req, ResolveEscalationSchema);
+    if (!result.success) return result.error;
 
-    const { action, humanVerdict, resolution } = body;
+    const { action, humanVerdict, resolution } = result.data;
 
     // Validate that humanVerdict is provided when resolving
     if (action === 'resolve' && !humanVerdict) {
-      return NextResponse.json(
-        { error: 'humanVerdict is required when resolving an escalation' },
-        { status: 400 }
-      );
+      return errorResponse.badRequest('humanVerdict is required when resolving an escalation');
     }
 
     // Fetch escalation to verify ownership and status
@@ -222,20 +202,17 @@ export async function PATCH(
       .limit(1);
 
     if (escalation.length === 0) {
-      return NextResponse.json({ error: 'Escalation not found' }, { status: 404 });
+      return errorResponse.notFound('Escalation not found');
     }
 
     // Check organization ownership
     if (escalation[0].orgId !== orgMember.orgId) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return errorResponse.forbidden();
     }
 
     // Check if already resolved
     if (escalation[0].resolvedAt) {
-      return NextResponse.json(
-        { error: 'Escalation has already been resolved' },
-        { status: 409 }
-      );
+      return errorResponse.conflict('Escalation has already been resolved');
     }
 
     // Perform the action
@@ -271,10 +248,7 @@ export async function PATCH(
     }
 
     if (!updated) {
-      return NextResponse.json(
-        { error: 'Failed to update escalation' },
-        { status: 500 }
-      );
+      return errorResponse.internalError('Failed to update escalation');
     }
 
     // Fire escalation.resolved webhook
@@ -284,13 +258,12 @@ export async function PATCH(
       action: action,
       humanVerdict: humanVerdict || null,
       resolution: resolution || null,
-      resolvedAt: updated.resolvedAt?.toISOString(),
+      resolvedAt: formatDateToISO(updated.resolvedAt),
     });
 
     // Log audit event
-    logAuditEvent({
-      orgId: escalation[0].orgId,
-      userId: user.id,
+    const audit = createAuditLogger({ orgId: escalation[0].orgId, userId: user.id }, req);
+    audit.log({
       eventType: action === 'resolve' ? 'escalation.resolved' : 'escalation.dismissed',
       description: `Escalation ${action === 'resolve' ? 'resolved' : 'dismissed'}${humanVerdict ? ` with verdict: ${humanVerdict}` : ''}`,
       resourceType: 'escalation',
@@ -302,18 +275,17 @@ export async function PATCH(
           resolution: resolution || null,
         },
       },
-      metadata: extractRequestMetadata(req),
     });
 
     return NextResponse.json({
       id: updated.id,
       status: action === 'resolve' ? 'resolved' : 'dismissed',
-      resolvedAt: updated.resolvedAt?.toISOString(),
+      resolvedAt: formatDateToISO(updated.resolvedAt),
       humanVerdict: updated.humanVerdict,
       resolution: updated.resolution,
     });
   } catch (error) {
     console.error('Failed to update escalation:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return errorResponse.internalError();
   }
 }

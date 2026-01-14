@@ -8,6 +8,7 @@ import { db } from '@/utils/db/db';
 import { verificationsTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { ApiError, NotFoundError, withApiMiddleware, ApiRequest } from '@/lib/api';
+import { parseDecimal, parseDecimalWithDefault } from '@/lib/api/formatters';
 
 // =============================================================================
 // HANDLER
@@ -40,7 +41,7 @@ async function handleGetVerification(
     context: verification.context,
     methodsConfig: verification.methodsConfig,
     verdict: verification.finalVerdict,
-    confidence: verification.confidenceScore ? parseFloat(verification.confidenceScore) : null,
+    confidence: parseDecimal(verification.confidenceScore),
     decision: getDecision(verification.status, verification.confidenceScore),
     reasoning: verification.reasoning,
     paradigmResults: verification.paradigmResults.map((pr) => ({
@@ -48,7 +49,7 @@ async function handleGetVerification(
       provider: pr.provider,
       model: pr.model,
       verdict: pr.verdict,
-      confidence: pr.confidence ? parseFloat(pr.confidence) : null,
+      confidence: parseDecimal(pr.confidence),
       reasoning: pr.reasoning,
       processingTimeMs: pr.processingTimeMs,
       error: pr.errorMessage,
@@ -66,7 +67,7 @@ async function handleGetVerification(
 function getDecision(status: string, confidence: string | null): string | null {
   if (status !== 'completed') return null;
 
-  const conf = confidence ? parseFloat(confidence) : 0;
+  const conf = parseDecimalWithDefault(confidence, 0);
 
   if (conf >= 0.95) return 'accept';
   if (conf >= 0.7) return 'refine';

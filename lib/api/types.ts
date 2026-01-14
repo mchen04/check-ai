@@ -420,6 +420,83 @@ export interface EscalationResponse {
 }
 
 // =============================================================================
+// PAGINATION UTILITIES
+// =============================================================================
+
+/**
+ * Default pagination values
+ */
+export const PAGINATION_DEFAULTS = {
+  page: 1,
+  limit: 20,
+  maxLimit: 100,
+} as const;
+
+/**
+ * Parsed pagination parameters from query string
+ */
+export interface ParsedPagination {
+  page: number;
+  limit: number;
+  offset: number;
+}
+
+/**
+ * Parse pagination parameters from URL search params
+ * Provides consistent pagination handling across all API routes
+ *
+ * @param searchParams - URLSearchParams from the request
+ * @param options - Optional overrides for default values
+ * @returns Parsed and validated pagination parameters
+ *
+ * @example
+ * const { searchParams } = new URL(req.url);
+ * const { page, limit, offset } = parsePagination(searchParams);
+ */
+export function parsePagination(
+  searchParams: URLSearchParams,
+  options?: { defaultLimit?: number; maxLimit?: number }
+): ParsedPagination {
+  const defaultLimit = options?.defaultLimit ?? PAGINATION_DEFAULTS.limit;
+  const maxLimit = options?.maxLimit ?? PAGINATION_DEFAULTS.maxLimit;
+
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+  const limit = Math.min(maxLimit, Math.max(1, parseInt(searchParams.get('limit') || String(defaultLimit), 10)));
+  const offset = (page - 1) * limit;
+
+  return { page, limit, offset };
+}
+
+/**
+ * Create a standard pagination response object
+ *
+ * @param page - Current page number
+ * @param limit - Items per page
+ * @param total - Total number of items
+ * @returns Pagination metadata for API response
+ */
+export function createPaginationResponse(
+  page: number,
+  limit: number,
+  total: number
+): {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasMore: boolean;
+} {
+  const totalPages = Math.ceil(total / limit);
+  return {
+    page,
+    limit,
+    total,
+    totalPages,
+    hasMore: page < totalPages,
+  };
+}
+
+// =============================================================================
 // SUCCESS RESPONSE WRAPPERS
 // =============================================================================
 

@@ -15,6 +15,7 @@ import {
   ENSEMBLE_USER_PROMPT,
   parseVerificationResponse,
 } from '../prompts';
+import { getDefaultModel, createParadigmErrorResult } from './shared';
 
 // =============================================================================
 // ENSEMBLE CONFIGURATION
@@ -112,18 +113,14 @@ export class EnsembleParadigm implements ParadigmExecutor {
         },
       };
     } catch (error) {
-      return {
-        paradigm: 'ensemble',
-        weight: options.weight,
-        provider: 'openai',
-        model: 'ensemble',
-        verdict: null,
-        confidence: 0,
-        reasoning: null,
-        processingTimeMs: Date.now() - startTime,
-        costCents: 0,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
+      return createParadigmErrorResult(
+        'ensemble',
+        options.weight,
+        'openai',
+        'ensemble',
+        Date.now() - startTime,
+        error
+      );
     }
   }
 
@@ -161,7 +158,7 @@ export class EnsembleParadigm implements ParadigmExecutor {
       if (this.llmClient.hasProvider(provider)) {
         availableMembers.push({
           provider,
-          model: this.getDefaultModel(provider),
+          model: getDefaultModel(provider),
           weight: 1.0,
         });
       }
@@ -296,32 +293,6 @@ export class EnsembleParadigm implements ParadigmExecutor {
     return lines.join('\n');
   }
 
-  private getDefaultModel(provider: LLMProvider): string {
-    const models: Record<LLMProvider, string> = {
-      // Tier 1: First-party providers
-      openai: 'gpt-4.1',
-      anthropic: 'claude-sonnet-4-5-20250929',
-      google: 'gemini-2.5-flash',
-      xai: 'grok-4',
-      mistral: 'mistral-large-latest',
-      cohere: 'command-r-plus',
-      deepseek: 'deepseek-chat',
-      // Tier 2: Cloud providers
-      azure: 'gpt-4o',
-      bedrock: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
-      // Tier 3: Inference providers
-      groq: 'llama-3.3-70b-versatile',
-      together: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
-      fireworks: 'accounts/fireworks/models/llama-v3p3-70b-instruct',
-      cerebras: 'llama3.3-70b',
-      perplexity: 'sonar-pro',
-      // Tier 4: Gateways
-      openrouter: 'anthropic/claude-3.5-sonnet',
-      // Legacy
-      replicate: 'meta/llama-2-70b-chat',
-    };
-    return models[provider] || 'gpt-4.1';
-  }
 }
 
 // =============================================================================

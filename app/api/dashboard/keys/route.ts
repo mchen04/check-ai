@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
+import { createAuditLogger } from '@/lib/audit';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api';
 import {
   createApiKey,
@@ -64,6 +64,7 @@ export const GET = withDashboardAuth(
 export const POST = withDashboardAuth(
   async (req: DashboardRequest) => {
     const { context } = req;
+    const audit = createAuditLogger(context, req);
 
     const body = await req.json();
     const parsed = createApiKeySchema.safeParse(body);
@@ -77,10 +78,7 @@ export const POST = withDashboardAuth(
 
     const result = await createApiKey(context.orgId, parsed.data);
 
-    // Log audit event
-    logAuditEvent({
-      orgId: context.orgId,
-      userId: context.userId,
+    audit.log({
       eventType: 'api_key.created',
       description: `API key "${parsed.data.name}" created`,
       resourceType: 'api_key',
@@ -93,7 +91,6 @@ export const POST = withDashboardAuth(
           paradigmConfig: parsed.data.paradigmConfig,
         },
       },
-      metadata: extractRequestMetadata(req),
     });
 
     // Return the full key - this is the only time it will be shown
@@ -114,6 +111,7 @@ export const POST = withDashboardAuth(
 export const DELETE = withDashboardAuth(
   async (req: DashboardRequest) => {
     const { context } = req;
+    const audit = createAuditLogger(context, req);
 
     const { searchParams } = new URL(req.url);
     const keyId = searchParams.get('id');
@@ -128,15 +126,11 @@ export const DELETE = withDashboardAuth(
       return NextResponse.json({ error: 'Key not found' }, { status: 404 });
     }
 
-    // Log audit event
-    logAuditEvent({
-      orgId: context.orgId,
-      userId: context.userId,
+    audit.log({
       eventType: 'api_key.deleted',
       description: `API key deleted`,
       resourceType: 'api_key',
       resourceId: keyId,
-      metadata: extractRequestMetadata(req),
     });
 
     return NextResponse.json({ success: true });
@@ -151,6 +145,7 @@ export const DELETE = withDashboardAuth(
 export const PATCH = withDashboardAuth(
   async (req: DashboardRequest) => {
     const { context } = req;
+    const audit = createAuditLogger(context, req);
 
     const { searchParams } = new URL(req.url);
     const keyId = searchParams.get('id');
@@ -173,16 +168,12 @@ export const PATCH = withDashboardAuth(
       return NextResponse.json({ error: 'Key not found' }, { status: 404 });
     }
 
-    // Log audit event
-    logAuditEvent({
-      orgId: context.orgId,
-      userId: context.userId,
+    audit.log({
       eventType: 'api_key.created', // Reusing for updates
       description: `API key "${name || keyId}" updated`,
       resourceType: 'api_key',
       resourceId: keyId,
       changes: { after: { name, paradigmConfig, isActive } },
-      metadata: extractRequestMetadata(req),
     });
 
     return NextResponse.json({ success: true });

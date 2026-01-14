@@ -4,7 +4,7 @@ import { webhooksTable } from '@/utils/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api';
 import { generateSigningSecret } from '@/lib/webhooks/service';
-import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
+import { createAuditLogger } from '@/lib/audit';
 import { CreateWebhookSchema } from '@/lib/constants/webhooks';
 
 // =============================================================================
@@ -42,6 +42,7 @@ export const GET = withDashboardAuth(async (req: DashboardRequest) => {
 
 export const POST = withDashboardAuth(async (req: DashboardRequest) => {
   const { context } = req;
+  const audit = createAuditLogger(context, req);
 
   const body = await req.json();
   const parsed = CreateWebhookSchema.safeParse(body);
@@ -76,16 +77,12 @@ export const POST = withDashboardAuth(async (req: DashboardRequest) => {
       createdAt: webhooksTable.createdAt,
     });
 
-  // Log audit event
-  logAuditEvent({
-    orgId: context.orgId,
-    userId: context.userId,
+  audit.log({
     eventType: 'webhook.created',
     description: `Webhook created for ${url}`,
     resourceType: 'webhook',
     resourceId: webhook.id,
     changes: { after: { url, events, description } },
-    metadata: extractRequestMetadata(req),
   });
 
   return NextResponse.json({

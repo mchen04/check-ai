@@ -16,6 +16,12 @@ import { LLMClient } from '@/lib/llm/client';
 import { ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm/types';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions, Verdict } from '../types';
 import { FORMAL_SYSTEM_PROMPT, FORMAL_USER_PROMPT } from '../prompts';
+import {
+  createParadigmErrorResult,
+  normalizeVerdict,
+  normalizeConfidence,
+  extractJsonFromResponse,
+} from './shared';
 
 // =============================================================================
 // FORMAL VERIFICATION TYPES
@@ -34,62 +40,62 @@ interface FormalResponse {
 // RESPONSE PARSING
 // =============================================================================
 
-function parseFormalResponse(response: string): FormalResponse {
-  try {
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No JSON found in response');
-    }
+const DEFAULT_FORMAL_RESPONSE: FormalResponse = {
+  verdict: 'uncertain',
+  confidence: 0.5,
+  formalization: null,
+  proofSketch: null,
+  reasoning: 'No reasoning provided',
+  isFormalizeable: false,
+};
 
-    const parsed = JSON.parse(jsonMatch[0]);
-
-    // Normalize verdict
-    let verdict: Verdict = 'uncertain';
-    if (parsed.verdict) {
-      const v = parsed.verdict.toString().toLowerCase();
-      if (v === 'true' || v === 'provable' || v === 'valid') {
-        verdict = 'true';
-      } else if (v === 'false' || v === 'disprovable' || v === 'invalid') {
-        verdict = 'false';
-      }
-    }
-
-    // Normalize confidence
-    let confidence = 0.5;
-    if (typeof parsed.confidence === 'number') {
-      confidence = Math.max(0, Math.min(1, parsed.confidence));
-    }
-
-    // Check if claim is formalizable
-    const isFormalizeable = Boolean(
-      parsed.formalization &&
-        parsed.formalization !== 'Not applicable' &&
-        parsed.formalization !== 'N/A'
-    );
-
-    // If formally proven, confidence is 1.0
-    if (isFormalizeable && verdict !== 'uncertain') {
-      confidence = 1.0;
-    }
-
-    return {
-      verdict,
-      confidence,
-      formalization: parsed.formalization || null,
-      proofSketch: parsed.proof_sketch || parsed.proofSketch || null,
-      reasoning: parsed.reasoning || 'No reasoning provided',
-      isFormalizeable,
-    };
-  } catch {
-    return {
-      verdict: 'uncertain',
-      confidence: 0.5,
-      formalization: null,
-      proofSketch: null,
-      reasoning: response.slice(0, 500),
-      isFormalizeable: false,
-    };
+/**
+ * Extended verdict normalization for formal verification
+ * Includes formal-specific terms like "provable" and "valid"
+ */
+function normalizeFormalVerdict(value: unknown): Verdict {
+  if (!value) return 'uncertain';
+  const v = String(value).toLowerCase();
+  if (v === 'true' || v === 'yes' || v === 'accurate' || v === 'correct' || v === 'provable' || v === 'valid') {
+    return 'true';
   }
+  if (v === 'false' || v === 'no' || v === 'inaccurate' || v === 'incorrect' || v === 'disprovable' || v === 'invalid') {
+    return 'false';
+  }
+  return 'uncertain';
+}
+
+function parseFormalResponse(response: string): FormalResponse {
+  const parsed = extractJsonFromResponse<Record<string, unknown>>(response, {});
+
+  if (Object.keys(parsed).length === 0) {
+    return { ...DEFAULT_FORMAL_RESPONSE, reasoning: response.slice(0, 500) };
+  }
+
+  const verdict = normalizeFormalVerdict(parsed.verdict);
+  let confidence = normalizeConfidence(parsed.confidence);
+
+  // Check if claim is formalizable
+  const formalization = parsed.formalization ? String(parsed.formalization) : null;
+  const isFormalizeable = Boolean(
+    formalization &&
+      formalization !== 'Not applicable' &&
+      formalization !== 'N/A'
+  );
+
+  // If formally proven, confidence is 1.0
+  if (isFormalizeable && verdict !== 'uncertain') {
+    confidence = 1.0;
+  }
+
+  return {
+    verdict,
+    confidence,
+    formalization,
+    proofSketch: parsed.proof_sketch || parsed.proofSketch ? String(parsed.proof_sketch || parsed.proofSketch) : null,
+    reasoning: String(parsed.reasoning || 'No reasoning provided'),
+    isFormalizeable,
+  };
 }
 
 // =============================================================================
@@ -295,18 +301,14 @@ Note: For claims that cannot be formally verified, consider using other verifica
         },
       };
     } catch (error) {
-      return {
-        paradigm: 'formal',
-        weight: options.weight,
+      return createParadigmErrorResult(
+        'formal',
+        options.weight,
         provider,
         model,
-        verdict: null,
-        confidence: 0,
-        reasoning: null,
-        processingTimeMs: Date.now() - startTime,
-        costCents: 0,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
+        Date.now() - startTime,
+        error
+      );
     }
   }
 }

@@ -3,17 +3,24 @@
  * Type definitions for data export functionality
  */
 
+import { z } from 'zod';
+
 // =============================================================================
 // Request Types
 // =============================================================================
 
-export interface ExportRequest {
-  format: 'csv' | 'json';
-  startDate?: string;
-  endDate?: string;
-  includeParadigmResults?: boolean;
-  limit?: number;
-}
+/**
+ * Zod schema for export request validation
+ */
+export const ExportRequestSchema = z.object({
+  format: z.enum(['csv', 'json']),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+  includeParadigmResults: z.boolean().default(false),
+  limit: z.number().min(1).max(10000).default(10000),
+});
+
+export type ExportRequest = z.infer<typeof ExportRequestSchema>;
 
 // =============================================================================
 // Export Data Types

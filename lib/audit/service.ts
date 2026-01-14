@@ -130,6 +130,60 @@ export function extractRequestMetadata(request: Request): { ipAddress: string; u
 }
 
 /**
+ * Context type for dashboard requests (simplified for audit logging)
+ */
+interface AuditContext {
+  orgId: string;
+  userId: string;
+}
+
+/**
+ * Input for contextual audit logging (without orgId, userId, metadata - auto-filled from context)
+ */
+export interface ContextualAuditInput {
+  eventType: AuditLogInput['eventType'];
+  description: string;
+  resourceType: string;
+  resourceId?: string;
+  changes?: AuditLogInput['changes'];
+}
+
+/**
+ * Create an audit logger bound to a request context
+ * Reduces boilerplate by auto-filling orgId, userId, and request metadata
+ *
+ * @example
+ * const audit = createAuditLogger(context, req);
+ * audit.log({
+ *   eventType: 'api_key.created',
+ *   description: 'API key created',
+ *   resourceType: 'api_key',
+ *   resourceId: key.id,
+ * });
+ */
+export function createAuditLogger(context: AuditContext, request: Request) {
+  const metadata = extractRequestMetadata(request);
+
+  return {
+    /**
+     * Log an audit event with context auto-filled
+     */
+    log(input: ContextualAuditInput): void {
+      logAuditEvent({
+        orgId: context.orgId,
+        userId: context.userId,
+        eventType: input.eventType,
+        description: input.description,
+        resourceType: input.resourceType,
+        resourceId: input.resourceId,
+        changes: input.changes,
+        metadata,
+      });
+    },
+  };
+}
+
+/**
  * Sanitize sensitive data from changes
  * Never log full API keys, passwords, or tokens
  */

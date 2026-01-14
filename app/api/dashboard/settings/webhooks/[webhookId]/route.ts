@@ -3,7 +3,7 @@ import { db } from '@/utils/db/db';
 import { webhooksTable, webhookDeliveriesTable } from '@/utils/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api';
-import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
+import { createAuditLogger } from '@/lib/audit';
 import { UpdateWebhookSchema } from '@/lib/constants/webhooks';
 
 type RouteParams = { webhookId: string };
@@ -85,6 +85,7 @@ export const GET = withDashboardAuth<RouteParams>(async (req, routeContext) => {
 
 export const PATCH = withDashboardAuth<RouteParams>(async (req, routeContext) => {
   const { context } = req;
+  const audit = createAuditLogger(context, req);
   const { webhookId } = await routeContext!.params;
 
   // Verify webhook exists and belongs to org
@@ -141,16 +142,12 @@ export const PATCH = withDashboardAuth<RouteParams>(async (req, routeContext) =>
       isActive: webhooksTable.isActive,
     });
 
-  // Log audit event
-  logAuditEvent({
-    orgId: context.orgId,
-    userId: context.userId,
+  audit.log({
     eventType: 'webhook.updated',
     description: `Webhook updated`,
     resourceType: 'webhook',
     resourceId: webhookId,
     changes: { after: parsed.data },
-    metadata: extractRequestMetadata(req),
   });
 
   return NextResponse.json({
@@ -165,6 +162,7 @@ export const PATCH = withDashboardAuth<RouteParams>(async (req, routeContext) =>
 
 export const DELETE = withDashboardAuth<RouteParams>(async (req, routeContext) => {
   const { context } = req;
+  const audit = createAuditLogger(context, req);
   const { webhookId } = await routeContext!.params;
 
   // Verify webhook exists and belongs to org
@@ -180,15 +178,11 @@ export const DELETE = withDashboardAuth<RouteParams>(async (req, routeContext) =
 
   await db.delete(webhooksTable).where(eq(webhooksTable.id, webhookId));
 
-  // Log audit event
-  logAuditEvent({
-    orgId: context.orgId,
-    userId: context.userId,
+  audit.log({
     eventType: 'webhook.deleted',
     description: `Webhook deleted`,
     resourceType: 'webhook',
     resourceId: webhookId,
-    metadata: extractRequestMetadata(req),
   });
 
   return NextResponse.json({ success: true });

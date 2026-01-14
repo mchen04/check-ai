@@ -9,6 +9,7 @@ import { db } from '@/utils/db/db';
 import { apiKeysTable, providerCredentialsTable } from '@/utils/db/schema';
 import { eq, and, isNull } from 'drizzle-orm';
 import { ProviderKeys, LLMProvider, PROVIDER_BASE_URLS } from './types';
+import { isDateExpired } from '@/lib/api/formatters';
 
 // =============================================================================
 // ENCRYPTION CONFIGURATION
@@ -261,7 +262,7 @@ export class KeyManager {
       return { valid: false, error: 'API key is inactive' };
     }
 
-    if (keyRecord.expiresAt && new Date(keyRecord.expiresAt) < new Date()) {
+    if (isDateExpired(keyRecord.expiresAt)) {
       return { valid: false, error: 'API key has expired' };
     }
 

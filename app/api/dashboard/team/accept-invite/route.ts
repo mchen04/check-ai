@@ -4,7 +4,7 @@ import { db } from '@/utils/db/db';
 import { orgInvitesTable, orgMembersTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { createClient } from '@/utils/supabase/server';
-import { logAuditEvent, extractRequestMetadata } from '@/lib/audit';
+import { createAuditLogger } from '@/lib/audit';
 
 const AcceptInviteSchema = z.object({
   token: z.string().min(1),
@@ -102,16 +102,13 @@ export async function POST(req: NextRequest) {
         .where(eq(orgInvitesTable.id, invite.id));
     });
 
-    // Log audit event
-    logAuditEvent({
-      orgId: invite.orgId,
-      userId: user.id,
+    const audit = createAuditLogger({ orgId: invite.orgId, userId: user.id }, req);
+    audit.log({
       eventType: 'team_member.joined',
       description: `${user.email} joined the organization as ${invite.role}`,
       resourceType: 'team_member',
       resourceId: user.id,
       changes: { after: { role: invite.role, email: user.email } },
-      metadata: extractRequestMetadata(req),
     });
 
     return NextResponse.json({

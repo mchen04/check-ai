@@ -19,6 +19,7 @@ import {
   QuotaExceededError,
   withApiMiddleware,
   ApiRequest,
+  parsePagination,
 } from '@/lib/api';
 import { PLAN_LIMITS } from '@/utils/db/schema';
 
@@ -142,8 +143,7 @@ async function handleListBatches(req: ApiRequest): Promise<NextResponse> {
   const { organization } = req;
   const { searchParams } = new URL(req.url);
 
-  const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
-  const offset = parseInt(searchParams.get('offset') || '0', 10);
+  const { limit, offset } = parsePagination(searchParams);
   const status = searchParams.get('status') || undefined;
 
   const { batches, total, hasMore } = await listBatches(organization.id, {

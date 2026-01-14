@@ -11,6 +11,7 @@ import { LLMClient } from '@/lib/llm/client';
 import { ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm/types';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions } from '../types';
 import { TOOL_SYSTEM_PROMPT, TOOL_USER_PROMPT, parseVerificationResponse } from '../prompts';
+import { createParadigmErrorResult } from './shared';
 
 // =============================================================================
 // SEARCH CONFIGURATION
@@ -164,18 +165,14 @@ export class ToolParadigm implements ParadigmExecutor {
         },
       };
     } catch (error) {
-      return {
-        paradigm: 'tool',
-        weight: options.weight,
+      return createParadigmErrorResult(
+        'tool',
+        options.weight,
         provider,
         model,
-        verdict: null,
-        confidence: 0,
-        reasoning: null,
-        processingTimeMs: Date.now() - startTime,
-        costCents: 0,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
+        Date.now() - startTime,
+        error
+      );
     }
   }
 }
