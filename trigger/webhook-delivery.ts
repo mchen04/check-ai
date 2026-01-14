@@ -210,7 +210,6 @@ export const webhookDeliveryTask = task({
         durationMs: result.durationMs,
         lastError: result.error,
         deliveredAt: result.success ? new Date() : null,
-        success: result.success,
         attemptHistory,
       })
       .where(eq(webhookDeliveriesTable.id, deliveryId));

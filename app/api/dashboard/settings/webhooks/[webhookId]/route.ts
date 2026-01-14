@@ -53,8 +53,8 @@ export const GET = withDashboardAuth<RouteParams>(async (req, routeContext) => {
     .select({
       id: webhookDeliveriesTable.id,
       event: webhookDeliveriesTable.event,
+      status: webhookDeliveriesTable.status,
       responseStatus: webhookDeliveriesTable.responseStatus,
-      success: webhookDeliveriesTable.success,
       durationMs: webhookDeliveriesTable.durationMs,
       deliveredAt: webhookDeliveriesTable.deliveredAt,
     })

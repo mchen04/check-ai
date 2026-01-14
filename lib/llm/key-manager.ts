@@ -6,8 +6,8 @@
 
 import crypto from 'crypto';
 import { db } from '@/utils/db/db';
-import { apiKeysTable, organizationsTable } from '@/utils/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { apiKeysTable, providerCredentialsTable } from '@/utils/db/schema';
+import { eq, and, isNull } from 'drizzle-orm';
 import { ProviderKeys, LLMProvider, PROVIDER_BASE_URLS } from './types';
 
 // =============================================================================
@@ -117,25 +117,31 @@ export class KeyManager {
    * Get all provider keys for an organization (BYOK + fallback to platform)
    */
   async getProviderKeys(orgId: string): Promise<ProviderKeys> {
-    // Fetch all active BYOK keys for the organization
-    const keys = await db
+    // Fetch all active provider credentials for the organization
+    const credentials = await db
       .select({
-        provider: apiKeysTable.provider,
-        encryptedKey: apiKeysTable.encryptedKey,
+        provider: providerCredentialsTable.provider,
+        encryptedCredentials: providerCredentialsTable.encryptedCredentials,
       })
-      .from(apiKeysTable)
-      .where(and(eq(apiKeysTable.orgId, orgId), eq(apiKeysTable.isActive, true)));
+      .from(providerCredentialsTable)
+      .where(
+        and(
+          eq(providerCredentialsTable.orgId, orgId),
+          eq(providerCredentialsTable.isActive, true),
+          isNull(providerCredentialsTable.deletedAt)
+        )
+      );
 
     const result: ProviderKeys = {};
 
     // Decrypt and set BYOK keys
-    for (const key of keys) {
-      if (key.encryptedKey && key.provider !== 'platform') {
+    for (const cred of credentials) {
+      if (cred.encryptedCredentials) {
         try {
-          const decryptedKey = decrypt(key.encryptedKey);
-          result[key.provider as keyof ProviderKeys] = decryptedKey;
+          const decryptedKey = decrypt(cred.encryptedCredentials);
+          result[cred.provider as keyof ProviderKeys] = decryptedKey;
         } catch (error) {
-          console.error(`Failed to decrypt key for provider ${key.provider}:`, error);
+          console.error(`Failed to decrypt key for provider ${cred.provider}:`, error);
         }
       }
     }
@@ -173,24 +179,22 @@ export class KeyManager {
     apiKey: string,
     name?: string
   ): Promise<{ id: string; keyPrefix: string }> {
-    const encryptedKey = encrypt(apiKey);
+    const encryptedCredentials = encrypt(apiKey);
     const keyPrefix = `${provider}_${generateKeyPrefix().slice(4)}`;
-    const keyHash = hashApiKey(apiKey);
 
     const [result] = await db
-      .insert(apiKeysTable)
+      .insert(providerCredentialsTable)
       .values({
         orgId,
         name: name || `${provider} API Key`,
-        keyHash,
-        keyPrefix,
         provider,
-        encryptedKey,
+        encryptedCredentials,
         isActive: true,
+        validationStatus: 'valid',
       })
-      .returning({ id: apiKeysTable.id, keyPrefix: apiKeysTable.keyPrefix });
+      .returning({ id: providerCredentialsTable.id });
 
-    return result;
+    return { id: result.id, keyPrefix };
   }
 
   /**
@@ -212,7 +216,6 @@ export class KeyManager {
         name: name || 'Platform API Key',
         keyHash,
         keyPrefix,
-        provider: 'platform',
         isActive: true,
         expiresAt,
       })
@@ -245,8 +248,7 @@ export class KeyManager {
       .where(
         and(
           eq(apiKeysTable.keyHash, keyHash),
-          eq(apiKeysTable.keyPrefix, keyPrefix),
-          eq(apiKeysTable.provider, 'platform')
+          eq(apiKeysTable.keyPrefix, keyPrefix)
         )
       )
       .limit(1);
@@ -298,7 +300,6 @@ export class KeyManager {
     Array<{
       id: string;
       name: string;
-      provider: string | null;
       keyPrefix: string;
       isActive: boolean;
       lastUsedAt: Date | null;
@@ -310,7 +311,6 @@ export class KeyManager {
       .select({
         id: apiKeysTable.id,
         name: apiKeysTable.name,
-        provider: apiKeysTable.provider,
         keyPrefix: apiKeysTable.keyPrefix,
         isActive: apiKeysTable.isActive,
         lastUsedAt: apiKeysTable.lastUsedAt,

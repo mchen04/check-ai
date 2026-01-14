@@ -17,7 +17,6 @@ export interface ApiKeyRecord {
   name: string;
   keyHash: string;
   keyPrefix: string;
-  provider: string | null;
   isActive: boolean;
   lastUsedAt: Date | null;
   createdAt: Date;
@@ -28,7 +27,6 @@ export interface ApiKeyListItem {
   id: string;
   name: string;
   keyPrefix: string;
-  provider: string | null;
   isActive: boolean;
   lastUsedAt: Date | null;
   createdAt: Date;
@@ -40,7 +38,6 @@ export interface CreateApiKeyInput {
   name: string;
   keyHash: string;
   keyPrefix: string;
-  provider?: string;
   expiresAt?: Date | null;
 }
 
@@ -60,7 +57,6 @@ export async function listApiKeys(
       id: apiKeysTable.id,
       name: apiKeysTable.name,
       keyPrefix: apiKeysTable.keyPrefix,
-      provider: apiKeysTable.provider,
       isActive: apiKeysTable.isActive,
       lastUsedAt: apiKeysTable.lastUsedAt,
       createdAt: apiKeysTable.createdAt,
@@ -125,7 +121,6 @@ export async function createApiKey(
       name: input.name,
       keyHash: input.keyHash,
       keyPrefix: input.keyPrefix,
-      provider: input.provider || 'platform',
       isActive: true,
       expiresAt: input.expiresAt || null,
     })

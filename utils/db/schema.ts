@@ -108,7 +108,7 @@ export const batchStatusEnum = pgEnum('batch_status', [
 
 export const batchItemStatusEnum = pgEnum('batch_item_status', [
   'pending',     // Awaiting processing
-  'queued',      // Sent to QStash
+  'queued',      // Queued for Trigger.dev processing
   'processing',  // Currently verifying
   'completed',   // Verification done
   'failed',      // Item-level failure
@@ -118,15 +118,16 @@ export const batchItemStatusEnum = pgEnum('batch_item_status', [
 export type AuditEventType = (typeof auditEventTypeEnum.enumValues)[number];
 
 // =============================================================================
-// EXISTING TABLES (kept for backward compatibility)
+// USER TABLE
+// Core user records synced from Supabase Auth.
+// Billing is handled at the organization level via organizations.planType
+// and organizations.stripeCustomerId.
 // =============================================================================
 
 export const usersTable = pgTable('users_table', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
-  plan: text('plan').notNull(),
-  stripe_id: text('stripe_id').notNull(),
 });
 
 export type InsertUser = typeof usersTable.$inferInsert;

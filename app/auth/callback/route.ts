@@ -26,28 +26,28 @@ export async function GET(request: Request) {
         .select()
         .from(usersTable)
         .where(eq(usersTable.email, user!.email!));
-      const isUserInDB = checkUserInDB.length > 0 ? true : false;
+      const isUserInDB = checkUserInDB.length > 0;
       if (!isUserInDB) {
-        // create Stripe customers
-        const stripeID = await createStripeCustomer(
+        // Create Stripe customer for billing (stored on organization)
+        const stripeCustomerId = await createStripeCustomer(
           user!.id,
           user!.email!,
           user!.user_metadata.full_name
         );
-        // Create record in DB
+
+        // Create user record in DB
         await db.insert(usersTable).values({
           id: user!.id,
           name: user!.user_metadata.full_name,
           email: user!.email!,
-          stripe_id: stripeID,
-          plan: 'none',
         });
 
-        // Create default organization for the new user
+        // Create default organization with Stripe customer ID for billing
         await createDefaultOrganization(
           user!.id,
           user!.user_metadata.full_name,
-          user!.email!
+          user!.email!,
+          stripeCustomerId
         );
       }
 

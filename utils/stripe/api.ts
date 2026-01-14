@@ -1,6 +1,6 @@
 import { Stripe } from 'stripe';
 import { db } from '../db/db';
-import { usersTable, organizationsTable, PLAN_LIMITS } from '../db/schema';
+import { organizationsTable, orgMembersTable, PLAN_LIMITS } from '../db/schema';
 import { eq, and, gte, sql } from 'drizzle-orm';
 import { verificationsTable } from '../db/schema';
 
@@ -30,15 +30,21 @@ export interface PlanDetails {
 // PLAN FUNCTIONS
 // =============================================================================
 
-export async function getStripePlan(email: string): Promise<string> {
-  const user = await db.select().from(usersTable).where(eq(usersTable.email, email));
+/**
+ * Get the Stripe plan name for an organization
+ * @deprecated Use getOrgPlanDetails instead for comprehensive plan info
+ */
+export async function getStripePlan(orgId: string): Promise<string> {
+  const org = await db.query.organizationsTable.findFirst({
+    where: eq(organizationsTable.id, orgId),
+  });
 
-  if (!user[0]?.plan) {
+  if (!org?.stripeSubscriptionId) {
     return 'Free';
   }
 
   try {
-    const subscription = await stripe.subscriptions.retrieve(user[0].plan);
+    const subscription = await stripe.subscriptions.retrieve(org.stripeSubscriptionId);
     const productId = subscription.items.data[0].plan.product as string;
     const product = await stripe.products.retrieve(productId);
     return product.name;
@@ -199,10 +205,33 @@ export async function createStripeCustomer(id: string, email: string, name?: str
   return customer.id;
 }
 
-export async function createStripeCheckoutSession(email: string) {
-  const user = await db.select().from(usersTable).where(eq(usersTable.email, email));
+/**
+ * Get the user's organization with Stripe customer ID
+ */
+async function getOrgForUser(userId: string) {
+  const membership = await db.query.orgMembersTable.findFirst({
+    where: eq(orgMembersTable.userId, userId),
+    with: {
+      organization: true,
+    },
+  });
+
+  if (!membership?.organization?.stripeCustomerId) {
+    throw new Error('Organization or Stripe customer not found');
+  }
+
+  return membership.organization;
+}
+
+/**
+ * Create a Stripe checkout session for the pricing table
+ * Uses organization-level Stripe customer ID
+ */
+export async function createStripeCheckoutSession(userId: string) {
+  const org = await getOrgForUser(userId);
+
   const customerSession = await stripe.customerSessions.create({
-    customer: user[0].stripe_id,
+    customer: org.stripeCustomerId!,
     components: {
       pricing_table: {
         enabled: true,
@@ -212,10 +241,15 @@ export async function createStripeCheckoutSession(email: string) {
   return customerSession.client_secret;
 }
 
-export async function generateStripeBillingPortalLink(email: string) {
-  const user = await db.select().from(usersTable).where(eq(usersTable.email, email));
+/**
+ * Generate a Stripe billing portal link for managing subscription
+ * Uses organization-level Stripe customer ID
+ */
+export async function generateStripeBillingPortalLink(userId: string) {
+  const org = await getOrgForUser(userId);
+
   const portalSession = await stripe.billingPortal.sessions.create({
-    customer: user[0].stripe_id,
+    customer: org.stripeCustomerId!,
     return_url: `${PUBLIC_URL}/dashboard`,
   });
   return portalSession.url;

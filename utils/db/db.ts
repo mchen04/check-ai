@@ -1,4 +1,4 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
+import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
 
@@ -15,3 +15,16 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export const db = drizzle(client, { schema });
+
+// Type for database operations that can work with both db and transactions
+export type DbOrTx = PostgresJsDatabase<typeof schema>;
+
+/**
+ * Execute a callback within a database transaction
+ * Automatically rolls back on error
+ */
+export async function withTransaction<T>(
+  callback: (tx: DbOrTx) => Promise<T>
+): Promise<T> {
+  return db.transaction(callback);
+}

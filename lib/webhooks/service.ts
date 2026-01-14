@@ -157,7 +157,6 @@ export async function queueWebhookDelivery(
       status: 'pending',
       maxAttempts: WEBHOOK_CONFIG.MAX_RETRIES + 1,
       attemptNumber: 0, // Will be set to 1 on first attempt
-      success: false,
     })
     .returning();
 
@@ -266,7 +265,6 @@ async function deliverWebhookImmediate(
         lastError: result.error,
         deliveredAt: result.success ? new Date() : null,
         failedAt: result.success ? null : new Date(),
-        success: result.success,
         attemptHistory: [
           {
             attemptNumber: 1,
@@ -457,7 +455,6 @@ export async function sendTestWebhook(webhookId: string): Promise<WebhookDeliver
     lastError: result.error,
     deliveredAt: result.success ? new Date() : null,
     failedAt: result.success ? null : new Date(),
-    success: result.success,
     attemptHistory: [
       {
         attemptNumber: 1,

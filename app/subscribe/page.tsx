@@ -1,6 +1,7 @@
 import StripePricingTable from '@/components/StripePricingTable';
 import Image from 'next/image';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { createStripeCheckoutSession } from '@/utils/stripe/api';
 
@@ -9,7 +10,12 @@ export default async function Subscribe() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const checkoutSessionSecret = await createStripeCheckoutSession(user!.email!);
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const checkoutSessionSecret = await createStripeCheckoutSession(user.id);
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/40">

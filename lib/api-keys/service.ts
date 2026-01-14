@@ -6,7 +6,7 @@
  */
 
 import crypto from 'crypto';
-import { db } from '@/utils/db/db';
+import { db, withTransaction, DbOrTx } from '@/utils/db/db';
 import { apiKeysTable, providerCredentialsTable, apiKeyCredentialsTable } from '@/utils/db/schema';
 import { eq, and, isNull, inArray, sql } from 'drizzle-orm';
 import { decrypt } from '@/lib/llm/key-manager';
@@ -32,6 +32,7 @@ import {
   DecryptedCredentialInfo,
 } from './credential-validator';
 import { createLogger } from '@/lib/logger';
+import { withQueryTiming } from '@/lib/apm/query-monitor';
 
 const log = createLogger('ApiKeyService');
 
@@ -71,113 +72,123 @@ function generateApiKey(name: string): { key: string; hash: string; prefix: stri
 
 /**
  * Create a new API key with configuration
+ * Uses a transaction to ensure atomicity of key + credential link creation
  */
 export async function createApiKey(
   orgId: string,
   request: CreateApiKeyRequest
 ): Promise<{ id: string; apiKey: string; prefix: string }> {
-  const { key, hash, prefix } = generateApiKey(request.name);
+  return withQueryTiming('createApiKey', 'api_keys', async () => {
+    const { key, hash, prefix } = generateApiKey(request.name);
 
-  const credentialIds = request.providerCredentialIds;
+    const credentialIds = request.providerCredentialIds;
 
-  if (credentialIds.length === 0) {
-    throw new Error('At least one provider credential is required');
-  }
-
-  // Validate credentials exist and belong to org
-  const credentials = await db
-    .select({ id: providerCredentialsTable.id, provider: providerCredentialsTable.provider })
-    .from(providerCredentialsTable)
-    .where(
-      and(
-        eq(providerCredentialsTable.orgId, orgId),
-        isNull(providerCredentialsTable.deletedAt),
-        inArray(providerCredentialsTable.id, credentialIds)
-      )
-    );
-
-  if (credentials.length !== credentialIds.length) {
-    throw new Error('One or more provider credentials not found');
-  }
-
-  // Validate paradigms have required credentials
-  if (request.paradigmConfig) {
-    const availableProviders = new Set(credentials.map((c) => c.provider));
-    const validation = validateParadigmCredentials(request.paradigmConfig, availableProviders);
-    if (!validation.valid) {
-      throw new Error(`Missing credentials for providers: ${validation.missingProviders.join(', ')}`);
+    if (credentialIds.length === 0) {
+      throw new Error('At least one provider credential is required');
     }
-  }
 
-  // Determine default credential
-  const defaultCredentialId = request.defaultCredentialId || credentialIds[0];
+    // Validate credentials exist and belong to org (outside transaction for faster failure)
+    const credentials = await db
+      .select({ id: providerCredentialsTable.id, provider: providerCredentialsTable.provider })
+      .from(providerCredentialsTable)
+      .where(
+        and(
+          eq(providerCredentialsTable.orgId, orgId),
+          isNull(providerCredentialsTable.deletedAt),
+          inArray(providerCredentialsTable.id, credentialIds)
+        )
+      );
 
-  // Insert API key
-  const [result] = await db
-    .insert(apiKeysTable)
-    .values({
-      orgId,
-      name: request.name,
-      keyHash: hash,
-      keyPrefix: prefix,
-      paradigmConfig: request.paradigmConfig,
-      defaultThresholds: request.defaultThresholds || null,
-      expiresAt: request.expiresAt ? new Date(request.expiresAt) : null,
-      isActive: true,
-    })
-    .returning({ id: apiKeysTable.id });
+    if (credentials.length !== credentialIds.length) {
+      throw new Error('One or more provider credentials not found');
+    }
 
-  // Insert into junction table
-  await db.insert(apiKeyCredentialsTable).values(
-    credentialIds.map((credId) => ({
-      apiKeyId: result.id,
-      providerCredentialId: credId,
-      isDefault: credId === defaultCredentialId,
-    }))
-  );
+    // Validate paradigms have required credentials
+    if (request.paradigmConfig) {
+      const availableProviders = new Set(credentials.map((c) => c.provider));
+      const validation = validateParadigmCredentials(request.paradigmConfig, availableProviders);
+      if (!validation.valid) {
+        throw new Error(`Missing credentials for providers: ${validation.missingProviders.join(', ')}`);
+      }
+    }
 
-  log.info({ orgId, name: request.name, credentialCount: credentialIds.length }, 'API key created');
+    // Determine default credential
+    const defaultCredentialId = request.defaultCredentialId || credentialIds[0];
 
-  return {
-    id: result.id,
-    apiKey: key, // Only returned once at creation
-    prefix,
-  };
+    // Use transaction for API key + credential links
+    const result = await withTransaction(async (tx) => {
+      // Insert API key
+      const [keyResult] = await tx
+        .insert(apiKeysTable)
+        .values({
+          orgId,
+          name: request.name,
+          keyHash: hash,
+          keyPrefix: prefix,
+          paradigmConfig: request.paradigmConfig,
+          defaultThresholds: request.defaultThresholds || null,
+          expiresAt: request.expiresAt ? new Date(request.expiresAt) : null,
+          isActive: true,
+        })
+        .returning({ id: apiKeysTable.id });
+
+      // Insert into junction table
+      await tx.insert(apiKeyCredentialsTable).values(
+        credentialIds.map((credId) => ({
+          apiKeyId: keyResult.id,
+          providerCredentialId: credId,
+          isDefault: credId === defaultCredentialId,
+        }))
+      );
+
+      return keyResult;
+    });
+
+    log.info({ orgId, name: request.name, credentialCount: credentialIds.length }, 'API key created');
+
+    return {
+      id: result.id,
+      apiKey: key, // Only returned once at creation
+      prefix,
+    };
+  });
 }
 
 /**
  * Get an API key by its hash (for authentication)
  */
 export async function getApiKeyByHash(keyHash: string): Promise<ApiKeyWithConfig | null> {
-  const [key] = await db
-    .select({
-      id: apiKeysTable.id,
-      orgId: apiKeysTable.orgId,
-      name: apiKeysTable.name,
-      keyPrefix: apiKeysTable.keyPrefix,
-      paradigmConfig: apiKeysTable.paradigmConfig,
-      defaultThresholds: apiKeysTable.defaultThresholds,
-      isActive: apiKeysTable.isActive,
-      expiresAt: apiKeysTable.expiresAt,
-      lastUsedAt: apiKeysTable.lastUsedAt,
-      createdAt: apiKeysTable.createdAt,
-      updatedAt: apiKeysTable.updatedAt,
-    })
-    .from(apiKeysTable)
-    .where(and(eq(apiKeysTable.keyHash, keyHash), isNull(apiKeysTable.deletedAt)))
-    .limit(1);
+  return withQueryTiming('getApiKeyByHash', 'api_keys', async () => {
+    const [key] = await db
+      .select({
+        id: apiKeysTable.id,
+        orgId: apiKeysTable.orgId,
+        name: apiKeysTable.name,
+        keyPrefix: apiKeysTable.keyPrefix,
+        paradigmConfig: apiKeysTable.paradigmConfig,
+        defaultThresholds: apiKeysTable.defaultThresholds,
+        isActive: apiKeysTable.isActive,
+        expiresAt: apiKeysTable.expiresAt,
+        lastUsedAt: apiKeysTable.lastUsedAt,
+        createdAt: apiKeysTable.createdAt,
+        updatedAt: apiKeysTable.updatedAt,
+      })
+      .from(apiKeysTable)
+      .where(and(eq(apiKeysTable.keyHash, keyHash), isNull(apiKeysTable.deletedAt)))
+      .limit(1);
 
-  if (!key) {
-    return null;
-  }
+    if (!key) {
+      return null;
+    }
 
-  return {
-    ...key,
-    paradigmConfig: key.paradigmConfig as ApiKeyParadigmConfig | null,
-    defaultThresholds: key.defaultThresholds as ApiKeyThresholds | null,
-    expiresAt: key.expiresAt || undefined,
-    lastUsedAt: key.lastUsedAt || undefined,
-  };
+    return {
+      ...key,
+      paradigmConfig: key.paradigmConfig as ApiKeyParadigmConfig | null,
+      defaultThresholds: key.defaultThresholds as ApiKeyThresholds | null,
+      expiresAt: key.expiresAt || undefined,
+      lastUsedAt: key.lastUsedAt || undefined,
+    };
+  });
 }
 
 /**
@@ -276,76 +287,78 @@ export async function getApiKeyWithCredential(
  * List all API keys for an organization
  */
 export async function listApiKeys(orgId: string): Promise<ApiKeyWithConfig[]> {
-  // Get all keys
-  const keys = await db
-    .select({
-      id: apiKeysTable.id,
-      orgId: apiKeysTable.orgId,
-      name: apiKeysTable.name,
-      keyPrefix: apiKeysTable.keyPrefix,
-      paradigmConfig: apiKeysTable.paradigmConfig,
-      defaultThresholds: apiKeysTable.defaultThresholds,
-      isActive: apiKeysTable.isActive,
-      expiresAt: apiKeysTable.expiresAt,
-      lastUsedAt: apiKeysTable.lastUsedAt,
-      createdAt: apiKeysTable.createdAt,
-      updatedAt: apiKeysTable.updatedAt,
-    })
-    .from(apiKeysTable)
-    .where(and(eq(apiKeysTable.orgId, orgId), isNull(apiKeysTable.deletedAt)))
-    .orderBy(apiKeysTable.createdAt);
+  return withQueryTiming('listApiKeys', 'api_keys', async () => {
+    // Get all keys
+    const keys = await db
+      .select({
+        id: apiKeysTable.id,
+        orgId: apiKeysTable.orgId,
+        name: apiKeysTable.name,
+        keyPrefix: apiKeysTable.keyPrefix,
+        paradigmConfig: apiKeysTable.paradigmConfig,
+        defaultThresholds: apiKeysTable.defaultThresholds,
+        isActive: apiKeysTable.isActive,
+        expiresAt: apiKeysTable.expiresAt,
+        lastUsedAt: apiKeysTable.lastUsedAt,
+        createdAt: apiKeysTable.createdAt,
+        updatedAt: apiKeysTable.updatedAt,
+      })
+      .from(apiKeysTable)
+      .where(and(eq(apiKeysTable.orgId, orgId), isNull(apiKeysTable.deletedAt)))
+      .orderBy(apiKeysTable.createdAt);
 
-  // Get default credentials for each key via junction table
-  const keyIds = keys.map((k) => k.id);
-  const defaultCredentials = keyIds.length > 0
-    ? await db
-        .select({
-          apiKeyId: apiKeyCredentialsTable.apiKeyId,
-          credentialId: providerCredentialsTable.id,
-          credentialName: providerCredentialsTable.name,
-          credentialProvider: providerCredentialsTable.provider,
-        })
-        .from(apiKeyCredentialsTable)
-        .innerJoin(
-          providerCredentialsTable,
-          eq(apiKeyCredentialsTable.providerCredentialId, providerCredentialsTable.id)
-        )
-        .where(and(
-          inArray(apiKeyCredentialsTable.apiKeyId, keyIds),
-          eq(apiKeyCredentialsTable.isDefault, true)
-        ))
-    : [];
+    // Get default credentials for each key via junction table
+    const keyIds = keys.map((k) => k.id);
+    const defaultCredentials = keyIds.length > 0
+      ? await db
+          .select({
+            apiKeyId: apiKeyCredentialsTable.apiKeyId,
+            credentialId: providerCredentialsTable.id,
+            credentialName: providerCredentialsTable.name,
+            credentialProvider: providerCredentialsTable.provider,
+          })
+          .from(apiKeyCredentialsTable)
+          .innerJoin(
+            providerCredentialsTable,
+            eq(apiKeyCredentialsTable.providerCredentialId, providerCredentialsTable.id)
+          )
+          .where(and(
+            inArray(apiKeyCredentialsTable.apiKeyId, keyIds),
+            eq(apiKeyCredentialsTable.isDefault, true)
+          ))
+      : [];
 
-  // Build map for quick lookup
-  const credMap = new Map(defaultCredentials.map((c) => [c.apiKeyId, c]));
+    // Build map for quick lookup
+    const credMap = new Map(defaultCredentials.map((c) => [c.apiKeyId, c]));
 
-  return keys.map((key) => {
-    const cred = credMap.get(key.id);
-    return {
-      id: key.id,
-      orgId: key.orgId,
-      name: key.name,
-      keyPrefix: key.keyPrefix,
-      paradigmConfig: key.paradigmConfig as ApiKeyParadigmConfig | null,
-      defaultThresholds: key.defaultThresholds as ApiKeyThresholds | null,
-      isActive: key.isActive,
-      expiresAt: key.expiresAt || undefined,
-      lastUsedAt: key.lastUsedAt || undefined,
-      createdAt: key.createdAt,
-      updatedAt: key.updatedAt,
-      providerCredential: cred
-        ? {
-            id: cred.credentialId,
-            orgId: key.orgId,
-            name: cred.credentialName,
-            provider: cred.credentialProvider as CredentialProvider,
-            isActive: true,
-            validationStatus: 'valid' as const,
-            createdAt: key.createdAt,
-            updatedAt: key.updatedAt,
-          }
-        : undefined,
-    };
+    return keys.map((key) => {
+      const cred = credMap.get(key.id);
+      return {
+        id: key.id,
+        orgId: key.orgId,
+        name: key.name,
+        keyPrefix: key.keyPrefix,
+        paradigmConfig: key.paradigmConfig as ApiKeyParadigmConfig | null,
+        defaultThresholds: key.defaultThresholds as ApiKeyThresholds | null,
+        isActive: key.isActive,
+        expiresAt: key.expiresAt || undefined,
+        lastUsedAt: key.lastUsedAt || undefined,
+        createdAt: key.createdAt,
+        updatedAt: key.updatedAt,
+        providerCredential: cred
+          ? {
+              id: cred.credentialId,
+              orgId: key.orgId,
+              name: cred.credentialName,
+              provider: cred.credentialProvider as CredentialProvider,
+              isActive: true,
+              validationStatus: 'valid' as const,
+              createdAt: key.createdAt,
+              updatedAt: key.updatedAt,
+            }
+          : undefined,
+      };
+    });
   });
 }
 
@@ -386,18 +399,20 @@ export async function updateApiKey(
  * Soft delete an API key
  */
 export async function deleteApiKey(orgId: string, keyId: string): Promise<boolean> {
-  const result = await db
-    .update(apiKeysTable)
-    .set({
-      deletedAt: new Date(),
-      isActive: false,
-    })
-    .where(
-      and(eq(apiKeysTable.id, keyId), eq(apiKeysTable.orgId, orgId), isNull(apiKeysTable.deletedAt))
-    )
-    .returning({ id: apiKeysTable.id });
+  return withQueryTiming('deleteApiKey', 'api_keys', async () => {
+    const result = await db
+      .update(apiKeysTable)
+      .set({
+        deletedAt: new Date(),
+        isActive: false,
+      })
+      .where(
+        and(eq(apiKeysTable.id, keyId), eq(apiKeysTable.orgId, orgId), isNull(apiKeysTable.deletedAt))
+      )
+      .returning({ id: apiKeysTable.id });
 
-  return result.length > 0;
+    return result.length > 0;
+  });
 }
 
 /**

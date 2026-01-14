@@ -275,10 +275,7 @@ export const createApiKeySchema = z.object({
     })
     .optional(),
   expiresAt: z.string().datetime().optional(),
-}).refine(
-  (data) => data.providerCredentialId || (data.providerCredentialIds && data.providerCredentialIds.length > 0),
-  { message: 'Either providerCredentialId or providerCredentialIds must be provided' }
-);
+});
 
 export type CreateApiKeyRequest = z.infer<typeof createApiKeySchema>;
 

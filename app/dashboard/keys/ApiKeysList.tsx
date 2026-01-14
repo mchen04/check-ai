@@ -21,7 +21,6 @@ interface ApiKeyData {
   id: string;
   name: string;
   keyPrefix: string;
-  provider: string | null;
   isActive: boolean;
   lastUsedAt: Date | null;
   createdAt: Date;
@@ -90,8 +89,6 @@ export function ApiKeysList({ initialKeys }: ApiKeysListProps) {
                   <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
                     {key.keyPrefix}...
                   </code>
-                  <span>•</span>
-                  <span className="capitalize">{key.provider || 'platform'}</span>
                   <span>•</span>
                   <span>
                     Created{' '}

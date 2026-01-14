@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/utils/supabase/server';
+import { getUserOrgContext } from '@/lib/rbac/get-user-org';
 import { db } from '@/utils/db/db';
 import { apiKeysTable } from '@/utils/db/schema';
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import {
   Card,
   CardContent,
@@ -16,20 +16,16 @@ import CreateApiKeyDialog from './CreateApiKeyDialog';
 import { ApiKeysList } from './ApiKeysList';
 
 export default async function ApiKeysPage() {
-  const supabase = createClient();
-
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data?.user) {
+  const context = await getUserOrgContext();
+  if (!context) {
     redirect('/login');
   }
 
-  // Fetch API keys for display
-  // Note: In production, this would filter by orgId
+  // Fetch API keys for display, filtered by organization
   let apiKeys: Array<{
     id: string;
     name: string;
     keyPrefix: string;
-    provider: string | null;
     isActive: boolean;
     lastUsedAt: Date | null;
     createdAt: Date;
@@ -42,13 +38,13 @@ export default async function ApiKeysPage() {
         id: apiKeysTable.id,
         name: apiKeysTable.name,
         keyPrefix: apiKeysTable.keyPrefix,
-        provider: apiKeysTable.provider,
         isActive: apiKeysTable.isActive,
         lastUsedAt: apiKeysTable.lastUsedAt,
         createdAt: apiKeysTable.createdAt,
         expiresAt: apiKeysTable.expiresAt,
       })
       .from(apiKeysTable)
+      .where(eq(apiKeysTable.orgId, context.orgId))
       .orderBy(desc(apiKeysTable.createdAt))
       .limit(50);
 

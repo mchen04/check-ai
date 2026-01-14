@@ -35,6 +35,13 @@ export interface CreateOrgResult {
   slug: string;
 }
 
+export interface CreateOrgOptions {
+  userId: string;
+  userName: string | null;
+  userEmail: string;
+  stripeCustomerId?: string;
+}
+
 /**
  * Creates a new organization and adds the user as owner
  * Called during signup to give every user a default organization
@@ -42,12 +49,13 @@ export interface CreateOrgResult {
 export async function createDefaultOrganization(
   userId: string,
   userName: string | null,
-  userEmail: string
+  userEmail: string,
+  stripeCustomerId?: string
 ): Promise<CreateOrgResult> {
   const slug = generateSlug(userName, userEmail);
   const orgName = generateOrgName(userName);
 
-  // Create organization
+  // Create organization with Stripe customer ID for billing
   const [org] = await db
     .insert(organizationsTable)
     .values({
@@ -55,6 +63,7 @@ export async function createDefaultOrganization(
       slug,
       planType: 'free',
       verificationsLimit: 100, // Free tier default
+      stripeCustomerId: stripeCustomerId || null,
     })
     .returning({ id: organizationsTable.id, slug: organizationsTable.slug });
 

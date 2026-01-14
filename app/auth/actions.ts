@@ -86,24 +86,23 @@ export async function signup(currentState: { message: string }, formData: FormDa
   }
 
   try {
-    // create Stripe Customer Record using signup response data
-    const stripeID = await createStripeCustomer(
+    // Create Stripe Customer Record using signup response data
+    // Stripe customer is now associated with the organization, not the user
+    const stripeCustomerId = await createStripeCustomer(
       signUpData.user.id,
       signUpData.user.email!,
       data.name
     );
 
-    // Create record in DB
+    // Create user record in DB (billing is per-org, not per-user)
     await db.insert(usersTable).values({
       id: signUpData.user.id,
       name: data.name,
       email: signUpData.user.email!,
-      stripe_id: stripeID,
-      plan: 'none',
     });
 
-    // Create default organization for the new user
-    await createDefaultOrganization(signUpData.user.id, data.name, signUpData.user.email!);
+    // Create default organization for the new user with Stripe customer ID
+    await createDefaultOrganization(signUpData.user.id, data.name, signUpData.user.email!, stripeCustomerId);
 
     // Send welcome email (fire-and-forget, don't block signup)
     sendWelcomeEmail({

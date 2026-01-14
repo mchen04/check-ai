@@ -17,6 +17,7 @@ export type LogContext =
   | 'Cleanup'
   | 'Audit'
   | 'API'
+  | 'APM'
   | 'RateLimit'
   | 'Cache'
   | 'Verification'
