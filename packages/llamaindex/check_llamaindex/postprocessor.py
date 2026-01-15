@@ -21,7 +21,7 @@ class CheckPostprocessor(BaseNodePostprocessor):
 
     Example:
         >>> from llama_index.core import VectorStoreIndex
-        >>> from shove import Check
+        >>> from check import Check
         >>> from check_llamaindex import CheckPostprocessor
         >>>
         >>> client = Check(api_key="vfy_...")
@@ -179,7 +179,7 @@ class AsyncCheckPostprocessor(BaseNodePostprocessor):
     Example:
         >>> import asyncio
         >>> from llama_index.core import VectorStoreIndex
-        >>> from shove import AsyncCheck
+        >>> from check import AsyncCheck
         >>> from check_llamaindex import AsyncCheckPostprocessor
         >>>
         >>> async def main():

@@ -57,7 +57,7 @@ class CheckCallbackHandler(BaseCallbackHandler):
 
     Example:
         >>> from langchain_openai import ChatOpenAI
-        >>> from shove import Check
+        >>> from check import Check
         >>> from check_langchain import CheckCallbackHandler
         >>>
         >>> client = Check(api_key="vfy_...")
@@ -195,7 +195,7 @@ class AsyncCheckCallbackHandler(AsyncCallbackHandler):
     Example:
         >>> import asyncio
         >>> from langchain_openai import ChatOpenAI
-        >>> from shove import AsyncCheck
+        >>> from check import AsyncCheck
         >>> from check_langchain import AsyncCheckCallbackHandler
         >>>
         >>> async def main():

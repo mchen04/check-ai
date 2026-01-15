@@ -175,7 +175,7 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Install SDK from PyPI
-        run: pip install shove
+        run: pip install check
 
       - name: Run tests
         run: pytest -v
@@ -223,7 +223,7 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Install SDK from PyPI
-        run: pip install shove
+        run: pip install check
 
       - name: Run tests
         run: pytest -v
