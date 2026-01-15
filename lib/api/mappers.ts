@@ -212,7 +212,7 @@ export function mapVerificationToApiResponse(
   }
 
   if (includeParadigmResults && verification.paradigmResults) {
-    response.paradigmResults = mapParadigmResultsToApi(verification.paradigmResults);
+    response.paradigmResults = verification.paradigmResults.map(mapParadigmResultToApi);
   }
 
   if (verification.processingTimeMs !== null) {

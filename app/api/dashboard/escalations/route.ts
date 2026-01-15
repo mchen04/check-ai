@@ -75,9 +75,11 @@ async function handler(req: DashboardRequest) {
       resolved: stats.resolved,
       dismissed: stats.dismissed,
     },
-    page,
-    limit,
-    hasMore,
+    pagination: {
+      page,
+      limit,
+      hasMore,
+    },
   });
 }
 

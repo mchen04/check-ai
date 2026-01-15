@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendAllWeeklyReports } from '@/lib/email/send-weekly-report';
 import { createCronHandlers, cronLog as log } from '@/lib/api/cron-middleware';
+import { errorResponse } from '@/lib/api/validation';
 
 // Vercel Cron config
 export const maxDuration = 300; // 5 minutes max
@@ -45,7 +46,7 @@ async function runWeeklyReports(_req: NextRequest): Promise<NextResponse> {
     });
   } catch (error) {
     log.error({ err: error }, 'Weekly report error');
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return errorResponse.internalError();
   }
 }
 

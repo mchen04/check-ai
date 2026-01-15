@@ -237,7 +237,7 @@ export async function broadcastBatchUpdate(
     // Clean up channel after broadcast
     await client.removeChannel(channel);
   } catch (error) {
-    log.error({ err: error, batchId: update.batchId }, 'Failed to broadcast batch update');
+    log.error({ err: error, batchId }, 'Failed to broadcast batch update');
     // Don't throw - broadcasting is non-critical, clients will fall back to polling
   }
 }

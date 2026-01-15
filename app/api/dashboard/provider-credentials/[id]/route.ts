@@ -7,7 +7,7 @@ import {
 } from '@/lib/api-keys/provider-credentials';
 import { updateProviderCredentialSchema } from '@/lib/api-keys/types';
 import { createAuditLogger } from '@/lib/audit';
-import { extractRouteParam, RouteContext, errorResponse, parseAndValidate } from '@/lib/api/validation';
+import { extractRouteParam, RouteContext, errorResponse, successResponse, parseAndValidate } from '@/lib/api/validation';
 
 // =============================================================================
 // GET - Get a specific provider credential
@@ -64,7 +64,7 @@ export const PATCH = withDashboardAuth(
       changes: { after: { name, hasNewApiKey: !!apiKey, isActive } },
     });
 
-    return NextResponse.json({ success: true });
+    return successResponse.ok();
   },
   { permission: 'api_keys:create' }
 );
@@ -99,7 +99,7 @@ export const DELETE = withDashboardAuth(
       resourceId: id,
     });
 
-    return NextResponse.json({ success: true });
+    return successResponse.ok();
   },
   { permission: 'api_keys:delete' }
 );

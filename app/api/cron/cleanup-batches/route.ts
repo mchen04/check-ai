@@ -16,6 +16,7 @@ import {
   getFullCleanupStats,
 } from '@/lib/batch/cleanup-service';
 import { createCronHandlers, cronLog as log } from '@/lib/api/cron-middleware';
+import { errorResponse } from '@/lib/api/validation';
 
 // Vercel Cron config
 export const maxDuration = 300; // 5 minutes max
@@ -61,10 +62,7 @@ async function runCleanup(req: NextRequest): Promise<NextResponse> {
     });
   } catch (error) {
     log.error({ err: error }, 'Cleanup error');
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return errorResponse.internalError();
   }
 }
 

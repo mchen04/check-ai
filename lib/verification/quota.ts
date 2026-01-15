@@ -4,7 +4,7 @@
  */
 
 import { db } from '@/utils/db/db';
-import { verificationsTable, PLAN_LIMITS } from '@/utils/db/schema';
+import { verificationsTable, PLAN_LIMITS, type PlanType } from '@/utils/db/schema';
 import { eq, and, gte, sql } from 'drizzle-orm';
 import { MethodsConfig } from './types';
 import { getRequestedMethods } from './validator';
@@ -13,7 +13,8 @@ import { getRequestedMethods } from './validator';
 // TYPES
 // =============================================================================
 
-export type PlanType = 'free' | 'pro' | 'enterprise';
+// Re-export PlanType for consumers of this module
+export type { PlanType } from '@/utils/db/schema';
 
 export interface QuotaCheckResult {
   allowed: boolean;

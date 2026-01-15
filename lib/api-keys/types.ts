@@ -208,24 +208,55 @@ export const updateProviderCredentialSchema = z.object({
 
 export type UpdateProviderCredentialRequest = z.infer<typeof updateProviderCredentialSchema>;
 
-/**
- * Paradigm config in request (can be number for weight or full config)
- */
-const paradigmConfigSchema = z.union([
-  z.number().min(0).max(1), // Just weight
-  z.object({
-    weight: z.number().min(0).max(1),
-    model: z.string().optional(),
-  }),
-]);
+// =============================================================================
+// REUSABLE SCHEMA COMPONENTS
+// =============================================================================
 
-const ensembleConfigSchema = z.union([
-  z.number().min(0).max(1), // Just weight
-  z.object({
-    weight: z.number().min(0).max(1),
-    models: z.array(z.string()).optional(),
-  }),
-]);
+/**
+ * Single-model paradigm configuration schema
+ * Used for: reasoning, tool, semantic, biprm, entropy, formal
+ */
+const singleModelParadigmSchema = z.object({
+  enabled: z.boolean(),
+  weight: z.number().min(0).max(1),
+  model: z.string(),
+});
+
+/**
+ * Multi-model paradigm configuration schema
+ * Used for: ensemble
+ */
+const multiModelParadigmSchema = z.object({
+  enabled: z.boolean(),
+  weight: z.number().min(0).max(1),
+  models: z.array(z.string()),
+});
+
+/**
+ * Threshold configuration schema
+ */
+const thresholdsSchema = z.object({
+  acceptThreshold: z.number().min(0).max(1).optional(),
+  escalateThreshold: z.number().min(0).max(1).optional(),
+  timeout: z.number().min(1000).max(300000).optional(),
+});
+
+/**
+ * Full paradigm configuration schema
+ */
+const paradigmConfigObjectSchema = z.object({
+  reasoning: singleModelParadigmSchema.optional(),
+  tool: singleModelParadigmSchema.optional(),
+  semantic: singleModelParadigmSchema.optional(),
+  ensemble: multiModelParadigmSchema.optional(),
+  biprm: singleModelParadigmSchema.optional(),
+  entropy: singleModelParadigmSchema.optional(),
+  formal: singleModelParadigmSchema.optional(),
+});
+
+// =============================================================================
+// API KEY REQUEST SCHEMAS
+// =============================================================================
 
 /**
  * Create API key request
@@ -236,65 +267,9 @@ export const createApiKeySchema = z.object({
   providerCredentialIds: z
     .array(z.string().uuid())
     .min(1, 'At least one provider credential is required'),
-  defaultCredentialId: z.string().uuid().optional(), // Which credential is default (if multiple)
-  paradigmConfig: z.object({
-    reasoning: z
-      .object({
-        enabled: z.boolean(),
-        weight: z.number().min(0).max(1),
-        model: z.string(),
-      })
-      .optional(),
-    tool: z
-      .object({
-        enabled: z.boolean(),
-        weight: z.number().min(0).max(1),
-        model: z.string(),
-      })
-      .optional(),
-    semantic: z
-      .object({
-        enabled: z.boolean(),
-        weight: z.number().min(0).max(1),
-        model: z.string(),
-      })
-      .optional(),
-    ensemble: z
-      .object({
-        enabled: z.boolean(),
-        weight: z.number().min(0).max(1),
-        models: z.array(z.string()),
-      })
-      .optional(),
-    biprm: z
-      .object({
-        enabled: z.boolean(),
-        weight: z.number().min(0).max(1),
-        model: z.string(),
-      })
-      .optional(),
-    entropy: z
-      .object({
-        enabled: z.boolean(),
-        weight: z.number().min(0).max(1),
-        model: z.string(),
-      })
-      .optional(),
-    formal: z
-      .object({
-        enabled: z.boolean(),
-        weight: z.number().min(0).max(1),
-        model: z.string(),
-      })
-      .optional(),
-  }),
-  defaultThresholds: z
-    .object({
-      acceptThreshold: z.number().min(0).max(1).optional(),
-      escalateThreshold: z.number().min(0).max(1).optional(),
-      timeout: z.number().min(1000).max(300000).optional(),
-    })
-    .optional(),
+  defaultCredentialId: z.string().uuid().optional(),
+  paradigmConfig: paradigmConfigObjectSchema,
+  defaultThresholds: thresholdsSchema.optional(),
   expiresAt: z.string().datetime().optional(),
 });
 
@@ -305,90 +280,35 @@ export type CreateApiKeyRequest = z.infer<typeof createApiKeySchema>;
  */
 export const updateApiKeySchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  paradigmConfig: z.object({
-    reasoning: z.object({
-      enabled: z.boolean(),
-      weight: z.number().min(0).max(1),
-      model: z.string(),
-    }).optional(),
-    tool: z.object({
-      enabled: z.boolean(),
-      weight: z.number().min(0).max(1),
-      model: z.string(),
-    }).optional(),
-    semantic: z.object({
-      enabled: z.boolean(),
-      weight: z.number().min(0).max(1),
-      model: z.string(),
-    }).optional(),
-    ensemble: z.object({
-      enabled: z.boolean(),
-      weight: z.number().min(0).max(1),
-      models: z.array(z.string()),
-    }).optional(),
-    biprm: z.object({
-      enabled: z.boolean(),
-      weight: z.number().min(0).max(1),
-      model: z.string(),
-    }).optional(),
-    entropy: z.object({
-      enabled: z.boolean(),
-      weight: z.number().min(0).max(1),
-      model: z.string(),
-    }).optional(),
-    formal: z.object({
-      enabled: z.boolean(),
-      weight: z.number().min(0).max(1),
-      model: z.string(),
-    }).optional(),
-  }).optional(),
-  defaultThresholds: z.object({
-    acceptThreshold: z.number().min(0).max(1).optional(),
-    escalateThreshold: z.number().min(0).max(1).optional(),
-    timeout: z.number().min(1000).max(300000).optional(),
-  }).optional(),
+  paradigmConfig: paradigmConfigObjectSchema.optional(),
+  defaultThresholds: thresholdsSchema.optional(),
   isActive: z.boolean().optional(),
 });
 
 export type UpdateApiKeyRequest = z.infer<typeof updateApiKeySchema>;
 
+// =============================================================================
+// VERIFICATION REQUEST (for API key config resolution)
+// =============================================================================
+
 /**
- * Verification request with optional overrides
+ * Verification request structure for config resolution.
+ * This is the internal type used by resolveVerificationConfig - not a Zod schema.
+ * The actual request validation happens at the API layer using verifyRequestSchema.
  */
-export const verifyRequestSchema = z.object({
-  content: z.string().min(1).max(100000),
-  context: z.record(z.string(), z.unknown()).optional(),
-
-  // Optional: override key's default paradigms
-  methods: z
-    .record(
-      z.string(),
-      z.union([
-        z.number().min(0).max(1), // Just weight
-        z.object({
-          weight: z.number().min(0).max(1),
-          model: z.string().optional(),
-        }),
-      ])
-    )
-    .optional(),
-
-  // Optional: override key's default thresholds
-  options: z
-    .object({
-      acceptThreshold: z.number().min(0).max(1).optional(),
-      escalateThreshold: z.number().min(0).max(1).optional(),
-      timeout: z.number().min(1000).max(300000).optional(),
-      maxRetries: z.number().int().min(0).max(5).optional(),
-      minConfidence: z.number().min(0).max(1).optional(),
-      retryOnLowConfidence: z.boolean().optional(),
-    })
-    .optional(),
-
-  idempotencyKey: z.string().max(255).optional(),
-});
-
-export type VerifyRequest = z.infer<typeof verifyRequestSchema>;
+export interface VerifyRequest {
+  /** Optional method overrides (weight or { weight, model }) */
+  methods?: Record<string, number | { weight: number; model?: string }>;
+  /** Optional threshold/timeout overrides */
+  options?: {
+    acceptThreshold?: number;
+    escalateThreshold?: number;
+    timeout?: number;
+    maxRetries?: number;
+    minConfidence?: number;
+    retryOnLowConfidence?: boolean;
+  };
+}
 
 // =============================================================================
 // RESOLVED CONFIGURATION (after merging key config + request overrides)

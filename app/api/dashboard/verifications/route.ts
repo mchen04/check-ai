@@ -8,7 +8,7 @@ import { db } from '@/utils/db/db';
 import { verificationsTable } from '@/utils/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { withDashboardRead, type DashboardRequest } from '@/lib/api/dashboard-middleware';
-import { parsePagination } from '@/lib/api/types';
+import { parsePagination, paginateResults } from '@/lib/api/types';
 import { formatVerificationForResponse } from '@/lib/api/formatters';
 
 async function handler(req: DashboardRequest) {
@@ -37,12 +37,11 @@ async function handler(req: DashboardRequest) {
     .limit(limit + 1) // Fetch one extra to check if there's more
     .offset(offset);
 
-  // Check if there are more results
-  const hasMore = verifications.length > limit;
-  const results = hasMore ? verifications.slice(0, limit) : verifications;
+  // Paginate results using shared helper
+  const { items, pagination } = paginateResults(verifications, page, limit);
 
   // Format response using shared formatters
-  const formattedResults = results.map((v) =>
+  const formattedResults = items.map((v) =>
     formatVerificationForResponse({
       id: v.id,
       content: v.content,
@@ -58,9 +57,7 @@ async function handler(req: DashboardRequest) {
 
   return NextResponse.json({
     verifications: formattedResults,
-    page,
-    limit,
-    hasMore,
+    pagination,
   });
 }
 

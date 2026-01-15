@@ -9,25 +9,35 @@ import type { Logger as PinoLogger } from 'pino';
  * Context prefixes matching existing patterns in the codebase
  */
 export type LogContext =
-  | 'Webhook'
-  | 'Webhook Trigger'
+  | 'AcceptInvite'
+  | 'Analytics'
+  | 'API'
+  | 'ApiKeys'
+  | 'ApiKeyService'
+  | 'APM'
+  | 'Audit'
+  | 'Auth'
   | 'Batch'
   | 'Batch Process'
   | 'Batch Trigger'
-  | 'Cleanup'
-  | 'Audit'
-  | 'API'
-  | 'APM'
-  | 'RateLimit'
+  | 'BatchStorage'
   | 'Cache'
-  | 'Verification'
-  | 'Email'
+  | 'Cleanup'
   | 'Cron'
-  | 'Auth'
-  | 'Stripe'
+  | 'Email'
+  | 'Escalation'
+  | 'KeyManager'
+  | 'Profile'
   | 'ProviderCredentials'
-  | 'ApiKeys'
-  | 'ApiKeyService';
+  | 'RateLimit'
+  | 'Realtime'
+  | 'Stripe'
+  | 'StripeWebhook'
+  | 'ToolVerification'
+  | 'Verification'
+  | 'Waitlist'
+  | 'Webhook'
+  | 'Webhook Trigger';
 
 /**
  * Metadata that can be attached to log entries

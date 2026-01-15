@@ -21,7 +21,64 @@ export type ValidationResult<T> =
   | { success: false; error: NextResponse };
 
 // =============================================================================
-// VALIDATION FUNCTIONS
+// VALIDATION FUNCTIONS (THROW PATTERN - for routes with middleware)
+// =============================================================================
+
+/**
+ * Parse JSON body from request, throwing ValidationError on failure
+ * Use this for routes wrapped with middleware that handles errors (withApiMiddleware)
+ *
+ * @param req - Request object
+ * @returns Parsed JSON body
+ * @throws ValidationError if JSON parsing fails
+ *
+ * @example
+ * const body = await parseJsonBodyOrThrow(req);
+ * const validated = MySchema.parse(body);
+ */
+export async function parseJsonBodyOrThrow(req: Request): Promise<unknown> {
+  const { ValidationError } = await import('./errors');
+  try {
+    return await req.json();
+  } catch {
+    throw new ValidationError('Invalid JSON in request body');
+  }
+}
+
+/**
+ * Parse JSON body and validate against a Zod schema, throwing on errors
+ * Use this for routes wrapped with middleware that handles errors (withApiMiddleware)
+ *
+ * @param req - Request object
+ * @param schema - Zod schema to validate against
+ * @returns Validated data
+ * @throws ValidationError if JSON parsing or validation fails
+ *
+ * @example
+ * const data = await parseAndValidateOrThrow(req, MySchema);
+ */
+export async function parseAndValidateOrThrow<T>(
+  req: Request,
+  schema: ZodSchema<T>
+): Promise<T> {
+  const { ValidationError } = await import('./errors');
+  const body = await parseJsonBodyOrThrow(req);
+
+  const result = schema.safeParse(body);
+  if (!result.success) {
+    throw new ValidationError('Invalid request body', {
+      errors: result.error.issues.map((e) => ({
+        field: e.path.join('.'),
+        message: e.message,
+      })),
+    });
+  }
+
+  return result.data;
+}
+
+// =============================================================================
+// VALIDATION FUNCTIONS (RETURN PATTERN - for routes without middleware)
 // =============================================================================
 
 /**
@@ -127,11 +184,64 @@ export const errorResponse = {
   notFound: (message = 'Not found') =>
     NextResponse.json({ error: message }, { status: 404 }),
 
+  methodNotAllowed: (message = 'Method not allowed') =>
+    NextResponse.json({ error: message }, { status: 405 }),
+
   conflict: (message = 'Conflict') =>
     NextResponse.json({ error: message }, { status: 409 }),
 
+  gone: (message = 'Resource no longer available') =>
+    NextResponse.json({ error: message }, { status: 410 }),
+
+  tooManyRequests: (
+    message = 'Too many requests',
+    options?: { retryAfter?: number; limit?: number; remaining?: number }
+  ) => {
+    const response = NextResponse.json({ error: message }, { status: 429 });
+    if (options?.retryAfter) {
+      response.headers.set('Retry-After', options.retryAfter.toString());
+    }
+    if (options?.limit !== undefined) {
+      response.headers.set('X-RateLimit-Limit', options.limit.toString());
+    }
+    if (options?.remaining !== undefined) {
+      response.headers.set('X-RateLimit-Remaining', options.remaining.toString());
+    }
+    return response;
+  },
+
   internalError: (message = 'Internal server error') =>
     NextResponse.json({ error: message }, { status: 500 }),
+} as const;
+
+/**
+ * Standard success response factories for common patterns
+ *
+ * @example
+ * // Simple success
+ * return successResponse.ok();
+ *
+ * // Success with data
+ * return successResponse.ok({ id: 'abc', name: 'test' });
+ *
+ * // Created with data
+ * return successResponse.created({ id: 'new-id' });
+ */
+export const successResponse = {
+  /** 200 OK with optional data merged into { success: true, ...data } */
+  ok: <T extends Record<string, unknown>>(data?: T) =>
+    NextResponse.json({ success: true, ...data }),
+
+  /** 201 Created with optional data merged into { success: true, ...data } */
+  created: <T extends Record<string, unknown>>(data?: T) =>
+    NextResponse.json({ success: true, ...data }, { status: 201 }),
+
+  /** 202 Accepted with optional data merged into { success: true, ...data } */
+  accepted: <T extends Record<string, unknown>>(data?: T) =>
+    NextResponse.json({ success: true, ...data }, { status: 202 }),
+
+  /** 204 No Content (returns empty response) */
+  noContent: () => new NextResponse(null, { status: 204 }),
 } as const;
 
 // =============================================================================

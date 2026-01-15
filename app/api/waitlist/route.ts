@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/utils/db/db';
 import { waitlistTable } from '@/utils/db/schema';
 import { checkPublicRateLimit } from '@/lib/cache/ratelimit';
 import { createLogger } from '@/lib/logger';
+import { errorResponse, successResponse, parseAndValidate } from '@/lib/api/validation';
 
 const log = createLogger('Waitlist');
 
@@ -19,28 +20,15 @@ export async function POST(req: NextRequest) {
     const rateLimit = await checkPublicRateLimit(`waitlist:${ip}`, 5, 60 * 60 * 1000);
 
     if (!rateLimit.success) {
-      return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': String(rateLimit.retryAfter),
-            'X-RateLimit-Limit': String(rateLimit.limit),
-            'X-RateLimit-Remaining': String(rateLimit.remaining),
-          },
-        }
-      );
+      return errorResponse.tooManyRequests('Too many requests. Please try again later.', {
+        retryAfter: rateLimit.retryAfter,
+        limit: rateLimit.limit,
+        remaining: rateLimit.remaining,
+      });
     }
 
-    const body = await req.json();
-    const parsed = WaitlistSchema.safeParse(body);
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid email address' },
-        { status: 400 }
-      );
-    }
+    const parsed = await parseAndValidate(req, WaitlistSchema);
+    if (!parsed.success) return parsed.error;
 
     const { email, source } = parsed.data;
     const referrer = req.headers.get('referer') || null;
@@ -50,12 +38,9 @@ export async function POST(req: NextRequest) {
       .values({ email: email.toLowerCase(), source, referrer })
       .onConflictDoNothing({ target: waitlistTable.email });
 
-    return NextResponse.json({ success: true });
+    return successResponse.ok();
   } catch (error) {
     log.error({ err: error }, 'Waitlist signup error');
-    return NextResponse.json(
-      { error: 'Failed to join waitlist' },
-      { status: 500 }
-    );
+    return errorResponse.internalError('Failed to join waitlist');
   }
 }

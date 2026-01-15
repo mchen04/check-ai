@@ -17,7 +17,7 @@
  */
 
 import { z } from 'zod';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import {
   MethodsConfig,
   methodsConfigSchema,
@@ -163,6 +163,28 @@ export interface ApiErrorResponse {
 
 // Alias for backwards compatibility
 export type ApiRequest = AuthenticatedRequest;
+
+// Import RouteContext from validation to use in handler types
+// Note: We don't re-export here to avoid duplicate exports in index.ts
+import type { RouteContext } from './validation';
+
+/**
+ * Handler function for authenticated API routes
+ * Used after withApiAuth middleware has attached organization context
+ */
+export type ApiHandler = (
+  req: AuthenticatedRequest,
+  context: RouteContext | undefined
+) => Promise<Response>;
+
+/**
+ * Handler function for public (unauthenticated) API routes
+ * Used for the outer wrapper that performs authentication
+ */
+export type PublicApiHandler = (
+  req: NextRequest,
+  context: RouteContext | undefined
+) => Promise<Response>;
 
 // =============================================================================
 // VERIFICATION STATUS TYPES (API-specific)
@@ -419,6 +441,54 @@ export function createPaginationResponse(
     total,
     totalPages,
     hasMore: page < totalPages,
+  };
+}
+
+/**
+ * Result type for paginateResults helper
+ */
+export interface PaginatedResult<T> {
+  /** The paginated items (limited to requested page size) */
+  items: T[];
+  /** Pagination metadata */
+  pagination: {
+    page: number;
+    limit: number;
+    hasMore: boolean;
+  };
+}
+
+/**
+ * Helper for the "+1 fetch" pagination pattern.
+ * Takes results fetched with limit+1 and returns standardized pagination info.
+ *
+ * Use this when you don't need total count (more efficient than count query).
+ * For routes that need total count, use createPaginationResponse() instead.
+ *
+ * @param results - Array fetched with limit+1
+ * @param page - Current page number
+ * @param limit - Requested page size
+ * @returns Items limited to page size and standardized pagination info
+ *
+ * @example
+ * const results = await db.select().from(table).limit(limit + 1).offset(offset);
+ * const { items, pagination } = paginateResults(results, page, limit);
+ * return NextResponse.json({ data: items, pagination });
+ */
+export function paginateResults<T>(
+  results: T[],
+  page: number,
+  limit: number
+): PaginatedResult<T> {
+  const hasMore = results.length > limit;
+  const items = hasMore ? results.slice(0, limit) : results;
+  return {
+    items,
+    pagination: {
+      page,
+      limit,
+      hasMore,
+    },
   };
 }
 

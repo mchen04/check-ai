@@ -4,7 +4,6 @@
  */
 
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import {
   createBatch,
   listBatches,
@@ -13,13 +12,13 @@ import {
 } from '@/lib/batch';
 import { consumeStoredFile } from '@/lib/batch/file-storage';
 import {
-  ApiError,
   ValidationError,
   NotFoundError,
   QuotaExceededError,
   withApiMiddleware,
   ApiRequest,
   parsePagination,
+  parseAndValidateOrThrow,
 } from '@/lib/api';
 import { PLAN_LIMITS } from '@/utils/db/schema';
 
@@ -28,22 +27,7 @@ import { PLAN_LIMITS } from '@/utils/db/schema';
 // =============================================================================
 
 async function handleCreateBatch(req: ApiRequest): Promise<NextResponse> {
-  let body;
-  try {
-    const rawBody = await req.json();
-    body = createBatchSchema.parse(rawBody);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      throw new ValidationError('Invalid request body', {
-        errors: error.issues.map((e) => ({
-          field: e.path.join('.'),
-          message: e.message,
-        })),
-      });
-    }
-    throw new ValidationError('Invalid JSON in request body');
-  }
-
+  const body = await parseAndValidateOrThrow(req, createBatchSchema);
   const { organization } = req;
 
   // Check plan allows batch processing

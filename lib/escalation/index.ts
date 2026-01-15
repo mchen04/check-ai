@@ -9,8 +9,5 @@ export {
   createEscalation,
   resolveEscalation,
   dismissEscalation,
-  determineEscalationReason,
-  calculatePriority,
-  buildEscalationDetails,
 } from './service';
 export { getEscalationStatus } from './repository';

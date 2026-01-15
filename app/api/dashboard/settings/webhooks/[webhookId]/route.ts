@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 import { withDashboardAuth } from '@/lib/api';
 import { createAuditLogger } from '@/lib/audit';
 import { UpdateWebhookSchema } from '@/lib/constants/webhooks';
-import { extractRouteParam, RouteContext, parseAndValidate, errorResponse } from '@/lib/api/validation';
+import { extractRouteParam, RouteContext, parseAndValidate, errorResponse, successResponse } from '@/lib/api/validation';
 import { formatDateToISO, formatWebhookForResponse } from '@/lib/api/formatters';
 import { getWebhook, getWebhookDeliveries, updateWebhook, deleteWebhook } from '@/lib/webhooks/repository';
 
@@ -129,5 +129,5 @@ export const DELETE = withDashboardAuth<RouteParams>(async (req, routeContext) =
     resourceId: webhookId,
   });
 
-  return NextResponse.json({ success: true });
+  return successResponse.ok();
 }, { permission: 'webhooks:delete' });

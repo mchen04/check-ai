@@ -8,6 +8,7 @@ import {
   VerificationOrchestrator,
   StreamingVerificationOrchestrator,
   createOrchestrator,
+  type UpdateCallback,
 } from './orchestrator';
 
 // Mock uuid
@@ -345,7 +346,7 @@ describe('StreamingVerificationOrchestrator', () => {
       keys: { openai: 'test-openai-key' },
     });
     updateCallback = vi.fn();
-    streamingOrchestrator.setUpdateCallback(updateCallback);
+    streamingOrchestrator.setUpdateCallback(updateCallback as UpdateCallback);
   });
 
   describe('setUpdateCallback', () => {
@@ -375,7 +376,7 @@ describe('StreamingVerificationOrchestrator', () => {
         (call) => call[0].type === 'started'
       );
       expect(startedCall).toBeDefined();
-      expect(startedCall[0].data.progress).toBeDefined();
+      expect(startedCall![0].data.progress).toBeDefined();
     });
 
     it('should emit paradigm_started events', async () => {
@@ -409,7 +410,7 @@ describe('StreamingVerificationOrchestrator', () => {
         (call) => call[0].type === 'completed'
       );
       expect(completedCall).toBeDefined();
-      expect(completedCall[0].data.finalResult).toBeDefined();
+      expect(completedCall![0].data.finalResult).toBeDefined();
     });
 
     it('should track progress correctly', async () => {
@@ -420,8 +421,9 @@ describe('StreamingVerificationOrchestrator', () => {
       const completedCall = updateCallback.mock.calls.find(
         (call) => call[0].type === 'completed'
       );
-      expect(completedCall[0].data.progress.completed).toBe(3);
-      expect(completedCall[0].data.progress.total).toBe(3);
+      expect(completedCall).toBeDefined();
+      expect(completedCall![0].data.progress.completed).toBe(3);
+      expect(completedCall![0].data.progress.total).toBe(3);
     });
 
     it('should use custom verification ID when set', async () => {

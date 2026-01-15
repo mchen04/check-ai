@@ -3,12 +3,14 @@
  * Main verification endpoint
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   ValidationError,
   withApiMiddleware,
   ApiRequest,
   throwVerifyApiError,
+  errorResponse,
+  parseJsonBodyOrThrow,
 } from '@/lib/api';
 import { verify, validateVerifyRequest, OrganizationContext } from '@/lib/verification';
 
@@ -18,12 +20,7 @@ import { verify, validateVerifyRequest, OrganizationContext } from '@/lib/verifi
 
 async function handleVerify(req: ApiRequest): Promise<NextResponse> {
   // Parse request body
-  let rawBody: unknown;
-  try {
-    rawBody = await req.json();
-  } catch {
-    throw new ValidationError('Invalid JSON in request body');
-  }
+  const rawBody = await parseJsonBodyOrThrow(req);
 
   // Validate request
   const validation = validateVerifyRequest(rawBody);
@@ -64,12 +61,8 @@ async function handleVerify(req: ApiRequest): Promise<NextResponse> {
 export const POST = withApiMiddleware(handleVerify);
 
 // GET endpoint for retrieving verification status
-export async function GET(req: NextRequest) {
-  return NextResponse.json(
-    {
-      error: 'Method not allowed',
-      message: 'Use POST to create a verification. Use GET /api/v1/verify/[id] to retrieve status.',
-    },
-    { status: 405 }
+export async function GET() {
+  return errorResponse.methodNotAllowed(
+    'Use POST to create a verification. Use GET /api/v1/verify/[id] to retrieve status.'
   );
 }

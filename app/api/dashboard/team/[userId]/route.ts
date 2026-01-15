@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/utils/db/db';
 import { orgMembersTable } from '@/utils/db/schema';
@@ -6,7 +5,7 @@ import { eq, and } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
 import { canModifyRole, canRemoveMember, OrgRole } from '@/lib/rbac/permissions';
 import { createAuditLogger } from '@/lib/audit';
-import { extractRouteParam, RouteContext, parseAndValidate, errorResponse } from '@/lib/api/validation';
+import { extractRouteParam, RouteContext, parseAndValidate, errorResponse, successResponse } from '@/lib/api/validation';
 
 // =============================================================================
 // PATCH - Update member role
@@ -75,7 +74,7 @@ async function handlePatch(
     changes: { before: { role: targetMember.role }, after: { role: newRole } },
   });
 
-  return NextResponse.json({ success: true, role: newRole });
+  return successResponse.ok({ role: newRole });
 }
 
 export const PATCH = withDashboardAuth(handlePatch, {
@@ -139,7 +138,7 @@ async function handleDelete(
     changes: { before: { role: targetMember.role } },
   });
 
-  return NextResponse.json({ success: true });
+  return successResponse.ok();
 }
 
 export const DELETE = withDashboardAuth(handleDelete, {

@@ -1,10 +1,9 @@
-import { NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
 import { orgInvitesTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
 import { createAuditLogger } from '@/lib/audit';
-import { extractRouteParam, RouteContext, errorResponse } from '@/lib/api/validation';
+import { extractRouteParam, RouteContext, errorResponse, successResponse } from '@/lib/api/validation';
 
 // =============================================================================
 // DELETE - Revoke pending invite
@@ -42,7 +41,7 @@ async function handleDelete(
     resourceId: inviteId,
   });
 
-  return NextResponse.json({ success: true });
+  return successResponse.ok();
 }
 
 export const DELETE = withDashboardAuth(handleDelete, {

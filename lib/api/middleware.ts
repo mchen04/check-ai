@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
-import { apiKeysTable, organizationsTable, providerCredentialsTable } from '@/utils/db/schema';
+import { apiKeysTable, organizationsTable } from '@/utils/db/schema';
 import { eq, and, isNull } from 'drizzle-orm';
 import { ApiHandler, AuthenticatedRequest, PublicApiHandler } from './types';
 import {

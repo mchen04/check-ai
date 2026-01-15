@@ -14,6 +14,7 @@ import {
 } from '@/utils/db/schema';
 import { eq, and, gte, sql, count, isNotNull, desc, ne } from 'drizzle-orm';
 import { TimeRange, PARADIGM_DISPLAY_NAMES, getDateRangeStart } from './types';
+import { clampRatio } from '@/lib/utils';
 
 // =============================================================================
 // TYPES
@@ -170,8 +171,8 @@ export async function getParadigmFPR(
       totalResolved,
       falsePositives,
       truePositives: Number(r.truePositives) || 0,
-      fpr: Math.min(1, Math.max(0, rawFpr)),
-      accuracy: Math.min(1, Math.max(0, rawAccuracy)),
+      fpr: clampRatio(rawFpr),
+      accuracy: clampRatio(rawAccuracy),
     };
   });
 }
@@ -224,7 +225,7 @@ export async function getFPRTrends(
 
     return {
       date: r.date,
-      fpr: Math.min(1, Math.max(0, rawFpr)),
+      fpr: clampRatio(rawFpr),
       totalResolved,
     };
   });

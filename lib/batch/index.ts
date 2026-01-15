@@ -25,10 +25,6 @@ export {
   getBatchProgress,
   isBatchActive,
   markItemProcessing,
-  getBatchChannelName,
-  buildStatusUpdateEvent,
-  buildItemCompleteEvent,
-  buildCompleteEvent,
 } from './progress';
 
 // Trigger.dev operations (replaces QStash)

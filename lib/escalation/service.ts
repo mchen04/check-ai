@@ -21,13 +21,22 @@ import { createLogger } from '@/lib/logger';
 const log = createLogger('Escalation');
 
 // =============================================================================
-// Priority Thresholds
+// Constants
 // =============================================================================
 
 const PRIORITY_THRESHOLDS = {
   HIGH: 0.3, // confidence < 0.3 = high priority (3)
   MEDIUM: 0.5, // confidence < 0.5 = medium priority (2)
   // confidence >= 0.5 = low priority (1)
+};
+
+/** Threshold for determining conflicting results (30% disagreement) */
+const DISAGREEMENT_THRESHOLD = 0.3;
+
+/** Deadline durations in milliseconds by priority level */
+const DEADLINE_MS = {
+  HIGH_PRIORITY: 4 * 60 * 60 * 1000, // 4 hours
+  MEDIUM_PRIORITY: 24 * 60 * 60 * 1000, // 24 hours
 };
 
 // =============================================================================
@@ -38,7 +47,7 @@ const PRIORITY_THRESHOLDS = {
  * Determines the escalation reason based on verification context.
  * Priority order: model_failure > timeout > conflicting_results > low_confidence
  */
-export function determineEscalationReason(context: EscalationContext): EscalationReason {
+function determineEscalationReason(context: EscalationContext): EscalationReason {
   const { paradigmResults, confidence, timedOut } = context;
 
   // Check for model errors first (highest priority issue)
@@ -59,7 +68,7 @@ export function determineEscalationReason(context: EscalationContext): Escalatio
 
   const disagreementRatio = validCount > 0 ? Math.min(trueCount, falseCount) / validCount : 0;
 
-  if (disagreementRatio > 0.3) {
+  if (disagreementRatio > DISAGREEMENT_THRESHOLD) {
     return 'conflicting_results';
   }
 
@@ -75,7 +84,7 @@ export function determineEscalationReason(context: EscalationContext): Escalatio
  * Calculates escalation priority (1-3) based on confidence level.
  * Lower confidence = higher priority.
  */
-export function calculatePriority(context: EscalationContext): 1 | 2 | 3 {
+function calculatePriority(context: EscalationContext): 1 | 2 | 3 {
   const { confidence, paradigmResults } = context;
 
   // Model errors always get high priority
@@ -103,7 +112,7 @@ export function calculatePriority(context: EscalationContext): 1 | 2 | 3 {
 /**
  * Builds the JSONB details object for an escalation.
  */
-export function buildEscalationDetails(context: EscalationContext): EscalationDetails {
+function buildEscalationDetails(context: EscalationContext): EscalationDetails {
   const { confidence, paradigmResults } = context;
 
   const trueCount = paradigmResults.filter((r) => r.verdict === 'true').length;
@@ -141,14 +150,14 @@ export function buildEscalationDetails(context: EscalationContext): EscalationDe
  * Calculates optional deadline based on priority.
  * High priority escalations get shorter deadlines.
  */
-export function calculateDeadline(priority: 1 | 2 | 3): Date | null {
+function calculateDeadline(priority: 1 | 2 | 3): Date | null {
   const now = new Date();
 
   switch (priority) {
-    case 3: // High priority - 4 hours
-      return new Date(now.getTime() + 4 * 60 * 60 * 1000);
-    case 2: // Medium priority - 24 hours
-      return new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    case 3: // High priority
+      return new Date(now.getTime() + DEADLINE_MS.HIGH_PRIORITY);
+    case 2: // Medium priority
+      return new Date(now.getTime() + DEADLINE_MS.MEDIUM_PRIORITY);
     default: // Low priority - no deadline
       return null;
   }

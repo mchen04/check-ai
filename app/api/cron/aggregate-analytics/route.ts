@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { runDailyAggregation, backfillAggregations } from '@/lib/analytics/aggregation-service';
 import { subDays, parseISO, isValid } from 'date-fns';
 import { createCronHandlers, cronLog as log } from '@/lib/api/cron-middleware';
+import { errorResponse } from '@/lib/api/validation';
 
 // Vercel Cron config
 export const maxDuration = 300; // 5 minutes max
@@ -36,10 +37,7 @@ async function runAggregation(req: NextRequest): Promise<NextResponse> {
         : subDays(new Date(), 1);
 
       if (!isValid(endDate)) {
-        return NextResponse.json(
-          { error: 'Invalid date format. Use YYYY-MM-DD' },
-          { status: 400 }
-        );
+        return errorResponse.badRequest('Invalid date format. Use YYYY-MM-DD');
       }
 
       const startDate = subDays(endDate, backfillDays - 1);
@@ -64,10 +62,7 @@ async function runAggregation(req: NextRequest): Promise<NextResponse> {
     if (targetDateParam) {
       targetDate = parseISO(targetDateParam);
       if (!isValid(targetDate)) {
-        return NextResponse.json(
-          { error: 'Invalid date format. Use YYYY-MM-DD' },
-          { status: 400 }
-        );
+        return errorResponse.badRequest('Invalid date format. Use YYYY-MM-DD');
       }
     }
 
@@ -84,10 +79,7 @@ async function runAggregation(req: NextRequest): Promise<NextResponse> {
     });
   } catch (error) {
     log.error({ err: error }, 'Aggregation error');
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return errorResponse.internalError();
   }
 }
 

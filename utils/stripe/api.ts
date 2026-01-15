@@ -1,8 +1,13 @@
 import { Stripe } from 'stripe';
 import { db } from '../db/db';
-import { organizationsTable, orgMembersTable, PLAN_LIMITS } from '../db/schema';
+import {
+  organizationsTable,
+  orgMembersTable,
+  verificationsTable,
+  PLAN_LIMITS,
+  type PlanType,
+} from '../db/schema';
 import { eq, and, gte, sql } from 'drizzle-orm';
-import { verificationsTable } from '../db/schema';
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const PUBLIC_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || 'http://localhost:3001';
@@ -11,7 +16,8 @@ const PUBLIC_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || 'http://localhost:3001
 // PLAN TYPES
 // =============================================================================
 
-export type PlanType = 'free' | 'pro' | 'enterprise';
+// Re-export PlanType for consumers of this module
+export type { PlanType } from '../db/schema';
 
 export interface PlanDetails {
   type: PlanType;
@@ -29,29 +35,6 @@ export interface PlanDetails {
 // =============================================================================
 // PLAN FUNCTIONS
 // =============================================================================
-
-/**
- * Get the Stripe plan name for an organization
- * @deprecated Use getOrgPlanDetails instead for comprehensive plan info
- */
-export async function getStripePlan(orgId: string): Promise<string> {
-  const org = await db.query.organizationsTable.findFirst({
-    where: eq(organizationsTable.id, orgId),
-  });
-
-  if (!org?.stripeSubscriptionId) {
-    return 'Free';
-  }
-
-  try {
-    const subscription = await stripe.subscriptions.retrieve(org.stripeSubscriptionId);
-    const productId = subscription.items.data[0].plan.product as string;
-    const product = await stripe.products.retrieve(productId);
-    return product.name;
-  } catch {
-    return 'Free';
-  }
-}
 
 /**
  * Get plan type from Stripe product name

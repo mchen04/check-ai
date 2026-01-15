@@ -125,17 +125,6 @@ export async function cacheVerification(
   return await cacheSet(key, resultToCache, ttl);
 }
 
-/**
- * Invalidate a cached verification
- */
-export async function invalidateVerification(
-  content: string,
-  methodsConfig: MethodsConfig
-): Promise<boolean> {
-  const key = generateCacheKey(content, methodsConfig);
-  return await cacheDelete(key);
-}
-
 // =============================================================================
 // CACHE STATS (for monitoring)
 // =============================================================================
@@ -154,8 +143,3 @@ export function recordCacheMiss(): void {
   stats.misses++;
 }
 
-// =============================================================================
-// EXPORTS
-// =============================================================================
-
-export { CACHE_PREFIX, MIN_CONFIDENCE_TO_CACHE };

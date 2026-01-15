@@ -8,7 +8,7 @@ import {
   setDefaultCredential,
 } from '@/lib/api-keys/service';
 import { z } from 'zod';
-import { extractRouteParam, RouteContext, parseAndValidate, errorResponse } from '@/lib/api/validation';
+import { extractRouteParam, RouteContext, parseAndValidate, errorResponse, successResponse } from '@/lib/api/validation';
 import { formatRequiredDateToISO } from '@/lib/api/formatters';
 
 // =============================================================================
@@ -87,7 +87,7 @@ export const POST = withDashboardAuth(
       },
     });
 
-    return NextResponse.json({ success: true });
+    return successResponse.ok();
   },
   { permission: 'api_keys:create' }
 );
@@ -125,7 +125,7 @@ export const DELETE = withDashboardAuth(
       },
     });
 
-    return NextResponse.json({ success: true });
+    return successResponse.ok();
   },
   { permission: 'api_keys:create' }
 );
@@ -165,7 +165,7 @@ export const PATCH = withDashboardAuth(
       },
     });
 
-    return NextResponse.json({ success: true });
+    return successResponse.ok();
   },
   { permission: 'api_keys:create' }
 );

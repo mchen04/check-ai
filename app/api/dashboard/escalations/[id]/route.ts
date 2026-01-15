@@ -14,6 +14,7 @@ import {
   resolveEscalation,
   dismissEscalation,
   REASON_DISPLAY_MAP,
+  type HumanVerdict,
 } from '@/lib/escalation';
 import { fireWebhooks } from '@/lib/webhooks/service';
 import { createAuditLogger } from '@/lib/audit';
@@ -71,7 +72,7 @@ async function handleGet(
       escalation.reason,
     details: escalation.details,
     priority: escalation.priority,
-    status: getEscalationStatus(escalation.resolvedAt, escalation.humanVerdict),
+    status: getEscalationStatus(escalation.resolvedAt, escalation.humanVerdict as HumanVerdict | null),
     deadline: formatDateToISO(escalation.deadline),
     resolvedAt: formatDateToISO(escalation.resolvedAt),
     resolvedBy: escalation.resolvedByUser

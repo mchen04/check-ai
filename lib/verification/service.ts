@@ -34,8 +34,6 @@ import {
   broadcastFinalResult,
 } from '@/utils/supabase/realtime';
 import type { ApiKeyConfiguration } from '@/lib/api/types';
-import { resolveVerificationConfig } from '@/lib/api-keys/service';
-import type { ApiKeyWithConfig, ResolvedVerificationConfig } from '@/lib/api-keys/types';
 
 // =============================================================================
 // TYPES

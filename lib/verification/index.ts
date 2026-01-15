@@ -55,7 +55,6 @@ export type { QuotaCheckResult, MethodsCheckResult, PlanType } from './quota';
 export {
   createVerification,
   findByIdempotencyKey,
-  updateVerification,
   markVerificationFailed,
   saveVerificationResult,
 } from './repository';

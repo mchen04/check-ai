@@ -6,6 +6,7 @@ import { eq, and } from 'drizzle-orm';
 import { createClient } from '@/utils/supabase/server';
 import { createAuditLogger } from '@/lib/audit';
 import { createLogger } from '@/lib/logger';
+import { errorResponse, parseAndValidate } from '@/lib/api/validation';
 
 const log = createLogger('AcceptInvite');
 
@@ -23,15 +24,12 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return errorResponse.unauthorized();
     }
 
     // Parse body
-    const body = await req.json();
-    const parsed = AcceptInviteSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 400 });
-    }
+    const parsed = await parseAndValidate(req, AcceptInviteSchema);
+    if (!parsed.success) return parsed.error;
 
     const { token } = parsed.data;
 
@@ -45,10 +43,7 @@ export async function POST(req: NextRequest) {
       .limit(1);
 
     if (!invite) {
-      return NextResponse.json(
-        { error: 'Invite not found or already used' },
-        { status: 404 }
-      );
+      return errorResponse.notFound('Invite not found or already used');
     }
 
     // Check expiration
@@ -58,15 +53,12 @@ export async function POST(req: NextRequest) {
         .set({ status: 'expired' })
         .where(eq(orgInvitesTable.id, invite.id));
 
-      return NextResponse.json({ error: 'This invite has expired' }, { status: 410 });
+      return errorResponse.gone('This invite has expired');
     }
 
     // Verify email matches
     if (user.email?.toLowerCase() !== invite.email.toLowerCase()) {
-      return NextResponse.json(
-        { error: 'This invite was sent to a different email address' },
-        { status: 403 }
-      );
+      return errorResponse.forbidden('This invite was sent to a different email address');
     }
 
     // Check if already a member
@@ -82,10 +74,7 @@ export async function POST(req: NextRequest) {
       .limit(1);
 
     if (existingMember.length > 0) {
-      return NextResponse.json(
-        { error: 'You are already a member of this organization' },
-        { status: 409 }
-      );
+      return errorResponse.conflict('You are already a member of this organization');
     }
 
     // Add as member and mark invite as accepted (transaction)
@@ -120,6 +109,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     log.error({ err: error }, 'Error accepting invite');
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return errorResponse.internalError();
   }
 }

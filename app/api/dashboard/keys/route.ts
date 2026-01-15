@@ -8,7 +8,7 @@ import {
   updateApiKey,
 } from '@/lib/api-keys/service';
 import { createApiKeySchema, updateApiKeySchema } from '@/lib/api-keys/types';
-import { parseAndValidate, errorResponse } from '@/lib/api/validation';
+import { parseAndValidate, errorResponse, successResponse } from '@/lib/api/validation';
 import { formatDateToISO, formatRequiredDateToISO } from '@/lib/api/formatters';
 
 // =============================================================================
@@ -130,7 +130,7 @@ export const DELETE = withDashboardAuth(
       resourceId: keyId,
     });
 
-    return NextResponse.json({ success: true });
+    return successResponse.ok();
   },
   { permission: 'api_keys:delete' }
 );
@@ -176,7 +176,7 @@ export const PATCH = withDashboardAuth(
       changes: { after: { name, paradigmConfig, isActive } },
     });
 
-    return NextResponse.json({ success: true });
+    return successResponse.ok();
   },
   { permission: 'api_keys:create' }
 );

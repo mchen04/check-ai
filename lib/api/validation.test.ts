@@ -7,9 +7,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { z } from 'zod';
 import {
   parseAndValidate,
+  parseJsonBodyOrThrow,
+  parseAndValidateOrThrow,
   validate,
   createValidationErrorResponse,
   errorResponse,
+  successResponse,
   validateEnumParam,
   extractRouteParam,
   assertOrgOwnership,
@@ -67,6 +70,104 @@ describe('parseAndValidate', () => {
     if (!result.success) {
       expect(result.error.status).toBe(400);
     }
+  });
+});
+
+// =============================================================================
+// parseJsonBodyOrThrow TESTS (for middleware routes)
+// =============================================================================
+
+describe('parseJsonBodyOrThrow', () => {
+  it('should parse valid JSON body', async () => {
+    const request = new Request('http://test.com', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'test', value: 42 }),
+    });
+
+    const result = await parseJsonBodyOrThrow(request);
+    expect(result).toEqual({ name: 'test', value: 42 });
+  });
+
+  it('should throw ValidationError for invalid JSON', async () => {
+    const request = new Request('http://test.com', {
+      method: 'POST',
+      body: 'not valid json',
+    });
+
+    await expect(parseJsonBodyOrThrow(request)).rejects.toThrow('Invalid JSON in request body');
+  });
+
+  it('should throw ValidationError for empty body', async () => {
+    const request = new Request('http://test.com', {
+      method: 'POST',
+      body: '',
+    });
+
+    await expect(parseJsonBodyOrThrow(request)).rejects.toThrow('Invalid JSON in request body');
+  });
+});
+
+// =============================================================================
+// parseAndValidateOrThrow TESTS (for middleware routes)
+// =============================================================================
+
+describe('parseAndValidateOrThrow', () => {
+  const TestSchema = z.object({
+    email: z.string().email(),
+    age: z.number().min(0),
+  });
+
+  it('should parse and validate correct data', async () => {
+    const request = new Request('http://test.com', {
+      method: 'POST',
+      body: JSON.stringify({ email: 'test@example.com', age: 25 }),
+    });
+
+    const result = await parseAndValidateOrThrow(request, TestSchema);
+    expect(result).toEqual({ email: 'test@example.com', age: 25 });
+  });
+
+  it('should throw ValidationError for invalid JSON', async () => {
+    const request = new Request('http://test.com', {
+      method: 'POST',
+      body: 'invalid json',
+    });
+
+    await expect(parseAndValidateOrThrow(request, TestSchema)).rejects.toThrow('Invalid JSON in request body');
+  });
+
+  it('should throw ValidationError for validation failures', async () => {
+    const request = new Request('http://test.com', {
+      method: 'POST',
+      body: JSON.stringify({ email: 'not-an-email', age: -5 }),
+    });
+
+    await expect(parseAndValidateOrThrow(request, TestSchema)).rejects.toThrow('Invalid request body');
+  });
+
+  it('should throw ValidationError with field details for validation failures', async () => {
+    const request = new Request('http://test.com', {
+      method: 'POST',
+      body: JSON.stringify({ email: 'invalid', age: 'not a number' }),
+    });
+
+    try {
+      await parseAndValidateOrThrow(request, TestSchema);
+      expect.fail('Should have thrown');
+    } catch (error: any) {
+      expect(error.name).toBe('ValidationError');
+      expect(error.details?.errors).toBeDefined();
+      expect(error.details.errors.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('should handle missing required fields', async () => {
+    const request = new Request('http://test.com', {
+      method: 'POST',
+      body: JSON.stringify({ email: 'test@example.com' }), // missing 'age'
+    });
+
+    await expect(parseAndValidateOrThrow(request, TestSchema)).rejects.toThrow('Invalid request body');
   });
 });
 
@@ -156,6 +257,55 @@ describe('errorResponse', () => {
 
     expect(response.status).toBe(500);
     expect(body.error).toBe('Internal server error');
+  });
+});
+
+// =============================================================================
+// successResponse TESTS
+// =============================================================================
+
+describe('successResponse', () => {
+  it('should create ok response with success: true', async () => {
+    const response = successResponse.ok();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+  });
+
+  it('should create ok response with merged data', async () => {
+    const response = successResponse.ok({ id: 'abc123', name: 'test' });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.id).toBe('abc123');
+    expect(body.name).toBe('test');
+  });
+
+  it('should create created response with 201 status', async () => {
+    const response = successResponse.created({ id: 'new-id' });
+    const body = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(body.success).toBe(true);
+    expect(body.id).toBe('new-id');
+  });
+
+  it('should create accepted response with 202 status', async () => {
+    const response = successResponse.accepted({ jobId: 'job-123' });
+    const body = await response.json();
+
+    expect(response.status).toBe(202);
+    expect(body.success).toBe(true);
+    expect(body.jobId).toBe('job-123');
+  });
+
+  it('should create noContent response with 204 status', () => {
+    const response = successResponse.noContent();
+
+    expect(response.status).toBe(204);
+    expect(response.body).toBeNull();
   });
 });
 
