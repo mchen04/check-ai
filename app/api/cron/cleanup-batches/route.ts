@@ -15,41 +15,14 @@ import {
   cleanupExpiredVerifications,
   getFullCleanupStats,
 } from '@/lib/batch/cleanup-service';
-import { createLogger } from '@/lib/logger';
-
-const log = createLogger('Cron');
+import { createCronHandlers, cronLog as log } from '@/lib/api/cron-middleware';
 
 // Vercel Cron config
 export const maxDuration = 300; // 5 minutes max
 export const dynamic = 'force-dynamic';
 
 /**
- * Validates the CRON_SECRET and returns error response if invalid
- */
-function validateAuth(req: NextRequest): NextResponse | null {
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret) {
-    log.error('CRON_SECRET not configured');
-    return NextResponse.json(
-      { error: 'Server misconfiguration' },
-      { status: 500 }
-    );
-  }
-
-  // Vercel sends: Authorization: Bearer <CRON_SECRET>
-  const providedSecret = authHeader?.replace('Bearer ', '');
-
-  if (providedSecret !== cronSecret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  return null; // Auth valid
-}
-
-/**
- * Runs the cleanup logic (shared between GET and POST)
+ * Runs the cleanup logic
  */
 async function runCleanup(req: NextRequest): Promise<NextResponse> {
   try {
@@ -95,61 +68,27 @@ async function runCleanup(req: NextRequest): Promise<NextResponse> {
   }
 }
 
-/**
- * GET handler - Vercel Cron uses GET requests
- * If authenticated: runs cleanup
- * If not authenticated: returns API documentation (health check)
- */
-export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('authorization');
-
-  // No auth header = return documentation (health check endpoint)
-  if (!authHeader) {
-    return NextResponse.json({
-      endpoint: '/api/cron/cleanup-batches',
-      description: 'Daily batch cleanup cron job - deletes expired batch jobs',
-      schedule: '2 AM UTC daily (0 2 * * *)',
-      methods: ['GET', 'POST'],
-      parameters: {
-        dryRun:
-          'Optional. Set to "true" to see what would be deleted without deleting.',
-        limit:
-          'Optional. Maximum batches to delete per run. Defaults to 1000.',
-        stats:
-          'Optional. Set to "true" to get cleanup statistics without running cleanup.',
-      },
-      authentication: 'Requires CRON_SECRET in Authorization: Bearer header',
-      example: {
-        vercelCron: 'GET /api/cron/cleanup-batches (automatic)',
-        manual:
-          'curl -H "Authorization: Bearer $CRON_SECRET" https://your-app.vercel.app/api/cron/cleanup-batches',
-        dryRun:
-          'curl -H "Authorization: Bearer $CRON_SECRET" "https://your-app.vercel.app/api/cron/cleanup-batches?dryRun=true"',
-        stats:
-          'curl -H "Authorization: Bearer $CRON_SECRET" "https://your-app.vercel.app/api/cron/cleanup-batches?stats=true"',
-      },
-      retention: {
-        description:
-          'Batches and verifications are automatically deleted based on organization retention settings (default: 30 days)',
-        configurable: true,
-        minimumDays: 7,
-      },
-    });
-  }
-
-  // Has auth header = validate and run cleanup
-  const authError = validateAuth(req);
-  if (authError) return authError;
-
-  return runCleanup(req);
-}
-
-/**
- * POST handler - for backwards compatibility and manual triggers
- */
-export async function POST(req: NextRequest) {
-  const authError = validateAuth(req);
-  if (authError) return authError;
-
-  return runCleanup(req);
-}
+export const { GET, POST } = createCronHandlers(
+  {
+    endpoint: '/api/cron/cleanup-batches',
+    description: 'Daily batch cleanup cron job - deletes expired batch jobs',
+    schedule: '2 AM UTC daily (0 2 * * *)',
+    parameters: {
+      dryRun: 'Optional. Set to "true" to see what would be deleted without deleting.',
+      limit: 'Optional. Maximum batches to delete per run. Defaults to 1000.',
+      stats: 'Optional. Set to "true" to get cleanup statistics without running cleanup.',
+    },
+    example: {
+      vercelCron: 'GET /api/cron/cleanup-batches (automatic)',
+      manual: 'curl -H "Authorization: Bearer $CRON_SECRET" https://your-app.vercel.app/api/cron/cleanup-batches',
+      dryRun: 'curl -H "Authorization: Bearer $CRON_SECRET" "https://your-app.vercel.app/api/cron/cleanup-batches?dryRun=true"',
+      stats: 'curl -H "Authorization: Bearer $CRON_SECRET" "https://your-app.vercel.app/api/cron/cleanup-batches?stats=true"',
+    },
+    retention: {
+      description: 'Batches and verifications are automatically deleted based on organization retention settings (default: 30 days)',
+      configurable: true,
+      minimumDays: 7,
+    },
+  },
+  runCleanup
+);

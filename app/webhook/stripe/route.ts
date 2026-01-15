@@ -3,6 +3,9 @@ import { db } from '@/utils/db/db';
 import { organizationsTable, PLAN_LIMITS } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
 import { stripe, getPlanTypeFromName, PlanType } from '@/utils/stripe/api';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('StripeWebhook');
 
 export async function POST(req: Request) {
   // Get raw body for signature verification (must be done before any parsing)
@@ -11,13 +14,13 @@ export async function POST(req: Request) {
 
   // Verify webhook signature
   if (!signature) {
-    console.error('Stripe webhook: Missing stripe-signature header');
+    log.error('Missing stripe-signature header');
     return new Response('Missing stripe-signature header', { status: 400 });
   }
 
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
-    console.error('Stripe webhook: STRIPE_WEBHOOK_SECRET not configured');
+    log.error('STRIPE_WEBHOOK_SECRET not configured');
     return new Response('Webhook secret not configured', { status: 500 });
   }
 
@@ -27,7 +30,7 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-    console.error('Stripe webhook signature verification failed:', errorMessage);
+    log.error({ err }, 'Webhook signature verification failed');
     return new Response(`Webhook signature verification failed: ${errorMessage}`, { status: 400 });
   }
 
@@ -38,12 +41,12 @@ export async function POST(req: Request) {
         const subscription = event.data.object;
         const customerId = subscription.customer as string;
 
-        console.log(`Subscription ${event.type}:`, subscription.id);
+        log.info({ eventType: event.type, subscriptionId: subscription.id }, 'Subscription event');
 
         // Get product to determine plan type
         const priceItem = subscription.items?.data?.[0];
         if (!priceItem?.price?.product) {
-          console.error('No product found in subscription');
+          log.error({ subscriptionId: subscription.id }, 'No product found in subscription');
           break;
         }
 
@@ -56,7 +59,7 @@ export async function POST(req: Request) {
           limits.verificationsPerMonth === Infinity ? 1000000 : limits.verificationsPerMonth;
 
         // Update organization with new plan
-        const result = await db
+        await db
           .update(organizationsTable)
           .set({
             planType,
@@ -66,7 +69,7 @@ export async function POST(req: Request) {
           })
           .where(eq(organizationsTable.stripeCustomerId, customerId));
 
-        console.log(`Updated org to ${planType} plan with ${verificationsLimit} verifications/month`);
+        log.info({ planType, verificationsLimit }, 'Updated org plan');
         break;
       }
 
@@ -74,7 +77,7 @@ export async function POST(req: Request) {
         const subscription = event.data.object;
         const customerId = subscription.customer as string;
 
-        console.log('Subscription deleted:', subscription.id);
+        log.info({ subscriptionId: subscription.id }, 'Subscription deleted');
 
         // Reset organization to free plan
         await db
@@ -87,35 +90,32 @@ export async function POST(req: Request) {
           })
           .where(eq(organizationsTable.stripeCustomerId, customerId));
 
-        console.log('Reset org to free plan');
+        log.info('Reset org to free plan');
         break;
       }
 
       case 'customer.created': {
-        // Log when a new customer is created in Stripe
-        console.log('Customer created:', event.data.object.id);
+        log.info({ customerId: event.data.object.id }, 'Customer created');
         break;
       }
 
       case 'invoice.paid': {
-        // Log successful payments
-        console.log('Invoice paid:', event.data.object.id);
+        log.info({ invoiceId: event.data.object.id }, 'Invoice paid');
         break;
       }
 
       case 'invoice.payment_failed': {
-        // Log failed payments - could send alert email here
-        console.log('Invoice payment failed:', event.data.object.id);
+        log.warn({ invoiceId: event.data.object.id }, 'Invoice payment failed');
         break;
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        log.debug({ eventType: event.type }, 'Unhandled event type');
     }
 
     return new Response('Success', { status: 200 });
   } catch (err) {
-    console.error('Stripe webhook error:', err);
+    log.error({ err }, 'Stripe webhook error');
     return new Response(`Webhook error: ${err instanceof Error ? err.message : 'Unknown error'}`, {
       status: 400,
     });

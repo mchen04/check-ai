@@ -3,18 +3,12 @@
  * Get escalation details or resolve/dismiss an escalation
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/utils/db/db';
-import {
-  escalationsTable,
-  verificationsTable,
-  paradigmResultsTable,
-  orgMembersTable,
-  usersTable,
-} from '@/utils/db/schema';
-import { eq, and } from 'drizzle-orm';
-import { createClient } from '@/utils/supabase/server';
+import { escalationsTable, verificationsTable } from '@/utils/db/schema';
+import { eq } from 'drizzle-orm';
+import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
 import {
   getEscalationStatus,
   resolveEscalation,
@@ -40,252 +34,208 @@ const ResolveEscalationSchema = z.object({
 // GET - Fetch single escalation with full details
 // =============================================================================
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+async function handleGet(
+  req: DashboardRequest,
+  routeContext?: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params;
+  const { id } = await routeContext!.params;
+  const { context } = req;
 
-    // Get authenticated user
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errorResponse.unauthorized();
-    }
-
-    // Get user's organization
-    const orgMember = await db.query.orgMembersTable.findFirst({
-      where: eq(orgMembersTable.userId, user.id),
-    });
-
-    if (!orgMember) {
-      return errorResponse.notFound('No organization found');
-    }
-
-    // Fetch escalation with verification and paradigm results
-    const escalation = await db.query.escalationsTable.findFirst({
-      where: eq(escalationsTable.id, id),
-      with: {
-        verification: {
-          with: {
-            paradigmResults: true,
-          },
-        },
-        resolvedByUser: true,
-      },
-    });
-
-    if (!escalation) {
-      return errorResponse.notFound('Escalation not found');
-    }
-
-    // Check organization ownership
-    if (escalation.verification.orgId !== orgMember.orgId) {
-      return errorResponse.forbidden();
-    }
-
-    // Format response with full details using shared formatters
-    return NextResponse.json({
-      id: escalation.id,
-      verificationId: escalation.verificationId,
-      reason: escalation.reason,
-      reasonDisplay:
-        REASON_DISPLAY_MAP[escalation.reason as keyof typeof REASON_DISPLAY_MAP] ||
-        escalation.reason,
-      details: escalation.details,
-      priority: escalation.priority,
-      status: getEscalationStatus(escalation.resolvedAt, escalation.humanVerdict),
-      deadline: formatDateToISO(escalation.deadline),
-      resolvedAt: formatDateToISO(escalation.resolvedAt),
-      resolvedBy: escalation.resolvedByUser
-        ? {
-            id: escalation.resolvedByUser.id,
-            name: escalation.resolvedByUser.name,
-            email: escalation.resolvedByUser.email,
-          }
-        : null,
-      resolution: escalation.resolution,
-      humanVerdict: escalation.humanVerdict,
-      createdAt: formatRequiredDateToISO(escalation.createdAt),
+  // Fetch escalation with verification and paradigm results
+  const escalation = await db.query.escalationsTable.findFirst({
+    where: eq(escalationsTable.id, id),
+    with: {
       verification: {
-        id: escalation.verification.id,
-        content: escalation.verification.content,
-        verdict: escalation.verification.finalVerdict,
-        confidence: parseDecimal(escalation.verification.confidenceScore),
-        decision: escalation.verification.decision,
-        reasoning: escalation.verification.reasoning,
-        processingTimeMs: escalation.verification.processingTimeMs,
-        costCents: escalation.verification.costCents,
-        createdAt: formatRequiredDateToISO(escalation.verification.createdAt),
-        completedAt: formatDateToISO(escalation.verification.completedAt),
-        paradigmResults: escalation.verification.paradigmResults.map((pr) => ({
-          id: pr.id,
-          paradigm: pr.paradigmType,
-          weight: parseDecimal(pr.weight),
-          provider: pr.provider,
-          model: pr.model,
-          verdict: pr.verdict,
-          confidence: parseDecimal(pr.confidence),
-          reasoning: pr.reasoning,
-          processingTimeMs: pr.processingTimeMs,
-          error: pr.errorMessage,
-        })),
+        with: {
+          paradigmResults: true,
+        },
       },
-    });
-  } catch (error) {
-    console.error('Failed to fetch escalation:', error);
-    return errorResponse.internalError();
+      resolvedByUser: true,
+    },
+  });
+
+  if (!escalation) {
+    return errorResponse.notFound('Escalation not found');
   }
+
+  // Check organization ownership
+  if (escalation.verification.orgId !== context.orgId) {
+    return errorResponse.forbidden();
+  }
+
+  // Format response with full details using shared formatters
+  return NextResponse.json({
+    id: escalation.id,
+    verificationId: escalation.verificationId,
+    reason: escalation.reason,
+    reasonDisplay:
+      REASON_DISPLAY_MAP[escalation.reason as keyof typeof REASON_DISPLAY_MAP] ||
+      escalation.reason,
+    details: escalation.details,
+    priority: escalation.priority,
+    status: getEscalationStatus(escalation.resolvedAt, escalation.humanVerdict),
+    deadline: formatDateToISO(escalation.deadline),
+    resolvedAt: formatDateToISO(escalation.resolvedAt),
+    resolvedBy: escalation.resolvedByUser
+      ? {
+          id: escalation.resolvedByUser.id,
+          name: escalation.resolvedByUser.name,
+          email: escalation.resolvedByUser.email,
+        }
+      : null,
+    resolution: escalation.resolution,
+    humanVerdict: escalation.humanVerdict,
+    createdAt: formatRequiredDateToISO(escalation.createdAt),
+    verification: {
+      id: escalation.verification.id,
+      content: escalation.verification.content,
+      verdict: escalation.verification.finalVerdict,
+      confidence: parseDecimal(escalation.verification.confidenceScore),
+      decision: escalation.verification.decision,
+      reasoning: escalation.verification.reasoning,
+      processingTimeMs: escalation.verification.processingTimeMs,
+      costCents: escalation.verification.costCents,
+      createdAt: formatRequiredDateToISO(escalation.verification.createdAt),
+      completedAt: formatDateToISO(escalation.verification.completedAt),
+      paradigmResults: escalation.verification.paradigmResults.map((pr) => ({
+        id: pr.id,
+        paradigm: pr.paradigmType,
+        weight: parseDecimal(pr.weight),
+        provider: pr.provider,
+        model: pr.model,
+        verdict: pr.verdict,
+        confidence: parseDecimal(pr.confidence),
+        reasoning: pr.reasoning,
+        processingTimeMs: pr.processingTimeMs,
+        error: pr.errorMessage,
+      })),
+    },
+  });
 }
+
+export const GET = withDashboardAuth(handleGet);
 
 // =============================================================================
 // PATCH - Resolve or dismiss an escalation
 // =============================================================================
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+async function handlePatch(
+  req: DashboardRequest,
+  routeContext?: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params;
+  const { id } = await routeContext!.params;
+  const { context } = req;
 
-    // Get authenticated user
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+  // Parse and validate request body using shared utility
+  const result = await parseAndValidate(req, ResolveEscalationSchema);
+  if (!result.success) return result.error;
 
-    if (authError || !user) {
-      return errorResponse.unauthorized();
-    }
+  const { action, humanVerdict, resolution } = result.data;
 
-    // Get user's organization
-    const orgMember = await db.query.orgMembersTable.findFirst({
-      where: eq(orgMembersTable.userId, user.id),
-    });
+  // Validate that humanVerdict is provided when resolving
+  if (action === 'resolve' && !humanVerdict) {
+    return errorResponse.badRequest('humanVerdict is required when resolving an escalation');
+  }
 
-    if (!orgMember) {
-      return errorResponse.notFound('No organization found');
-    }
+  // Fetch escalation to verify ownership and status
+  const escalation = await db
+    .select({
+      id: escalationsTable.id,
+      verificationId: escalationsTable.verificationId,
+      resolvedAt: escalationsTable.resolvedAt,
+      orgId: verificationsTable.orgId,
+    })
+    .from(escalationsTable)
+    .innerJoin(
+      verificationsTable,
+      eq(escalationsTable.verificationId, verificationsTable.id)
+    )
+    .where(eq(escalationsTable.id, id))
+    .limit(1);
 
-    // Parse and validate request body using shared utility
-    const result = await parseAndValidate(req, ResolveEscalationSchema);
-    if (!result.success) return result.error;
+  if (escalation.length === 0) {
+    return errorResponse.notFound('Escalation not found');
+  }
 
-    const { action, humanVerdict, resolution } = result.data;
+  // Check organization ownership
+  if (escalation[0].orgId !== context.orgId) {
+    return errorResponse.forbidden();
+  }
 
-    // Validate that humanVerdict is provided when resolving
-    if (action === 'resolve' && !humanVerdict) {
-      return errorResponse.badRequest('humanVerdict is required when resolving an escalation');
-    }
+  // Check if already resolved
+  if (escalation[0].resolvedAt) {
+    return errorResponse.conflict('Escalation has already been resolved');
+  }
 
-    // Fetch escalation to verify ownership and status
-    const escalation = await db
-      .select({
-        id: escalationsTable.id,
-        verificationId: escalationsTable.verificationId,
-        resolvedAt: escalationsTable.resolvedAt,
-        orgId: verificationsTable.orgId,
-      })
-      .from(escalationsTable)
-      .innerJoin(
-        verificationsTable,
-        eq(escalationsTable.verificationId, verificationsTable.id)
-      )
-      .where(eq(escalationsTable.id, id))
-      .limit(1);
+  // Perform the action
+  let updated;
+  if (action === 'resolve') {
+    updated = await resolveEscalation(
+      id,
+      context.userId,
+      humanVerdict as 'true' | 'false' | 'uncertain',
+      resolution
+    );
 
-    if (escalation.length === 0) {
-      return errorResponse.notFound('Escalation not found');
-    }
-
-    // Check organization ownership
-    if (escalation[0].orgId !== orgMember.orgId) {
-      return errorResponse.forbidden();
-    }
-
-    // Check if already resolved
-    if (escalation[0].resolvedAt) {
-      return errorResponse.conflict('Escalation has already been resolved');
-    }
-
-    // Perform the action
-    let updated;
-    if (action === 'resolve') {
-      updated = await resolveEscalation(
-        id,
-        user.id,
-        humanVerdict as 'true' | 'false' | 'uncertain',
-        resolution
-      );
-
-      // Also update the verification's final verdict with the human decision
-      if (humanVerdict) {
-        await db
-          .update(verificationsTable)
-          .set({
-            finalVerdict: humanVerdict,
-            status: 'completed',
-          })
-          .where(eq(verificationsTable.id, escalation[0].verificationId));
-      }
-    } else {
-      updated = await dismissEscalation(id, user.id, resolution);
-
-      // Update verification status to completed (dismissed means original verdict stands)
+    // Also update the verification's final verdict with the human decision
+    if (humanVerdict) {
       await db
         .update(verificationsTable)
         .set({
+          finalVerdict: humanVerdict,
           status: 'completed',
         })
         .where(eq(verificationsTable.id, escalation[0].verificationId));
     }
+  } else {
+    updated = await dismissEscalation(id, context.userId, resolution);
 
-    if (!updated) {
-      return errorResponse.internalError('Failed to update escalation');
-    }
-
-    // Fire escalation.resolved webhook
-    fireWebhooks(escalation[0].orgId, 'escalation.resolved', {
-      escalationId: id,
-      verificationId: escalation[0].verificationId,
-      action: action,
-      humanVerdict: humanVerdict || null,
-      resolution: resolution || null,
-      resolvedAt: formatDateToISO(updated.resolvedAt),
-    });
-
-    // Log audit event
-    const audit = createAuditLogger({ orgId: escalation[0].orgId, userId: user.id }, req);
-    audit.log({
-      eventType: action === 'resolve' ? 'escalation.resolved' : 'escalation.dismissed',
-      description: `Escalation ${action === 'resolve' ? 'resolved' : 'dismissed'}${humanVerdict ? ` with verdict: ${humanVerdict}` : ''}`,
-      resourceType: 'escalation',
-      resourceId: id,
-      changes: {
-        after: {
-          action,
-          humanVerdict: humanVerdict || null,
-          resolution: resolution || null,
-        },
-      },
-    });
-
-    return NextResponse.json({
-      id: updated.id,
-      status: action === 'resolve' ? 'resolved' : 'dismissed',
-      resolvedAt: formatDateToISO(updated.resolvedAt),
-      humanVerdict: updated.humanVerdict,
-      resolution: updated.resolution,
-    });
-  } catch (error) {
-    console.error('Failed to update escalation:', error);
-    return errorResponse.internalError();
+    // Update verification status to completed (dismissed means original verdict stands)
+    await db
+      .update(verificationsTable)
+      .set({
+        status: 'completed',
+      })
+      .where(eq(verificationsTable.id, escalation[0].verificationId));
   }
+
+  if (!updated) {
+    return errorResponse.internalError('Failed to update escalation');
+  }
+
+  // Fire escalation.resolved webhook
+  fireWebhooks(escalation[0].orgId, 'escalation.resolved', {
+    escalationId: id,
+    verificationId: escalation[0].verificationId,
+    action: action,
+    humanVerdict: humanVerdict || null,
+    resolution: resolution || null,
+    resolvedAt: formatDateToISO(updated.resolvedAt),
+  });
+
+  // Log audit event
+  const audit = createAuditLogger(context, req);
+  audit.log({
+    eventType: action === 'resolve' ? 'escalation.resolved' : 'escalation.dismissed',
+    description: `Escalation ${action === 'resolve' ? 'resolved' : 'dismissed'}${humanVerdict ? ` with verdict: ${humanVerdict}` : ''}`,
+    resourceType: 'escalation',
+    resourceId: id,
+    changes: {
+      after: {
+        action,
+        humanVerdict: humanVerdict || null,
+        resolution: resolution || null,
+      },
+    },
+  });
+
+  return NextResponse.json({
+    id: updated.id,
+    status: action === 'resolve' ? 'resolved' : 'dismissed',
+    resolvedAt: formatDateToISO(updated.resolvedAt),
+    humanVerdict: updated.humanVerdict,
+    resolution: updated.resolution,
+  });
 }
+
+export const PATCH = withDashboardAuth(handlePatch);

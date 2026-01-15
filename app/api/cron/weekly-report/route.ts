@@ -12,48 +12,28 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { sendAllWeeklyReports } from '@/lib/email/send-weekly-report';
+import { createCronHandlers, cronLog as log } from '@/lib/api/cron-middleware';
 
 // Vercel Cron config
 export const maxDuration = 300; // 5 minutes max
 export const dynamic = 'force-dynamic';
 
 /**
- * Validates the CRON_SECRET and returns error response if invalid
- */
-function validateAuth(req: NextRequest): NextResponse | null {
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret) {
-    console.error('[Cron] CRON_SECRET not configured');
-    return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
-  }
-
-  // Vercel sends: Authorization: Bearer <CRON_SECRET>
-  const providedSecret = authHeader?.replace('Bearer ', '');
-
-  if (providedSecret !== cronSecret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  return null; // Auth valid
-}
-
-/**
- * Runs the weekly report logic (shared between GET and POST)
+ * Runs the weekly report logic
  */
 async function runWeeklyReports(_req: NextRequest): Promise<NextResponse> {
   try {
-    console.log('[Cron] Starting weekly report generation');
+    log.info('Starting weekly report generation');
 
     const result = await sendAllWeeklyReports();
 
-    console.log(
-      `[Cron] Weekly reports complete: ${result.orgsProcessed} orgs processed, ${result.totalSent} emails sent`
+    log.info(
+      { orgsProcessed: result.orgsProcessed, emailsSent: result.totalSent },
+      'Weekly reports complete'
     );
 
     if (result.errors.length > 0) {
-      console.warn('[Cron] Some errors occurred:', result.errors.slice(0, 10)); // Log first 10
+      log.warn({ errors: result.errors.slice(0, 10) }, 'Some errors occurred');
     }
 
     return NextResponse.json({
@@ -64,61 +44,33 @@ async function runWeeklyReports(_req: NextRequest): Promise<NextResponse> {
       errors: result.errors.slice(0, 10), // Return first 10 errors
     });
   } catch (error) {
-    console.error('[Cron] Weekly report error:', error);
+    log.error({ err: error }, 'Weekly report error');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-/**
- * GET handler - Vercel Cron uses GET requests
- * If authenticated: runs weekly reports
- * If not authenticated: returns API documentation (health check)
- */
-export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('authorization');
-
-  // No auth header = return documentation (health check endpoint)
-  if (!authHeader) {
-    return NextResponse.json({
-      endpoint: '/api/cron/weekly-report',
-      description: 'Weekly digest report cron job - sends weekly verification summaries to users',
-      schedule: '9 AM UTC every Monday (0 9 * * 1)',
-      methods: ['GET', 'POST'],
-      authentication: 'Requires CRON_SECRET in Authorization: Bearer header',
-      behavior: {
-        userPreferences: 'Only sends to users with weeklyReport preference enabled (default: true)',
-        orgFiltering: 'Only processes organizations with activity in the past week',
-        contentIncludes: [
-          'Total verifications',
-          'Success rate',
-          'Average confidence',
-          'Escalation stats',
-          'Top paradigm used',
-          'Total cost',
-          'Weekly highlights',
-        ],
-      },
-      example: {
-        vercelCron: 'GET /api/cron/weekly-report (automatic)',
-        manual:
-          'curl -H "Authorization: Bearer $CRON_SECRET" https://your-app.vercel.app/api/cron/weekly-report',
-      },
-    });
-  }
-
-  // Has auth header = validate and run weekly reports
-  const authError = validateAuth(req);
-  if (authError) return authError;
-
-  return runWeeklyReports(req);
-}
-
-/**
- * POST handler - for backwards compatibility and manual triggers
- */
-export async function POST(req: NextRequest) {
-  const authError = validateAuth(req);
-  if (authError) return authError;
-
-  return runWeeklyReports(req);
-}
+export const { GET, POST } = createCronHandlers(
+  {
+    endpoint: '/api/cron/weekly-report',
+    description: 'Weekly digest report cron job - sends weekly verification summaries to users',
+    schedule: '9 AM UTC every Monday (0 9 * * 1)',
+    behavior: {
+      userPreferences: 'Only sends to users with weeklyReport preference enabled (default: true)',
+      orgFiltering: 'Only processes organizations with activity in the past week',
+      contentIncludes: [
+        'Total verifications',
+        'Success rate',
+        'Average confidence',
+        'Escalation stats',
+        'Top paradigm used',
+        'Total cost',
+        'Weekly highlights',
+      ],
+    },
+    example: {
+      vercelCron: 'GET /api/cron/weekly-report (automatic)',
+      manual: 'curl -H "Authorization: Bearer $CRON_SECRET" https://your-app.vercel.app/api/cron/weekly-report',
+    },
+  },
+  runWeeklyReports
+);

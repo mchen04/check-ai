@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { withDashboardAuth, type DashboardRequest } from '@/lib/api/dashboard-middleware';
 import { parseAndValidate, errorResponse } from '@/lib/api/validation';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Profile');
 
 // =============================================================================
 // PATCH - Update user profile (name via Supabase Auth metadata)
@@ -25,7 +28,7 @@ async function handler(req: DashboardRequest) {
   });
 
   if (error) {
-    console.error('Error updating user profile:', error);
+    log.error({ err: error }, 'Failed to update user profile');
     return errorResponse.internalError('Failed to update profile');
   }
 

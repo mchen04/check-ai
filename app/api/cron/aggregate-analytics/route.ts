@@ -12,38 +12,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runDailyAggregation, backfillAggregations } from '@/lib/analytics/aggregation-service';
 import { subDays, parseISO, isValid } from 'date-fns';
+import { createCronHandlers, cronLog as log } from '@/lib/api/cron-middleware';
 
 // Vercel Cron config
 export const maxDuration = 300; // 5 minutes max
 export const dynamic = 'force-dynamic';
 
 /**
- * Validates the CRON_SECRET and returns error response if invalid
- */
-function validateAuth(req: NextRequest): NextResponse | null {
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret) {
-    console.error('[Cron] CRON_SECRET not configured');
-    return NextResponse.json(
-      { error: 'Server misconfiguration' },
-      { status: 500 }
-    );
-  }
-
-  // Vercel sends: Authorization: Bearer <CRON_SECRET>
-  const providedSecret = authHeader?.replace('Bearer ', '');
-
-  if (providedSecret !== cronSecret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  return null; // Auth valid
-}
-
-/**
- * Runs the aggregation logic (shared between GET and POST)
+ * Runs the aggregation logic
  */
 async function runAggregation(req: NextRequest): Promise<NextResponse> {
   try {
@@ -68,8 +44,9 @@ async function runAggregation(req: NextRequest): Promise<NextResponse> {
 
       const startDate = subDays(endDate, backfillDays - 1);
 
-      console.log(
-        `[Cron] Backfilling analytics from ${startDate.toISOString()} to ${endDate.toISOString()}`
+      log.info(
+        { startDate: startDate.toISOString(), endDate: endDate.toISOString() },
+        'Backfilling analytics'
       );
 
       const result = await backfillAggregations(startDate, endDate);
@@ -94,7 +71,10 @@ async function runAggregation(req: NextRequest): Promise<NextResponse> {
       }
     }
 
-    console.log(`[Cron] Running daily aggregation for ${targetDate?.toISOString() || 'yesterday'}`);
+    log.info(
+      { targetDate: targetDate?.toISOString() || 'yesterday' },
+      'Running daily aggregation'
+    );
     const result = await runDailyAggregation(targetDate);
 
     return NextResponse.json({
@@ -103,7 +83,7 @@ async function runAggregation(req: NextRequest): Promise<NextResponse> {
       ...result,
     });
   } catch (error) {
-    console.error('[Cron] Aggregation error:', error);
+    log.error({ err: error }, 'Aggregation error');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -111,48 +91,21 @@ async function runAggregation(req: NextRequest): Promise<NextResponse> {
   }
 }
 
-/**
- * GET handler - Vercel Cron uses GET requests
- * If authenticated: runs aggregation
- * If not authenticated: returns API documentation (health check)
- */
-export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('authorization');
-
-  // No auth header = return documentation (health check endpoint)
-  if (!authHeader) {
-    return NextResponse.json({
-      endpoint: '/api/cron/aggregate-analytics',
-      description: 'Daily analytics aggregation cron job',
-      schedule: '1 AM UTC daily (0 1 * * *)',
-      methods: ['GET', 'POST'],
-      parameters: {
-        date: 'Optional. Target date in YYYY-MM-DD format. Defaults to yesterday.',
-        backfill: 'Optional. Set to "true" to backfill multiple days.',
-        days: 'Optional. Number of days to backfill. Defaults to 7.',
-      },
-      authentication: 'Requires CRON_SECRET in Authorization: Bearer header',
-      example: {
-        vercelCron: 'GET /api/cron/aggregate-analytics (automatic)',
-        manual: 'curl -H "Authorization: Bearer $CRON_SECRET" https://your-app.vercel.app/api/cron/aggregate-analytics',
-        backfill: 'curl -H "Authorization: Bearer $CRON_SECRET" "https://your-app.vercel.app/api/cron/aggregate-analytics?backfill=true&days=30"',
-      },
-    });
-  }
-
-  // Has auth header = validate and run aggregation
-  const authError = validateAuth(req);
-  if (authError) return authError;
-
-  return runAggregation(req);
-}
-
-/**
- * POST handler - for backwards compatibility and manual triggers
- */
-export async function POST(req: NextRequest) {
-  const authError = validateAuth(req);
-  if (authError) return authError;
-
-  return runAggregation(req);
-}
+export const { GET, POST } = createCronHandlers(
+  {
+    endpoint: '/api/cron/aggregate-analytics',
+    description: 'Daily analytics aggregation cron job',
+    schedule: '1 AM UTC daily (0 1 * * *)',
+    parameters: {
+      date: 'Optional. Target date in YYYY-MM-DD format. Defaults to yesterday.',
+      backfill: 'Optional. Set to "true" to backfill multiple days.',
+      days: 'Optional. Number of days to backfill. Defaults to 7.',
+    },
+    example: {
+      vercelCron: 'GET /api/cron/aggregate-analytics (automatic)',
+      manual: 'curl -H "Authorization: Bearer $CRON_SECRET" https://your-app.vercel.app/api/cron/aggregate-analytics',
+      backfill: 'curl -H "Authorization: Bearer $CRON_SECRET" "https://your-app.vercel.app/api/cron/aggregate-analytics?backfill=true&days=30"',
+    },
+  },
+  runAggregation
+);

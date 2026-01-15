@@ -8,6 +8,9 @@ import { usersTable } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
 import { createDefaultOrganization } from '@/lib/org/create-org';
 import { sendWelcomeEmail } from '@/lib/email/send-welcome';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Auth');
 
 const PUBLIC_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || 'http://localhost:3001';
 
@@ -108,9 +111,9 @@ export async function signup(currentState: { message: string }, formData: FormDa
     sendWelcomeEmail({
       to: signUpData.user.email!,
       userName: data.name,
-    }).catch((err) => console.error('Welcome email error:', err));
+    }).catch((err) => log.error({ err }, 'Welcome email error'));
   } catch (err) {
-    console.error('Error in signup:', err instanceof Error ? err.message : 'Unknown error');
+    log.error({ err }, 'Error in signup');
     return { message: 'Failed to setup user account' };
   }
 

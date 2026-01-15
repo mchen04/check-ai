@@ -16,6 +16,9 @@ import type {
   HumanVerdict,
 } from './types';
 import { sendEscalationAlert } from '@/lib/email/send-escalation-alert';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Escalation');
 
 // =============================================================================
 // Priority Thresholds
@@ -207,7 +210,7 @@ export async function createEscalation(
       dashboardUrl,
     }).catch((err) => {
       // Log but don't fail the escalation creation
-      console.error('Failed to send escalation alerts:', err);
+      log.error({ err }, 'Failed to send escalation alerts');
     });
   }
 

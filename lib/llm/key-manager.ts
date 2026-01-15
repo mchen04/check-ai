@@ -10,6 +10,9 @@ import { apiKeysTable, providerCredentialsTable } from '@/utils/db/schema';
 import { eq, and, isNull } from 'drizzle-orm';
 import { ProviderKeys, LLMProvider, PROVIDER_BASE_URLS } from './types';
 import { isDateExpired } from '@/lib/api/formatters';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('KeyManager');
 
 // =============================================================================
 // ENCRYPTION CONFIGURATION
@@ -142,7 +145,7 @@ export class KeyManager {
           const decryptedKey = decrypt(cred.encryptedCredentials);
           result[cred.provider as keyof ProviderKeys] = decryptedKey;
         } catch (error) {
-          console.error(`Failed to decrypt key for provider ${cred.provider}:`, error);
+          log.error({ err: error, provider: cred.provider }, 'Failed to decrypt provider key');
         }
       }
     }
@@ -271,7 +274,7 @@ export class KeyManager {
       .set({ lastUsedAt: new Date() })
       .where(eq(apiKeysTable.id, keyRecord.id))
       .execute()
-      .catch(console.error);
+      .catch((err) => log.error({ err }, 'Failed to update lastUsedAt'));
 
     return {
       valid: true,

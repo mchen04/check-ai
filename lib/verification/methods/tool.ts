@@ -12,6 +12,9 @@ import { ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm/types';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions } from '../types';
 import { TOOL_SYSTEM_PROMPT, TOOL_USER_PROMPT, parseVerificationResponse } from '../prompts';
 import { createParadigmErrorResult } from './shared';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('ToolVerification');
 
 // =============================================================================
 // SEARCH CONFIGURATION
@@ -34,7 +37,7 @@ async function performWebSearch(query: string): Promise<SearchResult[]> {
   const apiKey = process.env.SERPER_API_KEY;
 
   if (!apiKey) {
-    console.warn('SERPER_API_KEY not configured, using mock search results');
+    log.warn('SERPER_API_KEY not configured, using mock search results');
     return [
       {
         title: 'Search not available',
@@ -74,7 +77,7 @@ async function performWebSearch(query: string): Promise<SearchResult[]> {
 
     return results;
   } catch (error) {
-    console.error('Web search error:', error);
+    log.error({ err: error }, 'Web search error');
     return [];
   }
 }

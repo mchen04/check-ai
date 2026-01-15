@@ -4,6 +4,9 @@
  */
 
 import { createClient, RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Realtime');
 
 // =============================================================================
 // TYPES
@@ -54,11 +57,7 @@ function isRealtimeConfigured(): boolean {
   realtimeConfigured = !!(supabaseUrl && supabaseServiceKey);
 
   if (!realtimeConfigured) {
-    console.warn(
-      '[Realtime] SUPABASE_SERVICE_ROLE_KEY not configured. ' +
-        'Real-time verification updates will be disabled. ' +
-        'Clients will fall back to polling.'
-    );
+    log.warn('SUPABASE_SERVICE_ROLE_KEY not configured - realtime disabled, clients will poll');
   }
 
   return realtimeConfigured;
@@ -119,7 +118,7 @@ export async function broadcastVerificationUpdate(
     // Clean up channel after broadcast
     await client.removeChannel(channel);
   } catch (error) {
-    console.error('Failed to broadcast verification update:', error);
+    log.error({ err: error, verificationId: update.verificationId }, 'Failed to broadcast verification update');
     // Don't throw - broadcasting is non-critical, clients will fall back to polling
   }
 }
@@ -238,7 +237,7 @@ export async function broadcastBatchUpdate(
     // Clean up channel after broadcast
     await client.removeChannel(channel);
   } catch (error) {
-    console.error('Failed to broadcast batch update:', error);
+    log.error({ err: error, batchId: update.batchId }, 'Failed to broadcast batch update');
     // Don't throw - broadcasting is non-critical, clients will fall back to polling
   }
 }

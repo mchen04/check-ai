@@ -5,6 +5,9 @@ import { orgInvitesTable, orgMembersTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { createClient } from '@/utils/supabase/server';
 import { createAuditLogger } from '@/lib/audit';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('AcceptInvite');
 
 const AcceptInviteSchema = z.object({
   token: z.string().min(1),
@@ -116,7 +119,7 @@ export async function POST(req: NextRequest) {
       orgId: invite.orgId,
     });
   } catch (error) {
-    console.error('Error accepting invite:', error);
+    log.error({ err: error }, 'Error accepting invite');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { db } from '@/utils/db/db';
 import { waitlistTable } from '@/utils/db/schema';
 import { checkPublicRateLimit } from '@/lib/cache/ratelimit';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Waitlist');
 
 const WaitlistSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -49,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Waitlist signup error:', error);
+    log.error({ err: error }, 'Waitlist signup error');
     return NextResponse.json(
       { error: 'Failed to join waitlist' },
       { status: 500 }

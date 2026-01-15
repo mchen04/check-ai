@@ -5,6 +5,9 @@
 
 import { Redis } from '@upstash/redis';
 import type { ParsedBatchItem, FileUploadResult, BatchValidationError } from './types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('BatchStorage');
 
 // =============================================================================
 // Redis Client
@@ -19,7 +22,7 @@ function getRedis(): Redis | null {
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
   if (!url || !token) {
-    console.warn('[Batch Storage] Redis not configured');
+    log.warn('Redis not configured');
     return null;
   }
 
@@ -139,7 +142,7 @@ export async function consumeStoredFile(
   // Verify org ownership - if mismatch, file is already deleted (can't restore)
   // This is intentional for security - prevents probing
   if (data.orgId !== orgId) {
-    console.warn(`[Batch Storage] Org mismatch for file ${fileId}: expected ${orgId}, got ${data.orgId}`);
+    log.warn({ fileId, expectedOrgId: orgId, actualOrgId: data.orgId }, 'Org mismatch for file access');
     return null;
   }
 

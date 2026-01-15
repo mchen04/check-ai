@@ -13,6 +13,9 @@ import {
 } from '@/utils/db/schema';
 import { eq, and, gte, lt, sql, isNotNull } from 'drizzle-orm';
 import { startOfDay, subDays, format } from 'date-fns';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Analytics');
 
 import type { ConfidenceCalibrationBuckets, ConfidenceCalibrationBucket, ParadigmType } from '@/utils/db/schema';
 
@@ -274,7 +277,7 @@ export async function runDailyAggregation(
   const date = targetDate || subDays(new Date(), 1);
   const dateStr = format(date, 'yyyy-MM-dd');
 
-  console.log(`[Analytics Aggregation] Starting for date: ${dateStr}`);
+  log.info({ date: dateStr }, 'Starting daily aggregation');
 
   // Get all organizations
   const orgs = await db
@@ -290,21 +293,14 @@ export async function runDailyAggregation(
       if (snapshots.length > 0) {
         await saveDailySnapshots(snapshots);
         snapshotsCreated += snapshots.length;
-        console.log(
-          `[Analytics Aggregation] Org ${org.id}: ${snapshots.length} snapshots`
-        );
+        log.debug({ orgId: org.id, snapshots: snapshots.length }, 'Org aggregation complete');
       }
     } catch (error) {
-      console.error(
-        `[Analytics Aggregation] Error processing org ${org.id}:`,
-        error
-      );
+      log.error({ err: error, orgId: org.id }, 'Error processing org');
     }
   }
 
-  console.log(
-    `[Analytics Aggregation] Complete: ${orgs.length} orgs, ${snapshotsCreated} snapshots`
-  );
+  log.info({ orgsProcessed: orgs.length, snapshotsCreated }, 'Daily aggregation complete');
 
   return {
     orgsProcessed: orgs.length,
