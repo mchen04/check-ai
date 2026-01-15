@@ -10,7 +10,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
 import { verificationsTable, paradigmResultsTable } from '@/utils/db/schema';
-import { eq, and, gte, lte, desc } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, inArray } from 'drizzle-orm';
 import { withDashboardAuth, type DashboardRequest } from '@/lib/api/dashboard-middleware';
 import { parseDecimal, formatRequiredDateToISO, formatDateToISO, formatDateForFilename } from '@/lib/api/formatters';
 import { parseAndValidate } from '@/lib/api/validation';
@@ -18,6 +18,7 @@ import {
   ExportRequestSchema,
   VerificationExport,
 } from '@/lib/export/types';
+import { EXPORT_LIMITS } from '@/lib/constants/limits';
 
 /**
  * Converts verification records to CSV format
@@ -151,7 +152,6 @@ async function postHandler(req: DashboardRequest) {
     const verificationIds = exportData.map((v) => v.id);
 
     // Fetch all paradigm results for these verifications using IN clause
-    const { inArray } = await import('drizzle-orm');
     const allParadigmResults = await db
       .select({
         verificationId: paradigmResultsTable.verificationId,
@@ -251,8 +251,8 @@ export async function GET() {
       limit: {
         type: 'number',
         required: false,
-        default: 10000,
-        max: 10000,
+        default: EXPORT_LIMITS.defaultLimit,
+        max: EXPORT_LIMITS.maxLimit,
         description: 'Maximum number of records to export',
       },
     },

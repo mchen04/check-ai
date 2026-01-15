@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/utils/db/db';
-import { webhooksTable } from '@/utils/db/schema';
-import { eq } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
 import { sendTestWebhook } from '@/lib/webhooks/service';
-import { extractRouteParam, RouteContext, errorResponse, assertOrgOwnership } from '@/lib/api/validation';
+import { extractRouteParam, RouteContext, errorResponse } from '@/lib/api/validation';
+import { getWebhook } from '@/lib/webhooks/repository';
 
 // =============================================================================
 // POST - Send test webhook
@@ -17,18 +15,11 @@ async function handlePost(
   const webhookId = await extractRouteParam(routeContext, 'webhookId');
   const { context } = req;
 
-  // Verify webhook exists and belongs to org
-  const [webhook] = await db
-    .select({ orgId: webhooksTable.orgId, isActive: webhooksTable.isActive })
-    .from(webhooksTable)
-    .where(eq(webhooksTable.id, webhookId))
-    .limit(1);
-
+  // Verify webhook exists and belongs to org using repository
+  const webhook = await getWebhook(webhookId, context.orgId);
   if (!webhook) {
     return errorResponse.notFound('Webhook not found');
   }
-
-  await assertOrgOwnership(webhook.orgId, context.orgId);
 
   // Send test webhook
   const result = await sendTestWebhook(webhookId);

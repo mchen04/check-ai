@@ -10,6 +10,7 @@ import { withDashboardRead, type DashboardRequest } from '@/lib/api/dashboard-mi
 import { parsePagination, createPaginationResponse } from '@/lib/api/types';
 import { errorResponse, validateEnumParam } from '@/lib/api/validation';
 import { formatDateToISO, formatRequiredDateToISO } from '@/lib/api/formatters';
+import { BATCH_JOB_STATUSES } from '@/lib/constants/batch';
 
 async function handler(req: DashboardRequest) {
   const { context } = req;
@@ -21,8 +22,7 @@ async function handler(req: DashboardRequest) {
   const statusFilter = searchParams.get('status');
 
   // Validate status filter using shared helper
-  const validStatuses = ['pending', 'validating', 'processing', 'completed', 'failed', 'cancelled'] as const;
-  const validatedStatus = validateEnumParam(statusFilter, validStatuses);
+  const validatedStatus = validateEnumParam(statusFilter, BATCH_JOB_STATUSES);
 
   if (statusFilter && !validatedStatus) {
     return errorResponse.badRequest('Invalid status filter');

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
-import { webhooksTable, webhookDeliveriesTable } from '@/utils/db/schema';
+import { webhookDeliveriesTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
 import { retryWebhookDelivery } from '@/lib/webhooks/service';
-import { RouteContext, errorResponse, assertOrgOwnership } from '@/lib/api/validation';
+import { RouteContext, errorResponse } from '@/lib/api/validation';
+import { getWebhook } from '@/lib/webhooks/repository';
 
 /**
  * POST - Manually retry a failed webhook delivery
@@ -17,18 +18,11 @@ async function handlePost(
   const { webhookId, deliveryId } = params;
   const { context } = req;
 
-  // Verify webhook exists and belongs to org
-  const [webhook] = await db
-    .select({ orgId: webhooksTable.orgId, isActive: webhooksTable.isActive })
-    .from(webhooksTable)
-    .where(eq(webhooksTable.id, webhookId))
-    .limit(1);
-
+  // Verify webhook exists and belongs to org using repository
+  const webhook = await getWebhook(webhookId, context.orgId);
   if (!webhook) {
     return errorResponse.notFound('Webhook not found');
   }
-
-  await assertOrgOwnership(webhook.orgId, context.orgId);
 
   // Verify delivery exists and belongs to this webhook
   const [delivery] = await db

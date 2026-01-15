@@ -182,24 +182,3 @@ export function createAuditLogger(context: AuditContext, request: Request) {
     },
   };
 }
-
-/**
- * Sanitize sensitive data from changes
- * Never log full API keys, passwords, or tokens
- */
-export function sanitizeChanges(changes: Record<string, unknown>): Record<string, unknown> {
-  const sensitiveKeys = ['key', 'token', 'secret', 'password', 'keyHash', 'signingSecret'];
-  const sanitized: Record<string, unknown> = {};
-
-  for (const [key, value] of Object.entries(changes)) {
-    if (sensitiveKeys.some((sk) => key.toLowerCase().includes(sk.toLowerCase()))) {
-      sanitized[key] = '[REDACTED]';
-    } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      sanitized[key] = sanitizeChanges(value as Record<string, unknown>);
-    } else {
-      sanitized[key] = value;
-    }
-  }
-
-  return sanitized;
-}

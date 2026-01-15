@@ -29,9 +29,9 @@ const metricsBuffer: QueryMetrics[] = [];
 const MAX_BUFFER_SIZE = 1000;
 
 /**
- * Track a database query's performance
+ * Track a database query's performance (internal use)
  */
-export function trackQuery(metrics: QueryMetrics): void {
+function trackQuery(metrics: QueryMetrics): void {
   // Add to buffer
   metricsBuffer.push(metrics);
   if (metricsBuffer.length > MAX_BUFFER_SIZE) {
@@ -108,85 +108,3 @@ export async function withQueryTiming<T>(
   }
 }
 
-/**
- * Get recent slow queries (for debugging dashboard)
- */
-export function getSlowQueries(thresholdMs: number = SLOW_QUERY_THRESHOLD_MS): QueryMetrics[] {
-  return metricsBuffer.filter((m) => m.durationMs >= thresholdMs);
-}
-
-/**
- * Get query statistics summary
- */
-export function getQueryStats(): {
-  totalQueries: number;
-  slowQueries: number;
-  verySlowQueries: number;
-  failedQueries: number;
-  averageDurationMs: number;
-  p95DurationMs: number;
-  p99DurationMs: number;
-} {
-  if (metricsBuffer.length === 0) {
-    return {
-      totalQueries: 0,
-      slowQueries: 0,
-      verySlowQueries: 0,
-      failedQueries: 0,
-      averageDurationMs: 0,
-      p95DurationMs: 0,
-      p99DurationMs: 0,
-    };
-  }
-
-  const durations = metricsBuffer.map((m) => m.durationMs).sort((a, b) => a - b);
-  const totalQueries = metricsBuffer.length;
-  const slowQueries = metricsBuffer.filter((m) => m.durationMs >= SLOW_QUERY_THRESHOLD_MS).length;
-  const verySlowQueries = metricsBuffer.filter(
-    (m) => m.durationMs >= VERY_SLOW_QUERY_THRESHOLD_MS
-  ).length;
-  const failedQueries = metricsBuffer.filter((m) => !m.success).length;
-  const averageDurationMs = Math.round(durations.reduce((a, b) => a + b, 0) / totalQueries);
-  const p95Index = Math.floor(totalQueries * 0.95);
-  const p99Index = Math.floor(totalQueries * 0.99);
-
-  return {
-    totalQueries,
-    slowQueries,
-    verySlowQueries,
-    failedQueries,
-    averageDurationMs,
-    p95DurationMs: durations[p95Index] || 0,
-    p99DurationMs: durations[p99Index] || 0,
-  };
-}
-
-/**
- * Clear metrics buffer (for testing)
- */
-export function clearMetrics(): void {
-  metricsBuffer.length = 0;
-}
-
-/**
- * Request timing middleware helper
- */
-export function createRequestTimer(): {
-  start: () => void;
-  end: (operation: string) => number;
-} {
-  let startTime: number;
-
-  return {
-    start: () => {
-      startTime = performance.now();
-    },
-    end: (operation: string) => {
-      const durationMs = Math.round(performance.now() - startTime);
-      if (durationMs >= SLOW_QUERY_THRESHOLD_MS) {
-        log.info({ operation, durationMs }, `Request completed: ${operation}`);
-      }
-      return durationMs;
-    },
-  };
-}

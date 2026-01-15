@@ -13,8 +13,7 @@ import {
   usageTable,
 } from '@/utils/db/schema';
 import { eq, and, gte, sql, count, isNotNull, desc, ne } from 'drizzle-orm';
-import { subDays } from 'date-fns';
-import type { TimeRange } from './types';
+import { TimeRange, PARADIGM_DISPLAY_NAMES, getDateRangeStart } from './types';
 
 // =============================================================================
 // TYPES
@@ -99,25 +98,6 @@ export interface AdvancedAnalyticsData {
   providerCostComparison: ProviderCostComparison[];
   calibration: ParadigmCalibration[];
   advancedSummary: AdvancedAnalyticsSummary;
-}
-
-// =============================================================================
-// HELPERS
-// =============================================================================
-
-const PARADIGM_DISPLAY_NAMES: Record<string, string> = {
-  semantic: 'Semantic',
-  reasoning: 'Reasoning',
-  tool: 'Tool',
-  biprm: 'BiPRM',
-  ensemble: 'Ensemble',
-  entropy: 'Entropy',
-  formal: 'Formal',
-};
-
-function getStartDate(range: TimeRange): Date {
-  const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
-  return subDays(new Date(), days);
 }
 
 // =============================================================================
@@ -579,7 +559,7 @@ export async function getAdvancedAnalyticsData(
   orgId: string,
   range: TimeRange
 ): Promise<AdvancedAnalyticsData> {
-  const startDate = getStartDate(range);
+  const startDate = getDateRangeStart(range);
 
   // Execute all queries in parallel
   const [paradigmFPR, fprTrends, costEfficiency, providerCostComparison, calibration] =

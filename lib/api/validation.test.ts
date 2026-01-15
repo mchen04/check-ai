@@ -11,7 +11,6 @@ import {
   createValidationErrorResponse,
   errorResponse,
   validateEnumParam,
-  createEnumGuard,
   extractRouteParam,
   assertOrgOwnership,
   RouteContext,
@@ -185,24 +184,6 @@ describe('validateEnumParam', () => {
   it('should return null for empty string', () => {
     const result = validateEnumParam('', validStatuses);
     expect(result).toBeNull();
-  });
-});
-
-// =============================================================================
-// createEnumGuard TESTS
-// =============================================================================
-
-describe('createEnumGuard', () => {
-  const isValidRole = createEnumGuard(['admin', 'user', 'guest'] as const);
-
-  it('should return true for valid value', () => {
-    expect(isValidRole('admin')).toBe(true);
-    expect(isValidRole('user')).toBe(true);
-  });
-
-  it('should return false for invalid value', () => {
-    expect(isValidRole('superuser')).toBe(false);
-    expect(isValidRole('')).toBe(false);
   });
 });
 

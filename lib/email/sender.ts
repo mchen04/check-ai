@@ -72,39 +72,6 @@ export async function sendEmail(
 // BULK EMAIL
 // =============================================================================
 
-/**
- * Send emails to multiple recipients with aggregated results
- * Iterates through recipients and collects success/failure stats
- */
-export async function sendBulkEmails(
-  recipients: Array<{ email: string; options: CreateEmailOptions }>,
-  context: { type: string }
-): Promise<BulkEmailResult> {
-  if (!resend) {
-    log.warn({ type: context.type }, 'Resend not configured, skipping bulk emails');
-    return { success: true, sent: 0, errors: [] };
-  }
-
-  const errors: string[] = [];
-  let sent = 0;
-
-  for (const { email, options } of recipients) {
-    const result = await sendEmail(options, { type: context.type, recipient: email });
-
-    if (result.success) {
-      sent++;
-    } else {
-      errors.push(`Failed to send to ${email}: ${result.error}`);
-    }
-  }
-
-  return {
-    success: errors.length === 0,
-    sent,
-    errors,
-  };
-}
-
 // =============================================================================
 // UTILITIES
 // =============================================================================

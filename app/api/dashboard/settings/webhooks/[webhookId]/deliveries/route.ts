@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
-import { webhooksTable, webhookDeliveriesTable } from '@/utils/db/schema';
+import { webhookDeliveriesTable } from '@/utils/db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
-import { extractRouteParam, RouteContext, errorResponse, assertOrgOwnership, validateEnumParam } from '@/lib/api/validation';
-import { formatDateToISO, formatRequiredDateToISO } from '@/lib/api/formatters';
+import { extractRouteParam, RouteContext, errorResponse, validateEnumParam } from '@/lib/api/validation';
+import { formatWebhookDeliveryForResponse } from '@/lib/api/formatters';
+import { parsePagination } from '@/lib/api/types';
+import { WEBHOOK_DELIVERY_STATUSES } from '@/lib/constants/webhooks';
+import { getWebhook } from '@/lib/webhooks/repository';
 
 /**
  * GET - List webhook deliveries with filtering and pagination
@@ -17,26 +20,16 @@ async function handleGet(
   const { context } = req;
   const { searchParams } = new URL(req.url);
   const status = searchParams.get('status');
-  const page = parseInt(searchParams.get('page') || '1');
-  const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
-  const offset = (page - 1) * limit;
+  const { page, limit, offset } = parsePagination(searchParams);
 
-  // Verify webhook exists and belongs to org
-  const [webhook] = await db
-    .select({ orgId: webhooksTable.orgId })
-    .from(webhooksTable)
-    .where(eq(webhooksTable.id, webhookId))
-    .limit(1);
-
+  // Verify webhook exists and belongs to org using repository
+  const webhook = await getWebhook(webhookId, context.orgId);
   if (!webhook) {
     return errorResponse.notFound('Webhook not found');
   }
 
-  await assertOrgOwnership(webhook.orgId, context.orgId);
-
   // Validate and apply status filter using shared helper
-  const validStatuses = ['pending', 'processing', 'delivered', 'retrying', 'failed'] as const;
-  const validatedStatus = validateEnumParam(status, validStatuses);
+  const validatedStatus = validateEnumParam(status, WEBHOOK_DELIVERY_STATUSES);
 
   // Build conditions
   const conditions = [eq(webhookDeliveriesTable.webhookId, webhookId)];
@@ -101,13 +94,7 @@ async function handleGet(
   const total = totalResult?.count || 0;
 
   return NextResponse.json({
-    deliveries: deliveries.map((d) => ({
-      ...d,
-      nextRetryAt: formatDateToISO(d.nextRetryAt),
-      createdAt: formatRequiredDateToISO(d.createdAt),
-      deliveredAt: formatDateToISO(d.deliveredAt),
-      failedAt: formatDateToISO(d.failedAt),
-    })),
+    deliveries: deliveries.map(formatWebhookDeliveryForResponse),
     statusCounts,
     pagination: {
       page,

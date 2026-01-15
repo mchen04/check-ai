@@ -22,27 +22,22 @@ export const WEBHOOK_EVENTS = [
 
 export type WebhookEvent = (typeof WEBHOOK_EVENTS)[number];
 
-/**
- * Display names for webhook events (for UI)
- */
-export const WEBHOOK_EVENT_LABELS: Record<WebhookEvent, string> = {
-  'verification.completed': 'Verification Completed',
-  'verification.escalated': 'Verification Escalated',
-  'escalation.resolved': 'Escalation Resolved',
-  'usage.limit.warning': 'Usage Limit Warning',
-  'usage.limit.reached': 'Usage Limit Reached',
-};
+// =============================================================================
+// WEBHOOK DELIVERY STATUSES
+// =============================================================================
 
 /**
- * Descriptions for webhook events (for UI tooltips)
+ * Valid webhook delivery statuses
  */
-export const WEBHOOK_EVENT_DESCRIPTIONS: Record<WebhookEvent, string> = {
-  'verification.completed': 'Triggered when a verification finishes processing',
-  'verification.escalated': 'Triggered when a verification requires human review',
-  'escalation.resolved': 'Triggered when an escalation is resolved',
-  'usage.limit.warning': 'Triggered when usage reaches 80% of limit',
-  'usage.limit.reached': 'Triggered when usage limit is reached',
-};
+export const WEBHOOK_DELIVERY_STATUSES = [
+  'pending',
+  'processing',
+  'delivered',
+  'retrying',
+  'failed',
+] as const;
+
+export type WebhookDeliveryStatus = (typeof WEBHOOK_DELIVERY_STATUSES)[number];
 
 // =============================================================================
 // VALIDATION SCHEMAS

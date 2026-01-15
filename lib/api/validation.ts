@@ -156,24 +156,6 @@ export function validateEnumParam<T extends string>(
   return validValues.includes(value as T) ? (value as T) : null;
 }
 
-/**
- * Create a type guard for enum validation
- *
- * @param validValues - Array of valid enum values
- * @returns Type guard function
- *
- * @example
- * const isValidStatus = createEnumGuard(['pending', 'completed'] as const);
- * if (isValidStatus(status)) {
- *   // status is typed as 'pending' | 'completed'
- * }
- */
-export function createEnumGuard<T extends string>(
-  validValues: readonly T[]
-): (value: string) => value is T {
-  return (value: string): value is T => validValues.includes(value as T);
-}
-
 // =============================================================================
 // ROUTE PARAMETER HELPERS
 // =============================================================================

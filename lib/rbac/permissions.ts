@@ -64,19 +64,10 @@ export function hasPermission(role: OrgRole, permission: Permission): boolean {
 }
 
 /**
- * Get all permissions for a given role
- */
-export function getPermissionsForRole(role: OrgRole): Permission[] {
-  return (Object.entries(PERMISSIONS) as [Permission, readonly OrgRole[]][])
-    .filter(([_, roles]) => roles.includes(role))
-    .map(([permission]) => permission);
-}
-
-/**
- * Role hierarchy for privilege comparisons
+ * Role hierarchy for privilege comparisons (internal use)
  * Higher number = more privileges
  */
-export const ROLE_HIERARCHY: Record<OrgRole, number> = {
+const ROLE_HIERARCHY: Record<OrgRole, number> = {
   owner: 4,
   admin: 3,
   member: 2,
@@ -128,25 +119,3 @@ export function canRemoveMember(actorRole: OrgRole, targetRole: OrgRole): boolea
 
   return false;
 }
-
-/**
- * Role display information
- */
-export const ROLE_INFO: Record<OrgRole, { label: string; description: string }> = {
-  owner: {
-    label: 'Owner',
-    description: 'Full access. Can delete organization, manage billing, and transfer ownership.',
-  },
-  admin: {
-    label: 'Admin',
-    description: 'Can manage members, API keys, and all features except billing.',
-  },
-  member: {
-    label: 'Member',
-    description: 'Can use API, create keys, view dashboard, and resolve escalations.',
-  },
-  viewer: {
-    label: 'Viewer',
-    description: 'Read-only access to dashboard, verifications, and usage data.',
-  },
-};

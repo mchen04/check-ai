@@ -35,13 +35,6 @@ export interface CreateOrgResult {
   slug: string;
 }
 
-export interface CreateOrgOptions {
-  userId: string;
-  userName: string | null;
-  userEmail: string;
-  stripeCustomerId?: string;
-}
-
 /**
  * Creates a new organization and adds the user as owner
  * Called during signup to give every user a default organization
@@ -78,14 +71,4 @@ export async function createDefaultOrganization(
     orgId: org.id,
     slug: org.slug,
   };
-}
-
-/**
- * Check if a user already has an organization
- */
-export async function userHasOrganization(userId: string): Promise<boolean> {
-  const existing = await db.query.orgMembersTable.findFirst({
-    where: (members, { eq }) => eq(members.userId, userId),
-  });
-  return !!existing;
 }

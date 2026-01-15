@@ -12,5 +12,5 @@ export {
   determineEscalationReason,
   calculatePriority,
   buildEscalationDetails,
-  getEscalationStatus,
 } from './service';
+export { getEscalationStatus } from './repository';

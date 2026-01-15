@@ -99,9 +99,26 @@ export async function listEscalations(
 ): Promise<{ escalations: EscalationWithVerification[]; hasMore: boolean }> {
   const { orgId, status, priority, limit = 20, offset = 0 } = options;
 
-  const baseCondition = eq(verificationsTable.orgId, orgId);
+  // Build conditions array - clearer than chained .where() calls
+  const conditions = [eq(verificationsTable.orgId, orgId)];
 
-  let query = db
+  // Apply status filter
+  if (status === 'pending') {
+    conditions.push(isNull(escalationsTable.resolvedAt));
+  } else if (status === 'resolved') {
+    conditions.push(isNotNull(escalationsTable.resolvedAt));
+    conditions.push(isNotNull(escalationsTable.humanVerdict));
+  } else if (status === 'dismissed') {
+    conditions.push(isNotNull(escalationsTable.resolvedAt));
+    conditions.push(isNull(escalationsTable.humanVerdict));
+  }
+
+  // Apply priority filter
+  if (priority !== undefined) {
+    conditions.push(eq(escalationsTable.priority, priority));
+  }
+
+  const escalations = await db
     .select({
       id: escalationsTable.id,
       verificationId: escalationsTable.verificationId,
@@ -123,36 +140,7 @@ export async function listEscalations(
       verificationsTable,
       eq(escalationsTable.verificationId, verificationsTable.id)
     )
-    .where(baseCondition)
-    .$dynamic();
-
-  // Apply status filter
-  if (status === 'pending') {
-    query = query.where(and(baseCondition, isNull(escalationsTable.resolvedAt)));
-  } else if (status === 'resolved') {
-    query = query.where(
-      and(
-        baseCondition,
-        isNotNull(escalationsTable.resolvedAt),
-        isNotNull(escalationsTable.humanVerdict)
-      )
-    );
-  } else if (status === 'dismissed') {
-    query = query.where(
-      and(
-        baseCondition,
-        isNotNull(escalationsTable.resolvedAt),
-        isNull(escalationsTable.humanVerdict)
-      )
-    );
-  }
-
-  // Apply priority filter
-  if (priority !== undefined) {
-    query = query.where(and(baseCondition, eq(escalationsTable.priority, priority)));
-  }
-
-  const escalations = await query
+    .where(and(...conditions))
     .orderBy(desc(escalationsTable.priority), desc(escalationsTable.createdAt))
     .limit(limit + 1)
     .offset(offset);

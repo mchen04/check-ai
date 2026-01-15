@@ -31,22 +31,14 @@ export const docsNavigation: NavItem[] = [
   },
 ];
 
-export function getDocNavigation() {
-  return docsNavigation;
-}
-
-export function flattenNavigation(nav: NavItem[]): NavItem[] {
+// Internal helper to flatten navigation tree
+function flattenNavigation(nav: NavItem[]): NavItem[] {
   return nav.flatMap((item) => {
     if (item.items) {
       return flattenNavigation(item.items);
     }
     return [item];
   });
-}
-
-export function findNavItem(href: string): NavItem | undefined {
-  const flat = flattenNavigation(docsNavigation);
-  return flat.find((item) => item.href === href);
 }
 
 export function findAdjacentDocs(href: string): { prev?: NavItem; next?: NavItem } {

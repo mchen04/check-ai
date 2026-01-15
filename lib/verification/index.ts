@@ -48,7 +48,7 @@ export { validateVerifyRequest, getRequestedMethods, getMethodsCount } from './v
 export type { ValidatedVerifyRequest, ValidationResult } from './validator';
 
 // Quota
-export { checkMethodsAllowed, checkMonthlyQuota, getPlanLimits } from './quota';
+export { checkMethodsAllowed, checkMonthlyQuota } from './quota';
 export type { QuotaCheckResult, MethodsCheckResult, PlanType } from './quota';
 
 // Repository

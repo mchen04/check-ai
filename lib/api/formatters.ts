@@ -303,3 +303,106 @@ export function formatParadigmResultExtendedForResponse(record: {
     error: record.errorMessage,
   };
 }
+
+// =============================================================================
+// WEBHOOK FORMATTERS
+// =============================================================================
+
+/**
+ * Format webhook list item for API response
+ */
+export interface FormattedWebhookListItem {
+  id: string;
+  url: string;
+  events: string[];
+  description: string | null;
+  isActive: boolean;
+  lastTriggeredAt: string | null;
+  lastStatus: number | null;
+  failureCount: number;
+  createdAt: string;
+}
+
+/**
+ * Format webhook record for list API response
+ */
+export function formatWebhookForResponse(record: {
+  id: string;
+  url: string;
+  events: string[];
+  description: string | null;
+  isActive: boolean;
+  lastTriggeredAt: Date | null;
+  lastStatus: number | null;
+  failureCount: number;
+  createdAt: Date;
+}): FormattedWebhookListItem {
+  return {
+    id: record.id,
+    url: record.url,
+    events: record.events,
+    description: record.description,
+    isActive: record.isActive,
+    lastTriggeredAt: formatDateToISO(record.lastTriggeredAt),
+    lastStatus: record.lastStatus,
+    failureCount: record.failureCount,
+    createdAt: formatRequiredDateToISO(record.createdAt),
+  };
+}
+
+/**
+ * Format webhook delivery for API response
+ */
+export interface FormattedWebhookDelivery {
+  id: string;
+  event: string;
+  status: string;
+  attemptNumber: number;
+  maxAttempts: number;
+  nextRetryAt: string | null;
+  responseStatus: number | null;
+  responseBody: string | null;
+  lastError: string | null;
+  durationMs: number | null;
+  createdAt: string;
+  deliveredAt: string | null;
+  failedAt: string | null;
+  attemptHistory: unknown;
+}
+
+/**
+ * Format webhook delivery record for API response
+ */
+export function formatWebhookDeliveryForResponse(record: {
+  id: string;
+  event: string;
+  status: string;
+  attemptNumber: number;
+  maxAttempts: number;
+  nextRetryAt: Date | null;
+  responseStatus: number | null;
+  responseBody: string | null;
+  lastError: string | null;
+  durationMs: number | null;
+  createdAt: Date;
+  deliveredAt: Date | null;
+  failedAt: Date | null;
+  attemptHistory: unknown;
+}): FormattedWebhookDelivery {
+  return {
+    id: record.id,
+    event: record.event,
+    status: record.status,
+    attemptNumber: record.attemptNumber,
+    maxAttempts: record.maxAttempts,
+    nextRetryAt: formatDateToISO(record.nextRetryAt),
+    responseStatus: record.responseStatus,
+    responseBody: record.responseBody,
+    lastError: record.lastError,
+    durationMs: record.durationMs,
+    createdAt: formatRequiredDateToISO(record.createdAt),
+    deliveredAt: formatDateToISO(record.deliveredAt),
+    failedAt: formatDateToISO(record.failedAt),
+    attemptHistory: record.attemptHistory,
+  };
+}

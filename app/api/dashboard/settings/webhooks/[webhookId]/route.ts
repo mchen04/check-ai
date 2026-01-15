@@ -1,41 +1,15 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
-import { webhooksTable, webhookDeliveriesTable } from '@/utils/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { webhooksTable } from '@/utils/db/schema';
+import { eq } from 'drizzle-orm';
 import { withDashboardAuth } from '@/lib/api';
 import { createAuditLogger } from '@/lib/audit';
 import { UpdateWebhookSchema } from '@/lib/constants/webhooks';
-import { extractRouteParam, RouteContext, parseAndValidate, errorResponse, assertOrgOwnership } from '@/lib/api/validation';
-import { formatDateToISO, formatRequiredDateToISO } from '@/lib/api/formatters';
+import { extractRouteParam, RouteContext, parseAndValidate, errorResponse } from '@/lib/api/validation';
+import { formatDateToISO, formatWebhookForResponse } from '@/lib/api/formatters';
+import { getWebhook, getWebhookDeliveries, updateWebhook, deleteWebhook } from '@/lib/webhooks/repository';
 
 type RouteParams = { webhookId: string };
-
-// =============================================================================
-// HELPERS
-// =============================================================================
-
-async function getWebhookForOrg(webhookId: string, orgId: string) {
-  const [webhook] = await db
-    .select({
-      id: webhooksTable.id,
-      url: webhooksTable.url,
-      events: webhooksTable.events,
-      description: webhooksTable.description,
-      isActive: webhooksTable.isActive,
-      lastTriggeredAt: webhooksTable.lastTriggeredAt,
-      lastStatus: webhooksTable.lastStatus,
-      failureCount: webhooksTable.failureCount,
-      createdAt: webhooksTable.createdAt,
-      orgId: webhooksTable.orgId,
-    })
-    .from(webhooksTable)
-    .where(eq(webhooksTable.id, webhookId))
-    .limit(1);
-
-  if (!webhook) return null;
-  if (webhook.orgId !== orgId) return null;
-  return webhook;
-}
 
 // =============================================================================
 // GET - Get single webhook with recent deliveries
@@ -45,40 +19,22 @@ export const GET = withDashboardAuth<RouteParams>(async (req, routeContext) => {
   const { context } = req;
   const webhookId = await extractRouteParam(routeContext as RouteContext<RouteParams>, 'webhookId');
 
-  const webhook = await getWebhookForOrg(webhookId, context.orgId);
+  const webhook = await getWebhook(webhookId, context.orgId);
   if (!webhook) {
     return errorResponse.notFound('Webhook not found');
   }
 
-  // Get recent deliveries
-  const deliveries = await db
-    .select({
-      id: webhookDeliveriesTable.id,
-      event: webhookDeliveriesTable.event,
-      status: webhookDeliveriesTable.status,
-      responseStatus: webhookDeliveriesTable.responseStatus,
-      durationMs: webhookDeliveriesTable.durationMs,
-      deliveredAt: webhookDeliveriesTable.deliveredAt,
-    })
-    .from(webhookDeliveriesTable)
-    .where(eq(webhookDeliveriesTable.webhookId, webhookId))
-    .orderBy(desc(webhookDeliveriesTable.deliveredAt))
-    .limit(10);
+  // Get recent deliveries using repository function
+  const deliveries = await getWebhookDeliveries(webhookId, 10);
 
   return NextResponse.json({
-    webhook: {
-      id: webhook.id,
-      url: webhook.url,
-      events: webhook.events,
-      description: webhook.description,
-      isActive: webhook.isActive,
-      lastTriggeredAt: formatDateToISO(webhook.lastTriggeredAt),
-      lastStatus: webhook.lastStatus,
-      failureCount: webhook.failureCount,
-      createdAt: formatRequiredDateToISO(webhook.createdAt),
-    },
+    webhook: formatWebhookForResponse(webhook),
     deliveries: deliveries.map((d) => ({
-      ...d,
+      id: d.id,
+      event: d.event,
+      status: d.status,
+      responseStatus: d.responseStatus,
+      durationMs: d.durationMs,
       deliveredAt: formatDateToISO(d.deliveredAt),
     })),
   });
@@ -93,17 +49,11 @@ export const PATCH = withDashboardAuth<RouteParams>(async (req, routeContext) =>
   const audit = createAuditLogger(context, req);
   const webhookId = await extractRouteParam(routeContext as RouteContext<RouteParams>, 'webhookId');
 
-  // Verify webhook exists and belongs to org
-  const [existing] = await db
-    .select({ orgId: webhooksTable.orgId })
-    .from(webhooksTable)
-    .where(eq(webhooksTable.id, webhookId))
-    .limit(1);
-
+  // Verify webhook exists and belongs to org using repository
+  const existing = await getWebhook(webhookId, context.orgId);
   if (!existing) {
     return errorResponse.notFound('Webhook not found');
   }
-  await assertOrgOwnership(existing.orgId, context.orgId);
 
   // Parse and validate request body
   const result = await parseAndValidate(req, UpdateWebhookSchema);
@@ -166,19 +116,11 @@ export const DELETE = withDashboardAuth<RouteParams>(async (req, routeContext) =
   const audit = createAuditLogger(context, req);
   const webhookId = await extractRouteParam(routeContext as RouteContext<RouteParams>, 'webhookId');
 
-  // Verify webhook exists and belongs to org
-  const [existing] = await db
-    .select({ orgId: webhooksTable.orgId })
-    .from(webhooksTable)
-    .where(eq(webhooksTable.id, webhookId))
-    .limit(1);
-
-  if (!existing) {
+  // Use repository function which handles org ownership check
+  const deleted = await deleteWebhook(webhookId, context.orgId);
+  if (!deleted) {
     return errorResponse.notFound('Webhook not found');
   }
-  await assertOrgOwnership(existing.orgId, context.orgId);
-
-  await db.delete(webhooksTable).where(eq(webhooksTable.id, webhookId));
 
   audit.log({
     eventType: 'webhook.deleted',

@@ -31,8 +31,9 @@ export interface OrgMemberWithPreferences extends OrgMemberWithUser {
 
 /**
  * Get all members of an organization with their user details
+ * Internal helper - use getMembersWithNotification for external access
  */
-export async function getOrgMembers(orgId: string): Promise<OrgMemberWithUser[]> {
+async function getOrgMembers(orgId: string): Promise<OrgMemberWithUser[]> {
   const members = await db
     .select({
       userId: orgMembersTable.userId,
@@ -50,8 +51,9 @@ export async function getOrgMembers(orgId: string): Promise<OrgMemberWithUser[]>
 /**
  * Get org members with their notification preferences
  * Defaults to true for preferences if not set
+ * Internal helper - use getMembersWithNotification for external access
  */
-export async function getOrgMembersWithPreferences(
+async function getOrgMembersWithPreferences(
   orgId: string
 ): Promise<OrgMemberWithPreferences[]> {
   const members = await getOrgMembers(orgId);

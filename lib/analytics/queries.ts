@@ -5,8 +5,7 @@ import {
   usageTable,
 } from '@/utils/db/schema';
 import { eq, and, gte, sql, count, isNotNull, desc } from 'drizzle-orm';
-import { subDays } from 'date-fns';
-import type {
+import {
   TimeRange,
   TrendDataPoint,
   VerdictData,
@@ -15,24 +14,9 @@ import type {
   ProcessingTimeData,
   AnalyticsSummary,
   AnalyticsData,
+  PARADIGM_DISPLAY_NAMES,
+  getDateRangeStart,
 } from './types';
-
-// Paradigm display names mapping
-const PARADIGM_DISPLAY_NAMES: Record<string, string> = {
-  semantic: 'Semantic',
-  reasoning: 'Reasoning',
-  tool: 'Tool',
-  biprm: 'BiPRM',
-  ensemble: 'Ensemble',
-  entropy: 'Entropy',
-  formal: 'Formal',
-};
-
-// Calculate start date from time range
-function getStartDate(range: TimeRange): Date {
-  const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
-  return subDays(new Date(), days);
-}
 
 // Get verification trends over time
 async function getVerificationTrends(
@@ -230,7 +214,7 @@ export async function getAnalyticsData(
   orgId: string,
   range: TimeRange
 ): Promise<AnalyticsData> {
-  const startDate = getStartDate(range);
+  const startDate = getDateRangeStart(range);
 
   // Execute all queries in parallel for better performance
   const [trends, verdicts, paradigms, costByProvider, processingTime, summary] =
@@ -256,7 +240,7 @@ export async function getAnalyticsData(
 // Export helper for getting date range
 export function getDateRange(range: TimeRange): { startDate: Date; endDate: Date } {
   return {
-    startDate: getStartDate(range),
+    startDate: getDateRangeStart(range),
     endDate: new Date(),
   };
 }

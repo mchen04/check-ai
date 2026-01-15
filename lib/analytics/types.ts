@@ -1,4 +1,36 @@
+import { subDays } from 'date-fns';
+
 export type TimeRange = '7d' | '30d' | '90d';
+
+// =============================================================================
+// SHARED CONSTANTS
+// =============================================================================
+
+/**
+ * Display names for verification paradigms
+ * Used across analytics queries for consistent display
+ */
+export const PARADIGM_DISPLAY_NAMES: Record<string, string> = {
+  semantic: 'Semantic',
+  reasoning: 'Reasoning',
+  tool: 'Tool',
+  biprm: 'BiPRM',
+  ensemble: 'Ensemble',
+  entropy: 'Entropy',
+  formal: 'Formal',
+};
+
+// =============================================================================
+// SHARED HELPERS
+// =============================================================================
+
+/**
+ * Calculate start date from time range
+ */
+export function getDateRangeStart(range: TimeRange): Date {
+  const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+  return subDays(new Date(), days);
+}
 
 export interface TrendDataPoint {
   date: string;

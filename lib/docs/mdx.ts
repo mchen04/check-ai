@@ -98,7 +98,3 @@ export function getAllDocs(): Doc[] {
 
   return docs;
 }
-
-export function docExists(slug: string[]): boolean {
-  return getDocFilePath(slug) !== null;
-}

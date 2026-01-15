@@ -6,7 +6,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   verifyRequestSchema,
-  createApiKeySchema,
   createBatchSchema,
   createWebhookSchema,
 } from './types';
@@ -228,101 +227,6 @@ describe('verifyRequestSchema', () => {
 
       expect(result.success).toBe(false);
     });
-  });
-});
-
-// =============================================================================
-// createApiKeySchema TESTS
-// =============================================================================
-
-describe('createApiKeySchema', () => {
-  it('should accept valid platform key request', () => {
-    const result = createApiKeySchema.safeParse({
-      name: 'Production Key',
-      provider: 'platform',
-    });
-
-    expect(result.success).toBe(true);
-  });
-
-  it('should accept valid BYOK request', () => {
-    const result = createApiKeySchema.safeParse({
-      name: 'OpenAI Key',
-      provider: 'openai',
-      apiKey: 'sk-test123456789',
-    });
-
-    expect(result.success).toBe(true);
-  });
-
-  it('should reject empty name', () => {
-    const result = createApiKeySchema.safeParse({
-      name: '',
-      provider: 'platform',
-    });
-
-    expect(result.success).toBe(false);
-  });
-
-  it('should reject name over 100 characters', () => {
-    const result = createApiKeySchema.safeParse({
-      name: 'n'.repeat(101),
-      provider: 'platform',
-    });
-
-    expect(result.success).toBe(false);
-  });
-
-  it('should reject invalid provider', () => {
-    const result = createApiKeySchema.safeParse({
-      name: 'Test Key',
-      provider: 'invalid_provider',
-    });
-
-    expect(result.success).toBe(false);
-  });
-
-  it('should accept all valid providers', () => {
-    const providers = [
-      'platform',
-      'openai',
-      'anthropic',
-      'google',
-      'deepseek',
-      'groq',
-      'together',
-      'mistral',
-      'cohere',
-    ];
-
-    for (const provider of providers) {
-      const result = createApiKeySchema.safeParse({
-        name: 'Test Key',
-        provider,
-      });
-
-      expect(result.success).toBe(true);
-    }
-  });
-
-  it('should accept valid expiresAt date', () => {
-    const result = createApiKeySchema.safeParse({
-      name: 'Test Key',
-      provider: 'platform',
-      expiresAt: '2025-12-31T23:59:59Z',
-    });
-
-    expect(result.success).toBe(true);
-  });
-
-  it('should reject invalid expiresAt format', () => {
-    const result = createApiKeySchema.safeParse({
-      name: 'Test Key',
-      provider: 'platform',
-      expiresAt: 'not-a-date',
-    });
-
-    expect(result.success).toBe(false);
   });
 });
 

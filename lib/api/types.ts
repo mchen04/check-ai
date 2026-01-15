@@ -120,42 +120,6 @@ export interface VerifyResponse {
 }
 
 // =============================================================================
-// API KEY SCHEMAS
-// =============================================================================
-
-export const createApiKeySchema = z.object({
-  name: z.string().min(1).max(100),
-  provider: z.enum([
-    'platform',
-    'openai',
-    'anthropic',
-    'google',
-    'deepseek',
-    'groq',
-    'together',
-    'mistral',
-    'cohere',
-  ]),
-  apiKey: z.string().min(1).optional(), // Required for BYOK providers
-  expiresAt: z.string().datetime().optional(),
-});
-
-export type CreateApiKeyRequest = z.infer<typeof createApiKeySchema>;
-
-export interface ApiKeyResponse {
-  id: string;
-  name: string;
-  provider: string;
-  keyPrefix: string;
-  isActive: boolean;
-  lastUsedAt: string | null;
-  createdAt: string;
-  expiresAt: string | null;
-  // Only included on creation for platform keys
-  apiKey?: string;
-}
-
-// =============================================================================
 // USAGE SCHEMAS
 // =============================================================================
 
@@ -194,39 +158,8 @@ export interface ApiErrorResponse {
 }
 
 // =============================================================================
-// PAGINATION
-// =============================================================================
-
-export interface PaginationParams {
-  limit?: number;
-  offset?: number;
-  cursor?: string;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
-    hasMore: boolean;
-    nextCursor?: string;
-  };
-}
-
-// =============================================================================
 // HANDLER TYPES
 // =============================================================================
-
-export type ApiHandler<TParams = Record<string, string>> = (
-  req: AuthenticatedRequest,
-  context?: { params: Promise<TParams> }
-) => Promise<Response>;
-
-export type PublicApiHandler<TParams = Record<string, string>> = (
-  req: NextRequest,
-  context?: { params: Promise<TParams> }
-) => Promise<Response>;
 
 // Alias for backwards compatibility
 export type ApiRequest = AuthenticatedRequest;
@@ -332,13 +265,6 @@ export interface BatchItemResponse {
   costCents: number | null;
   processingTimeMs: number | null;
   completedAt: string | null;
-}
-
-/**
- * Batch with items response
- */
-export interface BatchWithItemsResponse extends BatchResponse {
-  items: BatchItemResponse[];
 }
 
 // =============================================================================

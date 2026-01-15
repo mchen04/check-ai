@@ -97,10 +97,3 @@ export async function checkMonthlyQuota(
     limit: limits.verificationsPerMonth,
   };
 }
-
-/**
- * Get plan limits for a given plan type
- */
-export function getPlanLimits(planType: PlanType) {
-  return PLAN_LIMITS[planType];
-}

@@ -51,22 +51,11 @@ export interface ServiceError {
 // ERROR MAPPING
 // =============================================================================
 
-/**
- * API error codes for programmatic error handling
- */
-export const API_ERROR_CODES = {
-  QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
-  METHODS_NOT_ALLOWED: 'METHODS_NOT_ALLOWED',
+// Internal error codes for API responses
+const API_ERROR_CODES = {
   NO_API_KEYS: 'NO_API_KEYS',
   VERIFICATION_FAILED: 'VERIFICATION_FAILED',
-  NOT_FOUND: 'NOT_FOUND',
-  CONFLICT: 'CONFLICT',
-  VALIDATION_ERROR: 'VALIDATION_ERROR',
-  SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
-  INTERNAL_ERROR: 'INTERNAL_ERROR',
 } as const;
-
-export type ApiErrorCode = (typeof API_ERROR_CODES)[keyof typeof API_ERROR_CODES];
 
 /**
  * Map a service error to an API error
@@ -157,13 +146,6 @@ export function mapParadigmResultToApi(result: InternalParadigmResult): ApiParad
     error: result.error,
     // Note: tokenUsage is intentionally excluded from API response
   };
-}
-
-/**
- * Map multiple internal ParadigmResults to API format
- */
-export function mapParadigmResultsToApi(results: InternalParadigmResult[]): ApiParadigmResult[] {
-  return results.map(mapParadigmResultToApi);
 }
 
 /**

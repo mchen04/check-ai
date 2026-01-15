@@ -140,13 +140,7 @@ export async function invalidateVerification(
 // CACHE STATS (for monitoring)
 // =============================================================================
 
-interface CacheStats {
-  hits: number;
-  misses: number;
-  hitRate: number;
-}
-
-// In-memory stats (would be Redis-based in production)
+// In-memory stats for cache hit/miss tracking
 let stats = {
   hits: 0,
   misses: 0,
@@ -158,19 +152,6 @@ export function recordCacheHit(): void {
 
 export function recordCacheMiss(): void {
   stats.misses++;
-}
-
-export function getCacheStats(): CacheStats {
-  const total = stats.hits + stats.misses;
-  return {
-    hits: stats.hits,
-    misses: stats.misses,
-    hitRate: total > 0 ? stats.hits / total : 0,
-  };
-}
-
-export function resetCacheStats(): void {
-  stats = { hits: 0, misses: 0 };
 }
 
 // =============================================================================

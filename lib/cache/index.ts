@@ -7,9 +7,6 @@ export {
   cacheGet,
   cacheSet,
   cacheDelete,
-  cacheDeletePattern,
-  cacheIncrement,
-  cacheTTL,
 } from './redis';
 
 export {
@@ -19,8 +16,6 @@ export {
   invalidateVerification,
   recordCacheHit,
   recordCacheMiss,
-  getCacheStats,
-  resetCacheStats,
   CACHE_PREFIX,
   MIN_CONFIDENCE_TO_CACHE,
 } from './verification-cache';

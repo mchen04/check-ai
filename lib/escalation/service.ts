@@ -218,29 +218,6 @@ export async function createEscalation(
 }
 
 // =============================================================================
-// Get Escalation Status
-// =============================================================================
-
-/**
- * Derives escalation status from database fields.
- * Status is not stored directly - it's computed from resolvedAt and humanVerdict.
- */
-export function getEscalationStatus(
-  resolvedAt: Date | null,
-  humanVerdict: string | null
-): EscalationStatus {
-  if (!resolvedAt) {
-    return 'pending';
-  }
-
-  if (humanVerdict) {
-    return 'resolved';
-  }
-
-  return 'dismissed';
-}
-
-// =============================================================================
 // Resolve Escalation
 // =============================================================================
 
