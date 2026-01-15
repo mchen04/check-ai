@@ -4,6 +4,7 @@ import { webhooksTable } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
 import { sendTestWebhook } from '@/lib/webhooks/service';
+import { extractRouteParam, RouteContext, errorResponse, assertOrgOwnership } from '@/lib/api/validation';
 
 // =============================================================================
 // POST - Send test webhook
@@ -11,9 +12,9 @@ import { sendTestWebhook } from '@/lib/webhooks/service';
 
 async function handlePost(
   req: DashboardRequest,
-  routeContext?: { params: Promise<{ webhookId: string }> }
+  routeContext?: RouteContext<{ webhookId: string }>
 ) {
-  const { webhookId } = await routeContext!.params;
+  const webhookId = await extractRouteParam(routeContext, 'webhookId');
   const { context } = req;
 
   // Verify webhook exists and belongs to org
@@ -24,12 +25,10 @@ async function handlePost(
     .limit(1);
 
   if (!webhook) {
-    return NextResponse.json({ error: 'Webhook not found' }, { status: 404 });
+    return errorResponse.notFound('Webhook not found');
   }
 
-  if (webhook.orgId !== context.orgId) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
+  await assertOrgOwnership(webhook.orgId, context.orgId);
 
   // Send test webhook
   const result = await sendTestWebhook(webhookId);

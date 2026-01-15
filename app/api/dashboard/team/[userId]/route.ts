@@ -6,6 +6,7 @@ import { eq, and } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
 import { canModifyRole, canRemoveMember, OrgRole } from '@/lib/rbac/permissions';
 import { createAuditLogger } from '@/lib/audit';
+import { extractRouteParam, RouteContext, parseAndValidate, errorResponse } from '@/lib/api/validation';
 
 // =============================================================================
 // PATCH - Update member role
@@ -17,29 +18,20 @@ const UpdateRoleSchema = z.object({
 
 async function handlePatch(
   req: DashboardRequest,
-  routeContext?: { params: Promise<{ userId: string }> }
+  routeContext?: RouteContext<{ userId: string }>
 ) {
-  const { userId: targetUserId } = await routeContext!.params;
+  const targetUserId = await extractRouteParam(routeContext, 'userId');
   const { context } = req;
 
-  // Parse body
-  const body = await req.json();
-  const parsed = UpdateRoleSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.issues },
-      { status: 400 }
-    );
-  }
+  // Parse and validate body using shared utility
+  const result = await parseAndValidate(req, UpdateRoleSchema);
+  if (!result.success) return result.error;
 
-  const { role: newRole } = parsed.data;
+  const { role: newRole } = result.data;
 
   // Cannot modify self
   if (targetUserId === context.userId) {
-    return NextResponse.json(
-      { error: 'Cannot modify your own role' },
-      { status: 400 }
-    );
+    return errorResponse.badRequest('Cannot modify your own role');
   }
 
   // Get target member
@@ -55,15 +47,12 @@ async function handlePatch(
     .limit(1);
 
   if (!targetMember) {
-    return NextResponse.json({ error: 'Member not found' }, { status: 404 });
+    return errorResponse.notFound('Member not found');
   }
 
   // Check role hierarchy
   if (!canModifyRole(context.role, targetMember.role as OrgRole, newRole as OrgRole)) {
-    return NextResponse.json(
-      { error: "Cannot modify this member's role" },
-      { status: 403 }
-    );
+    return errorResponse.forbidden("Cannot modify this member's role");
   }
 
   // Update role
@@ -100,17 +89,14 @@ export const PATCH = withDashboardAuth(handlePatch, {
 
 async function handleDelete(
   req: DashboardRequest,
-  routeContext?: { params: Promise<{ userId: string }> }
+  routeContext?: RouteContext<{ userId: string }>
 ) {
-  const { userId: targetUserId } = await routeContext!.params;
+  const targetUserId = await extractRouteParam(routeContext, 'userId');
   const { context } = req;
 
   // Cannot remove self (must transfer ownership first)
   if (targetUserId === context.userId) {
-    return NextResponse.json(
-      { error: 'Cannot remove yourself. Transfer ownership first.' },
-      { status: 400 }
-    );
+    return errorResponse.badRequest('Cannot remove yourself. Transfer ownership first.');
   }
 
   // Get target member
@@ -126,15 +112,12 @@ async function handleDelete(
     .limit(1);
 
   if (!targetMember) {
-    return NextResponse.json({ error: 'Member not found' }, { status: 404 });
+    return errorResponse.notFound('Member not found');
   }
 
   // Check if actor can remove target
   if (!canRemoveMember(context.role, targetMember.role as OrgRole)) {
-    return NextResponse.json(
-      { error: 'Cannot remove this member' },
-      { status: 403 }
-    );
+    return errorResponse.forbidden('Cannot remove this member');
   }
 
   // Delete member

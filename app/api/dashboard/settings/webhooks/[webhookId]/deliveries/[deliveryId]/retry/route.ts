@@ -4,15 +4,17 @@ import { webhooksTable, webhookDeliveriesTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
 import { retryWebhookDelivery } from '@/lib/webhooks/service';
+import { RouteContext, errorResponse, assertOrgOwnership } from '@/lib/api/validation';
 
 /**
  * POST - Manually retry a failed webhook delivery
  */
 async function handlePost(
   req: DashboardRequest,
-  routeContext?: { params: Promise<{ webhookId: string; deliveryId: string }> }
+  routeContext?: RouteContext<{ webhookId: string; deliveryId: string }>
 ) {
-  const { webhookId, deliveryId } = await routeContext!.params;
+  const params = await routeContext!.params;
+  const { webhookId, deliveryId } = params;
   const { context } = req;
 
   // Verify webhook exists and belongs to org
@@ -23,12 +25,10 @@ async function handlePost(
     .limit(1);
 
   if (!webhook) {
-    return NextResponse.json({ error: 'Webhook not found' }, { status: 404 });
+    return errorResponse.notFound('Webhook not found');
   }
 
-  if (webhook.orgId !== context.orgId) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
+  await assertOrgOwnership(webhook.orgId, context.orgId);
 
   // Verify delivery exists and belongs to this webhook
   const [delivery] = await db
@@ -47,33 +47,24 @@ async function handlePost(
     .limit(1);
 
   if (!delivery) {
-    return NextResponse.json({ error: 'Delivery not found' }, { status: 404 });
+    return errorResponse.notFound('Delivery not found');
   }
 
   // Only allow retrying failed deliveries
   if (delivery.status !== 'failed') {
-    return NextResponse.json(
-      { error: 'Only failed deliveries can be retried' },
-      { status: 400 }
-    );
+    return errorResponse.badRequest('Only failed deliveries can be retried');
   }
 
   // Check if webhook is active
   if (!webhook.isActive) {
-    return NextResponse.json(
-      { error: 'Cannot retry delivery for inactive webhook. Please enable the webhook first.' },
-      { status: 400 }
-    );
+    return errorResponse.badRequest('Cannot retry delivery for inactive webhook. Please enable the webhook first.');
   }
 
   // Retry the delivery
   const newDeliveryId = await retryWebhookDelivery(deliveryId, context.orgId);
 
   if (!newDeliveryId) {
-    return NextResponse.json(
-      { error: 'Failed to queue retry' },
-      { status: 500 }
-    );
+    return errorResponse.internalError('Failed to queue retry');
   }
 
   return NextResponse.json({

@@ -6,6 +6,8 @@ import { withDashboardAuth, DashboardRequest } from '@/lib/api';
 import { generateSigningSecret } from '@/lib/webhooks/service';
 import { createAuditLogger } from '@/lib/audit';
 import { CreateWebhookSchema } from '@/lib/constants/webhooks';
+import { parseAndValidate } from '@/lib/api/validation';
+import { formatDateToISO, formatRequiredDateToISO } from '@/lib/api/formatters';
 
 // =============================================================================
 // GET - List all webhooks for organization
@@ -31,7 +33,11 @@ export const GET = withDashboardAuth(async (req: DashboardRequest) => {
     .orderBy(desc(webhooksTable.createdAt));
 
   return NextResponse.json({
-    webhooks,
+    webhooks: webhooks.map((w) => ({
+      ...w,
+      lastTriggeredAt: formatDateToISO(w.lastTriggeredAt),
+      createdAt: formatRequiredDateToISO(w.createdAt),
+    })),
     canEdit: context.role === 'owner' || context.role === 'admin',
   });
 }, { permission: 'webhooks:view' });
@@ -44,17 +50,11 @@ export const POST = withDashboardAuth(async (req: DashboardRequest) => {
   const { context } = req;
   const audit = createAuditLogger(context, req);
 
-  const body = await req.json();
-  const parsed = CreateWebhookSchema.safeParse(body);
+  // Parse and validate using shared helper
+  const result = await parseAndValidate(req, CreateWebhookSchema);
+  if (!result.success) return result.error;
 
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.issues },
-      { status: 400 }
-    );
-  }
-
-  const { url, events, description } = parsed.data;
+  const { url, events, description } = result.data;
 
   // Generate signing secret
   const signingSecret = generateSigningSecret();

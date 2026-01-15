@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
 import { webhooksTable, webhookDeliveriesTable } from '@/utils/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api';
+import { withDashboardAuth } from '@/lib/api';
 import { createAuditLogger } from '@/lib/audit';
 import { UpdateWebhookSchema } from '@/lib/constants/webhooks';
+import { extractRouteParam, RouteContext, parseAndValidate, errorResponse, assertOrgOwnership } from '@/lib/api/validation';
+import { formatDateToISO, formatRequiredDateToISO } from '@/lib/api/formatters';
 
 type RouteParams = { webhookId: string };
 
@@ -41,11 +43,11 @@ async function getWebhookForOrg(webhookId: string, orgId: string) {
 
 export const GET = withDashboardAuth<RouteParams>(async (req, routeContext) => {
   const { context } = req;
-  const { webhookId } = await routeContext!.params;
+  const webhookId = await extractRouteParam(routeContext as RouteContext<RouteParams>, 'webhookId');
 
   const webhook = await getWebhookForOrg(webhookId, context.orgId);
   if (!webhook) {
-    return NextResponse.json({ error: 'Webhook not found' }, { status: 404 });
+    return errorResponse.notFound('Webhook not found');
   }
 
   // Get recent deliveries
@@ -70,12 +72,15 @@ export const GET = withDashboardAuth<RouteParams>(async (req, routeContext) => {
       events: webhook.events,
       description: webhook.description,
       isActive: webhook.isActive,
-      lastTriggeredAt: webhook.lastTriggeredAt,
+      lastTriggeredAt: formatDateToISO(webhook.lastTriggeredAt),
       lastStatus: webhook.lastStatus,
       failureCount: webhook.failureCount,
-      createdAt: webhook.createdAt,
+      createdAt: formatRequiredDateToISO(webhook.createdAt),
     },
-    deliveries,
+    deliveries: deliveries.map((d) => ({
+      ...d,
+      deliveredAt: formatDateToISO(d.deliveredAt),
+    })),
   });
 }, { permission: 'webhooks:view' });
 
@@ -86,7 +91,7 @@ export const GET = withDashboardAuth<RouteParams>(async (req, routeContext) => {
 export const PATCH = withDashboardAuth<RouteParams>(async (req, routeContext) => {
   const { context } = req;
   const audit = createAuditLogger(context, req);
-  const { webhookId } = await routeContext!.params;
+  const webhookId = await extractRouteParam(routeContext as RouteContext<RouteParams>, 'webhookId');
 
   // Verify webhook exists and belongs to org
   const [existing] = await db
@@ -95,19 +100,15 @@ export const PATCH = withDashboardAuth<RouteParams>(async (req, routeContext) =>
     .where(eq(webhooksTable.id, webhookId))
     .limit(1);
 
-  if (!existing || existing.orgId !== context.orgId) {
-    return NextResponse.json({ error: 'Webhook not found' }, { status: 404 });
+  if (!existing) {
+    return errorResponse.notFound('Webhook not found');
   }
+  await assertOrgOwnership(existing.orgId, context.orgId);
 
-  const body = await req.json();
-  const parsed = UpdateWebhookSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.issues },
-      { status: 400 }
-    );
-  }
+  // Parse and validate request body
+  const result = await parseAndValidate(req, UpdateWebhookSchema);
+  if (!result.success) return result.error;
+  const parsed = result;
 
   const updates: Record<string, unknown> = {
     updatedAt: new Date(),
@@ -163,7 +164,7 @@ export const PATCH = withDashboardAuth<RouteParams>(async (req, routeContext) =>
 export const DELETE = withDashboardAuth<RouteParams>(async (req, routeContext) => {
   const { context } = req;
   const audit = createAuditLogger(context, req);
-  const { webhookId } = await routeContext!.params;
+  const webhookId = await extractRouteParam(routeContext as RouteContext<RouteParams>, 'webhookId');
 
   // Verify webhook exists and belongs to org
   const [existing] = await db
@@ -172,9 +173,10 @@ export const DELETE = withDashboardAuth<RouteParams>(async (req, routeContext) =
     .where(eq(webhooksTable.id, webhookId))
     .limit(1);
 
-  if (!existing || existing.orgId !== context.orgId) {
-    return NextResponse.json({ error: 'Webhook not found' }, { status: 404 });
+  if (!existing) {
+    return errorResponse.notFound('Webhook not found');
   }
+  await assertOrgOwnership(existing.orgId, context.orgId);
 
   await db.delete(webhooksTable).where(eq(webhooksTable.id, webhookId));
 

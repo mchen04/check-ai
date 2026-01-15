@@ -188,6 +188,27 @@ export const createProviderCredentialSchema = z.object({
 export type CreateProviderCredentialRequest = z.infer<typeof createProviderCredentialSchema>;
 
 /**
+ * Update provider credential request (all fields optional for partial updates)
+ */
+export const updateProviderCredentialSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  apiKey: z.string().min(1).optional(), // Will be encrypted before storage
+  config: z
+    .object({
+      endpoint: z.string().url().optional(),
+      deploymentId: z.string().optional(),
+      apiVersion: z.string().optional(),
+      region: z.string().optional(),
+      projectId: z.string().optional(),
+      location: z.string().optional(),
+    })
+    .optional(),
+  isActive: z.boolean().optional(),
+});
+
+export type UpdateProviderCredentialRequest = z.infer<typeof updateProviderCredentialSchema>;
+
+/**
  * Paradigm config in request (can be number for weight or full config)
  */
 const paradigmConfigSchema = z.union([
@@ -278,6 +299,58 @@ export const createApiKeySchema = z.object({
 });
 
 export type CreateApiKeyRequest = z.infer<typeof createApiKeySchema>;
+
+/**
+ * Update API key request (all fields optional for partial updates)
+ */
+export const updateApiKeySchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  paradigmConfig: z.object({
+    reasoning: z.object({
+      enabled: z.boolean(),
+      weight: z.number().min(0).max(1),
+      model: z.string(),
+    }).optional(),
+    tool: z.object({
+      enabled: z.boolean(),
+      weight: z.number().min(0).max(1),
+      model: z.string(),
+    }).optional(),
+    semantic: z.object({
+      enabled: z.boolean(),
+      weight: z.number().min(0).max(1),
+      model: z.string(),
+    }).optional(),
+    ensemble: z.object({
+      enabled: z.boolean(),
+      weight: z.number().min(0).max(1),
+      models: z.array(z.string()),
+    }).optional(),
+    biprm: z.object({
+      enabled: z.boolean(),
+      weight: z.number().min(0).max(1),
+      model: z.string(),
+    }).optional(),
+    entropy: z.object({
+      enabled: z.boolean(),
+      weight: z.number().min(0).max(1),
+      model: z.string(),
+    }).optional(),
+    formal: z.object({
+      enabled: z.boolean(),
+      weight: z.number().min(0).max(1),
+      model: z.string(),
+    }).optional(),
+  }).optional(),
+  defaultThresholds: z.object({
+    acceptThreshold: z.number().min(0).max(1).optional(),
+    escalateThreshold: z.number().min(0).max(1).optional(),
+    timeout: z.number().min(1000).max(300000).optional(),
+  }).optional(),
+  isActive: z.boolean().optional(),
+});
+
+export type UpdateApiKeyRequest = z.infer<typeof updateApiKeySchema>;
 
 /**
  * Verification request with optional overrides

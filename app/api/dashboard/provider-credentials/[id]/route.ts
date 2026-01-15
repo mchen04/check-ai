@@ -1,25 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api';
 import {
   getProviderCredential,
   updateProviderCredential,
   deleteProviderCredential,
 } from '@/lib/api-keys/provider-credentials';
+import { updateProviderCredentialSchema } from '@/lib/api-keys/types';
 import { createAuditLogger } from '@/lib/audit';
+import { extractRouteParam, RouteContext, errorResponse, parseAndValidate } from '@/lib/api/validation';
 
 // =============================================================================
 // GET - Get a specific provider credential
 // =============================================================================
 
 export const GET = withDashboardAuth(
-  async (req: DashboardRequest, routeContext) => {
+  async (req: DashboardRequest, routeContext?: RouteContext) => {
     const { context } = req;
-    const { id } = await routeContext!.params;
+    const id = await extractRouteParam(routeContext);
 
     const credential = await getProviderCredential(context.orgId, id);
 
     if (!credential) {
-      return NextResponse.json({ error: 'Credential not found' }, { status: 404 });
+      return errorResponse.notFound('Credential not found');
     }
 
     return NextResponse.json({ credential });
@@ -32,13 +34,16 @@ export const GET = withDashboardAuth(
 // =============================================================================
 
 export const PATCH = withDashboardAuth(
-  async (req: DashboardRequest, routeContext) => {
+  async (req: DashboardRequest, routeContext?: RouteContext) => {
     const { context } = req;
     const audit = createAuditLogger(context, req);
-    const { id } = await routeContext!.params;
+    const id = await extractRouteParam(routeContext);
 
-    const body = await req.json();
-    const { name, apiKey, config, isActive } = body;
+    // Parse and validate using shared helper
+    const result = await parseAndValidate(req, updateProviderCredentialSchema);
+    if (!result.success) return result.error;
+
+    const { name, apiKey, config, isActive } = result.data;
 
     const updated = await updateProviderCredential(context.orgId, id, {
       name,
@@ -48,7 +53,7 @@ export const PATCH = withDashboardAuth(
     });
 
     if (!updated) {
-      return NextResponse.json({ error: 'Credential not found' }, { status: 404 });
+      return errorResponse.notFound('Credential not found');
     }
 
     audit.log({
@@ -69,22 +74,22 @@ export const PATCH = withDashboardAuth(
 // =============================================================================
 
 export const DELETE = withDashboardAuth(
-  async (req: DashboardRequest, routeContext) => {
+  async (req: DashboardRequest, routeContext?: RouteContext) => {
     const { context } = req;
     const audit = createAuditLogger(context, req);
-    const { id } = await routeContext!.params;
+    const id = await extractRouteParam(routeContext);
 
     // Get the credential first for logging
     const credential = await getProviderCredential(context.orgId, id);
 
     if (!credential) {
-      return NextResponse.json({ error: 'Credential not found' }, { status: 404 });
+      return errorResponse.notFound('Credential not found');
     }
 
     const deleted = await deleteProviderCredential(context.orgId, id);
 
     if (!deleted) {
-      return NextResponse.json({ error: 'Failed to delete credential' }, { status: 500 });
+      return errorResponse.internalError('Failed to delete credential');
     }
 
     audit.log({

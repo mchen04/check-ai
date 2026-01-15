@@ -3,12 +3,13 @@
  * Retrieve verification status and results
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
 import { verificationsTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { ApiError, NotFoundError, withApiMiddleware, ApiRequest } from '@/lib/api';
-import { parseDecimal, parseDecimalWithDefault } from '@/lib/api/formatters';
+import { NotFoundError, withApiMiddleware, ApiRequest } from '@/lib/api';
+import { parseDecimal, parseDecimalWithDefault, formatParadigmResultForResponse } from '@/lib/api/formatters';
+import { extractRouteParam, RouteContext } from '@/lib/api/validation';
 
 // =============================================================================
 // HANDLER
@@ -16,9 +17,9 @@ import { parseDecimal, parseDecimalWithDefault } from '@/lib/api/formatters';
 
 async function handleGetVerification(
   req: ApiRequest,
-  context?: { params: Promise<Record<string, string>> }
+  context?: RouteContext
 ): Promise<NextResponse> {
-  const { id } = await context!.params;
+  const id = await extractRouteParam(context);
   const { organization } = req;
 
   // Fetch verification with paradigm results
@@ -30,7 +31,7 @@ async function handleGetVerification(
   });
 
   if (!verification) {
-    throw new NotFoundError('Verification not found');
+    throw new NotFoundError('Verification');
   }
 
   // Format response
@@ -44,17 +45,7 @@ async function handleGetVerification(
     confidence: parseDecimal(verification.confidenceScore),
     decision: getDecision(verification.status, verification.confidenceScore),
     reasoning: verification.reasoning,
-    paradigmResults: verification.paradigmResults.map((pr) => ({
-      paradigm: pr.paradigmType,
-      provider: pr.provider,
-      model: pr.model,
-      verdict: pr.verdict,
-      confidence: parseDecimal(pr.confidence),
-      reasoning: pr.reasoning,
-      processingTimeMs: pr.processingTimeMs,
-      error: pr.errorMessage,
-      createdAt: pr.createdAt,
-    })),
+    paradigmResults: verification.paradigmResults.map(formatParadigmResultForResponse),
     processingTimeMs: verification.processingTimeMs,
     costCents: verification.costCents ?? 0,
     createdAt: verification.createdAt,

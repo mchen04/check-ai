@@ -5,6 +5,7 @@
 import { NextResponse } from 'next/server';
 import { getBatchResults } from '@/lib/batch';
 import { NotFoundError, withApiMiddleware, ApiRequest } from '@/lib/api';
+import { extractRouteParam, RouteContext } from '@/lib/api/validation';
 
 // =============================================================================
 // GET - Get Batch Results
@@ -12,15 +13,9 @@ import { NotFoundError, withApiMiddleware, ApiRequest } from '@/lib/api';
 
 async function handleGetBatchResults(
   req: ApiRequest,
-  context?: { params: Promise<Record<string, string>> }
+  context?: RouteContext
 ): Promise<NextResponse> {
-  const params = await context?.params;
-  const id = params?.id;
-
-  if (!id) {
-    throw new NotFoundError('Batch not found');
-  }
-
+  const id = await extractRouteParam(context);
   const { organization } = req;
   const { searchParams } = new URL(req.url);
 
@@ -35,7 +30,7 @@ async function handleGetBatchResults(
   });
 
   if (!results) {
-    throw new NotFoundError('Batch not found');
+    throw new NotFoundError('Batch');
   }
 
   return NextResponse.json(results);

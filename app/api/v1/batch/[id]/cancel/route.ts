@@ -4,7 +4,8 @@
 
 import { NextResponse } from 'next/server';
 import { cancelBatch } from '@/lib/batch';
-import { NotFoundError, ApiError, withApiMiddleware, ApiRequest } from '@/lib/api';
+import { ApiError, withApiMiddleware, ApiRequest } from '@/lib/api';
+import { extractRouteParam, RouteContext } from '@/lib/api/validation';
 
 // =============================================================================
 // POST - Cancel Batch
@@ -12,15 +13,9 @@ import { NotFoundError, ApiError, withApiMiddleware, ApiRequest } from '@/lib/ap
 
 async function handleCancelBatch(
   req: ApiRequest,
-  context?: { params: Promise<Record<string, string>> }
+  context?: RouteContext
 ): Promise<NextResponse> {
-  const params = await context?.params;
-  const id = params?.id;
-
-  if (!id) {
-    throw new NotFoundError('Batch not found');
-  }
-
+  const id = await extractRouteParam(context);
   const { organization } = req;
 
   const success = await cancelBatch(id, organization.id);

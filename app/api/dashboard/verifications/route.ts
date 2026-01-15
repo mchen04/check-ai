@@ -9,7 +9,7 @@ import { verificationsTable } from '@/utils/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { withDashboardRead, type DashboardRequest } from '@/lib/api/dashboard-middleware';
 import { parsePagination } from '@/lib/api/types';
-import { parseDecimal, formatDateToISO, formatRequiredDateToISO, nullCoalesce } from '@/lib/api/formatters';
+import { formatVerificationForResponse } from '@/lib/api/formatters';
 
 async function handler(req: DashboardRequest) {
   const { context } = req;
@@ -42,17 +42,19 @@ async function handler(req: DashboardRequest) {
   const results = hasMore ? verifications.slice(0, limit) : verifications;
 
   // Format response using shared formatters
-  const formattedResults = results.map((v) => ({
-    id: v.id,
-    content: v.content,
-    status: v.status,
-    verdict: v.verdict,
-    confidence: parseDecimal(v.confidence),
-    processingTimeMs: v.processingTimeMs,
-    costCents: nullCoalesce(v.costCents),
-    createdAt: formatRequiredDateToISO(v.createdAt),
-    completedAt: formatDateToISO(v.completedAt),
-  }));
+  const formattedResults = results.map((v) =>
+    formatVerificationForResponse({
+      id: v.id,
+      content: v.content,
+      status: v.status,
+      verdict: v.verdict,
+      confidence: v.confidence,
+      processingTimeMs: v.processingTimeMs,
+      costCents: v.costCents,
+      createdAt: v.createdAt,
+      completedAt: v.completedAt,
+    })
+  );
 
   return NextResponse.json({
     verifications: formattedResults,

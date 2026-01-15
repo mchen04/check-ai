@@ -4,6 +4,7 @@ import { orgInvitesTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
 import { createAuditLogger } from '@/lib/audit';
+import { extractRouteParam, RouteContext, errorResponse } from '@/lib/api/validation';
 
 // =============================================================================
 // DELETE - Revoke pending invite
@@ -11,9 +12,9 @@ import { createAuditLogger } from '@/lib/audit';
 
 async function handleDelete(
   req: DashboardRequest,
-  routeContext?: { params: Promise<{ inviteId: string }> }
+  routeContext?: RouteContext<{ inviteId: string }>
 ) {
-  const { inviteId } = await routeContext!.params;
+  const inviteId = await extractRouteParam(routeContext, 'inviteId');
   const { context } = req;
 
   // Revoke invite
@@ -30,7 +31,7 @@ async function handleDelete(
     .returning({ id: orgInvitesTable.id, email: orgInvitesTable.email });
 
   if (result.length === 0) {
-    return NextResponse.json({ error: 'Invite not found' }, { status: 404 });
+    return errorResponse.notFound('Invite not found');
   }
 
   const audit = createAuditLogger(context, req);

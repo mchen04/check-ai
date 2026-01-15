@@ -4,6 +4,8 @@ import { db } from '@/utils/db/db';
 import { organizationsTable } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api';
+import { parseAndValidate, errorResponse } from '@/lib/api/validation';
+import { parseDecimalWithDefault } from '@/lib/api/formatters';
 
 // =============================================================================
 // SCHEMAS
@@ -46,12 +48,12 @@ export const GET = withDashboardAuth(async (req: DashboardRequest) => {
     .limit(1);
 
   if (!org) {
-    return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
+    return errorResponse.notFound('Organization not found');
   }
 
   return NextResponse.json({
     ...org,
-    autoEscalateThreshold: parseFloat(org.autoEscalateThreshold || '0.50'),
+    autoEscalateThreshold: parseDecimalWithDefault(org.autoEscalateThreshold, 0.5),
     canEdit: context.role === 'owner' || context.role === 'admin',
   });
 }, { permission: 'settings:view' });
@@ -63,15 +65,10 @@ export const GET = withDashboardAuth(async (req: DashboardRequest) => {
 export const PATCH = withDashboardAuth(async (req: DashboardRequest) => {
   const { context } = req;
 
-  const body = await req.json();
-  const parsed = OrgUpdateSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Validation failed', details: parsed.error.issues },
-      { status: 400 }
-    );
-  }
+  // Parse and validate request body
+  const result = await parseAndValidate(req, OrgUpdateSchema);
+  if (!result.success) return result.error;
+  const parsed = result;
 
   const updates: Record<string, unknown> = {
     updatedAt: new Date(),
@@ -121,6 +118,6 @@ export const PATCH = withDashboardAuth(async (req: DashboardRequest) => {
   return NextResponse.json({
     success: true,
     ...updated,
-    autoEscalateThreshold: parseFloat(updated.autoEscalateThreshold || '0.50'),
+    autoEscalateThreshold: parseDecimalWithDefault(updated.autoEscalateThreshold, 0.5),
   });
 }, { permission: 'settings:update_org' });

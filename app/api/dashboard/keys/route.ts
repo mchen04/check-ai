@@ -7,7 +7,9 @@ import {
   deleteApiKey,
   updateApiKey,
 } from '@/lib/api-keys/service';
-import { createApiKeySchema } from '@/lib/api-keys/types';
+import { createApiKeySchema, updateApiKeySchema } from '@/lib/api-keys/types';
+import { parseAndValidate, errorResponse } from '@/lib/api/validation';
+import { formatDateToISO, formatRequiredDateToISO } from '@/lib/api/formatters';
 
 // =============================================================================
 // GET - List API keys with paradigm config
@@ -47,9 +49,9 @@ export const GET = withDashboardAuth(
       paradigmConfig: key.paradigmConfig,
       defaultThresholds: key.defaultThresholds,
       isActive: key.isActive,
-      lastUsedAt: key.lastUsedAt,
-      createdAt: key.createdAt,
-      expiresAt: key.expiresAt,
+      lastUsedAt: formatDateToISO(key.lastUsedAt),
+      createdAt: formatRequiredDateToISO(key.createdAt),
+      expiresAt: formatDateToISO(key.expiresAt),
     }));
 
     return NextResponse.json({ keys: response });
@@ -66,15 +68,10 @@ export const POST = withDashboardAuth(
     const { context } = req;
     const audit = createAuditLogger(context, req);
 
-    const body = await req.json();
-    const parsed = createApiKeySchema.safeParse(body);
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: parsed.error.flatten() },
-        { status: 400 }
-      );
-    }
+    // Parse and validate request body
+    const parseResult = await parseAndValidate(req, createApiKeySchema);
+    if (!parseResult.success) return parseResult.error;
+    const parsed = parseResult;
 
     const result = await createApiKey(context.orgId, parsed.data);
 
@@ -117,13 +114,13 @@ export const DELETE = withDashboardAuth(
     const keyId = searchParams.get('id');
 
     if (!keyId) {
-      return NextResponse.json({ error: 'Key ID is required' }, { status: 400 });
+      return errorResponse.badRequest('Key ID is required');
     }
 
     const deleted = await deleteApiKey(context.orgId, keyId);
 
     if (!deleted) {
-      return NextResponse.json({ error: 'Key not found' }, { status: 404 });
+      return errorResponse.notFound('Key not found');
     }
 
     audit.log({
@@ -151,11 +148,14 @@ export const PATCH = withDashboardAuth(
     const keyId = searchParams.get('id');
 
     if (!keyId) {
-      return NextResponse.json({ error: 'Key ID is required' }, { status: 400 });
+      return errorResponse.badRequest('Key ID is required');
     }
 
-    const body = await req.json();
-    const { name, paradigmConfig, defaultThresholds, isActive } = body;
+    // Parse and validate using shared helper
+    const result = await parseAndValidate(req, updateApiKeySchema);
+    if (!result.success) return result.error;
+
+    const { name, paradigmConfig, defaultThresholds, isActive } = result.data;
 
     const updated = await updateApiKey(context.orgId, keyId, {
       name,
@@ -165,7 +165,7 @@ export const PATCH = withDashboardAuth(
     });
 
     if (!updated) {
-      return NextResponse.json({ error: 'Key not found' }, { status: 404 });
+      return errorResponse.notFound('Key not found');
     }
 
     audit.log({

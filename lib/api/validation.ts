@@ -173,3 +173,73 @@ export function createEnumGuard<T extends string>(
 ): (value: string) => value is T {
   return (value: string): value is T => validValues.includes(value as T);
 }
+
+// =============================================================================
+// ROUTE PARAMETER HELPERS
+// =============================================================================
+
+/**
+ * Route context type for Next.js App Router dynamic routes
+ * Uses Record<string, string> for compatibility with middleware
+ */
+export type RouteContext<T extends Record<string, string> = Record<string, string>> = {
+  params: Promise<T>;
+};
+
+/**
+ * Extract a required route parameter from the route context
+ * Throws NotFoundError if the parameter is missing
+ *
+ * @param context - Route context from Next.js handler
+ * @param paramName - Name of the parameter to extract (defaults to 'id')
+ * @returns The extracted parameter value
+ * @throws NotFoundError if parameter is missing
+ *
+ * @example
+ * // Basic usage - extract 'id' parameter
+ * const id = await extractRouteParam(routeContext);
+ *
+ * @example
+ * // Extract named parameter
+ * const slug = await extractRouteParam<{ slug: string }>(routeContext, 'slug');
+ */
+export async function extractRouteParam<T extends Record<string, string> = { id: string }>(
+  context: RouteContext<T> | undefined,
+  paramName: keyof T = 'id' as keyof T
+): Promise<string> {
+  const { NotFoundError } = await import('./errors');
+
+  if (!context) {
+    throw new NotFoundError('Resource');
+  }
+
+  const params = await context.params;
+  const value = params[paramName];
+
+  if (!value || typeof value !== 'string') {
+    throw new NotFoundError('Resource');
+  }
+
+  return value;
+}
+
+/**
+ * Assert that a resource belongs to the given organization
+ * Throws AuthorizationError if ownership check fails
+ *
+ * @param resourceOrgId - The organization ID of the resource
+ * @param contextOrgId - The organization ID from the request context
+ * @throws AuthorizationError if the resource doesn't belong to the organization
+ *
+ * @example
+ * assertOrgOwnership(verification.orgId, context.orgId);
+ */
+export async function assertOrgOwnership(
+  resourceOrgId: string,
+  contextOrgId: string
+): Promise<void> {
+  if (resourceOrgId !== contextOrgId) {
+    const { AuthorizationError } = await import('./errors');
+    throw new AuthorizationError();
+  }
+}

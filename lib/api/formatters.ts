@@ -209,3 +209,97 @@ export function formatVerificationForResponse(record: {
     completedAt: formatDateToISO(record.completedAt),
   };
 }
+
+// =============================================================================
+// PARADIGM RESULT FORMATTERS
+// =============================================================================
+
+/**
+ * Format common paradigm result fields for API response
+ */
+export interface FormattedParadigmResultFields {
+  paradigm: string;
+  provider: string | null;
+  model: string | null;
+  verdict: string | null;
+  confidence: number | null;
+  reasoning: string | null;
+  processingTimeMs: number | null;
+  error: string | null;
+  createdAt: string | Date;
+}
+
+/**
+ * Extended paradigm result fields including id and weight
+ * Note: createdAt is omitted in extended version as it's typically not needed in dashboard views
+ */
+export interface FormattedParadigmResultFieldsExtended {
+  id: string;
+  paradigm: string;
+  weight: number | null;
+  provider: string | null;
+  model: string | null;
+  verdict: string | null;
+  confidence: number | null;
+  reasoning: string | null;
+  processingTimeMs: number | null;
+  error: string | null;
+}
+
+/**
+ * Format paradigm result record for API response
+ * Standardizes the common transformation pattern used in verification endpoints
+ */
+export function formatParadigmResultForResponse(record: {
+  paradigmType: string;
+  provider: string | null;
+  model: string | null;
+  verdict: string | null;
+  confidence: string | null;
+  reasoning: string | null;
+  processingTimeMs: number | null;
+  errorMessage: string | null;
+  createdAt: Date;
+}): FormattedParadigmResultFields {
+  return {
+    paradigm: record.paradigmType,
+    provider: record.provider,
+    model: record.model,
+    verdict: record.verdict,
+    confidence: parseDecimal(record.confidence),
+    reasoning: record.reasoning,
+    processingTimeMs: record.processingTimeMs,
+    error: record.errorMessage,
+    createdAt: record.createdAt,
+  };
+}
+
+/**
+ * Format paradigm result record with extended fields (id, weight)
+ * Used in dashboard endpoints that need additional details
+ */
+export function formatParadigmResultExtendedForResponse(record: {
+  id: string;
+  paradigmType: string;
+  weight: string | null;
+  provider: string | null;
+  model: string | null;
+  verdict: string | null;
+  confidence: string | null;
+  reasoning: string | null;
+  processingTimeMs: number | null;
+  errorMessage: string | null;
+}): FormattedParadigmResultFieldsExtended {
+  return {
+    id: record.id,
+    paradigm: record.paradigmType,
+    weight: parseDecimal(record.weight),
+    provider: record.provider,
+    model: record.model,
+    verdict: record.verdict,
+    confidence: parseDecimal(record.confidence),
+    reasoning: record.reasoning,
+    processingTimeMs: record.processingTimeMs,
+    error: record.errorMessage,
+  };
+}

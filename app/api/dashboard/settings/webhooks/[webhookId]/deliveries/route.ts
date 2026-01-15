@@ -3,15 +3,17 @@ import { db } from '@/utils/db/db';
 import { webhooksTable, webhookDeliveriesTable } from '@/utils/db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
+import { extractRouteParam, RouteContext, errorResponse, assertOrgOwnership, validateEnumParam } from '@/lib/api/validation';
+import { formatDateToISO, formatRequiredDateToISO } from '@/lib/api/formatters';
 
 /**
  * GET - List webhook deliveries with filtering and pagination
  */
 async function handleGet(
   req: DashboardRequest,
-  routeContext?: { params: Promise<{ webhookId: string }> }
+  routeContext?: RouteContext<{ webhookId: string }>
 ) {
-  const { webhookId } = await routeContext!.params;
+  const webhookId = await extractRouteParam(routeContext, 'webhookId');
   const { context } = req;
   const { searchParams } = new URL(req.url);
   const status = searchParams.get('status');
@@ -27,20 +29,20 @@ async function handleGet(
     .limit(1);
 
   if (!webhook) {
-    return NextResponse.json({ error: 'Webhook not found' }, { status: 404 });
+    return errorResponse.notFound('Webhook not found');
   }
 
-  if (webhook.orgId !== context.orgId) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
+  await assertOrgOwnership(webhook.orgId, context.orgId);
+
+  // Validate and apply status filter using shared helper
+  const validStatuses = ['pending', 'processing', 'delivered', 'retrying', 'failed'] as const;
+  const validatedStatus = validateEnumParam(status, validStatuses);
 
   // Build conditions
   const conditions = [eq(webhookDeliveriesTable.webhookId, webhookId)];
 
-  if (status && ['pending', 'processing', 'delivered', 'retrying', 'failed'].includes(status)) {
-    conditions.push(
-      eq(webhookDeliveriesTable.status, status as 'pending' | 'processing' | 'delivered' | 'retrying' | 'failed')
-    );
+  if (validatedStatus) {
+    conditions.push(eq(webhookDeliveriesTable.status, validatedStatus));
   }
 
   // Get deliveries
@@ -99,7 +101,13 @@ async function handleGet(
   const total = totalResult?.count || 0;
 
   return NextResponse.json({
-    deliveries,
+    deliveries: deliveries.map((d) => ({
+      ...d,
+      nextRetryAt: formatDateToISO(d.nextRetryAt),
+      createdAt: formatRequiredDateToISO(d.createdAt),
+      deliveredAt: formatDateToISO(d.deliveredAt),
+      failedAt: formatDateToISO(d.failedAt),
+    })),
     statusCounts,
     pagination: {
       page,

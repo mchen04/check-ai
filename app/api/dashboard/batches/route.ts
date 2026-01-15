@@ -8,6 +8,8 @@ import { batchJobsTable, type BatchStatus } from '@/utils/db/schema';
 import { eq, desc, count, and, sql } from 'drizzle-orm';
 import { withDashboardRead, type DashboardRequest } from '@/lib/api/dashboard-middleware';
 import { parsePagination, createPaginationResponse } from '@/lib/api/types';
+import { errorResponse, validateEnumParam } from '@/lib/api/validation';
+import { formatDateToISO, formatRequiredDateToISO } from '@/lib/api/formatters';
 
 async function handler(req: DashboardRequest) {
   const { context } = req;
@@ -18,18 +20,18 @@ async function handler(req: DashboardRequest) {
   const { page, limit, offset } = parsePagination(searchParams);
   const statusFilter = searchParams.get('status');
 
-  // Validate status filter if provided
-  const validStatuses: readonly BatchStatus[] = ['pending', 'validating', 'processing', 'completed', 'failed', 'cancelled'];
-  const isValidStatus = (s: string): s is BatchStatus => validStatuses.includes(s as BatchStatus);
+  // Validate status filter using shared helper
+  const validStatuses = ['pending', 'validating', 'processing', 'completed', 'failed', 'cancelled'] as const;
+  const validatedStatus = validateEnumParam(statusFilter, validStatuses);
 
-  if (statusFilter && !isValidStatus(statusFilter)) {
-    return NextResponse.json({ error: 'Invalid status filter' }, { status: 400 });
+  if (statusFilter && !validatedStatus) {
+    return errorResponse.badRequest('Invalid status filter');
   }
 
   // Build where clause
   const whereConditions = [eq(batchJobsTable.orgId, orgId)];
-  if (statusFilter && isValidStatus(statusFilter)) {
-    whereConditions.push(eq(batchJobsTable.status, statusFilter));
+  if (validatedStatus) {
+    whereConditions.push(eq(batchJobsTable.status, validatedStatus));
   }
 
   // Get batches with pagination
@@ -78,6 +80,9 @@ async function handler(req: DashboardRequest) {
   return NextResponse.json({
     batches: batches.map((batch) => ({
       ...batch,
+      createdAt: formatRequiredDateToISO(batch.createdAt),
+      startedAt: formatDateToISO(batch.startedAt),
+      completedAt: formatDateToISO(batch.completedAt),
       progress:
         batch.totalItems > 0
           ? Math.round((batch.processedItems / batch.totalItems) * 100)

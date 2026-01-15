@@ -8,15 +8,17 @@ import {
   setDefaultCredential,
 } from '@/lib/api-keys/service';
 import { z } from 'zod';
+import { extractRouteParam, RouteContext, parseAndValidate, errorResponse } from '@/lib/api/validation';
+import { formatRequiredDateToISO } from '@/lib/api/formatters';
 
 // =============================================================================
 // GET - List credentials for an API key
 // =============================================================================
 
 export const GET = withDashboardAuth(
-  async (req: DashboardRequest, routeContext) => {
+  async (req: DashboardRequest, routeContext?: RouteContext) => {
     const { context } = req;
-    const { id: keyId } = await routeContext!.params;
+    const keyId = await extractRouteParam(routeContext);
 
     const credentials = await listApiKeyCredentials(context.orgId, keyId);
 
@@ -25,7 +27,7 @@ export const GET = withDashboardAuth(
         id: c.id,
         providerCredentialId: c.providerCredentialId,
         isDefault: c.isDefault,
-        createdAt: c.createdAt,
+        createdAt: formatRequiredDateToISO(c.createdAt),
         credential: c.credential
           ? {
               id: c.credential.id,
@@ -51,20 +53,15 @@ const addCredentialSchema = z.object({
 });
 
 export const POST = withDashboardAuth(
-  async (req: DashboardRequest, routeContext) => {
+  async (req: DashboardRequest, routeContext?: RouteContext) => {
     const { context } = req;
     const audit = createAuditLogger(context, req);
-    const { id: keyId } = await routeContext!.params;
+    const keyId = await extractRouteParam(routeContext);
 
-    const body = await req.json();
-    const parsed = addCredentialSchema.safeParse(body);
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: parsed.error.flatten() },
-        { status: 400 }
-      );
-    }
+    // Parse and validate request body
+    const parseResult = await parseAndValidate(req, addCredentialSchema);
+    if (!parseResult.success) return parseResult.error;
+    const parsed = parseResult;
 
     const result = await addCredentialToApiKey(
       context.orgId,
@@ -74,7 +71,7 @@ export const POST = withDashboardAuth(
     );
 
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
+      return errorResponse.badRequest(result.error || 'Failed to add credential');
     }
 
     audit.log({
@@ -100,22 +97,22 @@ export const POST = withDashboardAuth(
 // =============================================================================
 
 export const DELETE = withDashboardAuth(
-  async (req: DashboardRequest, routeContext) => {
+  async (req: DashboardRequest, routeContext?: RouteContext) => {
     const { context } = req;
     const audit = createAuditLogger(context, req);
-    const { id: keyId } = await routeContext!.params;
+    const keyId = await extractRouteParam(routeContext);
 
     const { searchParams } = new URL(req.url);
     const credentialId = searchParams.get('credentialId');
 
     if (!credentialId) {
-      return NextResponse.json({ error: 'Credential ID is required' }, { status: 400 });
+      return errorResponse.badRequest('Credential ID is required');
     }
 
     const result = await removeCredentialFromApiKey(context.orgId, keyId, credentialId);
 
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
+      return errorResponse.badRequest(result.error || 'Failed to remove credential');
     }
 
     audit.log({
@@ -142,25 +139,20 @@ const setDefaultSchema = z.object({
 });
 
 export const PATCH = withDashboardAuth(
-  async (req: DashboardRequest, routeContext) => {
+  async (req: DashboardRequest, routeContext?: RouteContext) => {
     const { context } = req;
     const audit = createAuditLogger(context, req);
-    const { id: keyId } = await routeContext!.params;
+    const keyId = await extractRouteParam(routeContext);
 
-    const body = await req.json();
-    const parsed = setDefaultSchema.safeParse(body);
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: parsed.error.flatten() },
-        { status: 400 }
-      );
-    }
+    // Parse and validate request body
+    const parseResult = await parseAndValidate(req, setDefaultSchema);
+    if (!parseResult.success) return parseResult.error;
+    const parsed = parseResult;
 
     const result = await setDefaultCredential(context.orgId, keyId, parsed.data.credentialId);
 
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
+      return errorResponse.badRequest(result.error || 'Failed to set default credential');
     }
 
     audit.log({

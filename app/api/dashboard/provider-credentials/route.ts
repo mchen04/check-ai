@@ -6,6 +6,7 @@ import {
 } from '@/lib/api-keys/provider-credentials';
 import { createProviderCredentialSchema } from '@/lib/api-keys/types';
 import { createAuditLogger } from '@/lib/audit';
+import { parseAndValidate } from '@/lib/api/validation';
 
 // =============================================================================
 // GET - List provider credentials
@@ -31,27 +32,21 @@ export const POST = withDashboardAuth(
     const { context } = req;
     const audit = createAuditLogger(context, req);
 
-    const body = await req.json();
-    const parsed = createProviderCredentialSchema.safeParse(body);
+    // Parse and validate using shared helper
+    const result = await parseAndValidate(req, createProviderCredentialSchema);
+    if (!result.success) return result.error;
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: parsed.error.flatten() },
-        { status: 400 }
-      );
-    }
-
-    const result = await createProviderCredential(context.orgId, parsed.data);
+    const credential = await createProviderCredential(context.orgId, result.data);
 
     audit.log({
       eventType: 'api_key.created',
-      description: `Provider credential "${parsed.data.name}" created for ${parsed.data.provider}`,
+      description: `Provider credential "${result.data.name}" created for ${result.data.provider}`,
       resourceType: 'provider_credential',
-      resourceId: result.id,
-      changes: { after: { name: parsed.data.name, provider: parsed.data.provider } },
+      resourceId: credential.id,
+      changes: { after: { name: result.data.name, provider: result.data.provider } },
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(credential);
   },
   { permission: 'api_keys:create' }
 );

@@ -5,6 +5,7 @@ import { organizationsTable } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
 import { createClient } from '@/utils/supabase/server';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
+import { parseAndValidate } from '@/lib/api/validation';
 
 // =============================================================================
 // DELETE - Delete organization (owner only)
@@ -17,15 +18,9 @@ const DeleteOrgSchema = z.object({
 async function handleDelete(req: DashboardRequest) {
   const { context } = req;
 
-  const body = await req.json();
-  const parsed = DeleteOrgSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Please type the confirmation phrase exactly' },
-      { status: 400 }
-    );
-  }
+  // Parse and validate using shared helper
+  const result = await parseAndValidate(req, DeleteOrgSchema);
+  if (!result.success) return result.error;
 
   // Delete organization (cascade will handle related records)
   await db.delete(organizationsTable).where(eq(organizationsTable.id, context.orgId));

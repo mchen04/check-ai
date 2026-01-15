@@ -17,8 +17,8 @@ import {
 } from '@/lib/escalation';
 import { fireWebhooks } from '@/lib/webhooks/service';
 import { createAuditLogger } from '@/lib/audit';
-import { formatDateToISO, formatRequiredDateToISO, parseDecimal } from '@/lib/api/formatters';
-import { errorResponse, parseAndValidate } from '@/lib/api/validation';
+import { formatDateToISO, formatRequiredDateToISO, parseDecimal, formatParadigmResultExtendedForResponse } from '@/lib/api/formatters';
+import { errorResponse, parseAndValidate, extractRouteParam, assertOrgOwnership, RouteContext } from '@/lib/api/validation';
 
 // =============================================================================
 // REQUEST VALIDATION
@@ -36,9 +36,9 @@ const ResolveEscalationSchema = z.object({
 
 async function handleGet(
   req: DashboardRequest,
-  routeContext?: { params: Promise<{ id: string }> }
+  routeContext?: RouteContext
 ) {
-  const { id } = await routeContext!.params;
+  const id = await extractRouteParam(routeContext);
   const { context } = req;
 
   // Fetch escalation with verification and paradigm results
@@ -59,9 +59,7 @@ async function handleGet(
   }
 
   // Check organization ownership
-  if (escalation.verification.orgId !== context.orgId) {
-    return errorResponse.forbidden();
-  }
+  await assertOrgOwnership(escalation.verification.orgId, context.orgId);
 
   // Format response with full details using shared formatters
   return NextResponse.json({
@@ -97,18 +95,7 @@ async function handleGet(
       costCents: escalation.verification.costCents,
       createdAt: formatRequiredDateToISO(escalation.verification.createdAt),
       completedAt: formatDateToISO(escalation.verification.completedAt),
-      paradigmResults: escalation.verification.paradigmResults.map((pr) => ({
-        id: pr.id,
-        paradigm: pr.paradigmType,
-        weight: parseDecimal(pr.weight),
-        provider: pr.provider,
-        model: pr.model,
-        verdict: pr.verdict,
-        confidence: parseDecimal(pr.confidence),
-        reasoning: pr.reasoning,
-        processingTimeMs: pr.processingTimeMs,
-        error: pr.errorMessage,
-      })),
+      paradigmResults: escalation.verification.paradigmResults.map(formatParadigmResultExtendedForResponse),
     },
   });
 }
@@ -121,9 +108,9 @@ export const GET = withDashboardAuth(handleGet);
 
 async function handlePatch(
   req: DashboardRequest,
-  routeContext?: { params: Promise<{ id: string }> }
+  routeContext?: RouteContext
 ) {
-  const { id } = await routeContext!.params;
+  const id = await extractRouteParam(routeContext);
   const { context } = req;
 
   // Parse and validate request body using shared utility
@@ -158,9 +145,7 @@ async function handlePatch(
   }
 
   // Check organization ownership
-  if (escalation[0].orgId !== context.orgId) {
-    return errorResponse.forbidden();
-  }
+  await assertOrgOwnership(escalation[0].orgId, context.orgId);
 
   // Check if already resolved
   if (escalation[0].resolvedAt) {
