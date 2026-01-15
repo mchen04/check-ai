@@ -9,7 +9,13 @@ import {
 } from '../db/schema';
 import { eq, and, gte, sql } from 'drizzle-orm';
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+// Stripe SDK configuration following best practices:
+// - Pin API version for stability (matches SDK v16.9.0)
+// - Enable automatic retries for network resilience
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-06-20',
+  maxNetworkRetries: 2,
+});
 const PUBLIC_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || 'http://localhost:3001';
 
 // =============================================================================
@@ -177,14 +183,19 @@ export async function getUsageStats(orgId: string): Promise<{
 }
 
 export async function createStripeCustomer(id: string, email: string, name?: string) {
-  const customer = await stripe.customers.create({
-    name: name ? name : '',
-    email: email,
-    metadata: {
-      supabase_id: id,
+  const customer = await stripe.customers.create(
+    {
+      name: name ? name : '',
+      email: email,
+      metadata: {
+        supabase_id: id,
+      },
     },
-  });
-  // Create a new customer in Stripe
+    {
+      // Idempotency key prevents duplicate customers on retries
+      idempotencyKey: `create-customer-${id}`,
+    }
+  );
   return customer.id;
 }
 
