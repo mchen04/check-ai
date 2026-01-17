@@ -128,7 +128,7 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
   useEffect(() => {
     async function fetchVerification() {
       try {
-        const response = await fetch(`/api/v1/verify/${id}`);
+        const response = await fetch(`/api/dashboard/verifications/${id}`);
 
         if (!response.ok) {
           if (response.status === 404) {

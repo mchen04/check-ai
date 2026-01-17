@@ -50,7 +50,7 @@ export default async function ApiKeysPage() {
 
     apiKeys = keys;
   } catch (e) {
-    console.log('Error fetching API keys:', e);
+    console.error('Error fetching API keys:', e);
   }
 
   return (

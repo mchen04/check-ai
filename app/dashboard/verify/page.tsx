@@ -14,7 +14,22 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, XCircle, AlertCircle, Clock, ChevronRight, RefreshCw } from 'lucide-react';
+import {
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Clock,
+  ChevronRight,
+  RefreshCw,
+  Download,
+  Loader2,
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 // =============================================================================
 // TYPES
@@ -93,6 +108,7 @@ export default function VerificationHistoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   const fetchVerifications = useCallback(async (pageNum: number = 1) => {
     try {
@@ -132,6 +148,46 @@ export default function VerificationHistoryPage() {
     router.push(`/dashboard/verify/${id}`);
   };
 
+  const handleExport = async (format: 'csv' | 'json') => {
+    try {
+      setIsExporting(true);
+      const response = await fetch('/api/dashboard/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          format,
+          includeParadigmResults: true,
+          limit: 1000,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to export data');
+      }
+
+      // Get the filename from the Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+      const filename = filenameMatch?.[1] || `verifications-export.${format}`;
+
+      // Create blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Export failed:', err);
+      setError('Failed to export data. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   // Calculate stats
   const stats = {
     total: verifications.length,
@@ -157,11 +213,31 @@ export default function VerificationHistoryPage() {
           <p className="mt-1 text-muted-foreground">View and manage your verification requests</p>
         </div>
         <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" disabled={isExporting || verifications.length === 0}>
+                {isExporting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport('csv')}>
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('json')}>
+                Export as JSON
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button onClick={() => router.push('/playground')}>New Verification</Button>
+          <Button onClick={() => router.push('/dashboard/playground')}>New Verification</Button>
         </div>
       </div>
 

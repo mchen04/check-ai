@@ -62,7 +62,8 @@ export interface DefaultThresholds {
 
 export interface ApiKeyFormData {
   name: string;
-  providerCredentialId: string;
+  providerCredentialIds: string[];
+  defaultCredentialId?: string;
   paradigmConfig: Record<string, ParadigmConfig>;
   defaultThresholds: DefaultThresholds;
 }
@@ -76,7 +77,8 @@ const DEFAULT_THRESHOLDS: DefaultThresholds = {
 export function useParadigmConfig(initialData?: Partial<ApiKeyFormData>) {
   const [formData, setFormData] = useState<ApiKeyFormData>({
     name: initialData?.name || '',
-    providerCredentialId: initialData?.providerCredentialId || '',
+    providerCredentialIds: initialData?.providerCredentialIds || [],
+    defaultCredentialId: initialData?.defaultCredentialId,
     paradigmConfig: initialData?.paradigmConfig || {},
     defaultThresholds: {
       ...DEFAULT_THRESHOLDS,
@@ -169,7 +171,8 @@ export function useParadigmConfig(initialData?: Partial<ApiKeyFormData>) {
   const reset = useCallback((data?: Partial<ApiKeyFormData>) => {
     setFormData({
       name: data?.name || '',
-      providerCredentialId: data?.providerCredentialId || '',
+      providerCredentialIds: data?.providerCredentialIds || [],
+      defaultCredentialId: data?.defaultCredentialId,
       paradigmConfig: data?.paradigmConfig || {},
       defaultThresholds: {
         ...DEFAULT_THRESHOLDS,
@@ -182,8 +185,8 @@ export function useParadigmConfig(initialData?: Partial<ApiKeyFormData>) {
     if (!formData.name.trim()) {
       return 'Name is required';
     }
-    if (!formData.providerCredentialId) {
-      return 'Provider credential is required';
+    if (!formData.providerCredentialIds || formData.providerCredentialIds.length === 0) {
+      return 'At least one provider credential is required';
     }
 
     const enabledParadigms = Object.entries(formData.paradigmConfig).filter(

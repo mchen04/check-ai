@@ -126,7 +126,7 @@ export default function BatchUploadPage() {
       const formData = new FormData();
       formData.append('file', fileToUpload);
 
-      const response = await fetch('/api/v1/batch/upload', {
+      const response = await fetch('/api/dashboard/batch/upload', {
         method: 'POST',
         body: formData,
       });
@@ -201,7 +201,7 @@ export default function BatchUploadPage() {
         body.options = optionsConfig;
       }
 
-      const response = await fetch('/api/v1/batch', {
+      const response = await fetch('/api/dashboard/batch', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

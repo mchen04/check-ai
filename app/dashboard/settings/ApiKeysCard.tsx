@@ -78,12 +78,19 @@ interface ProviderCredential {
   provider: string;
 }
 
+interface ApiKeyCredential {
+  id: string;
+  providerCredentialId: string;
+  isDefault: boolean;
+  credential: ProviderCredential | null;
+}
+
 interface ApiKey {
   id: string;
   name: string;
   keyPrefix: string;
-  providerCredentialId: string | null;
   providerCredential: ProviderCredential | null;
+  credentials?: ApiKeyCredential[];
   paradigmConfig: Record<string, ParadigmConfig> | null;
   defaultThresholds: {
     acceptThreshold?: number;
@@ -224,9 +231,13 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
 
   const openEditDialog = (key: ApiKey) => {
     setEditKey(key);
+    // Extract credential IDs from the credentials array
+    const credentialIds = key.credentials?.map((c) => c.providerCredentialId) || [];
+    const defaultCredId = key.credentials?.find((c) => c.isDefault)?.providerCredentialId;
     editForm.reset({
       name: key.name,
-      providerCredentialId: key.providerCredentialId || '',
+      providerCredentialIds: credentialIds.length > 0 ? credentialIds : (key.providerCredential ? [key.providerCredential.id] : []),
+      defaultCredentialId: defaultCredId,
       paradigmConfig: key.paradigmConfig || {},
       defaultThresholds: {
         acceptThreshold: key.defaultThresholds?.acceptThreshold ?? 0.95,
@@ -242,9 +253,17 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
     if (!editKey) return;
     setEditError(null);
 
-    const error = editForm.validate();
-    if (error) {
-      setEditError(error);
+    // For edit, we only validate name and paradigm config (credentials can't be changed)
+    if (!editForm.formData.name.trim()) {
+      setEditError('Name is required');
+      return;
+    }
+
+    const enabledParadigms = Object.entries(editForm.formData.paradigmConfig).filter(
+      ([, config]) => config.enabled
+    );
+    if (enabledParadigms.length === 0) {
+      setEditError('At least one paradigm must be enabled');
       return;
     }
 
@@ -256,7 +275,6 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: editForm.formData.name,
-          providerCredentialId: editForm.formData.providerCredentialId,
           paradigmConfig: editForm.formData.paradigmConfig,
           defaultThresholds: editForm.formData.defaultThresholds,
         }),
@@ -370,9 +388,9 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
                         <div className="space-y-2">
                           <Label htmlFor="credential">Provider Credential</Label>
                           <Select
-                            value={createForm.formData.providerCredentialId}
+                            value={createForm.formData.providerCredentialIds[0] || ''}
                             onValueChange={(value) =>
-                              createForm.updateField('providerCredentialId', value)
+                              createForm.updateField('providerCredentialIds', [value])
                             }
                           >
                             <SelectTrigger>
@@ -537,10 +555,10 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
             <div className="space-y-2">
               <Label htmlFor="edit-credential">Provider Credential</Label>
               <Select
-                value={editForm.formData.providerCredentialId}
-                onValueChange={(value) => editForm.updateField('providerCredentialId', value)}
+                value={editForm.formData.providerCredentialIds[0] || ''}
+                disabled
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-muted">
                   <SelectValue placeholder="Select credential" />
                 </SelectTrigger>
                 <SelectContent>
@@ -551,6 +569,9 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Provider credential cannot be changed after creation. Create a new API key to use a different credential.
+              </p>
             </div>
 
             <ParadigmConfigForm

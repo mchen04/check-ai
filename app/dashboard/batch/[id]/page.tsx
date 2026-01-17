@@ -188,7 +188,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
 
   const fetchBatch = useCallback(async () => {
     try {
-      const response = await fetch(`/api/v1/batch/${id}`);
+      const response = await fetch(`/api/dashboard/batch/${id}`);
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -209,7 +209,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
   const fetchItems = useCallback(
     async (page: number = 1, append: boolean = false) => {
       try {
-        const response = await fetch(`/api/v1/batch/${id}/results?limit=20&offset=${(page - 1) * 20}`);
+        const response = await fetch(`/api/dashboard/batch/${id}/results?limit=20&offset=${(page - 1) * 20}`);
 
         if (!response.ok) {
           return;
@@ -276,7 +276,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
   const handleCancel = async () => {
     try {
       setIsCancelling(true);
-      const response = await fetch(`/api/v1/batch/${id}/cancel`, {
+      const response = await fetch(`/api/dashboard/batch/${id}/cancel`, {
         method: 'POST',
       });
 

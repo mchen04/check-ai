@@ -32,8 +32,13 @@ export function extractProviderFromModel(model: string): string {
 }
 
 /**
+ * Universal gateway providers that can route to any model
+ */
+const UNIVERSAL_GATEWAYS = ['openrouter'] as const;
+
+/**
  * Find the right credential for a model
- * Strict matching - provider must match exactly, no fallbacks
+ * Checks for exact provider match first, then falls back to universal gateways
  *
  * @param model - Model string (e.g., "anthropic/claude-3.5-sonnet")
  * @param credentials - Available decrypted credentials
@@ -45,7 +50,7 @@ export function findCredentialForModel(
 ): { provider: string; apiKey: string; config?: ProviderConfig } | null {
   const targetProvider = extractProviderFromModel(model);
 
-  // Exact provider match only - no fallbacks
+  // First try exact provider match
   const exactMatch = credentials.find((c) => c.provider === targetProvider);
   if (exactMatch) {
     return {
@@ -55,7 +60,17 @@ export function findCredentialForModel(
     };
   }
 
-  // No fallback - return null if no exact match
+  // Fall back to universal gateways (e.g., OpenRouter can route any model)
+  const gatewayMatch = credentials.find((c) => UNIVERSAL_GATEWAYS.includes(c.provider as typeof UNIVERSAL_GATEWAYS[number]));
+  if (gatewayMatch) {
+    return {
+      provider: gatewayMatch.provider,
+      apiKey: gatewayMatch.decryptedKey,
+      config: gatewayMatch.config,
+    };
+  }
+
+  // No match found
   return null;
 }
 
@@ -83,8 +98,20 @@ export function getRequiredProviders(paradigmConfig: ApiKeyParadigmConfig): Set<
 }
 
 /**
+ * Check if a provider has a credential available (directly or via gateway)
+ */
+function hasCredentialForProvider(provider: string, availableProviders: Set<string>): boolean {
+  // Direct match
+  if (availableProviders.has(provider)) {
+    return true;
+  }
+  // Check if any universal gateway is available
+  return UNIVERSAL_GATEWAYS.some((gateway) => availableProviders.has(gateway));
+}
+
+/**
  * Validate that all paradigms have required credentials
- * Strict validation - each provider needs its own credential
+ * Allows universal gateways (like OpenRouter) to satisfy any provider requirement
  *
  * @param paradigmConfig - The paradigm configuration to validate
  * @param availableProviders - Set of provider names that have credentials
@@ -102,13 +129,13 @@ export function validateParadigmCredentials(
     if (paradigm === 'ensemble' && 'models' in config) {
       for (const model of config.models) {
         const provider = extractProviderFromModel(model);
-        if (!availableProviders.has(provider)) {
+        if (!hasCredentialForProvider(provider, availableProviders)) {
           missingProviders.push(provider);
         }
       }
     } else if ('model' in config) {
       const provider = extractProviderFromModel(config.model);
-      if (!availableProviders.has(provider)) {
+      if (!hasCredentialForProvider(provider, availableProviders)) {
         missingProviders.push(provider);
       }
     }

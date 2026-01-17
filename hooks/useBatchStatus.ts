@@ -127,7 +127,7 @@ export function useBatchStatus(
     if (!batchId) return;
 
     try {
-      const response = await fetch(`/api/v1/batch/${batchId}`);
+      const response = await fetch(`/api/dashboard/batch/${batchId}`);
 
       if (!response.ok) {
         if (response.status === 404) {

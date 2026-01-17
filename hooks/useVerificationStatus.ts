@@ -131,7 +131,7 @@ export function useVerificationStatus(
     if (!verificationId) return;
 
     try {
-      const response = await fetch(`/api/v1/verify/${verificationId}`);
+      const response = await fetch(`/api/dashboard/verifications/${verificationId}`);
 
       if (!response.ok) {
         if (response.status === 404) {

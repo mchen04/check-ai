@@ -292,7 +292,7 @@ console.log(result);`;
         body.options = optionsConfig;
       }
 
-      const response = await fetch('/api/v1/verify', {
+      const response = await fetch('/api/dashboard/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

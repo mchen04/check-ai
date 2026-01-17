@@ -308,32 +308,60 @@ export async function listApiKeys(orgId: string): Promise<ApiKeyWithConfig[]> {
       .where(and(eq(apiKeysTable.orgId, orgId), isNull(apiKeysTable.deletedAt)))
       .orderBy(apiKeysTable.createdAt);
 
-    // Get default credentials for each key via junction table
+    // Get all credentials for each key via junction table
     const keyIds = keys.map((k) => k.id);
-    const defaultCredentials = keyIds.length > 0
+    const allCredentials = keyIds.length > 0
       ? await db
           .select({
+            linkId: apiKeyCredentialsTable.id,
             apiKeyId: apiKeyCredentialsTable.apiKeyId,
+            providerCredentialId: apiKeyCredentialsTable.providerCredentialId,
+            isDefault: apiKeyCredentialsTable.isDefault,
+            linkCreatedAt: apiKeyCredentialsTable.createdAt,
             credentialId: providerCredentialsTable.id,
             credentialName: providerCredentialsTable.name,
             credentialProvider: providerCredentialsTable.provider,
+            credentialIsActive: providerCredentialsTable.isActive,
           })
           .from(apiKeyCredentialsTable)
           .innerJoin(
             providerCredentialsTable,
             eq(apiKeyCredentialsTable.providerCredentialId, providerCredentialsTable.id)
           )
-          .where(and(
-            inArray(apiKeyCredentialsTable.apiKeyId, keyIds),
-            eq(apiKeyCredentialsTable.isDefault, true)
-          ))
+          .where(inArray(apiKeyCredentialsTable.apiKeyId, keyIds))
       : [];
 
-    // Build map for quick lookup
-    const credMap = new Map(defaultCredentials.map((c) => [c.apiKeyId, c]));
+    // Build map for quick lookup: apiKeyId -> array of credentials
+    const credMap = new Map<string, typeof allCredentials>();
+    for (const cred of allCredentials) {
+      const existing = credMap.get(cred.apiKeyId) || [];
+      existing.push(cred);
+      credMap.set(cred.apiKeyId, existing);
+    }
 
     return keys.map((key) => {
-      const cred = credMap.get(key.id);
+      const keyCredentials = credMap.get(key.id) || [];
+      const defaultCred = keyCredentials.find((c) => c.isDefault);
+
+      // Build credentials array for this key
+      const credentials: ApiKeyCredential[] = keyCredentials.map((c) => ({
+        id: c.linkId,
+        apiKeyId: key.id,
+        providerCredentialId: c.providerCredentialId,
+        isDefault: c.isDefault,
+        createdAt: c.linkCreatedAt,
+        credential: {
+          id: c.credentialId,
+          orgId: key.orgId,
+          name: c.credentialName,
+          provider: c.credentialProvider as CredentialProvider,
+          isActive: c.credentialIsActive,
+          validationStatus: 'valid' as const,
+          createdAt: c.linkCreatedAt,
+          updatedAt: c.linkCreatedAt,
+        },
+      }));
+
       return {
         id: key.id,
         orgId: key.orgId,
@@ -346,13 +374,14 @@ export async function listApiKeys(orgId: string): Promise<ApiKeyWithConfig[]> {
         lastUsedAt: key.lastUsedAt || undefined,
         createdAt: key.createdAt,
         updatedAt: key.updatedAt,
-        providerCredential: cred
+        credentials,
+        providerCredential: defaultCred
           ? {
-              id: cred.credentialId,
+              id: defaultCred.credentialId,
               orgId: key.orgId,
-              name: cred.credentialName,
-              provider: cred.credentialProvider as CredentialProvider,
-              isActive: true,
+              name: defaultCred.credentialName,
+              provider: defaultCred.credentialProvider as CredentialProvider,
+              isActive: defaultCred.credentialIsActive,
               validationStatus: 'valid' as const,
               createdAt: key.createdAt,
               updatedAt: key.updatedAt,
