@@ -2,17 +2,17 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { getUserOrgContext } from '@/lib/rbac/get-user-org';
 import { db } from '@/utils/db/db';
-import { orgMembersTable, organizationsTable, userPreferencesTable } from '@/utils/db/schema';
+import {
+  orgMembersTable,
+  organizationsTable,
+  userPreferencesTable,
+} from '@/utils/db/schema';
 import { eq, sql } from 'drizzle-orm';
 
-// Client Components
 import { ProfileSettingsCard } from './ProfileSettingsCard';
 import { OrganizationSettingsCard } from './OrganizationSettingsCard';
 import { NotificationSettingsCard } from './NotificationSettingsCard';
 import { SecuritySettingsCard } from './SecuritySettingsCard';
-import { WebhooksCard } from './WebhooksCard';
-import { ProviderCredentialsCard } from './ProviderCredentialsCard';
-import { ApiKeysCard } from './ApiKeysCard';
 import { DataRetentionCard } from './DataRetentionCard';
 import { AuditLogsCard } from './AuditLogsCard';
 import { DangerZoneCard } from './DangerZoneCard';
@@ -27,13 +27,11 @@ export default async function SettingsPage() {
 
   const user = data.user;
 
-  // Get org context
   const orgContext = await getUserOrgContext();
   if (!orgContext) {
     redirect('/login');
   }
 
-  // Get full organization settings
   const [org] = await db
     .select({
       id: organizationsTable.id,
@@ -52,13 +50,11 @@ export default async function SettingsPage() {
     .where(eq(organizationsTable.id, orgContext.orgId))
     .limit(1);
 
-  // Get member count
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
     .from(orgMembersTable)
     .where(eq(orgMembersTable.orgId, orgContext.orgId));
 
-  // Get user notification preferences
   const [preferences] = await db
     .select({
       emailNotifications: userPreferencesTable.emailNotifications,
@@ -73,34 +69,22 @@ export default async function SettingsPage() {
 
   return (
     <div className="p-4">
-      {/* Header */}
       <div className="mb-4">
         <h1 className="text-sm font-semibold">Settings</h1>
+        <p className="text-xs text-muted-foreground">
+          Manage your account and workspace settings
+        </p>
       </div>
 
       <div className="space-y-4">
-        {/* Profile Settings */}
+        {/* Account Settings */}
         <ProfileSettingsCard
           initialName={user.user_metadata?.full_name || ''}
           email={user.email || ''}
         />
 
-        {/* Organization Settings */}
-        <OrganizationSettingsCard
-          organization={{
-            name: org.name,
-            slug: org.slug,
-            planType: org.planType,
-            defaultVerificationMethod: org.defaultVerificationMethod,
-            autoEscalateThreshold: parseFloat(org.autoEscalateThreshold || '0.50'),
-            cacheEnabled: org.cacheEnabled,
-            storeVerificationContent: org.storeVerificationContent,
-          }}
-          memberCount={Number(count)}
-          canEdit={canEdit}
-        />
+        <SecuritySettingsCard />
 
-        {/* Notification Settings */}
         <NotificationSettingsCard
           initialPreferences={
             preferences || {
@@ -111,32 +95,39 @@ export default async function SettingsPage() {
           }
         />
 
-        {/* Security Settings */}
-        <SecuritySettingsCard />
-
-        {/* Webhooks */}
-        <WebhooksCard orgId={orgContext.orgId} canEdit={canEdit} />
-
-        {/* Provider Credentials */}
-        <ProviderCredentialsCard canEdit={canEdit} />
-
-        {/* API Keys */}
-        <ApiKeysCard canEdit={canEdit} />
-
-        {/* Data Retention */}
-        <DataRetentionCard
-          initialSettings={{
-            dataRetentionEnabled: org.dataRetentionEnabled,
-            verificationRetentionDays: org.verificationRetentionDays,
-            batchRetentionDays: org.batchRetentionDays,
+        {/* Organization Settings */}
+        <OrganizationSettingsCard
+          organization={{
+            name: org.name,
+            slug: org.slug,
+            planType: org.planType,
+            defaultVerificationMethod: org.defaultVerificationMethod,
+            autoEscalateThreshold: parseFloat(
+              org.autoEscalateThreshold || '0.50'
+            ),
+            cacheEnabled: org.cacheEnabled,
+            storeVerificationContent: org.storeVerificationContent,
           }}
+          memberCount={Number(count)}
           canEdit={canEdit}
         />
 
-        {/* Audit Logs - Only visible to owner/admin */}
-        {canEdit && <AuditLogsCard />}
+        {/* Data & Privacy - Admin only */}
+        {canEdit && (
+          <>
+            <DataRetentionCard
+              initialSettings={{
+                dataRetentionEnabled: org.dataRetentionEnabled,
+                verificationRetentionDays: org.verificationRetentionDays,
+                batchRetentionDays: org.batchRetentionDays,
+              }}
+              canEdit={canEdit}
+            />
+            <AuditLogsCard />
+          </>
+        )}
 
-        {/* Danger Zone */}
+        {/* Danger Zone - Owner only */}
         {orgContext.role === 'owner' && (
           <DangerZoneCard organizationName={org.name} />
         )}
