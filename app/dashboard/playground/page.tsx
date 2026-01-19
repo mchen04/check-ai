@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { CheckCircle2, XCircle, AlertCircle, Clock, Play, Copy, Code, Info } from 'lucide-react';
 import { useVerificationStatus } from '@/hooks/useVerificationStatus';
+import { markOnboardingStep } from '@/app/dashboard/actions';
 
 // =============================================================================
 // TYPES
@@ -185,6 +186,11 @@ export default function PlaygroundPage() {
 
   // Use real-time updates for in-progress verification
   const liveStatus = useVerificationStatus(isSubmitting && verificationId ? verificationId : null);
+
+  // Mark playground as visited for onboarding
+  useEffect(() => {
+    markOnboardingStep('hasVisitedPlayground');
+  }, []);
 
   const handleMethodToggle = (method: keyof MethodsState) => {
     setMethods((prev) => ({

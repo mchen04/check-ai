@@ -6,6 +6,7 @@ import {
   apiKeysTable,
   usageTable,
   userPreferencesTable,
+  providerCredentialsTable,
 } from '@/utils/db/schema';
 import { eq, and, gte, desc, count, sql } from 'drizzle-orm';
 import { Card } from '@/components/ui/card';
@@ -93,6 +94,7 @@ export default async function Dashboard() {
 
   let onboarding = {
     completed: false,
+    hasAddedProvider: false,
     hasCreatedApiKey: false,
     hasVisitedPlayground: false,
     hasRunVerification: false,
@@ -107,6 +109,7 @@ export default async function Dashboard() {
       usageResult,
       recentResult,
       preferencesResult,
+      providersResult,
     ] = await Promise.all([
       // Total verifications (all time)
       db
@@ -176,6 +179,12 @@ export default async function Dashboard() {
         .from(userPreferencesTable)
         .where(eq(userPreferencesTable.userId, context.userId))
         .limit(1),
+
+      // Provider credentials count
+      db
+        .select({ count: count() })
+        .from(providerCredentialsTable)
+        .where(eq(providerCredentialsTable.orgId, orgId)),
     ]);
 
     stats = {
@@ -189,14 +198,18 @@ export default async function Dashboard() {
 
     recentVerifications = recentResult;
 
-    if (preferencesResult[0]) {
-      onboarding = {
-        completed: preferencesResult[0].onboardingCompleted,
-        hasCreatedApiKey: preferencesResult[0].hasCreatedApiKey,
-        hasVisitedPlayground: preferencesResult[0].hasVisitedPlayground,
-        hasRunVerification: preferencesResult[0].hasRunVerification,
-      };
-    }
+    // Derive completion status from actual data rather than flags
+    const hasAddedProvider = Number(providersResult[0]?.count ?? 0) > 0;
+    const hasCreatedApiKey = stats.activeApiKeys > 0;
+    const hasRunVerification = stats.totalVerifications > 0;
+
+    onboarding = {
+      completed: preferencesResult[0]?.onboardingCompleted ?? false,
+      hasAddedProvider,
+      hasCreatedApiKey,
+      hasVisitedPlayground: preferencesResult[0]?.hasVisitedPlayground ?? false,
+      hasRunVerification,
+    };
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
   }
@@ -210,6 +223,7 @@ export default async function Dashboard() {
       {/* Onboarding Checklist */}
       {!onboarding.completed && (
         <OnboardingChecklist
+          hasAddedProvider={onboarding.hasAddedProvider}
           hasCreatedApiKey={onboarding.hasCreatedApiKey}
           hasVisitedPlayground={onboarding.hasVisitedPlayground}
           hasRunVerification={onboarding.hasRunVerification}

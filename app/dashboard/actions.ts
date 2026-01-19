@@ -31,13 +31,21 @@ export async function markOnboardingStep(
     return;
   }
 
+  // Upsert: create record if not exists, update if exists
   await db
-    .update(userPreferencesTable)
-    .set({
+    .insert(userPreferencesTable)
+    .values({
+      userId: context.userId,
+      orgId: context.orgId,
       [step]: true,
-      updatedAt: new Date(),
     })
-    .where(eq(userPreferencesTable.userId, context.userId));
+    .onConflictDoUpdate({
+      target: userPreferencesTable.userId,
+      set: {
+        [step]: true,
+        updatedAt: new Date(),
+      },
+    });
 
   revalidatePath('/dashboard');
 }

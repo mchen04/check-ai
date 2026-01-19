@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Circle,
   ArrowRight,
+  Settings,
 } from 'lucide-react';
 import { dismissOnboarding } from '@/app/dashboard/actions';
 
@@ -26,12 +27,14 @@ interface OnboardingStep {
 }
 
 interface OnboardingChecklistProps {
+  hasAddedProvider: boolean;
   hasCreatedApiKey: boolean;
   hasVisitedPlayground: boolean;
   hasRunVerification: boolean;
 }
 
 export function OnboardingChecklist({
+  hasAddedProvider,
   hasCreatedApiKey,
   hasVisitedPlayground,
   hasRunVerification,
@@ -40,6 +43,14 @@ export function OnboardingChecklist({
   const [isDismissed, setIsDismissed] = useState(false);
 
   const steps: OnboardingStep[] = [
+    {
+      id: 'providers',
+      title: 'Add providers',
+      description: 'Configure AI provider credentials to enable verification',
+      href: '/dashboard/settings',
+      icon: <Settings className="h-4 w-4" />,
+      completed: hasAddedProvider,
+    },
     {
       id: 'api-key',
       title: 'Create an API key',
@@ -68,6 +79,15 @@ export function OnboardingChecklist({
 
   const completedCount = steps.filter((s) => s.completed).length;
   const progressPercent = (completedCount / steps.length) * 100;
+  const allCompleted = completedCount === steps.length;
+
+  // Auto-dismiss when all steps are completed
+  useEffect(() => {
+    if (allCompleted && !isDismissed) {
+      dismissOnboarding();
+      setIsDismissed(true);
+    }
+  }, [allCompleted, isDismissed]);
 
   const handleDismiss = async () => {
     setIsDismissing(true);
