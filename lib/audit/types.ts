@@ -20,6 +20,7 @@ export interface AuditLogFilter {
   resourceId?: string;
   startDate?: Date;
   endDate?: Date;
+  search?: string;
 }
 
 export interface AuditLogQueryOptions {

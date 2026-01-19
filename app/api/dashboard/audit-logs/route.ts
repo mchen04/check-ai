@@ -16,7 +16,10 @@ const QueryParamsSchema = z.object({
   resourceType: z.string().optional(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
-  limit: z.coerce.number().min(1).max(100).default(50),
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  search: z.string().optional(),
+  limit: z.coerce.number().min(1).max(1000).default(50),
   offset: z.coerce.number().min(0).default(0),
 });
 
@@ -28,7 +31,12 @@ async function handler(req: DashboardRequest) {
   const validation = validate(searchParams, QueryParamsSchema);
   if (!validation.success) return validation.error;
 
-  const { eventType, userId, resourceType, startDate, endDate, limit, offset } = validation.data;
+  const { eventType, userId, resourceType, startDate, endDate, from, to, search, limit, offset } =
+    validation.data;
+
+  // Support both startDate/endDate and from/to parameters
+  const effectiveStartDate = from || startDate;
+  const effectiveEndDate = to || endDate;
 
   const queryResult = await queryAuditLogs(
     context.orgId,
@@ -36,8 +44,9 @@ async function handler(req: DashboardRequest) {
       eventType,
       userId,
       resourceType,
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
+      startDate: effectiveStartDate ? new Date(effectiveStartDate) : undefined,
+      endDate: effectiveEndDate ? new Date(effectiveEndDate) : undefined,
+      search,
     },
     { limit, offset }
   );

@@ -1,15 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { format } from 'date-fns';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -43,6 +38,9 @@ import {
   Webhook,
   Settings,
   AlertTriangle,
+  Search,
+  Download,
+  X,
 } from 'lucide-react';
 import { AUDIT_EVENT_DESCRIPTIONS, RESOURCE_TYPE_LABELS } from '@/lib/audit/types';
 import type { AuditEventType } from '@/utils/db/schema';
@@ -96,6 +94,13 @@ const EVENT_CATEGORIES = [
   { value: 'org', label: 'Organization' },
 ];
 
+const DATE_RANGES = [
+  { value: 'all', label: 'All Time' },
+  { value: '7', label: 'Last 7 days' },
+  { value: '30', label: 'Last 30 days' },
+  { value: '90', label: 'Last 90 days' },
+];
+
 function getEventIcon(eventType: string) {
   if (eventType.startsWith('api_key')) return <Key className="h-4 w-4" />;
   if (eventType.startsWith('team_member')) return <Users className="h-4 w-4" />;
@@ -104,8 +109,14 @@ function getEventIcon(eventType: string) {
   return <Settings className="h-4 w-4" />;
 }
 
-function getEventBadgeVariant(eventType: string): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (eventType.includes('deleted') || eventType.includes('removed') || eventType.includes('revoked')) {
+function getEventBadgeVariant(
+  eventType: string
+): 'default' | 'secondary' | 'destructive' | 'outline' {
+  if (
+    eventType.includes('deleted') ||
+    eventType.includes('removed') ||
+    eventType.includes('revoked')
+  ) {
     return 'destructive';
   }
   if (eventType.includes('created') || eventType.includes('joined')) {
@@ -117,11 +128,24 @@ function getEventBadgeVariant(eventType: string): 'default' | 'secondary' | 'des
 export function AuditLogsCard() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [category, setCategory] = useState('all');
+  const [dateRange, setDateRange] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -133,14 +157,23 @@ export function AuditLogsCard() {
       });
 
       if (category !== 'all') {
-        // Filter by event type prefix (e.g., 'api_key' matches 'api_key.created', 'api_key.deleted')
         params.set('resourceType', category);
+      }
+
+      if (debouncedSearch) {
+        params.set('search', debouncedSearch);
+      }
+
+      if (dateRange !== 'all') {
+        const days = parseInt(dateRange, 10);
+        const fromDate = startOfDay(subDays(new Date(), days));
+        params.set('from', fromDate.toISOString());
+        params.set('to', endOfDay(new Date()).toISOString());
       }
 
       const res = await fetch(`/api/dashboard/audit-logs?${params}`);
       if (res.ok) {
         const data: AuditLogsResponse = await res.json();
-        // Transform API response to component format
         const transformedLogs: AuditLog[] = data.logs.map((log) => ({
           id: log.id,
           eventType: log.eventType,
@@ -163,11 +196,79 @@ export function AuditLogsCard() {
     } finally {
       setLoading(false);
     }
-  }, [page, category]);
+  }, [page, category, debouncedSearch, dateRange]);
 
   useEffect(() => {
     fetchLogs();
   }, [fetchLogs]);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      // Fetch all logs for export (up to 1000)
+      const params = new URLSearchParams({
+        limit: '1000',
+        offset: '0',
+      });
+
+      if (category !== 'all') {
+        params.set('resourceType', category);
+      }
+
+      if (debouncedSearch) {
+        params.set('search', debouncedSearch);
+      }
+
+      if (dateRange !== 'all') {
+        const days = parseInt(dateRange, 10);
+        const fromDate = startOfDay(subDays(new Date(), days));
+        params.set('from', fromDate.toISOString());
+        params.set('to', endOfDay(new Date()).toISOString());
+      }
+
+      const res = await fetch(`/api/dashboard/audit-logs?${params}`);
+      if (!res.ok) throw new Error('Failed to fetch logs');
+
+      const data: AuditLogsResponse = await res.json();
+
+      // Convert to CSV
+      const headers = ['Timestamp', 'Event', 'Description', 'User', 'Resource Type', 'Resource ID'];
+      const rows = data.logs.map((log) => [
+        format(new Date(log.createdAt), 'yyyy-MM-dd HH:mm:ss'),
+        AUDIT_EVENT_DESCRIPTIONS[log.eventType] || log.eventType,
+        `"${(log.description || '').replace(/"/g, '""')}"`,
+        log.user?.name || log.user?.email || 'System',
+        RESOURCE_TYPE_LABELS[log.resourceType] || log.resourceType,
+        log.resourceId || '',
+      ]);
+
+      const csv = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+
+      // Download
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `audit-logs-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting audit logs:', error);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const clearFilters = () => {
+    setCategory('all');
+    setDateRange('all');
+    setSearchQuery('');
+    setPage(1);
+  };
+
+  const hasActiveFilters = category !== 'all' || dateRange !== 'all' || searchQuery !== '';
 
   return (
     <>
@@ -185,8 +286,40 @@ export function AuditLogsCard() {
                 </CardDescription>
               </div>
             </div>
-            <Select value={category} onValueChange={(v) => { setCategory(v); setPage(1); }}>
-              <SelectTrigger className="w-[160px]">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              disabled={exporting || logs.length === 0}
+            >
+              {exporting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              Export CSV
+            </Button>
+          </div>
+
+          {/* Filters */}
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="relative min-w-[200px] flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by description or user..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select
+              value={category}
+              onValueChange={(v) => {
+                setCategory(v);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[140px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -197,6 +330,30 @@ export function AuditLogsCard() {
                 ))}
               </SelectContent>
             </Select>
+            <Select
+              value={dateRange}
+              onValueChange={(v) => {
+                setDateRange(v);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DATE_RANGES.map((range) => (
+                  <SelectItem key={range.value} value={range.value}>
+                    {range.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <X className="mr-1 h-4 w-4" />
+                Clear
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -207,7 +364,12 @@ export function AuditLogsCard() {
           ) : logs.length === 0 ? (
             <div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
               <History className="mb-2 h-8 w-8 opacity-50" />
-              <p>No audit logs found</p>
+              <p>{hasActiveFilters ? 'No logs match your filters' : 'No audit logs found'}</p>
+              {hasActiveFilters && (
+                <Button variant="link" size="sm" onClick={clearFilters} className="mt-2">
+                  Clear filters
+                </Button>
+              )}
             </div>
           ) : (
             <>
@@ -236,12 +398,8 @@ export function AuditLogsCard() {
                             </Badge>
                           </div>
                         </TableCell>
-                        <TableCell className="max-w-[300px] truncate">
-                          {log.description}
-                        </TableCell>
-                        <TableCell>
-                          {log.userName || log.userEmail || 'System'}
-                        </TableCell>
+                        <TableCell className="max-w-[300px] truncate">{log.description}</TableCell>
+                        <TableCell>{log.userName || log.userEmail || 'System'}</TableCell>
                         <TableCell className="text-right text-muted-foreground">
                           {format(new Date(log.createdAt), 'MMM d, h:mm a')}
                         </TableCell>
@@ -288,11 +446,10 @@ export function AuditLogsCard() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {selectedLog && getEventIcon(selectedLog.eventType)}
-              {selectedLog && (AUDIT_EVENT_DESCRIPTIONS[selectedLog.eventType] || selectedLog.eventType)}
+              {selectedLog &&
+                (AUDIT_EVENT_DESCRIPTIONS[selectedLog.eventType] || selectedLog.eventType)}
             </DialogTitle>
-            <DialogDescription>
-              {selectedLog?.description}
-            </DialogDescription>
+            <DialogDescription>{selectedLog?.description}</DialogDescription>
           </DialogHeader>
 
           {selectedLog && (
@@ -300,9 +457,7 @@ export function AuditLogsCard() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">Timestamp</p>
-                  <p className="font-medium">
-                    {format(new Date(selectedLog.createdAt), 'PPpp')}
-                  </p>
+                  <p className="font-medium">{format(new Date(selectedLog.createdAt), 'PPpp')}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">User</p>
@@ -319,7 +474,7 @@ export function AuditLogsCard() {
                 {selectedLog.resourceId && (
                   <div>
                     <p className="text-muted-foreground">Resource ID</p>
-                    <p className="font-mono text-xs truncate">{selectedLog.resourceId}</p>
+                    <p className="truncate font-mono text-xs">{selectedLog.resourceId}</p>
                   </div>
                 )}
               </div>

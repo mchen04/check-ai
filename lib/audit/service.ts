@@ -1,6 +1,6 @@
 import { db } from '@/utils/db/db';
 import { auditLogsTable, usersTable } from '@/utils/db/schema';
-import { eq, and, desc, asc, gte, lte, inArray, sql } from 'drizzle-orm';
+import { eq, and, desc, asc, gte, lte, inArray, sql, or, ilike } from 'drizzle-orm';
 import type { AuditLogInput, AuditLogFilter, AuditLogQueryOptions } from './types';
 import { createLogger } from '@/lib/logger';
 
@@ -78,6 +78,17 @@ export async function queryAuditLogs(
 
   if (filter?.endDate) {
     conditions.push(lte(auditLogsTable.createdAt, filter.endDate));
+  }
+
+  if (filter?.search) {
+    const searchPattern = `%${filter.search}%`;
+    conditions.push(
+      or(
+        ilike(auditLogsTable.description, searchPattern),
+        ilike(usersTable.name, searchPattern),
+        ilike(usersTable.email, searchPattern)
+      )
+    );
   }
 
   // Execute query with user join

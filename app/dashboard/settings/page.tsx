@@ -2,17 +2,14 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { getUserOrgContext } from '@/lib/rbac/get-user-org';
 import { db } from '@/utils/db/db';
-import {
-  orgMembersTable,
-  organizationsTable,
-  userPreferencesTable,
-} from '@/utils/db/schema';
+import { orgMembersTable, organizationsTable, userPreferencesTable } from '@/utils/db/schema';
 import { eq, sql } from 'drizzle-orm';
 
 import { ProfileSettingsCard } from './ProfileSettingsCard';
 import { OrganizationSettingsCard } from './OrganizationSettingsCard';
 import { NotificationSettingsCard } from './NotificationSettingsCard';
 import { SecuritySettingsCard } from './SecuritySettingsCard';
+import { AppearanceSettingsCard } from './AppearanceSettingsCard';
 import { DataRetentionCard } from './DataRetentionCard';
 import { AuditLogsCard } from './AuditLogsCard';
 import { DangerZoneCard } from './DangerZoneCard';
@@ -71,9 +68,7 @@ export default async function SettingsPage() {
     <div className="p-4">
       <div className="mb-4">
         <h1 className="text-sm font-semibold">Settings</h1>
-        <p className="text-xs text-muted-foreground">
-          Manage your account and workspace settings
-        </p>
+        <p className="text-xs text-muted-foreground">Manage your account and workspace settings</p>
       </div>
 
       <div className="space-y-4">
@@ -95,6 +90,8 @@ export default async function SettingsPage() {
           }
         />
 
+        <AppearanceSettingsCard />
+
         {/* Organization Settings */}
         <OrganizationSettingsCard
           organization={{
@@ -102,9 +99,7 @@ export default async function SettingsPage() {
             slug: org.slug,
             planType: org.planType,
             defaultVerificationMethod: org.defaultVerificationMethod,
-            autoEscalateThreshold: parseFloat(
-              org.autoEscalateThreshold || '0.50'
-            ),
+            autoEscalateThreshold: parseFloat(org.autoEscalateThreshold || '0.50'),
             cacheEnabled: org.cacheEnabled,
             storeVerificationContent: org.storeVerificationContent,
           }}
@@ -128,9 +123,7 @@ export default async function SettingsPage() {
         )}
 
         {/* Danger Zone - Owner only */}
-        {orgContext.role === 'owner' && (
-          <DangerZoneCard organizationName={org.name} />
-        )}
+        {orgContext.role === 'owner' && <DangerZoneCard organizationName={org.name} />}
       </div>
     </div>
   );
