@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -170,55 +170,47 @@ export default function BatchListPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Batch Jobs</h1>
-          <p className="mt-1 text-muted-foreground">
-            Process multiple verifications at once with batch jobs
-          </p>
-        </div>
+    <div className="p-4">
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-sm font-semibold">Batch Jobs</h1>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleRefresh} disabled={isLoading}>
+            <RefreshCw className={`mr-1.5 h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                New Batch
+              <Button size="sm" className="h-7 text-xs">
+                <Plus className="mr-1.5 h-3 w-3" />
+                New
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Create Batch Job</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-sm">Create Batch Job</DialogTitle>
+                <DialogDescription className="text-xs">
                   Upload a CSV or JSON file, or use the API to create a batch job.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-3 py-3">
                 <Button
                   variant="outline"
-                  className="h-24 flex-col gap-2"
+                  className="h-16 flex-col gap-1"
                   onClick={() => {
                     setIsCreateDialogOpen(false);
                     router.push('/dashboard/batch/upload');
                   }}
                 >
-                  <Upload className="h-6 w-6" />
-                  <span>Upload File</span>
-                  <span className="text-xs text-muted-foreground">CSV or JSON format</span>
+                  <Upload className="h-4 w-4" />
+                  <span className="text-xs">Upload File</span>
+                  <span className="text-[10px] text-muted-foreground">CSV or JSON</span>
                 </Button>
-                <div className="text-center text-sm text-muted-foreground">or</div>
-                <div className="rounded-lg border border-dashed p-4">
-                  <p className="text-sm font-medium">Use the API</p>
-                  <code className="mt-2 block rounded bg-muted p-2 text-xs">
+                <div className="text-center text-[10px] text-muted-foreground">or</div>
+                <div className="rounded-md border border-dashed p-3">
+                  <p className="text-xs font-medium">Use the API</p>
+                  <code className="mt-1 block rounded bg-muted p-1.5 text-[10px]">
                     POST /api/v1/batch
                   </code>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Create batches programmatically with up to 100 items
-                  </p>
                 </div>
               </div>
             </DialogContent>
@@ -226,56 +218,46 @@ export default function BatchListPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Batches</CardDescription>
-            <CardTitle className="text-2xl">{stats.total}</CardTitle>
-          </CardHeader>
+      {/* Stats Cards - Compact */}
+      <div className="mb-4 grid grid-cols-4 gap-3">
+        <Card className="p-3">
+          <span className="text-[10px] text-muted-foreground">Total</span>
+          <p className="text-lg font-semibold">{stats.total}</p>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Processing</CardDescription>
-            <CardTitle className="text-2xl text-blue-600">{stats.processing}</CardTitle>
-          </CardHeader>
+        <Card className="p-3">
+          <span className="text-[10px] text-muted-foreground">Processing</span>
+          <p className="text-lg font-semibold text-blue-600">{stats.processing}</p>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Completed</CardDescription>
-            <CardTitle className="text-2xl text-green-600">{stats.completed}</CardTitle>
-          </CardHeader>
+        <Card className="p-3">
+          <span className="text-[10px] text-muted-foreground">Completed</span>
+          <p className="text-lg font-semibold text-green-600">{stats.completed}</p>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Failed</CardDescription>
-            <CardTitle className="text-2xl text-red-600">{stats.failed}</CardTitle>
-          </CardHeader>
+        <Card className="p-3">
+          <span className="text-[10px] text-muted-foreground">Failed</span>
+          <p className="text-lg font-semibold text-red-600">{stats.failed}</p>
         </Card>
       </div>
 
       {/* Batches Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>Recent Batch Jobs</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <div className="border-b px-4 py-2.5">
+          <h3 className="text-xs font-semibold">Recent Batch Jobs</h3>
+        </div>
+        <div className="p-2">
           {error ? (
-            <div className="py-8 text-center text-red-500">
+            <div className="py-6 text-center text-red-500 text-xs">
               <p>{error}</p>
-              <Button variant="outline" onClick={handleRefresh} className="mt-4">
+              <Button variant="outline" size="sm" className="mt-3 h-7 text-xs" onClick={handleRefresh}>
                 Try Again
               </Button>
             </div>
           ) : batches.length === 0 && !isLoading ? (
-            <div className="py-8 text-center text-muted-foreground">
-              <Layers className="mx-auto mb-4 h-12 w-12 opacity-50" />
-              <p className="mb-2">No batch jobs yet</p>
-              <p className="mb-4 text-sm">
-                Create your first batch to process multiple verifications at once.
-              </p>
-              <Button onClick={() => setIsCreateDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
+            <div className="py-6 text-center text-muted-foreground">
+              <Layers className="mx-auto mb-2 h-8 w-8 opacity-50" />
+              <p className="mb-1 text-xs">No batch jobs yet</p>
+              <p className="mb-3 text-[10px]">Create your first batch to process multiple verifications.</p>
+              <Button size="sm" className="h-7 text-xs" onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="mr-1.5 h-3 w-3" />
                 Create Batch
               </Button>
             </div>
@@ -351,20 +333,20 @@ export default function BatchListPage() {
           )}
 
           {hasMore && !isLoading && batches.length > 0 && (
-            <div className="mt-4 text-center">
-              <Button variant="outline" onClick={handleLoadMore}>
+            <div className="mt-3 text-center">
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleLoadMore}>
                 Load More
               </Button>
             </div>
           )}
 
           {isLoading && batches.length === 0 && (
-            <div className="py-8 text-center">
-              <RefreshCw className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
-              <p className="mt-2 text-muted-foreground">Loading...</p>
+            <div className="py-6 text-center">
+              <RefreshCw className="mx-auto h-4 w-4 animate-spin text-muted-foreground" />
+              <p className="mt-1 text-xs text-muted-foreground">Loading...</p>
             </div>
           )}
-        </CardContent>
+        </div>
       </Card>
     </div>
   );

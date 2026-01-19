@@ -21,7 +21,7 @@ async function UserPlanBadge() {
   const variant = planType === 'free' ? 'outline' : 'default';
 
   return (
-    <Badge variant={variant} className="font-medium">
+    <Badge variant={variant} className="h-5 px-1.5 text-[10px] font-medium">
       {label}
     </Badge>
   );
@@ -36,38 +36,36 @@ export default async function DashboardHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 items-center px-4 md:px-6">
+      <div className="flex h-12 items-center gap-3 px-3">
         {/* Logo */}
-        <Link className="flex items-center gap-2" href="/dashboard">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <Shield className="h-4 w-4 text-primary-foreground" />
+        <Link className="flex items-center gap-1.5" href="/dashboard">
+          <div className="flex h-6 w-6 items-center justify-center rounded bg-primary">
+            <Shield className="h-3.5 w-3.5 text-primary-foreground" />
           </div>
-          <span className="hidden text-lg font-semibold tracking-tight md:inline-block">
+          <span className="hidden text-sm font-semibold tracking-tight md:inline-block">
             Check
           </span>
         </Link>
 
         {/* Plan Badge */}
-        <div className="ml-4">
-          <Suspense
-            fallback={
-              <Badge variant="outline">
-                <Skeleton className="h-4 w-12" />
-              </Badge>
-            }
-          >
-            <UserPlanBadge />
-          </Suspense>
-        </div>
+        <Suspense
+          fallback={
+            <Badge variant="outline" className="h-5 text-[10px] px-1.5">
+              <Skeleton className="h-3 w-8" />
+            </Badge>
+          }
+        >
+          <UserPlanBadge />
+        </Suspense>
 
         {/* Mobile menu button */}
-        <Button variant="ghost" size="icon" className="ml-auto mr-2 lg:hidden">
-          <Menu className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="ml-auto h-8 w-8 lg:hidden">
+          <Menu className="h-4 w-4" />
           <span className="sr-only">Toggle Menu</span>
         </Button>
 
         {/* Right side - Profile */}
-        <div className="ml-auto flex items-center gap-4">
+        <div className="ml-auto flex items-center gap-2">
           <DashboardHeaderProfileDropdown />
         </div>
       </div>

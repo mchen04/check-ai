@@ -114,7 +114,7 @@ export function OrganizationSettingsCard({
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Building2 className="h-5 w-5 text-muted-foreground" />
+          <Building2 className="h-6 w-6 shrink-0 text-muted-foreground" />
           <CardTitle>Organization</CardTitle>
         </div>
         <CardDescription>Manage your organization settings and defaults</CardDescription>

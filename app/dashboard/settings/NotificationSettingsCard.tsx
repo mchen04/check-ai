@@ -92,7 +92,7 @@ export function NotificationSettingsCard({ initialPreferences }: NotificationSet
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Bell className="h-5 w-5 text-muted-foreground" />
+          <Bell className="h-6 w-6 shrink-0 text-muted-foreground" />
           <CardTitle>Notifications</CardTitle>
         </div>
         <CardDescription>Configure how you receive alerts and updates</CardDescription>

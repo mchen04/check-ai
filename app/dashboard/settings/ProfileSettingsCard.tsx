@@ -65,7 +65,7 @@ export function ProfileSettingsCard({ initialName, email }: ProfileSettingsCardP
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <User className="h-5 w-5 text-muted-foreground" />
+          <User className="h-6 w-6 shrink-0 text-muted-foreground" />
           <CardTitle>Profile</CardTitle>
         </div>
         <CardDescription>Your personal account settings</CardDescription>

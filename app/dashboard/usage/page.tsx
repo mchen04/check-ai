@@ -4,13 +4,7 @@ import { getUserOrgContext } from '@/lib/rbac/get-user-org';
 import { db } from '@/utils/db/db';
 import { usageTable, verificationsTable } from '@/utils/db/schema';
 import { eq, and, desc, gte, sql, count } from 'drizzle-orm';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -196,198 +190,147 @@ export default async function UsagePage() {
       : 0;
 
   return (
-    <div className="p-6 lg:p-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="mb-2 text-2xl font-bold tracking-tight">Usage & Billing</h1>
-        <p className="text-muted-foreground">
-          Monitor your API usage and manage your subscription
-        </p>
+    <div className="p-4">
+      {/* Header with Billing Period */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h1 className="text-sm font-semibold">Usage & Billing</h1>
+          <span className="text-[10px] text-muted-foreground">
+            {format(monthStart, 'MMM d')} - {format(monthEnd, 'MMM d, yyyy')}
+          </span>
+        </div>
+        <Button variant="outline" size="sm" className="h-7 text-xs" asChild>
+          <Link href="/subscribe">
+            <CreditCard className="mr-1.5 h-3 w-3" />
+            Manage
+          </Link>
+        </Button>
       </div>
 
-      {/* Billing Period */}
-      <Card className="mb-6">
-        <CardContent className="flex items-center justify-between pt-6">
-          <div className="flex items-center gap-3">
-            <Calendar className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="font-medium">Current Billing Period</p>
-              <p className="text-sm text-muted-foreground">
-                {format(monthStart, 'MMMM d, yyyy')} - {format(monthEnd, 'MMMM d, yyyy')}
-              </p>
-            </div>
-          </div>
-          <Button variant="outline" asChild>
-            <Link href="/subscribe">
-              <CreditCard className="mr-2 h-4 w-4" />
-              Manage Subscription
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Stats Grid */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Grid - Compact */}
+      <div className="mb-4 grid gap-3 grid-cols-2 lg:grid-cols-4">
         {/* Monthly Verifications */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Verifications
-            </CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="mb-2 text-2xl font-bold">
-              {stats.monthlyVerifications}
-              <span className="text-sm font-normal text-muted-foreground">
-                {' '}
-                / {stats.verificationsLimit === Infinity ? '∞' : stats.verificationsLimit}
-              </span>
-            </div>
-            <Progress value={usagePercentage} className="h-1.5" />
-            <p className="mt-2 text-xs text-muted-foreground">
-              {(100 - usagePercentage).toFixed(0)}% remaining
-            </p>
-          </CardContent>
+        <Card className="p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-muted-foreground">Verifications</span>
+            <Activity className="h-3 w-3 text-muted-foreground" />
+          </div>
+          <div className="mt-1 text-lg font-semibold">
+            {stats.monthlyVerifications}
+            <span className="text-xs font-normal text-muted-foreground">
+              {' '}/ {stats.verificationsLimit === Infinity ? '∞' : stats.verificationsLimit}
+            </span>
+          </div>
+          <Progress value={usagePercentage} className="mt-1 h-1" />
         </Card>
 
         {/* Tokens Used */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Tokens Used
-            </CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.monthlyTokens.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">This month</p>
-          </CardContent>
+        <Card className="p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-muted-foreground">Tokens Used</span>
+            <Zap className="h-3 w-3 text-muted-foreground" />
+          </div>
+          <div className="mt-1 text-lg font-semibold">{stats.monthlyTokens.toLocaleString()}</div>
+          <p className="text-[10px] text-muted-foreground">This month</p>
         </Card>
 
         {/* API Cost */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              API Cost
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${(stats.monthlyCost / 100).toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground">LLM API usage</p>
-          </CardContent>
+        <Card className="p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-muted-foreground">API Cost</span>
+            <TrendingUp className="h-3 w-3 text-muted-foreground" />
+          </div>
+          <div className="mt-1 text-lg font-semibold">${(stats.monthlyCost / 100).toFixed(2)}</div>
+          <p className="text-[10px] text-muted-foreground">LLM usage</p>
         </Card>
 
         {/* Plan */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Current Plan
-            </CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold">{capitalize(organization.planType)}</span>
-              <Badge variant="outline">Active</Badge>
-            </div>
-            {organization.planType === 'free' && (
-              <p className="text-xs text-muted-foreground">
-                <Link href="/subscribe" className="text-primary hover:underline">
-                  Upgrade to Pro
-                </Link>
-              </p>
-            )}
-          </CardContent>
+        <Card className="p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-muted-foreground">Plan</span>
+            <CreditCard className="h-3 w-3 text-muted-foreground" />
+          </div>
+          <div className="mt-1 flex items-center gap-1.5">
+            <span className="text-lg font-semibold">{capitalize(organization.planType)}</span>
+            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">Active</Badge>
+          </div>
+          {organization.planType === 'free' && (
+            <Link href="/subscribe" className="text-[10px] text-primary hover:underline">
+              Upgrade
+            </Link>
+          )}
         </Card>
       </div>
 
       {/* Usage Breakdown */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2 mb-4">
         {/* Usage by Provider */}
         <Card>
-          <CardHeader>
-            <CardTitle>Usage by Provider</CardTitle>
-            <CardDescription>Token usage across LLM providers</CardDescription>
-          </CardHeader>
-          <CardContent>
+          <div className="border-b px-4 py-2.5">
+            <h3 className="text-xs font-semibold">Usage by Provider</h3>
+          </div>
+          <div className="p-3">
             {usageByProvider.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <BarChart3 className="mb-4 h-12 w-12 text-muted-foreground/30" />
-                <p className="text-sm text-muted-foreground">No usage data yet</p>
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <BarChart3 className="mb-2 h-6 w-6 text-muted-foreground/30" />
+                <p className="text-[10px] text-muted-foreground">No usage data yet</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {usageByProvider.map((p) => (
-                  <div key={p.provider} className="space-y-2">
+                  <div key={p.provider} className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium capitalize">{p.provider}</span>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-xs font-medium capitalize">{p.provider}</span>
+                      <span className="text-[10px] text-muted-foreground">
                         {p.totalTokens.toLocaleString()} tokens
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                       <span>{p.count} requests</span>
                       <span>${(p.totalCost / 100).toFixed(4)}</span>
                     </div>
                     <Progress
-                      value={
-                        stats.monthlyTokens > 0
-                          ? (p.totalTokens / stats.monthlyTokens) * 100
-                          : 0
-                      }
-                      className="h-1.5"
+                      value={stats.monthlyTokens > 0 ? (p.totalTokens / stats.monthlyTokens) * 100 : 0}
+                      className="h-1"
                     />
                   </div>
                 ))}
               </div>
             )}
-          </CardContent>
+          </div>
         </Card>
 
         {/* Usage by Model */}
         <Card>
-          <CardHeader>
-            <CardTitle>Usage by Model</CardTitle>
-            <CardDescription>Token usage by specific models</CardDescription>
-          </CardHeader>
-          <CardContent>
+          <div className="border-b px-4 py-2.5">
+            <h3 className="text-xs font-semibold">Usage by Model</h3>
+          </div>
+          <div className="p-2">
             {usageByModel.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <BarChart3 className="mb-4 h-12 w-12 text-muted-foreground/30" />
-                <p className="text-sm text-muted-foreground">No usage data yet</p>
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <BarChart3 className="mb-2 h-6 w-6 text-muted-foreground/30" />
+                <p className="text-[10px] text-muted-foreground">No usage data yet</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {usageByModel.slice(0, 5).map((m) => (
                   <div
                     key={`${m.provider}-${m.model}`}
-                    className="flex items-center justify-between rounded-lg border p-3"
+                    className="flex items-center justify-between rounded-md px-2 py-1.5 hover:bg-muted/50"
                   >
                     <div>
-                      <p className="text-sm font-medium">{m.model}</p>
-                      <p className="text-xs text-muted-foreground capitalize">
-                        {m.provider}
-                      </p>
+                      <p className="text-xs font-medium">{m.model}</p>
+                      <p className="text-[10px] text-muted-foreground capitalize">{m.provider}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium">
-                        {m.totalTokens.toLocaleString()}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        ${(m.totalCost / 100).toFixed(4)}
-                      </p>
+                      <p className="text-xs font-medium">{m.totalTokens.toLocaleString()}</p>
+                      <p className="text-[10px] text-muted-foreground">${(m.totalCost / 100).toFixed(4)}</p>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-          </CardContent>
+          </div>
         </Card>
       </div>
 
@@ -413,48 +356,39 @@ export default async function UsagePage() {
       <AdvancedAnalyticsSection />
 
       {/* Recent Usage */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Recent API Calls</CardTitle>
-          <CardDescription>Your most recent verification requests</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <Card className="mt-4">
+        <div className="border-b px-4 py-2.5">
+          <h3 className="text-xs font-semibold">Recent API Calls</h3>
+        </div>
+        <div className="p-2">
           {recentUsage.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Activity className="mb-4 h-12 w-12 text-muted-foreground/30" />
-              <p className="text-sm text-muted-foreground">No recent activity</p>
+            <div className="flex flex-col items-center justify-center py-6 text-center">
+              <Activity className="mb-2 h-6 w-6 text-muted-foreground/30" />
+              <p className="text-[10px] text-muted-foreground">No recent activity</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b text-left text-xs font-medium text-muted-foreground">
-                    <th className="pb-3">Provider</th>
-                    <th className="pb-3">Model</th>
-                    <th className="pb-3 text-right">Input</th>
-                    <th className="pb-3 text-right">Output</th>
-                    <th className="pb-3 text-right">Cost</th>
-                    <th className="pb-3 text-right">Time</th>
+                  <tr className="border-b text-left text-[10px] font-medium text-muted-foreground">
+                    <th className="pb-2 pr-4">Provider</th>
+                    <th className="pb-2 pr-4">Model</th>
+                    <th className="pb-2 pr-4 text-right">Input</th>
+                    <th className="pb-2 pr-4 text-right">Output</th>
+                    <th className="pb-2 pr-4 text-right">Cost</th>
+                    <th className="pb-2 text-right">Time</th>
                   </tr>
                 </thead>
-                <tbody className="text-sm">
+                <tbody className="text-xs">
                   {recentUsage.map((u) => (
                     <tr key={u.id} className="border-b last:border-0">
-                      <td className="py-3 capitalize">{u.provider}</td>
-                      <td className="py-3 font-mono text-xs">{u.model}</td>
-                      <td className="py-3 text-right">
-                        {u.inputTokens.toLocaleString()}
-                      </td>
-                      <td className="py-3 text-right">
-                        {u.outputTokens.toLocaleString()}
-                      </td>
-                      <td className="py-3 text-right">
-                        ${(u.costCents / 100).toFixed(4)}
-                      </td>
-                      <td className="py-3 text-right text-muted-foreground">
-                        {formatDistanceToNow(new Date(u.createdAt), {
-                          addSuffix: true,
-                        })}
+                      <td className="py-2 pr-4 capitalize">{u.provider}</td>
+                      <td className="py-2 pr-4 font-mono text-[10px]">{u.model}</td>
+                      <td className="py-2 pr-4 text-right">{u.inputTokens.toLocaleString()}</td>
+                      <td className="py-2 pr-4 text-right">{u.outputTokens.toLocaleString()}</td>
+                      <td className="py-2 pr-4 text-right">${(u.costCents / 100).toFixed(4)}</td>
+                      <td className="py-2 text-right text-muted-foreground">
+                        {formatDistanceToNow(new Date(u.createdAt), { addSuffix: true })}
                       </td>
                     </tr>
                   ))}
@@ -462,7 +396,7 @@ export default async function UsagePage() {
               </table>
             </div>
           )}
-        </CardContent>
+        </div>
       </Card>
     </div>
   );

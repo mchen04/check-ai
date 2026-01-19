@@ -210,7 +210,7 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Webhook className="h-5 w-5 text-muted-foreground" />
+              <Webhook className="h-6 w-6 shrink-0 text-muted-foreground" />
               <CardTitle>Webhooks</CardTitle>
             </div>
             {canEdit && (

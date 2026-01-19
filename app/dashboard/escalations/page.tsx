@@ -7,13 +7,7 @@ import {
   orgMembersTable,
 } from '@/utils/db/schema';
 import { eq, desc, isNull, isNotNull, sql } from 'drizzle-orm';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -146,98 +140,75 @@ export default async function EscalationsPage() {
   };
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="p-4">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="mb-2 text-2xl font-bold tracking-tight">Escalations</h1>
-        <p className="text-muted-foreground">
-          Review flagged verifications that require human attention
-        </p>
+      <div className="mb-4">
+        <h1 className="text-sm font-semibold">Escalations</h1>
       </div>
 
-      {/* Stats */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Pending
-            </CardTitle>
-            <Clock className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pending}</div>
-            <p className="text-xs text-muted-foreground">Awaiting review</p>
-          </CardContent>
+      {/* Stats - Compact */}
+      <div className="mb-4 grid gap-3 grid-cols-4">
+        <Card className="p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-muted-foreground">Pending</span>
+            <Clock className="h-3 w-3 text-amber-500" />
+          </div>
+          <div className="mt-1 text-lg font-semibold">{stats.pending}</div>
+          <p className="text-[10px] text-muted-foreground">Awaiting</p>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              In Review
-            </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.inReview}</div>
-            <p className="text-xs text-muted-foreground">Being investigated</p>
-          </CardContent>
+        <Card className="p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-muted-foreground">In Review</span>
+            <AlertTriangle className="h-3 w-3 text-blue-500" />
+          </div>
+          <div className="mt-1 text-lg font-semibold">{stats.inReview}</div>
+          <p className="text-[10px] text-muted-foreground">Active</p>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Resolved
-            </CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.resolved}</div>
-            <p className="text-xs text-muted-foreground">Action taken</p>
-          </CardContent>
+        <Card className="p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-muted-foreground">Resolved</span>
+            <CheckCircle2 className="h-3 w-3 text-green-500" />
+          </div>
+          <div className="mt-1 text-lg font-semibold">{stats.resolved}</div>
+          <p className="text-[10px] text-muted-foreground">Done</p>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Dismissed
-            </CardTitle>
-            <XCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.dismissed}</div>
-            <p className="text-xs text-muted-foreground">False positives</p>
-          </CardContent>
+        <Card className="p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-muted-foreground">Dismissed</span>
+            <XCircle className="h-3 w-3 text-muted-foreground" />
+          </div>
+          <div className="mt-1 text-lg font-semibold">{stats.dismissed}</div>
+          <p className="text-[10px] text-muted-foreground">False +</p>
         </Card>
       </div>
 
       {/* Escalations List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Escalations</CardTitle>
-          <CardDescription>
-            Verifications flagged for human review
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <Card className="mb-4">
+        <div className="border-b px-4 py-2.5">
+          <h3 className="text-xs font-semibold">Recent Escalations</h3>
+        </div>
+        <div className="p-2">
           {escalations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <AlertTriangle className="mb-4 h-12 w-12 text-muted-foreground/30" />
-              <p className="mb-2 text-sm font-medium">No escalations</p>
-              <p className="mb-4 max-w-sm text-xs text-muted-foreground">
-                When verifications are flagged for human review (e.g., high uncertainty,
-                potential false positives), they&apos;ll appear here.
+            <div className="flex flex-col items-center justify-center py-6 text-center">
+              <AlertTriangle className="mb-2 h-6 w-6 text-muted-foreground/30" />
+              <p className="mb-1 text-xs font-medium">No escalations</p>
+              <p className="max-w-sm text-[10px] text-muted-foreground">
+                When verifications are flagged for human review, they&apos;ll appear here.
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-1">
               {escalations.map((escalation) => (
                 <div
                   key={escalation.id}
-                  className="flex items-start justify-between gap-4 rounded-lg border p-4"
+                  className="flex items-start justify-between gap-3 rounded-md px-2 py-2 hover:bg-muted/50"
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-2">
                     <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded ${
                         escalation.status === 'pending'
                           ? 'bg-amber-100'
                           : escalation.status === 'in_review'
@@ -248,7 +219,7 @@ export default async function EscalationsPage() {
                       }`}
                     >
                       <AlertTriangle
-                        className={`h-5 w-5 ${
+                        className={`h-3 w-3 ${
                           escalation.status === 'pending'
                             ? 'text-amber-600'
                             : escalation.status === 'in_review'
@@ -260,62 +231,36 @@ export default async function EscalationsPage() {
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="mb-1 flex items-center gap-2">
-                        <p className="font-medium">{escalation.reason}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-medium">{escalation.reason}</p>
                         {getPriorityBadge(escalation.priority)}
                       </div>
-                      <p className="mb-2 text-sm text-muted-foreground">
-                        Verification {escalation.verificationId.slice(0, 8)}...
+                      <p className="text-[10px] text-muted-foreground">
+                        {escalation.verificationId.slice(0, 8)}...
                         {escalation.confidence !== null && (
-                          <span className="ml-2">
-                            ({(escalation.confidence * 100).toFixed(1)}% confidence)
-                          </span>
+                          <span className="ml-1">({(escalation.confidence * 100).toFixed(0)}%)</span>
                         )}
                       </p>
-                      {escalation.content && (
-                        <p className="line-clamp-2 text-xs text-muted-foreground/80">
-                          {escalation.content}...
-                        </p>
-                      )}
                       {escalation.status === 'resolved' && escalation.humanVerdict && (
-                        <p className="mt-2 text-xs">
-                          <span className="font-medium">Human verdict:</span>{' '}
-                          <Badge
-                            variant={
-                              escalation.humanVerdict === 'true'
-                                ? 'default'
-                                : escalation.humanVerdict === 'false'
-                                  ? 'destructive'
-                                  : 'secondary'
-                            }
-                          >
-                            {escalation.humanVerdict}
-                          </Badge>
-                        </p>
+                        <Badge
+                          variant={escalation.humanVerdict === 'true' ? 'default' : escalation.humanVerdict === 'false' ? 'destructive' : 'secondary'}
+                          className="mt-1 text-[9px] px-1 py-0 h-4"
+                        >
+                          {escalation.humanVerdict}
+                        </Badge>
                       )}
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <Badge
-                      variant={
-                        escalation.status === 'pending'
-                          ? 'outline'
-                          : escalation.status === 'resolved'
-                            ? 'default'
-                            : 'secondary'
-                      }
-                    >
-                      {escalation.status.replace('_', ' ')}
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Badge variant={escalation.status === 'pending' ? 'outline' : escalation.status === 'resolved' ? 'default' : 'secondary'} className="text-[9px] px-1 py-0 h-4">
+                      {escalation.status}
                     </Badge>
                     {escalation.status === 'pending' && (
-                      <EscalationActions
-                        escalationId={escalation.id}
-                        verificationId={escalation.verificationId}
-                      />
+                      <EscalationActions escalationId={escalation.id} verificationId={escalation.verificationId} />
                     )}
-                    <Button variant="ghost" size="sm" asChild>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" asChild>
                       <Link href={`/dashboard/verify/${escalation.verificationId}`}>
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-3 w-3" />
                       </Link>
                     </Button>
                   </div>
@@ -323,61 +268,37 @@ export default async function EscalationsPage() {
               ))}
             </div>
           )}
-        </CardContent>
+        </div>
       </Card>
 
-      {/* Info Card */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>About Escalations</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4 text-sm text-muted-foreground">
-            <p>
-              Escalations are triggered when the verification system detects cases that
-              may benefit from human review:
-            </p>
-            <ul className="ml-4 list-disc space-y-2">
-              <li>
-                <strong>Low confidence</strong> - When confidence scores are below 70%
-              </li>
-              <li>
-                <strong>Conflicting results</strong> - When different verification methods
-                produce conflicting results ({">"} 30% disagreement)
-              </li>
-              <li>
-                <strong>Model failures</strong> - When one or more paradigms encounter errors
-              </li>
-              <li>
-                <strong>Timeouts</strong> - When verification takes too long to complete
-              </li>
+      {/* Info Card - Collapsible */}
+      <details className="group">
+        <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-xs font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
+          <span>About Escalations</span>
+          <svg className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <Card className="mt-2">
+          <div className="p-3 text-[10px] text-muted-foreground space-y-2">
+            <p>Escalations are triggered when:</p>
+            <ul className="ml-3 list-disc space-y-0.5">
+              <li><strong>Low confidence</strong> - Below 70%</li>
+              <li><strong>Conflicting results</strong> - {">"}30% disagreement</li>
+              <li><strong>Model failures</strong> - Paradigm errors</li>
+              <li><strong>Timeouts</strong> - Processing too long</li>
             </ul>
-            <p className="mt-4">
-              <strong>Priority levels:</strong>
-            </p>
-            <ul className="ml-4 list-disc space-y-1">
-              <li>
-                <Badge variant="destructive" className="mr-2">
-                  High
-                </Badge>
-                Confidence {"<"} 30% - requires immediate attention
-              </li>
-              <li>
-                <Badge variant="secondary" className="mr-2">
-                  Medium
-                </Badge>
-                Confidence 30-50% - review within 24 hours
-              </li>
-              <li>
-                <Badge variant="outline" className="mr-2">
-                  Low
-                </Badge>
-                Confidence 50-70% - review when convenient
-              </li>
-            </ul>
+            <div className="flex items-center gap-2 pt-1">
+              <Badge variant="destructive" className="text-[8px] px-1 py-0 h-3">High</Badge>
+              <span>&lt;30%</span>
+              <Badge variant="secondary" className="text-[8px] px-1 py-0 h-3">Med</Badge>
+              <span>30-50%</span>
+              <Badge variant="outline" className="text-[8px] px-1 py-0 h-3">Low</Badge>
+              <span>50-70%</span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </Card>
+      </details>
     </div>
   );
 }

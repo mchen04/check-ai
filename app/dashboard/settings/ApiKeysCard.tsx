@@ -311,7 +311,7 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Key className="h-5 w-5 text-muted-foreground" />
+              <Key className="h-6 w-6 shrink-0 text-muted-foreground" />
               <CardTitle>API Keys</CardTitle>
             </div>
             {canEdit && (

@@ -19,7 +19,7 @@ export function SecuritySettingsCard() {
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-muted-foreground" />
+          <Shield className="h-6 w-6 shrink-0 text-muted-foreground" />
           <CardTitle>Security</CardTitle>
         </div>
         <CardDescription>Manage your security preferences</CardDescription>

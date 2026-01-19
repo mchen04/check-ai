@@ -4,7 +4,7 @@ import { useState, useEffect, use, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -320,9 +320,9 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex h-64 items-center justify-center">
-          <Clock className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="p-4">
+        <div className="flex h-32 items-center justify-center">
+          <Clock className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       </div>
     );
@@ -330,15 +330,13 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
 
   if (error || !batch) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="py-8 text-center">
-            <p className="mb-4 text-red-500">{error || 'Batch not found'}</p>
-            <Button variant="outline" onClick={() => router.push('/dashboard/batch')}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Batches
-            </Button>
-          </CardContent>
+      <div className="p-4">
+        <Card className="p-4 text-center">
+          <p className="mb-3 text-xs text-red-500">{error || 'Batch not found'}</p>
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => router.push('/dashboard/batch')}>
+            <ArrowLeft className="mr-1.5 h-3 w-3" />
+            Back
+          </Button>
         </Card>
       </div>
     );
@@ -348,323 +346,281 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
   const progress = batch.totalItems > 0 ? (batch.processedItems / batch.totalItems) * 100 : 0;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="p-4">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/batch')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => router.push('/dashboard/batch')}>
+            <ArrowLeft className="h-3.5 w-3.5" />
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold">
-                {batch.name || batch.originalFileName || 'Batch Details'}
-              </h1>
-              <Button variant="ghost" size="sm" onClick={handleCopyId}>
-                <Copy className="h-4 w-4" />
+              <h1 className="text-sm font-semibold">{batch.name || batch.originalFileName || 'Batch'}</h1>
+              <code className="text-[10px] text-muted-foreground">{id.slice(0, 8)}...</code>
+              <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleCopyId}>
+                <Copy className="h-3 w-3" />
               </Button>
-              {copied && <span className="text-sm text-green-600">Copied!</span>}
+              {copied && <span className="text-[10px] text-green-600">Copied!</span>}
             </div>
-            <p className="font-mono text-sm text-muted-foreground">{id}</p>
           </div>
         </div>
         <div className="flex gap-2">
           {isProcessing && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" disabled={isCancelling}>
-                  {isCancelling ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <StopCircle className="mr-2 h-4 w-4" />
-                  )}
+                <Button variant="destructive" size="sm" className="h-7 text-xs" disabled={isCancelling}>
+                  {isCancelling ? <Loader2 className="mr-1.5 h-3 w-3 animate-spin" /> : <StopCircle className="mr-1.5 h-3 w-3" />}
                   Cancel
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Cancel Batch?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will stop processing remaining items. Items already completed will be
-                    preserved. This action cannot be undone.
+                  <AlertDialogTitle className="text-sm">Cancel Batch?</AlertDialogTitle>
+                  <AlertDialogDescription className="text-xs">
+                    This will stop processing. Completed items will be preserved.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Keep Processing</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleCancel}>Cancel Batch</AlertDialogAction>
+                  <AlertDialogCancel className="h-7 text-xs">Keep</AlertDialogCancel>
+                  <AlertDialogAction className="h-7 text-xs" onClick={handleCancel}>Cancel</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           )}
           {batch.status === 'completed' && items.length > 0 && (
-            <Button variant="outline" onClick={handleExportResults}>
-              <Download className="mr-2 h-4 w-4" />
-              Export Results
+            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleExportResults}>
+              <Download className="mr-1.5 h-3 w-3" />
+              Export
             </Button>
           )}
-          <Button variant="outline" onClick={() => fetchBatch()}>
-            <RefreshCw className="mr-2 h-4 w-4" />
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => fetchBatch()}>
+            <RefreshCw className="mr-1.5 h-3 w-3" />
             Refresh
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Main Content */}
-        <div className="space-y-6 lg:col-span-2">
+        <div className="space-y-4 lg:col-span-2">
           {/* Progress Card */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Progress</CardTitle>
-                {getStatusBadge(batch.status)}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <div className="flex items-center justify-between border-b px-4 py-2.5">
+              <h3 className="text-xs font-semibold">Progress</h3>
+              {getStatusBadge(batch.status)}
+            </div>
+            <div className="p-3">
+              <div className="space-y-3">
                 {isProcessing && (
-                  <div className="flex items-center gap-3">
-                    <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-                    <span>Processing items...</span>
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
+                    <span className="text-xs">Processing...</span>
                   </div>
                 )}
-
-                <Progress value={progress} className="h-3" />
-
-                <div className="grid grid-cols-3 gap-4 text-center">
+                <Progress value={progress} className="h-1.5" />
+                <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
-                    <p className="text-2xl font-bold">{batch.processedItems}</p>
-                    <p className="text-sm text-muted-foreground">Processed</p>
+                    <p className="text-lg font-semibold">{batch.processedItems}</p>
+                    <p className="text-[10px] text-muted-foreground">Processed</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-green-600">{batch.successCount}</p>
-                    <p className="text-sm text-muted-foreground">Succeeded</p>
+                    <p className="text-lg font-semibold text-green-600">{batch.successCount}</p>
+                    <p className="text-[10px] text-muted-foreground">Succeeded</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-red-600">{batch.failureCount}</p>
-                    <p className="text-sm text-muted-foreground">Failed</p>
+                    <p className="text-lg font-semibold text-red-600">{batch.failureCount}</p>
+                    <p className="text-[10px] text-muted-foreground">Failed</p>
                   </div>
                 </div>
-
                 {batch.errorMessage && (
-                  <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">
-                    {batch.errorMessage}
-                  </div>
+                  <div className="rounded-md bg-red-50 p-2 text-[10px] text-red-800">{batch.errorMessage}</div>
                 )}
               </div>
-            </CardContent>
+            </div>
           </Card>
 
           {/* Results Table */}
           <Card>
-            <CardHeader>
-              <CardTitle>Results</CardTitle>
-              <CardDescription>
-                {items.length} of {batch.totalItems} items
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <div className="flex items-center justify-between border-b px-4 py-2.5">
+              <h3 className="text-xs font-semibold">Results</h3>
+              <span className="text-[10px] text-muted-foreground">{items.length}/{batch.totalItems}</span>
+            </div>
+            <div className="p-2">
               {items.length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground">
+                <div className="py-6 text-center text-[10px] text-muted-foreground">
                   {isProcessing ? 'Waiting for results...' : 'No results yet'}
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[60px]">#</TableHead>
-                      <TableHead>Content</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Verdict</TableHead>
-                      <TableHead>Confidence</TableHead>
-                      <TableHead>Time</TableHead>
+                      <TableHead className="w-[40px] text-[10px]">#</TableHead>
+                      <TableHead className="text-[10px]">Content</TableHead>
+                      <TableHead className="text-[10px]">Status</TableHead>
+                      <TableHead className="text-[10px]">Verdict</TableHead>
+                      <TableHead className="text-[10px]">Conf</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {items.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell className="font-mono text-sm">{item.itemIndex + 1}</TableCell>
-                        <TableCell className="max-w-xs">
-                          <span className="font-mono text-sm">{truncateContent(item.content)}</span>
+                        <TableCell className="font-mono text-[10px]">{item.itemIndex + 1}</TableCell>
+                        <TableCell className="max-w-[200px]">
+                          <span className="font-mono text-[10px] truncate block">{truncateContent(item.content, 40)}</span>
                         </TableCell>
                         <TableCell>{getStatusBadge(item.status)}</TableCell>
                         <TableCell>
                           {item.verdict ? (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
                               {getVerdictIcon(item.verdict)}
-                              {getVerdictBadge(item.verdict)}
                             </div>
-                          ) : (
-                            '-'
-                          )}
+                          ) : '-'}
                         </TableCell>
-                        <TableCell>
-                          {item.confidence !== null
-                            ? `${(item.confidence * 100).toFixed(1)}%`
-                            : '-'}
-                        </TableCell>
-                        <TableCell>
-                          {item.processingTimeMs !== null ? `${item.processingTimeMs}ms` : '-'}
+                        <TableCell className="text-[10px]">
+                          {item.confidence !== null ? `${(item.confidence * 100).toFixed(0)}%` : '-'}
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               )}
-
               {hasMoreItems && items.length > 0 && (
-                <div className="mt-4 text-center">
-                  <Button variant="outline" onClick={() => fetchItems(itemsPage + 1, true)}>
+                <div className="mt-3 text-center">
+                  <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => fetchItems(itemsPage + 1, true)}>
                     Load More
                   </Button>
                 </div>
               )}
-            </CardContent>
+            </div>
           </Card>
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Details */}
           <Card>
-            <CardHeader>
-              <CardTitle>Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Format</p>
-                <Badge variant="outline">{batch.inputFormat.toUpperCase()}</Badge>
+            <div className="border-b px-4 py-2.5">
+              <h3 className="text-xs font-semibold">Details</h3>
+            </div>
+            <div className="p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground">Format</span>
+                <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">{batch.inputFormat.toUpperCase()}</Badge>
               </div>
-
-              <div>
-                <p className="text-sm text-muted-foreground">Total Items</p>
-                <p className="font-mono">{batch.totalItems}</p>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground">Items</span>
+                <span className="text-xs font-mono">{batch.totalItems}</span>
               </div>
-
-              <div>
-                <p className="text-sm text-muted-foreground">Total Cost</p>
-                <p className="font-mono">
-                  {batch.totalCostCents > 0
-                    ? `$${(batch.totalCostCents / 100).toFixed(4)}`
-                    : '-'}
-                </p>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground">Cost</span>
+                <span className="text-xs font-mono">{batch.totalCostCents > 0 ? `$${(batch.totalCostCents / 100).toFixed(4)}` : '-'}</span>
               </div>
-
-              <div>
-                <p className="text-sm text-muted-foreground">Tokens Used</p>
-                <p className="font-mono text-sm">
-                  {batch.totalInputTokens + batch.totalOutputTokens > 0
-                    ? `${(batch.totalInputTokens + batch.totalOutputTokens).toLocaleString()} total`
-                    : '-'}
-                </p>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground">Tokens</span>
+                <span className="text-xs font-mono">{batch.totalInputTokens + batch.totalOutputTokens > 0 ? (batch.totalInputTokens + batch.totalOutputTokens).toLocaleString() : '-'}</span>
               </div>
-
-              <Separator />
-
+              <Separator className="my-1" />
               <div>
-                <p className="text-sm text-muted-foreground">Created</p>
-                <p>{format(new Date(batch.createdAt), 'PPpp')}</p>
+                <span className="text-[10px] text-muted-foreground">Created</span>
+                <p className="text-xs">{format(new Date(batch.createdAt), 'MMM d, h:mm a')}</p>
               </div>
-
-              {batch.startedAt && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Started</p>
-                  <p>{format(new Date(batch.startedAt), 'PPpp')}</p>
-                </div>
-              )}
-
               {batch.completedAt && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Completed</p>
-                  <p>{format(new Date(batch.completedAt), 'PPpp')}</p>
+                  <span className="text-[10px] text-muted-foreground">Completed</span>
+                  <p className="text-xs">{format(new Date(batch.completedAt), 'MMM d, h:mm a')}</p>
                 </div>
               )}
-            </CardContent>
+            </div>
           </Card>
 
           {/* Methods Config */}
           <Card>
-            <CardHeader>
-              <CardTitle>Methods Used</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
+            <div className="border-b px-4 py-2.5">
+              <h3 className="text-xs font-semibold">Methods</h3>
+            </div>
+            <div className="p-2">
+              <div className="space-y-1">
                 {Object.entries(batch.methodsConfig || {})
                   .filter(([, weight]) => weight > 0)
                   .map(([method, weight]) => (
-                    <div key={method} className="flex items-center justify-between">
-                      <span className="text-sm">{formatParadigmName(method)}</span>
-                      <Badge variant="outline">{((weight as number) * 100).toFixed(0)}%</Badge>
+                    <div key={method} className="flex items-center justify-between px-2 py-1 rounded-md hover:bg-muted/50">
+                      <span className="text-xs">{formatParadigmName(method)}</span>
+                      <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">{((weight as number) * 100).toFixed(0)}%</Badge>
                     </div>
                   ))}
               </div>
-            </CardContent>
+            </div>
           </Card>
 
-          {/* Verify Options */}
+          {/* Verify Options - Collapsible */}
           {batch.verifyOptions && Object.keys(batch.verifyOptions).length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Verification Options</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
+            <details className="group">
+              <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-xs font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
+                <span>Verification Options</span>
+                <svg className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <Card className="mt-2">
+                <div className="p-2 space-y-1">
                   {batch.verifyOptions.timeout && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Timeout</span>
-                      <span className="text-sm">{(batch.verifyOptions.timeout / 1000).toFixed(0)}s</span>
+                    <div className="flex items-center justify-between px-2 py-1">
+                      <span className="text-[10px] text-muted-foreground">Timeout</span>
+                      <span className="text-xs">{(batch.verifyOptions.timeout / 1000).toFixed(0)}s</span>
                     </div>
                   )}
                   {batch.verifyOptions.acceptThreshold !== undefined && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Accept Threshold</span>
-                      <Badge variant="outline">{(batch.verifyOptions.acceptThreshold * 100).toFixed(0)}%</Badge>
+                    <div className="flex items-center justify-between px-2 py-1">
+                      <span className="text-[10px] text-muted-foreground">Accept Threshold</span>
+                      <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">{(batch.verifyOptions.acceptThreshold * 100).toFixed(0)}%</Badge>
                     </div>
                   )}
                   {batch.verifyOptions.escalateThreshold !== undefined && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Escalate Threshold</span>
-                      <Badge variant="outline">{(batch.verifyOptions.escalateThreshold * 100).toFixed(0)}%</Badge>
+                    <div className="flex items-center justify-between px-2 py-1">
+                      <span className="text-[10px] text-muted-foreground">Escalate Threshold</span>
+                      <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">{(batch.verifyOptions.escalateThreshold * 100).toFixed(0)}%</Badge>
                     </div>
                   )}
                   {batch.verifyOptions.minConfidence !== undefined && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Min Confidence</span>
-                      <Badge variant="outline">{(batch.verifyOptions.minConfidence * 100).toFixed(0)}%</Badge>
+                    <div className="flex items-center justify-between px-2 py-1">
+                      <span className="text-[10px] text-muted-foreground">Min Confidence</span>
+                      <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">{(batch.verifyOptions.minConfidence * 100).toFixed(0)}%</Badge>
                     </div>
                   )}
                   {batch.verifyOptions.maxRetries !== undefined && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Max Retries</span>
-                      <span className="text-sm">{batch.verifyOptions.maxRetries}</span>
+                    <div className="flex items-center justify-between px-2 py-1">
+                      <span className="text-[10px] text-muted-foreground">Max Retries</span>
+                      <span className="text-xs">{batch.verifyOptions.maxRetries}</span>
                     </div>
                   )}
                   {batch.verifyOptions.retryOnLowConfidence !== undefined && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Retry on Low Confidence</span>
-                      <Badge variant={batch.verifyOptions.retryOnLowConfidence ? 'default' : 'secondary'}>
+                    <div className="flex items-center justify-between px-2 py-1">
+                      <span className="text-[10px] text-muted-foreground">Retry on Low Confidence</span>
+                      <Badge variant={batch.verifyOptions.retryOnLowConfidence ? 'default' : 'secondary'} className="text-[9px] px-1 py-0 h-4">
                         {batch.verifyOptions.retryOnLowConfidence ? 'Yes' : 'No'}
                       </Badge>
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+              </Card>
+            </details>
           )}
 
-          {/* Context */}
+          {/* Context - Collapsible */}
           {batch.context && Object.keys(batch.context).length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Context</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <pre className="whitespace-pre-wrap rounded-lg bg-muted p-3 font-mono text-xs">
-                  {JSON.stringify(batch.context, null, 2)}
-                </pre>
-              </CardContent>
-            </Card>
+            <details className="group">
+              <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-xs font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
+                <span>Context</span>
+                <svg className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <Card className="mt-2">
+                <div className="p-2">
+                  <pre className="whitespace-pre-wrap rounded-md bg-muted p-2 font-mono text-[10px]">{JSON.stringify(batch.context, null, 2)}</pre>
+                </div>
+              </Card>
+            </details>
           )}
         </div>
       </div>

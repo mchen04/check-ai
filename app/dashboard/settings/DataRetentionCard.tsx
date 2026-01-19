@@ -113,7 +113,7 @@ export function DataRetentionCard({ initialSettings, canEdit }: DataRetentionCar
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-muted-foreground" />
+            <Clock className="h-6 w-6 shrink-0 text-muted-foreground" />
             <CardTitle>Data Retention</CardTitle>
           </div>
           <CardDescription>

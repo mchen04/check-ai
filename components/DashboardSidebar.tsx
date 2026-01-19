@@ -77,10 +77,10 @@ export default function DashboardSidebar() {
   };
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-border bg-background lg:block">
-      <nav className="flex h-full flex-col gap-2 p-4">
+    <aside className="hidden w-48 shrink-0 border-r border-border bg-background lg:block">
+      <nav className="flex h-full flex-col gap-1 px-2 py-3">
         {/* Main Navigation */}
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {navigation.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
@@ -90,13 +90,13 @@ export default function DashboardSidebar() {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium transition-colors',
                   active
                     ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3.5 w-3.5" />
                 {item.name}
               </Link>
             );
@@ -104,10 +104,10 @@ export default function DashboardSidebar() {
         </div>
 
         {/* Divider */}
-        <div className="my-4 h-px bg-border" />
+        <div className="my-2 h-px bg-border" />
 
         {/* Secondary Navigation */}
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {secondaryNavigation.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
@@ -117,13 +117,13 @@ export default function DashboardSidebar() {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium transition-colors',
                   active
                     ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3.5 w-3.5" />
                 {item.name}
               </Link>
             );
@@ -134,16 +134,13 @@ export default function DashboardSidebar() {
         <div className="flex-1" />
 
         {/* Help Link */}
-        <div className="rounded-lg border border-border bg-muted/50 p-4">
-          <p className="mb-2 text-sm font-medium">Need help?</p>
-          <p className="mb-3 text-xs text-muted-foreground">
-            Check out our documentation or contact support.
-          </p>
+        <div className="rounded-md border border-border bg-muted/50 p-2.5">
+          <p className="mb-1 text-xs font-medium">Need help?</p>
           <Link
             href="/docs"
-            className="text-xs font-medium text-primary hover:underline"
+            className="text-[10px] text-muted-foreground hover:text-primary"
           >
-            View Documentation
+            View Documentation →
           </Link>
         </div>
       </nav>

@@ -318,17 +318,14 @@ console.log(result);`;
   const enabledMethodsCount = Object.values(methods).filter((m) => m.enabled).length;
 
   return (
-    <div className="p-6 lg:p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">Playground</h1>
-        <p className="text-muted-foreground">
-          Test verification methods with different configurations
-        </p>
+    <div className="p-4">
+      <div className="mb-4">
+        <h1 className="text-sm font-semibold">Playground</h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Left Column - Input */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Content Input */}
           <Card>
             <CardHeader>

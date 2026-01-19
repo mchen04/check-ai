@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -234,108 +234,70 @@ export default function BatchUploadPage() {
   const isWeightValid = Math.abs(totalWeight - 1) < 0.01;
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
+    <div className="p-4 max-w-2xl">
       {/* Header */}
-      <div className="mb-8">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/batch')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Batches
+      <div className="mb-4 flex items-center gap-3">
+        <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => router.push('/dashboard/batch')}>
+          <ArrowLeft className="h-3.5 w-3.5" />
         </Button>
-        <h1 className="mt-4 text-3xl font-bold">Create Batch Job</h1>
-        <p className="mt-1 text-muted-foreground">
-          Upload a CSV or JSON file to process multiple verifications at once
-        </p>
+        <h1 className="text-sm font-semibold">Create Batch Job</h1>
       </div>
 
       {/* Error Alert */}
       {error && (
-        <div className="mb-6 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
-          <AlertCircle className="h-5 w-5" />
-          <p>{error}</p>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ml-auto h-6 w-6 p-0"
-            onClick={() => setError(null)}
-          >
-            <X className="h-4 w-4" />
+        <div className="mb-4 flex items-center gap-2 rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-800">
+          <AlertCircle className="h-3.5 w-3.5" />
+          <p className="flex-1">{error}</p>
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => setError(null)}>
+            <X className="h-3 w-3" />
           </Button>
         </div>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* File Upload */}
         <Card>
-          <CardHeader>
-            <CardTitle>Upload File</CardTitle>
-            <CardDescription>
-              Upload a CSV or JSON file with your verification items (max 100 items, 10MB)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+          <div className="border-b px-4 py-2.5">
+            <h3 className="text-xs font-semibold">Upload File</h3>
+            <p className="text-[10px] text-muted-foreground">CSV or JSON (max 100 items, 10MB)</p>
+          </div>
+          <div className="p-3">
             {!file ? (
               <div className="relative">
-                <input
-                  type="file"
-                  accept=".csv,.json"
-                  onChange={handleFileChange}
-                  className="absolute inset-0 cursor-pointer opacity-0"
-                />
-                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 p-12 text-center hover:border-muted-foreground/50">
-                  <Upload className="mb-4 h-10 w-10 text-muted-foreground" />
-                  <p className="mb-1 font-medium">Drop your file here or click to browse</p>
-                  <p className="text-sm text-muted-foreground">Supports CSV and JSON formats</p>
+                <input type="file" accept=".csv,.json" onChange={handleFileChange} className="absolute inset-0 cursor-pointer opacity-0" />
+                <div className="flex flex-col items-center justify-center rounded-md border-2 border-dashed border-muted-foreground/25 p-6 text-center hover:border-muted-foreground/50">
+                  <Upload className="mb-2 h-6 w-6 text-muted-foreground" />
+                  <p className="text-xs font-medium">Drop file or click to browse</p>
+                  <p className="text-[10px] text-muted-foreground">CSV and JSON supported</p>
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                {/* File Info */}
-                <div className="flex items-center justify-between rounded-lg bg-muted p-4">
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-8 w-8 text-muted-foreground" />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between rounded-md bg-muted p-2">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="font-medium">{file.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(file.size / 1024).toFixed(1)} KB
-                      </p>
+                      <p className="text-xs font-medium">{file.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {isUploading ? (
-                      <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-                    ) : uploadResult ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    ) : null}
-                    <Button variant="ghost" size="sm" onClick={clearFile}>
-                      <X className="h-4 w-4" />
-                    </Button>
+                  <div className="flex items-center gap-1.5">
+                    {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" /> : uploadResult ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> : null}
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={clearFile}><X className="h-3 w-3" /></Button>
                   </div>
                 </div>
-
-                {/* Upload Result */}
                 {uploadResult && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-4">
-                      <Badge variant="outline">{uploadResult.format.toUpperCase()}</Badge>
-                      <span className="text-sm">
-                        <strong>{uploadResult.itemCount}</strong> items detected
-                      </span>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">{uploadResult.format.toUpperCase()}</Badge>
+                      <span className="text-xs"><strong>{uploadResult.itemCount}</strong> items</span>
                     </div>
-
                     {uploadResult.validationErrors.length > 0 && (
-                      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-                        <p className="mb-2 text-sm font-medium text-yellow-800">
-                          {uploadResult.validationErrors.length} validation warning(s)
-                        </p>
-                        <ul className="space-y-1 text-sm text-yellow-700">
-                          {uploadResult.validationErrors.slice(0, 5).map((err, i) => (
-                            <li key={i}>
-                              Row {err.row}: {err.error}
-                            </li>
-                          ))}
-                          {uploadResult.validationErrors.length > 5 && (
-                            <li>...and {uploadResult.validationErrors.length - 5} more</li>
-                          )}
+                      <div className="rounded-md border border-yellow-200 bg-yellow-50 p-2">
+                        <p className="text-[10px] font-medium text-yellow-800">{uploadResult.validationErrors.length} warning(s)</p>
+                        <ul className="mt-1 space-y-0.5 text-[10px] text-yellow-700">
+                          {uploadResult.validationErrors.slice(0, 3).map((err, i) => (<li key={i}>Row {err.row}: {err.error}</li>))}
+                          {uploadResult.validationErrors.length > 3 && <li>...{uploadResult.validationErrors.length - 3} more</li>}
                         </ul>
                       </div>
                     )}
@@ -343,216 +305,117 @@ export default function BatchUploadPage() {
                 )}
               </div>
             )}
-          </CardContent>
+          </div>
         </Card>
 
         {/* Batch Settings */}
         <Card>
-          <CardHeader>
-            <CardTitle>Batch Settings</CardTitle>
-            <CardDescription>Configure your batch job options</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Batch Name */}
-            <div className="space-y-2">
-              <Label htmlFor="batchName">Batch Name (optional)</Label>
-              <Input
-                id="batchName"
-                placeholder="Enter a name for this batch"
-                value={batchName}
-                onChange={(e) => setBatchName(e.target.value)}
-              />
+          <div className="border-b px-4 py-2.5">
+            <h3 className="text-xs font-semibold">Batch Settings</h3>
+          </div>
+          <div className="p-3 space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="batchName" className="text-xs">Batch Name (optional)</Label>
+              <Input id="batchName" placeholder="Enter a name" value={batchName} onChange={(e) => setBatchName(e.target.value)} className="h-8 text-xs" />
             </div>
-
             <Separator />
-
-            {/* Methods Configuration */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label>Verification Methods</Label>
-                <span className={`text-sm ${isWeightValid ? 'text-green-600' : 'text-red-600'}`}>
-                  Total: {(totalWeight * 100).toFixed(0)}%
-                </span>
+                <Label className="text-xs">Methods</Label>
+                <span className={`text-[10px] ${isWeightValid ? 'text-green-600' : 'text-red-600'}`}>Total: {(totalWeight * 100).toFixed(0)}%</span>
               </div>
-
               {Object.entries(methods).map(([method, weight]) => (
-                <div key={method} className="space-y-2">
+                <div key={method} className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <Label className="capitalize">{method}</Label>
-                    <span className="text-sm text-muted-foreground">
-                      {(weight * 100).toFixed(0)}%
-                    </span>
+                    <Label className="text-[10px] capitalize">{method}</Label>
+                    <span className="text-[10px] text-muted-foreground">{(weight * 100).toFixed(0)}%</span>
                   </div>
-                  <Slider
-                    value={[weight]}
-                    onValueChange={(value) => handleMethodChange(method as keyof MethodConfig, value)}
-                    min={0}
-                    max={1}
-                    step={0.1}
-                    className="w-full"
-                  />
+                  <Slider value={[weight]} onValueChange={(value) => handleMethodChange(method as keyof MethodConfig, value)} min={0} max={1} step={0.1} className="w-full" />
                 </div>
               ))}
-
-              {!isWeightValid && (
-                <p className="text-sm text-red-600">Method weights must sum to 100%</p>
-              )}
+              {!isWeightValid && <p className="text-[10px] text-red-600">Must sum to 100%</p>}
             </div>
-          </CardContent>
+          </div>
         </Card>
 
-        {/* Advanced Options */}
-        <Card>
-          <CardHeader className="cursor-pointer" onClick={() => setOptions(prev => ({ ...prev, showAdvanced: !prev.showAdvanced }))}>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Advanced Options</CardTitle>
-                <CardDescription>Configure thresholds and retry behavior</CardDescription>
+        {/* Advanced Options - Collapsible */}
+        <details className="group">
+          <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-xs font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
+            <span>Advanced Options</span>
+            <svg className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <Card className="mt-2">
+            <div className="p-3 space-y-3">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px]">Accept Threshold</Label>
+                  <span className="font-mono text-[10px]">{(options.acceptThreshold * 100).toFixed(0)}%</span>
+                </div>
+                <Slider value={[options.acceptThreshold]} onValueChange={([value]) => setOptions(prev => ({ ...prev, acceptThreshold: value }))} min={0.5} max={1} step={0.05} />
               </div>
-              <Switch
-                checked={options.showAdvanced}
-                onCheckedChange={(checked) => setOptions(prev => ({ ...prev, showAdvanced: checked }))}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-          </CardHeader>
-          {options.showAdvanced && (
-            <CardContent className="space-y-4">
-              {/* Accept Threshold */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px]">Escalate Threshold</Label>
+                  <span className="font-mono text-[10px]">{(options.escalateThreshold * 100).toFixed(0)}%</span>
+                </div>
+                <Slider value={[options.escalateThreshold]} onValueChange={([value]) => setOptions(prev => ({ ...prev, escalateThreshold: value }))} min={0.1} max={0.9} step={0.05} />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px]">Max Retries</Label>
+                  <span className="font-mono text-[10px]">{options.maxRetries}</span>
+                </div>
+                <Slider value={[options.maxRetries]} onValueChange={([value]) => setOptions(prev => ({ ...prev, maxRetries: value }))} min={0} max={5} step={1} />
+              </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Accept Threshold</Label>
-                  <span className="font-mono text-sm">{(options.acceptThreshold * 100).toFixed(0)}%</span>
-                </div>
-                <Slider
-                  value={[options.acceptThreshold]}
-                  onValueChange={([value]) => setOptions(prev => ({ ...prev, acceptThreshold: value }))}
-                  min={0.5}
-                  max={1}
-                  step={0.05}
-                />
-                <p className="text-xs text-muted-foreground">Auto-approve if confidence ≥ this value</p>
-              </div>
-
-              <Separator />
-
-              {/* Escalate Threshold */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm">Escalate Threshold</Label>
-                  <span className="font-mono text-sm">{(options.escalateThreshold * 100).toFixed(0)}%</span>
-                </div>
-                <Slider
-                  value={[options.escalateThreshold]}
-                  onValueChange={([value]) => setOptions(prev => ({ ...prev, escalateThreshold: value }))}
-                  min={0.1}
-                  max={0.9}
-                  step={0.05}
-                />
-                <p className="text-xs text-muted-foreground">Trigger human review if confidence &lt; this with disagreement</p>
-              </div>
-
-              <Separator />
-
-              {/* Max Retries */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm">Max Retries</Label>
-                  <span className="font-mono text-sm">{options.maxRetries}</span>
-                </div>
-                <Slider
-                  value={[options.maxRetries]}
-                  onValueChange={([value]) => setOptions(prev => ({ ...prev, maxRetries: value }))}
-                  min={0}
-                  max={5}
-                  step={1}
-                />
-                <p className="text-xs text-muted-foreground">Retry failed paradigm executions (0-5)</p>
-              </div>
-
-              <Separator />
-
-              {/* Retry on Low Confidence */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label className="text-sm">Retry on Low Confidence</Label>
-                    <p className="text-xs text-muted-foreground">Retry all paradigms if confidence is too low</p>
-                  </div>
-                  <Switch
-                    checked={options.retryOnLowConfidence}
-                    onCheckedChange={(checked) => setOptions(prev => ({ ...prev, retryOnLowConfidence: checked }))}
-                  />
+                  <Label className="text-[10px]">Retry on Low Confidence</Label>
+                  <Switch checked={options.retryOnLowConfidence} onCheckedChange={(checked) => setOptions(prev => ({ ...prev, retryOnLowConfidence: checked }))} />
                 </div>
                 {options.retryOnLowConfidence && (
-                  <div className="space-y-2 pl-4 border-l-2 border-muted">
+                  <div className="space-y-1 pl-3 border-l-2 border-muted">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm">Min Confidence Target</Label>
-                      <span className="font-mono text-sm">{(options.minConfidence * 100).toFixed(0)}%</span>
+                      <Label className="text-[10px]">Min Confidence Target</Label>
+                      <span className="font-mono text-[10px]">{(options.minConfidence * 100).toFixed(0)}%</span>
                     </div>
-                    <Slider
-                      value={[options.minConfidence]}
-                      onValueChange={([value]) => setOptions(prev => ({ ...prev, minConfidence: value }))}
-                      min={0.5}
-                      max={0.99}
-                      step={0.01}
-                    />
+                    <Slider value={[options.minConfidence]} onValueChange={([value]) => setOptions(prev => ({ ...prev, minConfidence: value }))} min={0.5} max={0.99} step={0.01} />
                   </div>
                 )}
               </div>
-            </CardContent>
-          )}
-        </Card>
-
-        {/* File Format Help */}
-        <Card>
-          <CardHeader>
-            <CardTitle>File Format</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="mb-2 font-medium">CSV Format</p>
-              <pre className="rounded bg-muted p-3 text-sm">
-                {`content,context.source,idempotencyKey
-"The claim to verify","Wikipedia",claim-001
-"Another claim to check","News",claim-002`}
-              </pre>
             </div>
+          </Card>
+        </details>
 
-            <Separator />
-
-            <div>
-              <p className="mb-2 font-medium">JSON Format</p>
-              <pre className="rounded bg-muted p-3 text-sm">
-                {`[
-  {
-    "content": "The claim to verify",
-    "context": { "source": "Wikipedia" },
-    "idempotencyKey": "claim-001"
-  }
-]`}
-              </pre>
+        {/* File Format Help - Collapsible */}
+        <details className="group">
+          <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-xs font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
+            <span>File Format Help</span>
+            <svg className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <Card className="mt-2">
+            <div className="p-3 space-y-3">
+              <div>
+                <p className="text-xs font-medium mb-1">CSV</p>
+                <pre className="rounded-md bg-muted p-2 text-[10px] overflow-x-auto">{`content,context.source
+"Claim to verify","Wikipedia"`}</pre>
+              </div>
+              <div>
+                <p className="text-xs font-medium mb-1">JSON</p>
+                <pre className="rounded-md bg-muted p-2 text-[10px] overflow-x-auto">{`[{"content": "Claim", "context": {"source": "Wiki"}}]`}</pre>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </Card>
+        </details>
 
         {/* Submit Button */}
-        <div className="flex justify-end gap-4">
-          <Button variant="outline" onClick={() => router.push('/dashboard/batch')}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!uploadResult || isCreating || !isWeightValid}
-          >
-            {isCreating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              <>Create Batch ({uploadResult?.itemCount || 0} items)</>
-            )}
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => router.push('/dashboard/batch')}>Cancel</Button>
+          <Button size="sm" className="h-7 text-xs" onClick={handleSubmit} disabled={!uploadResult || isCreating || !isWeightValid}>
+            {isCreating ? <><Loader2 className="mr-1.5 h-3 w-3 animate-spin" />Creating...</> : <>Create ({uploadResult?.itemCount || 0} items)</>}
           </Button>
         </div>
       </div>

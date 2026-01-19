@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getUserOrgContext } from '@/lib/rbac/get-user-org';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, Crown, Shield, User, Eye, Mail, Clock } from 'lucide-react';
@@ -70,49 +70,39 @@ export default async function TeamPage() {
   const canManageRoles = context.role === 'owner' || context.role === 'admin';
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="p-4">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="mb-2 text-2xl font-bold tracking-tight">Team</h1>
-          <p className="text-muted-foreground">
-            Manage your organization members and invitations
-          </p>
-        </div>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-sm font-semibold">Team</h1>
         {canInvite && <InviteMemberDialog />}
       </div>
 
       {/* Pro Plan Gate */}
       {context.organization.planType === 'free' && (
-        <Card className="mb-6 border-amber-200 bg-amber-50">
-          <CardContent className="flex items-center gap-4 pt-6">
-            <Users className="h-8 w-8 text-amber-600" />
+        <Card className="mb-4 border-amber-200 bg-amber-50 p-3">
+          <div className="flex items-start gap-3">
+            <Users className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
             <div className="flex-1">
-              <p className="font-medium text-amber-800">
-                Team management is available on Pro plan
-              </p>
-              <p className="text-sm text-amber-700">
-                Upgrade to invite team members, assign roles, and collaborate.
-              </p>
+              <p className="text-xs font-medium text-amber-800">Team management requires Pro plan</p>
+              <p className="text-[10px] text-amber-700">Upgrade to invite members and collaborate.</p>
             </div>
-            <Button asChild>
-              <Link href="/subscribe">Upgrade to Pro</Link>
+            <Button size="sm" className="h-7 text-xs" asChild>
+              <Link href="/subscribe">Upgrade</Link>
             </Button>
-          </CardContent>
+          </div>
         </Card>
       )}
 
       {/* Members List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Members</CardTitle>
-          <CardDescription>
-            {members.length} member{members.length !== 1 ? 's' : ''} in{' '}
-            {context.organization.name}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+      <Card className="mb-4">
+        <div className="flex items-center justify-between border-b px-4 py-2.5">
+          <h3 className="text-xs font-semibold">Team Members</h3>
+          <span className="text-[10px] text-muted-foreground">
+            {members.length} in {context.organization.name}
+          </span>
+        </div>
+        <div className="p-2">
+          <div className="space-y-1">
             {members.map((member) => {
               const RoleIcon = ROLE_ICONS[member.role as keyof typeof ROLE_ICONS];
               const isCurrentUser = member.id === context.userId;
@@ -120,37 +110,36 @@ export default async function TeamPage() {
               return (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between rounded-lg border p-4"
+                  className="flex items-center justify-between rounded-md px-2 py-2 hover:bg-muted/50"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-                      <span className="text-sm font-medium">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted">
+                      <span className="text-[10px] font-medium">
                         {member.name?.charAt(0)?.toUpperCase() ||
                           member.email.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-medium">
                           {member.name || 'Unknown'}
                           {isCurrentUser && (
-                            <span className="ml-2 text-xs text-muted-foreground">(you)</span>
+                            <span className="ml-1 text-[10px] text-muted-foreground">(you)</span>
                           )}
                         </p>
                         <Badge
                           variant="secondary"
-                          className={ROLE_COLORS[member.role as keyof typeof ROLE_COLORS]}
+                          className={`${ROLE_COLORS[member.role as keyof typeof ROLE_COLORS]} text-[9px] px-1 py-0 h-4`}
                         >
-                          <RoleIcon className="mr-1 h-3 w-3" />
+                          <RoleIcon className="mr-0.5 h-2.5 w-2.5" />
                           {member.role}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">{member.email}</p>
+                      <p className="text-[10px] text-muted-foreground">{member.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      Joined{' '}
+                    <span className="text-[10px] text-muted-foreground">
                       {formatDistanceToNow(new Date(member.joinedAt), { addSuffix: true })}
                     </span>
                     {canManageRoles && !isCurrentUser && member.role !== 'owner' && (
@@ -165,40 +154,33 @@ export default async function TeamPage() {
               );
             })}
           </div>
-        </CardContent>
+        </div>
       </Card>
 
       {/* Pending Invites */}
       {pendingInvites.length > 0 && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Pending Invitations
-            </CardTitle>
-            <CardDescription>
-              {pendingInvites.length} pending invite{pendingInvites.length !== 1 ? 's' : ''}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+        <Card className="mb-4">
+          <div className="flex items-center justify-between border-b px-4 py-2.5">
+            <div className="flex items-center gap-1.5">
+              <Mail className="h-3.5 w-3.5" />
+              <h3 className="text-xs font-semibold">Pending Invitations</h3>
+            </div>
+            <span className="text-[10px] text-muted-foreground">{pendingInvites.length} pending</span>
+          </div>
+          <div className="p-2">
+            <div className="space-y-1">
               {pendingInvites.map((invite) => (
                 <div
                   key={invite.id}
-                  className="flex items-center justify-between rounded-lg border border-dashed p-4"
+                  className="flex items-center justify-between rounded-md border border-dashed px-2 py-2"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/50">
-                      <Clock className="h-5 w-5 text-muted-foreground" />
-                    </div>
+                  <div className="flex items-start gap-2">
+                    <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <div>
-                      <p className="font-medium">{invite.email}</p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Badge variant="outline">{invite.role}</Badge>
-                        <span>
-                          Expires{' '}
-                          {formatDistanceToNow(new Date(invite.expiresAt), { addSuffix: true })}
-                        </span>
+                      <p className="text-xs font-medium">{invite.email}</p>
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                        <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">{invite.role}</Badge>
+                        <span>Expires {formatDistanceToNow(new Date(invite.expiresAt), { addSuffix: true })}</span>
                       </div>
                     </div>
                   </div>
@@ -208,56 +190,53 @@ export default async function TeamPage() {
                 </div>
               ))}
             </div>
-          </CardContent>
+          </div>
         </Card>
       )}
 
-      {/* Role Descriptions */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Role Permissions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg border p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <Crown className="h-4 w-4 text-amber-600" />
-                <span className="font-medium">Owner</span>
+      {/* Role Descriptions - Collapsible */}
+      <details className="group">
+        <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-xs font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
+          <span>Role Permissions</span>
+          <svg className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <Card className="mt-2">
+          <div className="p-3">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-md border p-2">
+                <div className="mb-1 flex items-center gap-1.5">
+                  <Crown className="h-3 w-3 text-amber-600" />
+                  <span className="text-xs font-medium">Owner</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">Full access including billing.</p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Full access. Can delete organization, manage billing, and transfer ownership.
-              </p>
-            </div>
-            <div className="rounded-lg border p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <Shield className="h-4 w-4 text-blue-600" />
-                <span className="font-medium">Admin</span>
+              <div className="rounded-md border p-2">
+                <div className="mb-1 flex items-center gap-1.5">
+                  <Shield className="h-3 w-3 text-blue-600" />
+                  <span className="text-xs font-medium">Admin</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">Manage members and features.</p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Can manage members, API keys, and all features except billing.
-              </p>
-            </div>
-            <div className="rounded-lg border p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <User className="h-4 w-4 text-green-600" />
-                <span className="font-medium">Member</span>
+              <div className="rounded-md border p-2">
+                <div className="mb-1 flex items-center gap-1.5">
+                  <User className="h-3 w-3 text-green-600" />
+                  <span className="text-xs font-medium">Member</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">Use API and create keys.</p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Can use API, create keys, view dashboard, and resolve escalations.
-              </p>
-            </div>
-            <div className="rounded-lg border p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <Eye className="h-4 w-4 text-gray-600" />
-                <span className="font-medium">Viewer</span>
+              <div className="rounded-md border p-2">
+                <div className="mb-1 flex items-center gap-1.5">
+                  <Eye className="h-3 w-3 text-gray-600" />
+                  <span className="text-xs font-medium">Viewer</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">Read-only dashboard access.</p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Read-only access to dashboard, verifications, and usage data.
-              </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </Card>
+      </details>
     </div>
   );
 }

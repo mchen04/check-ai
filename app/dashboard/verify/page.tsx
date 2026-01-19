@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -206,20 +206,17 @@ export default function VerificationHistoryPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Verification History</h1>
-          <p className="mt-1 text-muted-foreground">View and manage your verification requests</p>
-        </div>
+    <div className="p-4">
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-sm font-semibold">Verification History</h1>
         <div className="flex gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" disabled={isExporting || verifications.length === 0}>
+              <Button variant="outline" size="sm" className="h-7 text-xs" disabled={isExporting || verifications.length === 0}>
                 {isExporting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
                 ) : (
-                  <Download className="mr-2 h-4 w-4" />
+                  <Download className="mr-1.5 h-3 w-3" />
                 )}
                 Export
               </Button>
@@ -233,65 +230,55 @@ export default function VerificationHistoryPage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleRefresh} disabled={isLoading}>
+            <RefreshCw className={`mr-1.5 h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button onClick={() => router.push('/dashboard/playground')}>New Verification</Button>
+          <Button size="sm" className="h-7 text-xs" onClick={() => router.push('/dashboard/playground')}>New</Button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-5">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total</CardDescription>
-            <CardTitle className="text-2xl">{stats.total}</CardTitle>
-          </CardHeader>
+      {/* Stats Cards - Compact */}
+      <div className="mb-4 grid grid-cols-5 gap-3">
+        <Card className="p-3">
+          <span className="text-[10px] text-muted-foreground">Total</span>
+          <p className="text-lg font-semibold">{stats.total}</p>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Verified</CardDescription>
-            <CardTitle className="text-2xl text-green-600">{stats.verified}</CardTitle>
-          </CardHeader>
+        <Card className="p-3">
+          <span className="text-[10px] text-muted-foreground">Verified</span>
+          <p className="text-lg font-semibold text-green-600">{stats.verified}</p>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>False</CardDescription>
-            <CardTitle className="text-2xl text-red-600">{stats.false}</CardTitle>
-          </CardHeader>
+        <Card className="p-3">
+          <span className="text-[10px] text-muted-foreground">False</span>
+          <p className="text-lg font-semibold text-red-600">{stats.false}</p>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Uncertain</CardDescription>
-            <CardTitle className="text-2xl text-yellow-600">{stats.uncertain}</CardTitle>
-          </CardHeader>
+        <Card className="p-3">
+          <span className="text-[10px] text-muted-foreground">Uncertain</span>
+          <p className="text-lg font-semibold text-yellow-600">{stats.uncertain}</p>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Avg Confidence</CardDescription>
-            <CardTitle className="text-2xl">{stats.avgConfidence}%</CardTitle>
-          </CardHeader>
+        <Card className="p-3">
+          <span className="text-[10px] text-muted-foreground">Avg Confidence</span>
+          <p className="text-lg font-semibold">{stats.avgConfidence}%</p>
         </Card>
       </div>
 
       {/* Verifications Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>Recent Verifications</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <div className="border-b px-4 py-2.5">
+          <h3 className="text-xs font-semibold">Recent Verifications</h3>
+        </div>
+        <div className="p-2">
           {error ? (
             <div className="py-8 text-center text-red-500">
               <p>{error}</p>
-              <Button variant="outline" onClick={handleRefresh} className="mt-4">
+              <Button variant="outline" size="sm" className="mt-3 h-7 text-xs" onClick={handleRefresh}>
                 Try Again
               </Button>
             </div>
           ) : verifications.length === 0 && !isLoading ? (
             <div className="py-8 text-center text-muted-foreground">
               <p>No verifications yet</p>
-              <Button variant="outline" onClick={() => router.push('/playground')} className="mt-4">
+              <Button variant="outline" size="sm" className="mt-3 h-7 text-xs" onClick={() => router.push('/dashboard/playground')}>
                 Create your first verification
               </Button>
             </div>
@@ -350,20 +337,20 @@ export default function VerificationHistoryPage() {
           )}
 
           {hasMore && !isLoading && verifications.length > 0 && (
-            <div className="mt-4 text-center">
-              <Button variant="outline" onClick={handleLoadMore}>
+            <div className="mt-3 text-center">
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleLoadMore}>
                 Load More
               </Button>
             </div>
           )}
 
           {isLoading && (
-            <div className="py-8 text-center">
-              <RefreshCw className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
-              <p className="mt-2 text-muted-foreground">Loading...</p>
+            <div className="py-6 text-center">
+              <RefreshCw className="mx-auto h-4 w-4 animate-spin text-muted-foreground" />
+              <p className="mt-1 text-xs text-muted-foreground">Loading...</p>
             </div>
           )}
-        </CardContent>
+        </div>
       </Card>
     </div>
   );
