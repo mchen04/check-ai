@@ -5,16 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
-import {
-  Key,
-  PlayCircle,
-  Shield,
-  X,
-  CheckCircle2,
-  Circle,
-  ArrowRight,
-  Settings,
-} from 'lucide-react';
+import { Key, PlayCircle, Shield, X, CheckCircle2, Circle, ArrowRight, Plug } from 'lucide-react';
 import { dismissOnboarding } from '@/app/dashboard/actions';
 
 interface OnboardingStep {
@@ -47,8 +38,8 @@ export function OnboardingChecklist({
       id: 'providers',
       title: 'Add providers',
       description: 'Configure AI provider credentials to enable verification',
-      href: '/dashboard/settings',
-      icon: <Settings className="h-4 w-4" />,
+      href: '/dashboard/providers',
+      icon: <Plug className="h-4 w-4" />,
       completed: hasAddedProvider,
     },
     {
@@ -108,10 +99,12 @@ export function OnboardingChecklist({
   return (
     <Card className="mb-4 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
       <div className="p-3">
-        <div className="flex items-center justify-between mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold">Get Started</span>
-            <span className="text-[10px] text-muted-foreground">{completedCount}/{steps.length}</span>
+            <span className="text-[10px] text-muted-foreground">
+              {completedCount}/{steps.length}
+            </span>
           </div>
           <Button
             variant="ghost"
@@ -124,7 +117,7 @@ export function OnboardingChecklist({
             <span className="sr-only">Dismiss</span>
           </Button>
         </div>
-        <Progress value={progressPercent} className="h-1 mb-2" />
+        <Progress value={progressPercent} className="mb-2 h-1" />
         <div className="flex gap-2">
           {steps.map((step) => (
             <Link
@@ -149,7 +142,9 @@ export function OnboardingChecklist({
                   <Circle className="h-3 w-3" />
                 )}
               </div>
-              <span className={`text-[10px] font-medium ${step.completed ? 'text-green-700 dark:text-green-400' : ''}`}>
+              <span
+                className={`text-[10px] font-medium ${step.completed ? 'text-green-700 dark:text-green-400' : ''}`}
+              >
                 {step.title}
               </span>
             </Link>
