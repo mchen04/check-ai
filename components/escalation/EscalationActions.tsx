@@ -26,8 +26,9 @@ import {
   CheckCircle,
   XCircle,
   ExternalLink,
-  Loader2,
 } from 'lucide-react';
+import { getErrorMessage } from '@/lib/utils';
+import { ButtonSpinner } from '@/components/ui/loading-spinner';
 import Link from 'next/link';
 
 interface EscalationActionsProps {
@@ -90,7 +91,7 @@ export function EscalationActions({
       setIsResolveOpen(false);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -118,7 +119,7 @@ export function EscalationActions({
       setIsDismissOpen(false);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -228,7 +229,7 @@ export function EscalationActions({
               Cancel
             </Button>
             <Button onClick={handleResolve} disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading && <ButtonSpinner />}
               Resolve
             </Button>
           </DialogFooter>
@@ -274,7 +275,7 @@ export function EscalationActions({
               Cancel
             </Button>
             <Button variant="secondary" onClick={handleDismiss} disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading && <ButtonSpinner />}
               Dismiss
             </Button>
           </DialogFooter>

@@ -7,8 +7,7 @@
  * Best for: Factual claims, verifiable statements
  */
 
-import { LLMClient } from '@/lib/llm/client';
-import { ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm/types';
+import { LLMClient, ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions } from '../types';
 import { TOOL_SYSTEM_PROMPT, TOOL_USER_PROMPT, parseVerificationResponse } from '../prompts';
 import { createParadigmErrorResult } from './shared';

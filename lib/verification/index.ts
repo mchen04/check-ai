@@ -22,15 +22,18 @@ export type {
   VerificationResult,
   ParadigmExecutor,
   ParadigmOptions,
+  VerifyOptions,
 } from './types';
 
-// Constants and functions from types
+// Constants, schemas, and functions from types
 export {
   FPR_WEIGHTS,
   DECISION_THRESHOLDS,
+  methodsConfigSchema,
   calculateConsensus,
   determineDecision,
   createErrorParadigmResult,
+  formatParadigmName,
 } from './types';
 
 // Service layer
@@ -44,7 +47,7 @@ export type {
 } from './service';
 
 // Validation
-export { validateVerifyRequest, getRequestedMethods, getMethodsCount } from './validator';
+export { validateVerifyRequest, getRequestedMethods, getMethodsCount, VerifyOptionsSchema, MethodsConfigSchema } from './validator';
 export type { ValidatedVerifyRequest, ValidationResult } from './validator';
 
 // Quota

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, AlertCircle } from 'lucide-react';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import Link from 'next/link';
 import { AcceptInviteButton } from './AcceptInviteButton';
 
@@ -97,13 +98,10 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
               <AcceptInviteButton token={token} />
             ) : (
               <div className="space-y-4">
-                <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
-                  <AlertCircle className="mt-0.5 h-4 w-4 text-amber-600" />
-                  <p className="text-xs text-amber-700">
-                    You&apos;re logged in as {user.email}, but this invite was sent to{' '}
-                    {invite.email}. Please log out and sign in with the correct account.
-                  </p>
-                </div>
+                <AlertBanner variant="warning">
+                  You&apos;re logged in as {user.email}, but this invite was sent to{' '}
+                  {invite.email}. Please log out and sign in with the correct account.
+                </AlertBanner>
                 <form action="/auth/logout" method="post">
                   <Button variant="outline" type="submit" className="w-full">
                     Sign Out

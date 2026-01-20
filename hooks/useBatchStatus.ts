@@ -30,7 +30,7 @@ export interface BatchStatusState {
   error: Error | null;
 }
 
-interface UseBatchStatusOptions {
+export interface UseBatchStatusOptions {
   onItemComplete?: (itemId: string, itemIndex: number, success: boolean) => void;
   onComplete?: (status: string) => void;
   onError?: (error: Error) => void;

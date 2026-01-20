@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
-import { getUserOrgContext } from '@/lib/rbac/get-user-org';
+import { getUserOrgContext } from '@/lib/rbac';
 import { db } from '@/utils/db/db';
 import { usageTable, verificationsTable } from '@/utils/db/schema';
 import { eq, and, desc, gte, sql, count } from 'drizzle-orm';
@@ -18,7 +18,8 @@ import {
   Calendar,
   BarChart3,
 } from 'lucide-react';
-import { formatDistanceToNow, format, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { formatRelativeTime } from '@/lib/utils';
 import { AnalyticsSection } from './analytics-section';
 import { AdvancedAnalyticsSection } from './advanced-analytics-section';
 
@@ -388,7 +389,7 @@ export default async function UsagePage() {
                       <td className="py-2 pr-4 text-right">{u.outputTokens.toLocaleString()}</td>
                       <td className="py-2 pr-4 text-right">${(u.costCents / 100).toFixed(4)}</td>
                       <td className="py-2 text-right text-muted-foreground">
-                        {formatDistanceToNow(new Date(u.createdAt), { addSuffix: true })}
+                        {formatRelativeTime(u.createdAt)}
                       </td>
                     </tr>
                   ))}

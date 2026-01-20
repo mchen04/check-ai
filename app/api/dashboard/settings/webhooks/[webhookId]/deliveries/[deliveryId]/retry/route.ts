@@ -2,10 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
 import { webhookDeliveriesTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
-import { retryWebhookDelivery } from '@/lib/webhooks/service';
-import { RouteContext, errorResponse } from '@/lib/api/validation';
-import { getWebhook } from '@/lib/webhooks/repository';
+import { withDashboardAuth, DashboardRequest, RouteContext, errorResponse } from '@/lib/api';
+import { retryWebhookDelivery, getWebhook } from '@/lib/webhooks';
 
 /**
  * POST - Manually retry a failed webhook delivery

@@ -8,7 +8,19 @@ import { z } from 'zod';
 import { db } from '@/utils/db/db';
 import { escalationsTable, verificationsTable } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
+import {
+  withDashboardAuth,
+  DashboardRequest,
+  formatDateToISO,
+  formatRequiredDateToISO,
+  parseDecimal,
+  formatParadigmResultExtendedForResponse,
+  errorResponse,
+  parseAndValidate,
+  extractRouteParam,
+  assertOrgOwnership,
+  RouteContext,
+} from '@/lib/api';
 import {
   getEscalationStatus,
   resolveEscalation,
@@ -16,10 +28,8 @@ import {
   REASON_DISPLAY_MAP,
   type HumanVerdict,
 } from '@/lib/escalation';
-import { fireWebhooks } from '@/lib/webhooks/service';
+import { fireWebhooks } from '@/lib/webhooks';
 import { createAuditLogger } from '@/lib/audit';
-import { formatDateToISO, formatRequiredDateToISO, parseDecimal, formatParadigmResultExtendedForResponse } from '@/lib/api/formatters';
-import { errorResponse, parseAndValidate, extractRouteParam, assertOrgOwnership, RouteContext } from '@/lib/api/validation';
 
 // =============================================================================
 // REQUEST VALIDATION

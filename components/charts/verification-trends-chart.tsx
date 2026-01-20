@@ -15,7 +15,7 @@ import {
   ChartLegendContent,
 } from '@/components/ui/chart';
 import { trendsChartConfig } from './chart-config';
-import type { TrendDataPoint } from '@/lib/analytics/types';
+import type { TrendDataPoint } from '@/lib/analytics';
 import { format, parseISO } from 'date-fns';
 
 interface VerificationTrendsChartProps {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDate, getErrorMessage } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { BatchStatusBadge, type BatchDisplayStatus } from '@/components/ui/status-badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -28,19 +29,21 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  Clock,
   ArrowLeft,
+  Clock,
   Copy,
   RefreshCw,
   StopCircle,
   Download,
-  Loader2,
   ChevronRight,
 } from 'lucide-react';
-import { useBatchStatus } from '@/hooks/useBatchStatus';
+import { Spinner } from '@/components/ui/loading-spinner';
+import { useBatchStatus, useCopyToClipboard } from '@/hooks';
+import { VerdictIcon, VerdictBadge, type VerdictDisplay } from '@/components/ui/verdict-display';
+import { formatParadigmName } from '@/lib/verification/types';
+import { truncateString } from '@/lib/api/formatters';
+import { PAGINATION_LIMITS } from '@/lib/constants';
+import type { Decision } from '@/lib/api/types';
 
 // =============================================================================
 // TYPES
@@ -58,7 +61,7 @@ interface VerifyOptions {
 interface BatchDetail {
   id: string;
   name: string | null;
-  status: string;
+  status: BatchDisplayStatus;
   inputFormat: string;
   originalFileName: string | null;
   methodsConfig: Record<string, number>;
@@ -81,85 +84,14 @@ interface BatchItem {
   id: string;
   itemIndex: number;
   content: string;
-  status: string;
-  verdict: string | null;
+  status: BatchDisplayStatus;
+  verdict: VerdictDisplay;
   confidence: number | null;
-  decision: string | null;
+  decision: Decision | null;
   errorMessage: string | null;
   costCents: number | null;
   processingTimeMs: number | null;
   completedAt: string | null;
-}
-
-// =============================================================================
-// HELPERS
-// =============================================================================
-
-function getStatusBadge(status: string) {
-  switch (status) {
-    case 'completed':
-      return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
-    case 'processing':
-      return <Badge className="bg-blue-100 text-blue-800">Processing</Badge>;
-    case 'pending':
-      return <Badge className="bg-gray-100 text-gray-800">Pending</Badge>;
-    case 'validating':
-      return <Badge className="bg-yellow-100 text-yellow-800">Validating</Badge>;
-    case 'queued':
-      return <Badge className="bg-purple-100 text-purple-800">Queued</Badge>;
-    case 'failed':
-      return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
-    case 'cancelled':
-      return <Badge className="bg-orange-100 text-orange-800">Cancelled</Badge>;
-    case 'skipped':
-      return <Badge className="bg-gray-100 text-gray-800">Skipped</Badge>;
-    default:
-      return <Badge variant="outline">{status}</Badge>;
-  }
-}
-
-function getVerdictIcon(verdict: string | null) {
-  switch (verdict) {
-    case 'true':
-      return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-    case 'false':
-      return <XCircle className="h-4 w-4 text-red-500" />;
-    case 'uncertain':
-      return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-    default:
-      return <Clock className="h-4 w-4 text-gray-400" />;
-  }
-}
-
-function getVerdictBadge(verdict: string | null) {
-  switch (verdict) {
-    case 'true':
-      return <Badge className="bg-green-100 text-green-800">True</Badge>;
-    case 'false':
-      return <Badge className="bg-red-100 text-red-800">False</Badge>;
-    case 'uncertain':
-      return <Badge className="bg-yellow-100 text-yellow-800">Uncertain</Badge>;
-    default:
-      return <Badge variant="outline">Pending</Badge>;
-  }
-}
-
-function truncateContent(content: string, maxLength: number = 60): string {
-  if (content.length <= maxLength) return content;
-  return content.slice(0, maxLength) + '...';
-}
-
-function formatParadigmName(paradigm: string): string {
-  const names: Record<string, string> = {
-    semantic: 'Semantic Analysis',
-    reasoning: 'LLM Reasoning',
-    tool: 'Tool-Augmented',
-    biprm: 'Bidirectional Reasoning',
-    ensemble: 'Multi-Model Ensemble',
-    entropy: 'Semantic Entropy',
-    formal: 'Formal Verification',
-  };
-  return names[paradigm] || paradigm;
 }
 
 // =============================================================================
@@ -173,7 +105,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
   const [items, setItems] = useState<BatchItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
   const [isCancelling, setIsCancelling] = useState(false);
   const [itemsPage, setItemsPage] = useState(1);
   const [hasMoreItems, setHasMoreItems] = useState(true);
@@ -200,7 +132,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
       const data = await response.json();
       setBatch(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -209,7 +141,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
   const fetchItems = useCallback(
     async (page: number = 1, append: boolean = false) => {
       try {
-        const response = await fetch(`/api/dashboard/batch/${id}/results?limit=20&offset=${(page - 1) * 20}`);
+        const response = await fetch(`/api/dashboard/batch/${id}/results?limit=${PAGINATION_LIMITS.defaultLimit}&offset=${(page - 1) * PAGINATION_LIMITS.defaultLimit}`);
 
         if (!response.ok) {
           return;
@@ -267,11 +199,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
     return () => clearInterval(interval);
   }, [batch?.status, fetchBatch, fetchItems]);
 
-  const handleCopyId = () => {
-    navigator.clipboard.writeText(id);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const handleCopyId = () => copy(id);
 
   const handleCancel = async () => {
     try {
@@ -369,7 +297,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm" className="h-7 text-xs" disabled={isCancelling}>
-                  {isCancelling ? <Loader2 className="mr-1.5 h-3 w-3 animate-spin" /> : <StopCircle className="mr-1.5 h-3 w-3" />}
+                  {isCancelling ? <Spinner size="xs" className="mr-1.5" /> : <StopCircle className="mr-1.5 h-3 w-3" />}
                   Cancel
                 </Button>
               </AlertDialogTrigger>
@@ -407,13 +335,13 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
           <Card>
             <div className="flex items-center justify-between border-b px-4 py-2.5">
               <h3 className="text-xs font-semibold">Progress</h3>
-              {getStatusBadge(batch.status)}
+              <BatchStatusBadge status={batch.status} />
             </div>
             <div className="p-3">
               <div className="space-y-3">
                 {isProcessing && (
                   <div className="flex items-center gap-2">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
+                    <Spinner size="xs" className="h-3.5 w-3.5 text-blue-500" />
                     <span className="text-xs">Processing...</span>
                   </div>
                 )}
@@ -466,13 +394,13 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                       <TableRow key={item.id}>
                         <TableCell className="font-mono text-[10px]">{item.itemIndex + 1}</TableCell>
                         <TableCell className="max-w-[200px]">
-                          <span className="font-mono text-[10px] truncate block">{truncateContent(item.content, 40)}</span>
+                          <span className="font-mono text-[10px] truncate block">{truncateString(item.content, 40, true)}</span>
                         </TableCell>
-                        <TableCell>{getStatusBadge(item.status)}</TableCell>
+                        <TableCell><BatchStatusBadge status={item.status} /></TableCell>
                         <TableCell>
                           {item.verdict ? (
                             <div className="flex items-center gap-1">
-                              {getVerdictIcon(item.verdict)}
+                              <VerdictIcon verdict={item.verdict} />
                             </div>
                           ) : '-'}
                         </TableCell>
@@ -522,12 +450,12 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
               <Separator className="my-1" />
               <div>
                 <span className="text-[10px] text-muted-foreground">Created</span>
-                <p className="text-xs">{format(new Date(batch.createdAt), 'MMM d, h:mm a')}</p>
+                <p className="text-xs">{formatDate(batch.createdAt)}</p>
               </div>
               {batch.completedAt && (
                 <div>
                   <span className="text-[10px] text-muted-foreground">Completed</span>
-                  <p className="text-xs">{format(new Date(batch.completedAt), 'MMM d, h:mm a')}</p>
+                  <p className="text-xs">{formatDate(batch.completedAt)}</p>
                 </div>
               )}
             </div>

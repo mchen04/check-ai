@@ -31,7 +31,7 @@ export interface EscalationRecord {
   createdAt: Date;
 }
 
-export interface EscalationWithVerification {
+export interface EscalationQueryResult {
   id: string;
   verificationId: string;
   reason: EscalationReason;
@@ -96,7 +96,7 @@ export function getEscalationStatus(
  */
 export async function listEscalations(
   options: ListEscalationsOptions
-): Promise<{ escalations: EscalationWithVerification[]; hasMore: boolean }> {
+): Promise<{ escalations: EscalationQueryResult[]; hasMore: boolean }> {
   const { orgId, status, priority, limit = 20, offset = 0 } = options;
 
   // Build conditions array - clearer than chained .where() calls
@@ -149,7 +149,7 @@ export async function listEscalations(
   const results = hasMore ? escalations.slice(0, limit) : escalations;
 
   return {
-    escalations: results as EscalationWithVerification[],
+    escalations: results as EscalationQueryResult[],
     hasMore,
   };
 }
@@ -199,7 +199,7 @@ export async function getEscalation(id: string): Promise<EscalationRecord | null
 export async function getEscalationByIdAndOrg(
   id: string,
   orgId: string
-): Promise<EscalationWithVerification | null> {
+): Promise<EscalationQueryResult | null> {
   const [escalation] = await db
     .select({
       id: escalationsTable.id,
@@ -227,7 +227,7 @@ export async function getEscalationByIdAndOrg(
     )
     .limit(1);
 
-  return escalation as EscalationWithVerification | null;
+  return escalation as EscalationQueryResult | null;
 }
 
 /**

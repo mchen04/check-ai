@@ -22,7 +22,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Copy, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { Plus, Copy, Check } from 'lucide-react';
+import { getErrorMessage } from '@/lib/utils';
+import { ButtonSpinner, Spinner } from '@/components/ui/loading-spinner';
+import { useCopyToClipboard } from '@/hooks';
+import { InlineError } from '@/components/ui/empty-state';
+import { AlertBanner } from '@/components/ui/alert-banner';
 
 interface ProviderCredential {
   id: string;
@@ -38,7 +43,7 @@ export default function CreateApiKeyDialog() {
   const [name, setName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [newKey, setNewKey] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
   const [error, setError] = useState<string | null>(null);
 
   // Provider credentials state
@@ -122,17 +127,15 @@ export default function CreateApiKeyDialog() {
       const data = await response.json();
       setNewKey(data.apiKey);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to create API key');
+      setError(getErrorMessage(e, 'Failed to create API key'));
     } finally {
       setIsCreating(false);
     }
   };
 
-  const handleCopy = async () => {
+  const handleCopy = () => {
     if (newKey) {
-      await navigator.clipboard.writeText(newKey);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      copy(newKey);
     }
   };
 
@@ -170,23 +173,13 @@ export default function CreateApiKeyDialog() {
             <div className="grid gap-4 py-4">
               {isLoadingCredentials ? (
                 <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  <Spinner size="default" />
                 </div>
               ) : noCredentials ? (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="mt-0.5 h-4 w-4 text-amber-600" />
-                    <div>
-                      <p className="text-sm font-medium text-amber-800">
-                        No provider credentials found
-                      </p>
-                      <p className="mt-1 text-xs text-amber-700">
-                        You need to add a provider credential (like OpenRouter, OpenAI, or Anthropic)
-                        in Settings before creating an API key.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <AlertBanner variant="warning" title="No provider credentials found">
+                  You need to add a provider credential (like OpenRouter, OpenAI, or Anthropic)
+                  in Settings before creating an API key.
+                </AlertBanner>
               ) : (
                 <>
                   <div className="grid gap-2">
@@ -247,12 +240,7 @@ export default function CreateApiKeyDialog() {
                   </div>
                 </>
               )}
-              {error && (
-                <div className="flex items-center gap-2 text-sm text-destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  {error}
-                </div>
-              )}
+              <InlineError message={error} />
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>
@@ -262,14 +250,8 @@ export default function CreateApiKeyDialog() {
                 onClick={handleCreate}
                 disabled={isCreating || noCredentials || isLoadingCredentials}
               >
-                {isCreating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  'Create Key'
-                )}
+                {isCreating && <ButtonSpinner />}
+                {isCreating ? 'Creating...' : 'Create Key'}
               </Button>
             </DialogFooter>
           </>
@@ -299,12 +281,9 @@ export default function CreateApiKeyDialog() {
                   </Button>
                 </div>
               </div>
-              <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
-                <AlertCircle className="mt-0.5 h-4 w-4 text-amber-600" />
-                <p className="text-xs text-amber-700">
-                  Make sure to copy your API key now. You won&apos;t be able to see it again.
-                </p>
-              </div>
+              <AlertBanner variant="warning" className="mt-4">
+                Make sure to copy your API key now. You won&apos;t be able to see it again.
+              </AlertBanner>
             </div>
             <DialogFooter>
               <Button onClick={handleClose}>Done</Button>

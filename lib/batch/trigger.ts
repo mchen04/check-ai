@@ -3,7 +3,7 @@
  * Replaces QStash for batch item processing with automatic retries
  */
 
-import { tasks } from "@trigger.dev/sdk";
+import { tasks } from "@trigger.dev/sdk/v3";
 import type { batchItemProcessingTask } from "@/trigger/batch-processing";
 import { db } from "@/utils/db/db";
 import { batchJobsTable, batchItemsTable } from "@/utils/db/schema";

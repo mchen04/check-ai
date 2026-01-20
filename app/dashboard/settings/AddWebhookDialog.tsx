@@ -14,7 +14,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Webhook, AlertCircle, Copy, Check, Loader2 } from 'lucide-react';
+import { Webhook, Copy, Check } from 'lucide-react';
+import { ButtonSpinner } from '@/components/ui/loading-spinner';
+import { useCopyToClipboard } from '@/hooks';
+import { InlineError } from '@/components/ui/empty-state';
+import { getErrorMessage } from '@/lib/utils';
 
 const WEBHOOK_EVENTS = [
   { value: 'verification.completed', label: 'Verification Completed', description: 'When a verification finishes' },
@@ -37,7 +41,7 @@ export function AddWebhookDialog({ onSuccess }: AddWebhookDialogProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [signingSecret, setSigningSecret] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
 
   const handleCreate = async () => {
     if (!url.trim()) {
@@ -74,17 +78,15 @@ export function AddWebhookDialog({ onSuccess }: AddWebhookDialogProps) {
       setSigningSecret(data.signingSecret);
       onSuccess();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to create webhook');
+      setError(getErrorMessage(e, 'Failed to create webhook'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCopySecret = async () => {
+  const handleCopySecret = () => {
     if (signingSecret) {
-      await navigator.clipboard.writeText(signingSecret);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      copy(signingSecret);
     }
   };
 
@@ -97,7 +99,6 @@ export function AddWebhookDialog({ onSuccess }: AddWebhookDialogProps) {
       setSuccess(false);
       setSigningSecret(null);
       setError(null);
-      setCopied(false);
     }, 300);
   };
 
@@ -210,19 +211,14 @@ export function AddWebhookDialog({ onSuccess }: AddWebhookDialogProps) {
                 </div>
               </div>
 
-              {error && (
-                <div className="flex items-center gap-2 text-sm text-destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  {error}
-                </div>
-              )}
+              <InlineError message={error} />
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={handleClose}>
                 Cancel
               </Button>
               <Button onClick={handleCreate} disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading && <ButtonSpinner />}
                 {isLoading ? 'Creating...' : 'Create Webhook'}
               </Button>
             </DialogFooter>

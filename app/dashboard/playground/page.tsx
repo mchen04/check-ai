@@ -12,9 +12,14 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { CheckCircle2, XCircle, AlertCircle, Clock, Play, Copy, Code, Info } from 'lucide-react';
-import { useVerificationStatus } from '@/hooks/useVerificationStatus';
+import { Play, Copy, Code, Info } from 'lucide-react';
+import { ButtonSpinner, Spinner } from '@/components/ui/loading-spinner';
+import { useVerificationStatus, useCopyToClipboard } from '@/hooks';
 import { markOnboardingStep } from '@/app/dashboard/actions';
+import { VerdictIcon, getVerdictColor, type VerdictDisplay } from '@/components/ui/verdict-display';
+import { truncateString } from '@/lib/api/formatters';
+import { getErrorMessage } from '@/lib/utils';
+import type { VerificationStatus, Decision } from '@/lib/api/types';
 
 // =============================================================================
 // TYPES
@@ -46,7 +51,7 @@ interface OptionsState {
 
 interface ParadigmResult {
   paradigm: string;
-  verdict: string | null;
+  verdict: VerdictDisplay;
   confidence: number;
   reasoning?: string;
   processingTimeMs: number;
@@ -55,10 +60,10 @@ interface ParadigmResult {
 
 interface VerificationResponse {
   id: string;
-  status: string;
-  verdict: string | null;
+  status: VerificationStatus;
+  verdict: VerdictDisplay;
   confidence: number;
-  decision: string;
+  decision: Decision;
   reasoning: string;
   paradigmResults: ParadigmResult[];
   processingTimeMs: number;
@@ -137,38 +142,6 @@ const DEFAULT_OPTIONS: OptionsState = {
 };
 
 // =============================================================================
-// HELPERS
-// =============================================================================
-
-function getVerdictIcon(verdict: string | null, size: 'sm' | 'lg' = 'sm') {
-  const sizeClass = size === 'lg' ? 'h-8 w-8' : 'h-4 w-4';
-
-  switch (verdict) {
-    case 'true':
-      return <CheckCircle2 className={`${sizeClass} text-green-500`} />;
-    case 'false':
-      return <XCircle className={`${sizeClass} text-red-500`} />;
-    case 'uncertain':
-      return <AlertCircle className={`${sizeClass} text-yellow-500`} />;
-    default:
-      return <Clock className={`${sizeClass} text-gray-400`} />;
-  }
-}
-
-function getVerdictColor(verdict: string | null): string {
-  switch (verdict) {
-    case 'true':
-      return 'text-green-600';
-    case 'false':
-      return 'text-red-600';
-    case 'uncertain':
-      return 'text-yellow-600';
-    default:
-      return 'text-gray-400';
-  }
-}
-
-// =============================================================================
 // COMPONENT
 // =============================================================================
 
@@ -182,7 +155,7 @@ export default function PlaygroundPage() {
   const [result, setResult] = useState<VerificationResponse | null>(null);
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [showCodeSnippet, setShowCodeSnippet] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
 
   // Use real-time updates for in-progress verification
   const liveStatus = useVerificationStatus(isSubmitting && verificationId ? verificationId : null);
@@ -265,11 +238,7 @@ const result = await response.json();
 console.log(result);`;
   };
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(generateCodeSnippet());
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const handleCopyCode = () => copy(generateCodeSnippet());
 
   const handleSubmit = async () => {
     if (!content.trim()) {
@@ -315,7 +284,7 @@ console.log(result);`;
       setVerificationId(data.id);
       setResult(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(getErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -551,7 +520,7 @@ console.log(result);`;
           >
             {isSubmitting ? (
               <>
-                <Clock className="mr-2 h-4 w-4 animate-spin" />
+                <ButtonSpinner />
                 Verifying...
               </>
             ) : (
@@ -583,7 +552,7 @@ console.log(result);`;
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 animate-spin text-blue-500" />
+                  <Spinner size="sm" className="text-blue-500" />
                   <span>Running verification methods...</span>
                 </div>
                 {liveStatus.progress.total > 0 && (
@@ -611,7 +580,7 @@ console.log(result);`;
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4 flex items-center gap-4">
-                    {getVerdictIcon(result.verdict, 'lg')}
+                    <VerdictIcon verdict={result.verdict} size="lg" />
                     <div>
                       <p className={`text-3xl font-bold ${getVerdictColor(result.verdict)}`}>
                         {result.verdict
@@ -670,7 +639,7 @@ console.log(result);`;
                       className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
                     >
                       <div className="flex items-center gap-3">
-                        {getVerdictIcon(pr.verdict)}
+                        <VerdictIcon verdict={pr.verdict} />
                         <div>
                           <p className="font-medium">
                             {METHOD_INFO[pr.paradigm]?.name || pr.paradigm}
@@ -679,7 +648,7 @@ console.log(result);`;
                             <p className="text-xs text-red-500">{pr.error}</p>
                           ) : (
                             <p className="text-xs text-muted-foreground">
-                              {pr.reasoning?.slice(0, 80)}...
+                              {truncateString(pr.reasoning, 80, true)}
                             </p>
                           )}
                         </div>

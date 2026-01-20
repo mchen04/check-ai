@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { TimeRange } from '@/lib/analytics/types';
+import type { TimeRange } from '@/lib/analytics';
 
 interface TimeRangeSelectorProps {
   value: TimeRange;

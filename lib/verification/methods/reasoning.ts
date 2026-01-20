@@ -7,8 +7,7 @@
  * Best for: General verification, logical analysis
  */
 
-import { LLMClient } from '@/lib/llm/client';
-import { ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm/types';
+import { LLMClient, ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions } from '../types';
 import {
   REASONING_SYSTEM_PROMPT,

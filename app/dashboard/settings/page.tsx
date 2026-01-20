@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
-import { getUserOrgContext } from '@/lib/rbac/get-user-org';
+import { getUserOrgContext } from '@/lib/rbac';
 import { db } from '@/utils/db/db';
 import { orgMembersTable, organizationsTable, userPreferencesTable } from '@/utils/db/schema';
 import { eq, sql } from 'drizzle-orm';

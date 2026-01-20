@@ -19,6 +19,7 @@ export {
 
 export {
   checkRateLimit,
+  checkPublicRateLimit,
   cleanupInMemoryRateLimits,
   isRedisConfigured,
   type RateLimitResult,

@@ -5,7 +5,7 @@
  * verifications requiring human review.
  */
 
-import type { ParadigmResult } from '@/lib/verification/types';
+import type { ParadigmResult } from '@/lib/verification';
 
 // =============================================================================
 // Escalation Reason

@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api';
+import { withDashboardAuth, DashboardRequest, parseAndValidate } from '@/lib/api';
 import {
   createProviderCredential,
   listProviderCredentials,
-} from '@/lib/api-keys/provider-credentials';
-import { createProviderCredentialSchema } from '@/lib/api-keys/types';
+  createProviderCredentialSchema,
+} from '@/lib/api-keys';
 import { createAuditLogger } from '@/lib/audit';
-import { parseAndValidate } from '@/lib/api/validation';
 
 // =============================================================================
 // GET - List provider credentials

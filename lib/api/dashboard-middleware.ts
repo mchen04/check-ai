@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserOrgContext, checkPermission, UserOrgContext } from '@/lib/rbac/get-user-org';
-import { Permission } from '@/lib/rbac/permissions';
+import { getUserOrgContext, checkPermission, type UserOrgContext } from '@/lib/rbac/get-user-org';
+import type { Permission } from '@/lib/rbac/permissions';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('API');
@@ -153,5 +153,4 @@ export function withOrgUpdate<TParams = Record<string, string>>(
 // EXPORTS
 // =============================================================================
 
-export type { UserOrgContext } from '@/lib/rbac/get-user-org';
-export type { Permission } from '@/lib/rbac/permissions';
+export type { UserOrgContext, Permission } from '@/lib/rbac';

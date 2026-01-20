@@ -43,13 +43,16 @@ export {
   storeUploadedFile,
   getStoredFile,
   deleteStoredFile,
+  consumeStoredFile,
   isFileStorageAvailable,
 } from './file-storage';
 
 // Cleanup
 export {
   cleanupExpiredBatches,
+  cleanupExpiredVerifications,
   getCleanupStats,
+  getFullCleanupStats,
   type CleanupResult,
   type CleanupOptions,
 } from './cleanup-service';

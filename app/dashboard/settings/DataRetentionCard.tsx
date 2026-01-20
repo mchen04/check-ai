@@ -28,7 +28,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Clock, Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { ButtonSpinner } from '@/components/ui/loading-spinner';
 
 // Retention period options
 const RETENTION_OPTIONS = [
@@ -220,7 +221,7 @@ export function DataRetentionCard({ initialSettings, canEdit }: DataRetentionCar
           {canEdit && hasChanges && (
             <div className="flex items-center gap-2">
               <Button onClick={() => handleSave()} disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading && <ButtonSpinner />}
                 {saved ? (
                   <>
                     <CheckCircle className="mr-2 h-4 w-4" />

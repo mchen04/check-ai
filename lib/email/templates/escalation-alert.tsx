@@ -11,6 +11,7 @@ import {
 } from '@react-email/components';
 import { BaseTemplate, NotificationFooter } from './base-template';
 import { emailStyles } from '../styles';
+import { truncateString } from '@/lib/api';
 
 interface EscalationAlertEmailProps {
   userName: string;
@@ -70,7 +71,7 @@ export function EscalationAlertEmail({
 
       <Text style={emailStyles.sectionTitle}>Content to Review</Text>
       <Section style={emailStyles.contentBox}>
-        <Text style={emailStyles.contentText}>{truncateContent(content, 300)}</Text>
+        <Text style={emailStyles.contentText}>{truncateString(content, 300, true)}</Text>
       </Section>
 
       <Section style={emailStyles.buttonContainer}>
@@ -91,11 +92,6 @@ function formatReason(reason: string): string {
     manual_review_requested: 'Manual review requested',
   };
   return reasonMap[reason] || reason;
-}
-
-function truncateContent(content: string, maxLength: number): string {
-  if (content.length <= maxLength) return content;
-  return content.slice(0, maxLength) + '...';
 }
 
 export default EscalationAlertEmail;

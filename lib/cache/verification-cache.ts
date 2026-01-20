@@ -5,7 +5,7 @@
 
 import crypto from 'crypto';
 import { cacheGet, cacheSet, cacheDelete } from './redis';
-import { VerificationResult, MethodsConfig } from '@/lib/verification/types';
+import { VerificationResult, MethodsConfig } from '@/lib/verification';
 
 // =============================================================================
 // CACHE CONFIGURATION

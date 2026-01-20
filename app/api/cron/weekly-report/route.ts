@@ -11,9 +11,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { sendAllWeeklyReports } from '@/lib/email/send-weekly-report';
-import { createCronHandlers, cronLog as log } from '@/lib/api/cron-middleware';
-import { errorResponse } from '@/lib/api/validation';
+import { sendAllWeeklyReports } from '@/lib/email';
+import { createCronHandlers, cronLog as log, errorResponse } from '@/lib/api';
 
 // Vercel Cron config
 export const maxDuration = 300; // 5 minutes max

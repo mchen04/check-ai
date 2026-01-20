@@ -40,3 +40,12 @@ export {
   type PublicDashboardHandler,
   type DashboardMiddlewareOptions,
 } from './dashboard-middleware';
+
+// Cron Middleware
+export {
+  validateCronAuth,
+  createCronHandlers,
+  cronLog,
+  type CronEndpointDocs,
+  type CronHandler,
+} from './cron-middleware';

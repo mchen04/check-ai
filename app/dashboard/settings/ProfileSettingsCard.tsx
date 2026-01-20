@@ -12,7 +12,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, AlertCircle, Loader2 } from 'lucide-react';
+import { User } from 'lucide-react';
+import { getErrorMessage } from '@/lib/utils';
+import { InlineError } from '@/components/ui/empty-state';
+import { ButtonSpinner } from '@/components/ui/loading-spinner';
 
 interface ProfileSettingsCardProps {
   initialName: string;
@@ -55,7 +58,7 @@ export function ProfileSettingsCard({ initialName, email }: ProfileSettingsCardP
       router.refresh();
       setTimeout(() => setSuccess(false), 3000);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to update profile');
+      setError(getErrorMessage(e, 'Failed to update profile'));
     } finally {
       setIsLoading(false);
     }
@@ -93,12 +96,7 @@ export function ProfileSettingsCard({ initialName, email }: ProfileSettingsCardP
           </div>
         </div>
 
-        {error && (
-          <div className="flex items-center gap-2 text-sm text-destructive">
-            <AlertCircle className="h-4 w-4" />
-            {error}
-          </div>
-        )}
+        <InlineError message={error} />
 
         {success && (
           <div className="text-sm text-green-600">
@@ -107,7 +105,7 @@ export function ProfileSettingsCard({ initialName, email }: ProfileSettingsCardP
         )}
 
         <Button onClick={handleSave} disabled={isLoading || !hasChanges}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isLoading && <ButtonSpinner />}
           {isLoading ? 'Saving...' : 'Save Changes'}
         </Button>
       </CardContent>

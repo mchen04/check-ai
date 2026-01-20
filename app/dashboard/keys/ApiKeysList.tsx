@@ -14,8 +14,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Key, Trash2, Loader2 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Key, Trash2 } from 'lucide-react';
+import { ButtonSpinner, Spinner } from '@/components/ui/loading-spinner';
+import { formatRelativeTime } from '@/lib/utils';
 
 interface ApiKeyData {
   id: string;
@@ -90,21 +91,11 @@ export function ApiKeysList({ initialKeys }: ApiKeysListProps) {
                     {key.keyPrefix}...
                   </code>
                   <span>•</span>
-                  <span>
-                    Created{' '}
-                    {formatDistanceToNow(new Date(key.createdAt), {
-                      addSuffix: true,
-                    })}
-                  </span>
+                  <span>Created {formatRelativeTime(key.createdAt)}</span>
                   {key.lastUsedAt && (
                     <>
                       <span>•</span>
-                      <span>
-                        Last used{' '}
-                        {formatDistanceToNow(new Date(key.lastUsedAt), {
-                          addSuffix: true,
-                        })}
-                      </span>
+                      <span>Last used {formatRelativeTime(key.lastUsedAt)}</span>
                     </>
                   )}
                 </div>
@@ -118,7 +109,7 @@ export function ApiKeysList({ initialKeys }: ApiKeysListProps) {
                 disabled={isDeleting && deleteId === key.id}
               >
                 {isDeleting && deleteId === key.id ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Spinner size="sm" />
                 ) : (
                   <Trash2 className="h-4 w-4" />
                 )}
@@ -146,14 +137,8 @@ export function ApiKeysList({ initialKeys }: ApiKeysListProps) {
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                'Delete'
-              )}
+              {isDeleting && <ButtonSpinner />}
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

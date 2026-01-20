@@ -1,15 +1,22 @@
 import { NextResponse } from 'next/server';
 import { createAuditLogger } from '@/lib/audit';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api';
+import {
+  withDashboardAuth,
+  DashboardRequest,
+  extractRouteParam,
+  RouteContext,
+  parseAndValidate,
+  errorResponse,
+  successResponse,
+  formatRequiredDateToISO,
+} from '@/lib/api';
 import {
   listApiKeyCredentials,
   addCredentialToApiKey,
   removeCredentialFromApiKey,
   setDefaultCredential,
-} from '@/lib/api-keys/service';
+} from '@/lib/api-keys';
 import { z } from 'zod';
-import { extractRouteParam, RouteContext, parseAndValidate, errorResponse, successResponse } from '@/lib/api/validation';
-import { formatRequiredDateToISO } from '@/lib/api/formatters';
 
 // =============================================================================
 // GET - List credentials for an API key

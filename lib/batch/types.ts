@@ -4,8 +4,7 @@
  */
 
 import { z } from 'zod';
-import { methodsConfigSchema, MethodsConfig, VerifyOptions } from '@/lib/verification/types';
-import { VerifyOptionsSchema } from '@/lib/verification/validator';
+import { methodsConfigSchema, MethodsConfig, VerifyOptions, VerifyOptionsSchema } from '@/lib/verification';
 import type { BatchStatus, BatchItemStatus } from '@/utils/db/schema';
 
 // Re-export MethodsConfig for consumers of this module

@@ -9,7 +9,7 @@
 
 import OpenAI from 'openai';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions, Verdict } from '../types';
-import { calculateCostCents } from '@/lib/llm/types';
+import { calculateCostCents } from '@/lib/llm';
 import { createParadigmErrorResult } from './shared';
 
 // =============================================================================

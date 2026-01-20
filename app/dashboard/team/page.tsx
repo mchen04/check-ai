@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getUserOrgContext } from '@/lib/rbac/get-user-org';
+import { getUserOrgContext } from '@/lib/rbac';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,7 @@ import { PendingInviteActions } from './PendingInviteActions';
 import { db } from '@/utils/db/db';
 import { orgMembersTable, usersTable, orgInvitesTable } from '@/utils/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { formatDistanceToNow } from 'date-fns';
+import { formatRelativeTime } from '@/lib/utils';
 
 const ROLE_ICONS = {
   owner: Crown,
@@ -140,7 +140,7 @@ export default async function TeamPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-muted-foreground">
-                      {formatDistanceToNow(new Date(member.joinedAt), { addSuffix: true })}
+                      {formatRelativeTime(member.joinedAt)}
                     </span>
                     {canManageRoles && !isCurrentUser && member.role !== 'owner' && (
                       <TeamMemberActions
@@ -180,7 +180,7 @@ export default async function TeamPage() {
                       <p className="text-xs font-medium">{invite.email}</p>
                       <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                         <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">{invite.role}</Badge>
-                        <span>Expires {formatDistanceToNow(new Date(invite.expiresAt), { addSuffix: true })}</span>
+                        <span>Expires {formatRelativeTime(invite.expiresAt)}</span>
                       </div>
                     </div>
                   </div>

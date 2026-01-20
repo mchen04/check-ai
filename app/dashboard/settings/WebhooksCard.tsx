@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { TestResultBadge, ActiveStatusBadge } from '@/components/ui/status-badge';
 import {
   Table,
   TableBody,
@@ -26,16 +27,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { DeleteConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Webhook,
   MoreHorizontal,
@@ -43,11 +35,10 @@ import {
   Pause,
   Trash2,
   TestTube,
-  Loader2,
-  CheckCircle,
-  XCircle,
   History,
 } from 'lucide-react';
+import { LoadingState, LoadingSpinner } from '@/components/ui/loading-spinner';
+import { formatDate } from '@/lib/utils';
 import { AddWebhookDialog } from './AddWebhookDialog';
 import { WebhookDeliveriesDialog } from './WebhookDeliveriesDialog';
 
@@ -156,38 +147,18 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   const getStatusBadge = (webhook: WebhookData) => {
     // Show test result if available
     if (testResult?.id === webhook.id) {
-      return testResult.success ? (
-        <Badge variant="default" className="bg-green-500">
-          <CheckCircle className="mr-1 h-3 w-3" />
-          Success
-        </Badge>
-      ) : (
-        <Badge variant="destructive">
-          <XCircle className="mr-1 h-3 w-3" />
-          Failed
-        </Badge>
-      );
+      return <TestResultBadge success={testResult.success} />;
     }
 
     // Inactive webhook
     if (!webhook.isActive) {
-      return <Badge variant="secondary">Paused</Badge>;
+      return <ActiveStatusBadge isActive={false} inactiveLabel="Paused" />;
     }
 
-    // Active with failures
+    // Active with failures - keep inline for onClick handler
     if (webhook.failureCount > 0) {
       return (
         <Badge variant="destructive" className="cursor-pointer" onClick={() => setDeliveriesWebhook(webhook)}>
@@ -197,11 +168,7 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
     }
 
     // Active and healthy
-    return (
-      <Badge variant="default" className="bg-green-500">
-        Active
-      </Badge>
-    );
+    return <ActiveStatusBadge isActive={true} />;
   };
 
   return (
@@ -223,9 +190,7 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
+            <LoadingState height="sm" />
           ) : webhooks.length === 0 ? (
             <div className="rounded-lg bg-muted p-4">
               <p className="mb-4 text-sm text-muted-foreground">
@@ -286,7 +251,7 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
                               disabled={actionLoading === webhook.id}
                             >
                               {actionLoading === webhook.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <LoadingSpinner size="sm" />
                               ) : (
                                 <MoreHorizontal className="h-4 w-4" />
                               )}
@@ -347,27 +312,13 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Webhook</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this webhook? This action cannot be undone.
-              All delivery history will also be deleted.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={deleteWebhook}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={!!deleteId}
+        onOpenChange={() => setDeleteId(null)}
+        itemName="Webhook"
+        description="Are you sure you want to delete this webhook? This action cannot be undone. All delivery history will also be deleted."
+        onConfirm={deleteWebhook}
+      />
     </>
   );
 }

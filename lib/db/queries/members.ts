@@ -6,14 +6,14 @@
 import { db } from '@/utils/db/db';
 import { orgMembersTable, usersTable, userPreferencesTable } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
-import type { OrgRole } from '@/lib/rbac/permissions';
+import type { OrgRole } from '@/lib/rbac';
 
 // =============================================================================
 // TYPES
 // =============================================================================
 
 // Re-export OrgRole for consumers of this module
-export type { OrgRole } from '@/lib/rbac/permissions';
+export type { OrgRole } from '@/lib/rbac';
 
 export interface OrgMemberWithUser {
   userId: string;

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getUserOrgContext } from '@/lib/rbac/get-user-org';
+import { getUserOrgContext } from '@/lib/rbac';
 import { db } from '@/utils/db/db';
 import {
   verificationsTable,
@@ -20,46 +20,18 @@ import {
   Activity,
   TrendingUp,
   ArrowUpRight,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
   PlayCircle,
-  Clock,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatRelativeTime } from '@/lib/utils';
+import { truncateString } from '@/lib/api/formatters';
+import type { VerificationStatus } from '@/lib/api/types';
 import { OnboardingChecklist } from '@/components/OnboardingChecklist';
+import { VerdictIcon, VerdictBadge, type VerdictDisplay } from '@/components/ui/verdict-display';
 
 // Get the start of the current month
 function getMonthStart() {
   const now = new Date();
   return new Date(now.getFullYear(), now.getMonth(), 1);
-}
-
-// Helper to get verdict icon
-function getVerdictIcon(verdict: string | null) {
-  switch (verdict) {
-    case 'true':
-      return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-    case 'false':
-      return <XCircle className="h-4 w-4 text-red-500" />;
-    case 'uncertain':
-      return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-    default:
-      return <Clock className="h-4 w-4 text-muted-foreground" />;
-  }
-}
-
-function getVerdictBadge(verdict: string | null) {
-  switch (verdict) {
-    case 'true':
-      return <Badge className="bg-green-100 text-green-800">Verified</Badge>;
-    case 'false':
-      return <Badge className="bg-red-100 text-red-800">False</Badge>;
-    case 'uncertain':
-      return <Badge className="bg-yellow-100 text-yellow-800">Uncertain</Badge>;
-    default:
-      return <Badge variant="outline">Pending</Badge>;
-  }
 }
 
 export default async function Dashboard() {
@@ -86,8 +58,8 @@ export default async function Dashboard() {
   let recentVerifications: Array<{
     id: string;
     content: string;
-    status: string;
-    finalVerdict: string | null;
+    status: VerificationStatus;
+    finalVerdict: VerdictDisplay;
     confidenceScore: string | null;
     createdAt: Date;
   }> = [];
@@ -196,7 +168,10 @@ export default async function Dashboard() {
       monthlyCost: Number(usageResult[0]?.cost ?? 0),
     };
 
-    recentVerifications = recentResult;
+    recentVerifications = recentResult.map((v) => ({
+      ...v,
+      finalVerdict: v.finalVerdict as VerdictDisplay,
+    }));
 
     // Derive completion status from actual data rather than flags
     const hasAddedProvider = Number(providersResult[0]?.count ?? 0) > 0;
@@ -313,21 +288,17 @@ export default async function Dashboard() {
                   href={`/dashboard/verify/${v.id}`}
                   className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-muted/50"
                 >
-                  {getVerdictIcon(v.finalVerdict)}
+                  <VerdictIcon verdict={v.finalVerdict} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-medium">
-                      {v.content.length > 80
-                        ? v.content.slice(0, 80) + '...'
-                        : v.content}
+                      {truncateString(v.content, 80, true)}
                     </p>
                     <p className="text-[10px] text-muted-foreground">
-                      {formatDistanceToNow(new Date(v.createdAt), {
-                        addSuffix: true,
-                      })}
+                      {formatRelativeTime(v.createdAt)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {getVerdictBadge(v.finalVerdict)}
+                    <VerdictBadge verdict={v.finalVerdict} />
                     {v.confidenceScore && (
                       <span className="text-[10px] text-muted-foreground">
                         {(parseFloat(v.confidenceScore) * 100).toFixed(0)}%

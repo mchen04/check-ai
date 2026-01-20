@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
-import { withDashboardAuth, type DashboardRequest } from '@/lib/api/dashboard-middleware';
-import { parseAndValidate, errorResponse } from '@/lib/api/validation';
+import { withDashboardAuth, type DashboardRequest, parseAndValidate, errorResponse } from '@/lib/api';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('Profile');

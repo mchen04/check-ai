@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatRelativeTime, getErrorMessage } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -13,7 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { BatchStatusBadge, type BatchDisplayStatus } from '@/components/ui/status-badge';
+import type { BatchStatus } from '@/lib/api/types';
 import { Progress } from '@/components/ui/progress';
 import {
   Dialog,
@@ -33,8 +34,10 @@ import {
   Upload,
   Layers,
   FileText,
-  Loader2,
 } from 'lucide-react';
+import { Spinner } from '@/components/ui/loading-spinner';
+import { truncateString } from '@/lib/api/formatters';
+import { PAGINATION_LIMITS } from '@/lib/constants';
 
 // =============================================================================
 // TYPES
@@ -43,7 +46,7 @@ import {
 interface BatchJob {
   id: string;
   name: string | null;
-  status: 'pending' | 'validating' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  status: BatchStatus;
   totalItems: number;
   processedItems: number;
   successCount: number;
@@ -69,43 +72,19 @@ interface BatchStats {
 // HELPERS
 // =============================================================================
 
-function getStatusBadge(status: string) {
-  switch (status) {
-    case 'completed':
-      return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
-    case 'processing':
-      return <Badge className="bg-blue-100 text-blue-800">Processing</Badge>;
-    case 'pending':
-      return <Badge className="bg-gray-100 text-gray-800">Pending</Badge>;
-    case 'validating':
-      return <Badge className="bg-purple-100 text-purple-800">Validating</Badge>;
-    case 'failed':
-      return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
-    case 'cancelled':
-      return <Badge className="bg-orange-100 text-orange-800">Cancelled</Badge>;
-    default:
-      return <Badge variant="outline">{status}</Badge>;
-  }
-}
 
-function getStatusIcon(status: string) {
+function getStatusIcon(status: BatchStatus) {
   switch (status) {
     case 'completed':
       return <CheckCircle2 className="h-4 w-4 text-green-500" />;
     case 'processing':
-      return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
+      return <Spinner size="sm" className="text-blue-500" />;
     case 'failed':
     case 'cancelled':
       return <XCircle className="h-4 w-4 text-red-500" />;
     default:
       return <Clock className="h-4 w-4 text-gray-400" />;
   }
-}
-
-function truncateName(name: string | null, maxLength: number = 40): string {
-  if (!name) return 'Unnamed Batch';
-  if (name.length <= maxLength) return name;
-  return name.slice(0, maxLength) + '...';
 }
 
 // =============================================================================
@@ -125,7 +104,7 @@ export default function BatchListPage() {
   const fetchBatches = useCallback(async (pageNum: number = 1, append: boolean = false) => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/dashboard/batches?page=${pageNum}&limit=20`);
+      const response = await fetch(`/api/dashboard/batches?page=${pageNum}&limit=${PAGINATION_LIMITS.defaultLimit}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch batches');
@@ -137,7 +116,7 @@ export default function BatchListPage() {
       setHasMore(data.pagination.hasMore);
       setPage(pageNum);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -284,12 +263,12 @@ export default function BatchListPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {getStatusIcon(batch.status)}
-                        {getStatusBadge(batch.status)}
+                        <BatchStatusBadge status={batch.status} />
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{truncateName(batch.name || batch.originalFileName)}</p>
+                        <p className="font-medium">{truncateString(batch.name || batch.originalFileName, 40, true) || 'Unnamed Batch'}</p>
                         {batch.inputFormat && (
                           <div className="flex items-center gap-1 text-xs text-muted-foreground">
                             <FileText className="h-3 w-3" />
@@ -319,9 +298,7 @@ export default function BatchListPage() {
                         : '-'}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatDistanceToNow(new Date(batch.createdAt), {
-                        addSuffix: true,
-                      })}
+                      {formatRelativeTime(batch.createdAt)}
                     </TableCell>
                     <TableCell>
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api';
-import { validateProviderCredential } from '@/lib/api-keys/provider-credentials';
+import { validateProviderCredential } from '@/lib/api-keys';
 
 // =============================================================================
 // POST - Validate a provider credential

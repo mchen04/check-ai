@@ -7,7 +7,7 @@ import DashboardHeaderProfileDropdown from './DashboardHeaderProfileDropdown';
 import { Badge } from '@/components/ui/badge';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getUserOrgContext } from '@/lib/rbac/get-user-org';
+import { getUserOrgContext } from '@/lib/rbac';
 
 async function UserPlanBadge() {
   const context = await getUserOrgContext();

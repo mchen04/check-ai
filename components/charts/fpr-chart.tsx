@@ -14,7 +14,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { paradigmChartConfig } from './chart-config';
-import type { ParadigmFPRData } from '@/lib/analytics/types';
+import type { ParadigmFPRData } from '@/lib/analytics';
 
 interface FPRChartProps {
   data: ParadigmFPRData[];

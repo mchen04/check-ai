@@ -4,8 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import { cancelBatch } from '@/lib/batch';
-import { ApiError, withApiMiddleware, ApiRequest } from '@/lib/api';
-import { extractRouteParam, RouteContext } from '@/lib/api/validation';
+import { ApiError, withApiMiddleware, ApiRequest, extractRouteParam, RouteContext } from '@/lib/api';
 
 // =============================================================================
 // POST - Cancel Batch

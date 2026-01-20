@@ -21,7 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { UserPlus, AlertCircle, Check, Copy } from 'lucide-react';
+import { UserPlus, Check, Copy } from 'lucide-react';
+import { getErrorMessage } from '@/lib/utils';
+import { useCopyToClipboard } from '@/hooks';
+import { InlineError } from '@/components/ui/empty-state';
 
 export function InviteMemberDialog() {
   const router = useRouter();
@@ -32,7 +35,7 @@ export function InviteMemberDialog() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
 
   const handleInvite = async () => {
     if (!email.trim()) {
@@ -59,17 +62,15 @@ export function InviteMemberDialog() {
       setSuccess(true);
       setInviteUrl(data.inviteUrl);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to send invite');
+      setError(getErrorMessage(e, 'Failed to send invite'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCopyLink = async () => {
+  const handleCopyLink = () => {
     if (inviteUrl) {
-      await navigator.clipboard.writeText(inviteUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      copy(inviteUrl);
     }
   };
 
@@ -82,7 +83,6 @@ export function InviteMemberDialog() {
       setSuccess(false);
       setInviteUrl(null);
       setError(null);
-      setCopied(false);
       router.refresh();
     }, 300);
   };
@@ -163,12 +163,7 @@ export function InviteMemberDialog() {
                   You can change their role after they join.
                 </p>
               </div>
-              {error && (
-                <div className="flex items-center gap-2 text-sm text-destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  {error}
-                </div>
-              )}
+              <InlineError message={error} />
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={handleClose}>

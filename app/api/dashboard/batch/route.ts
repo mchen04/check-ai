@@ -7,8 +7,8 @@ import {
   createBatch,
   createBatchSchema,
   BATCH_CONSTANTS,
+  consumeStoredFile,
 } from '@/lib/batch';
-import { consumeStoredFile } from '@/lib/batch/file-storage';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api';
 import { PLAN_LIMITS } from '@/utils/db/schema';
 import { db } from '@/utils/db/db';

@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
-import { sendTestWebhook } from '@/lib/webhooks/service';
-import { extractRouteParam, RouteContext, errorResponse } from '@/lib/api/validation';
-import { getWebhook } from '@/lib/webhooks/repository';
+import { withDashboardAuth, DashboardRequest, extractRouteParam, RouteContext, errorResponse } from '@/lib/api';
+import { sendTestWebhook, getWebhook } from '@/lib/webhooks';
 
 // =============================================================================
 // POST - Send test webhook

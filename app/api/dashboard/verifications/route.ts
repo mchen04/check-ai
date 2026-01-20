@@ -7,9 +7,13 @@ import { NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
 import { verificationsTable } from '@/utils/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { withDashboardRead, type DashboardRequest } from '@/lib/api/dashboard-middleware';
-import { parsePagination, paginateResults } from '@/lib/api/types';
-import { formatVerificationForResponse } from '@/lib/api/formatters';
+import {
+  withDashboardRead,
+  type DashboardRequest,
+  parsePagination,
+  paginateResults,
+  formatVerificationForResponse,
+} from '@/lib/api';
 
 async function handler(req: DashboardRequest) {
   const { context } = req;

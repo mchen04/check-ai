@@ -59,3 +59,75 @@ export const RESOURCE_TYPE_LABELS: Record<string, string> = {
   organization: 'Organization',
   escalation: 'Escalation',
 };
+
+// =============================================================================
+// API RESPONSE TYPES
+// =============================================================================
+
+/**
+ * Audit log as returned by the API (with nested user object)
+ */
+export interface ApiAuditLog {
+  id: string;
+  eventType: AuditEventType;
+  description: string;
+  resourceType: string;
+  resourceId: string | null;
+  changes: AuditChanges | null;
+  metadata: AuditMetadata | null;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  } | null;
+}
+
+/**
+ * Flattened audit log for UI consumption
+ */
+export interface AuditLogDisplay {
+  id: string;
+  eventType: AuditEventType;
+  description: string;
+  resourceType: string;
+  resourceId: string | null;
+  userId: string | null;
+  userName: string | null;
+  userEmail: string | null;
+  changes: AuditChanges | null;
+  metadata: AuditMetadata | null;
+  createdAt: string;
+}
+
+/**
+ * Standard paginated response for audit logs API
+ */
+export interface AuditLogsApiResponse {
+  logs: ApiAuditLog[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+}
+
+/**
+ * Transform API audit log to display format
+ */
+export function transformApiAuditLog(log: ApiAuditLog): AuditLogDisplay {
+  return {
+    id: log.id,
+    eventType: log.eventType,
+    description: log.description,
+    resourceType: log.resourceType,
+    resourceId: log.resourceId,
+    changes: log.changes,
+    metadata: log.metadata,
+    createdAt: log.createdAt,
+    userId: log.user?.id || null,
+    userName: log.user?.name || null,
+    userEmail: log.user?.email || null,
+  };
+}

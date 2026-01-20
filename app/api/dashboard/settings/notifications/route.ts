@@ -3,8 +3,7 @@ import { z } from 'zod';
 import { db } from '@/utils/db/db';
 import { userPreferencesTable } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
-import { withDashboardAuth, type DashboardRequest } from '@/lib/api/dashboard-middleware';
-import { parseAndValidate } from '@/lib/api/validation';
+import { withDashboardAuth, type DashboardRequest, parseAndValidate } from '@/lib/api';
 
 // =============================================================================
 // GET - Get user notification preferences

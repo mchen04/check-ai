@@ -10,4 +10,14 @@ export {
   resolveEscalation,
   dismissEscalation,
 } from './service';
-export { getEscalationStatus } from './repository';
+
+export {
+  getEscalationStatus,
+  listEscalations,
+  getEscalationStats,
+  getEscalation,
+  getEscalationByIdAndOrg,
+  findByVerificationId,
+  type EscalationRecord,
+  type EscalationQueryResult,
+} from './repository';

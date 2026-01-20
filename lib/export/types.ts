@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import { EXPORT_LIMITS } from '@/lib/constants/limits';
+import { EXPORT_LIMITS } from '@/lib/constants';
 
 // =============================================================================
 // Request Types

@@ -8,7 +8,7 @@
 import { db } from '@/utils/db/db';
 import { providerCredentialsTable, apiKeyCredentialsTable } from '@/utils/db/schema';
 import { eq, and, isNull, sql } from 'drizzle-orm';
-import { encrypt, decrypt } from '@/lib/llm/key-manager';
+import { encrypt, decrypt } from '@/lib/llm';
 import {
   ProviderCredential,
   CredentialProvider,

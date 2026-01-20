@@ -12,8 +12,7 @@
  * - Type checkers for code verification
  */
 
-import { LLMClient } from '@/lib/llm/client';
-import { ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm/types';
+import { LLMClient, ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions, Verdict } from '../types';
 import { FORMAL_SYSTEM_PROMPT, FORMAL_USER_PROMPT } from '../prompts';
 import {

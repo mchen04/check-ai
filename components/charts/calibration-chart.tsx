@@ -16,7 +16,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { paradigmChartConfig } from './chart-config';
-import type { ParadigmCalibration, ConfidenceBucket } from '@/lib/analytics/types';
+import type { ParadigmCalibration, ConfidenceBucket } from '@/lib/analytics';
 
 interface CalibrationChartProps {
   data: ParadigmCalibration[];

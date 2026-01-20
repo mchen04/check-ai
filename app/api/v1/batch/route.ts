@@ -9,8 +9,8 @@ import {
   listBatches,
   createBatchSchema,
   BATCH_CONSTANTS,
+  consumeStoredFile,
 } from '@/lib/batch';
-import { consumeStoredFile } from '@/lib/batch/file-storage';
 import {
   ValidationError,
   NotFoundError,

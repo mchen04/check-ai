@@ -21,7 +21,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { AlertCircle, Loader2, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
+import { getErrorMessage } from '@/lib/utils';
+import { ButtonSpinner } from '@/components/ui/loading-spinner';
+import { InlineError } from '@/components/ui/empty-state';
 
 interface DangerZoneCardProps {
   organizationName: string;
@@ -60,7 +63,7 @@ export function DangerZoneCard({ organizationName }: DangerZoneCardProps) {
       // Redirect to login after deletion
       router.push('/login?deleted=true');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to delete organization');
+      setError(getErrorMessage(e, 'Failed to delete organization'));
     } finally {
       setIsLoading(false);
     }
@@ -123,12 +126,7 @@ export function DangerZoneCard({ organizationName }: DangerZoneCardProps) {
                 />
               </div>
 
-              {error && (
-                <div className="flex items-center gap-2 text-sm text-destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  {error}
-                </div>
-              )}
+              <InlineError message={error} />
 
               <AlertDialogFooter>
                 <Button variant="outline" onClick={handleClose} disabled={isLoading}>
@@ -139,7 +137,7 @@ export function DangerZoneCard({ organizationName }: DangerZoneCardProps) {
                   onClick={handleDelete}
                   disabled={!canDelete || isLoading}
                 >
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isLoading && <ButtonSpinner />}
                   {isLoading ? 'Deleting...' : 'Delete Organization'}
                 </Button>
               </AlertDialogFooter>

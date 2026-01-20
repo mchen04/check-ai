@@ -43,21 +43,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { DeleteConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Key,
   MoreHorizontal,
   Trash2,
-  Loader2,
   Plus,
   Copy,
   Check,
@@ -65,6 +55,10 @@ import {
   EyeOff,
   Pencil,
 } from 'lucide-react';
+import { LoadingState, LoadingSpinner, ButtonSpinner } from '@/components/ui/loading-spinner';
+import { InlineError } from '@/components/ui/empty-state';
+import { formatDate } from '@/lib/utils';
+import { useCopyToClipboard } from '@/hooks';
 import {
   useParadigmConfig,
   getParadigmSummary,
@@ -117,7 +111,7 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
   // Create dialog state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
   const [showKey, setShowKey] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -195,9 +189,7 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
 
   const copyKey = () => {
     if (newApiKey) {
-      navigator.clipboard.writeText(newApiKey);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      copy(newApiKey);
     }
   };
 
@@ -293,16 +285,6 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
     } finally {
       setIsEditSubmitting(false);
     }
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   };
 
   return (
@@ -419,16 +401,14 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
                           idPrefix="create-"
                         />
 
-                        {formError && (
-                          <div className="text-sm text-destructive">{formError}</div>
-                        )}
+                        <InlineError message={formError} />
                       </div>
                       <DialogFooter>
                         <Button variant="outline" onClick={closeDialog}>
                           Cancel
                         </Button>
                         <Button onClick={handleSubmit} disabled={isSubmitting}>
-                          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          {isSubmitting && <ButtonSpinner />}
                           Create Key
                         </Button>
                       </DialogFooter>
@@ -445,9 +425,7 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
+            <LoadingState height="sm" />
           ) : credentials.length === 0 ? (
             <div className="rounded-lg bg-muted p-4">
               <p className="text-sm text-muted-foreground">
@@ -502,7 +480,7 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
                               disabled={actionLoading === key.id}
                             >
                               {actionLoading === key.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <LoadingSpinner size="sm" />
                               ) : (
                                 <MoreHorizontal className="h-4 w-4" />
                               )}
@@ -587,41 +565,27 @@ export function ApiKeysCard({ canEdit }: ApiKeysCardProps) {
               idPrefix="edit-"
             />
 
-            {editError && <div className="text-sm text-destructive">{editError}</div>}
+            <InlineError message={editError} />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditKey(null)}>
               Cancel
             </Button>
             <Button onClick={handleEditSubmit} disabled={isEditSubmitting}>
-              {isEditSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isEditSubmitting && <ButtonSpinner />}
               Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete API Key</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this API key? All requests using this key will
-              fail. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={deleteKey}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={!!deleteId}
+        onOpenChange={() => setDeleteId(null)}
+        itemName="API Key"
+        description="Are you sure you want to delete this API key? All requests using this key will fail. This action cannot be undone."
+        onConfirm={deleteKey}
+      />
     </>
   );
 }

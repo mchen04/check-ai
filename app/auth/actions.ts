@@ -7,7 +7,7 @@ import { db } from '@/utils/db/db';
 import { usersTable } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
 import { createDefaultOrganization } from '@/lib/org/create-org';
-import { sendWelcomeEmail } from '@/lib/email/send-welcome';
+import { sendWelcomeEmail } from '@/lib/email';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('Auth');

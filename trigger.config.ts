@@ -1,4 +1,4 @@
-import { defineConfig } from "@trigger.dev/sdk";
+import { defineConfig } from "@trigger.dev/sdk/v3";
 
 export default defineConfig({
   // IMPORTANT: Replace with your actual project ref from https://cloud.trigger.dev

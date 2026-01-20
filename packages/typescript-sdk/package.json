@@ -60,9 +60,5 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  },
-  "dependencies": {
-    "drizzle-kit": "^0.18.1",
-    "eslint-config-next": "16.1.1"
   }
 }

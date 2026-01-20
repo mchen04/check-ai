@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { formatDistanceToNow } from 'date-fns';
+import { formatRelativeTime, getErrorMessage } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -13,23 +13,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import {
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  Clock,
-  ChevronRight,
-  RefreshCw,
-  Download,
-  Loader2,
-} from 'lucide-react';
+import { VerificationStatusBadge } from '@/components/ui/status-badge';
+import { ChevronRight, RefreshCw, Download } from 'lucide-react';
+import { Spinner } from '@/components/ui/loading-spinner';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { VerdictIcon, VerdictBadge, type VerdictDisplay } from '@/components/ui/verdict-display';
+import type { VerificationStatus } from '@/lib/api/types';
+import { truncateString } from '@/lib/api/formatters';
+import { PAGINATION_LIMITS } from '@/lib/constants';
 
 // =============================================================================
 // TYPES
@@ -38,63 +34,13 @@ import {
 interface Verification {
   id: string;
   content: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'escalated';
-  verdict: string | null;
+  status: VerificationStatus;
+  verdict: VerdictDisplay;
   confidence: number | null;
   processingTimeMs: number | null;
   costCents: number | null;
   createdAt: string;
   completedAt: string | null;
-}
-
-// =============================================================================
-// HELPERS
-// =============================================================================
-
-function getVerdictIcon(verdict: string | null) {
-  switch (verdict) {
-    case 'true':
-      return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-    case 'false':
-      return <XCircle className="h-4 w-4 text-red-500" />;
-    case 'uncertain':
-      return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-    default:
-      return <Clock className="h-4 w-4 text-gray-400" />;
-  }
-}
-
-function getVerdictBadge(verdict: string | null) {
-  switch (verdict) {
-    case 'true':
-      return <Badge className="bg-green-100 text-green-800">Verified</Badge>;
-    case 'false':
-      return <Badge className="bg-red-100 text-red-800">False</Badge>;
-    case 'uncertain':
-      return <Badge className="bg-yellow-100 text-yellow-800">Uncertain</Badge>;
-    default:
-      return <Badge variant="outline">Pending</Badge>;
-  }
-}
-
-function getStatusBadge(status: string) {
-  switch (status) {
-    case 'completed':
-      return <Badge className="bg-blue-100 text-blue-800">Completed</Badge>;
-    case 'processing':
-      return <Badge className="bg-purple-100 text-purple-800">Processing</Badge>;
-    case 'failed':
-      return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
-    case 'escalated':
-      return <Badge className="bg-orange-100 text-orange-800">Escalated</Badge>;
-    default:
-      return <Badge variant="outline">Pending</Badge>;
-  }
-}
-
-function truncateContent(content: string, maxLength: number = 60): string {
-  if (content.length <= maxLength) return content;
-  return content.slice(0, maxLength) + '...';
 }
 
 // =============================================================================
@@ -113,7 +59,7 @@ export default function VerificationHistoryPage() {
   const fetchVerifications = useCallback(async (pageNum: number = 1) => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/dashboard/verifications?page=${pageNum}&limit=20`);
+      const response = await fetch(`/api/dashboard/verifications?page=${pageNum}&limit=${PAGINATION_LIMITS.defaultLimit}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch verifications');
@@ -126,7 +72,7 @@ export default function VerificationHistoryPage() {
       setHasMore(data.hasMore);
       setPage(pageNum);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -214,7 +160,7 @@ export default function VerificationHistoryPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="h-7 text-xs" disabled={isExporting || verifications.length === 0}>
                 {isExporting ? (
-                  <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+                  <Spinner size="xs" className="mr-1.5" />
                 ) : (
                   <Download className="mr-1.5 h-3 w-3" />
                 )}
@@ -303,14 +249,14 @@ export default function VerificationHistoryPage() {
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => handleRowClick(v.id)}
                   >
-                    <TableCell>{getStatusBadge(v.status)}</TableCell>
+                    <TableCell><VerificationStatusBadge status={v.status} /></TableCell>
                     <TableCell className="max-w-xs">
-                      <span className="font-mono text-sm">{truncateContent(v.content)}</span>
+                      <span className="font-mono text-sm">{truncateString(v.content, 60, true)}</span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {getVerdictIcon(v.verdict)}
-                        {getVerdictBadge(v.verdict)}
+                        <VerdictIcon verdict={v.verdict} />
+                        <VerdictBadge verdict={v.verdict} />
                       </div>
                     </TableCell>
                     <TableCell>
@@ -323,9 +269,7 @@ export default function VerificationHistoryPage() {
                       {v.costCents !== null ? `$${(v.costCents / 100).toFixed(4)}` : '-'}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatDistanceToNow(new Date(v.createdAt), {
-                        addSuffix: true,
-                      })}
+                      {formatRelativeTime(v.createdAt)}
                     </TableCell>
                     <TableCell>
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />

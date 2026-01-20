@@ -24,7 +24,11 @@ export interface ParadigmProgress {
   completedAt: number;
 }
 
-export interface VerificationStatus {
+/**
+ * State shape for the useVerificationStatus hook.
+ * Note: This is different from VerificationStatus in @/lib/api/types which is just the status string.
+ */
+export interface VerificationStatusState {
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'escalated';
   progress: {
     completed: number;
@@ -40,8 +44,8 @@ export interface VerificationStatus {
   } | null;
 }
 
-interface UseVerificationStatusOptions {
-  onComplete?: (result: VerificationStatus['result']) => void;
+export interface UseVerificationStatusOptions {
+  onComplete?: (result: VerificationStatusState['result']) => void;
   onError?: (error: Error) => void;
   pollInterval?: number; // Fallback polling interval in ms
 }
@@ -53,10 +57,10 @@ interface UseVerificationStatusOptions {
 export function useVerificationStatus(
   verificationId: string | null,
   options: UseVerificationStatusOptions = {}
-): VerificationStatus & { isLoading: boolean; error: Error | null } {
+): VerificationStatusState & { isLoading: boolean; error: Error | null } {
   const { onComplete, onError, pollInterval = 2000 } = options;
 
-  const [status, setStatus] = useState<VerificationStatus>({
+  const [status, setStatus] = useState<VerificationStatusState>({
     status: 'pending',
     progress: { completed: 0, total: 0 },
     paradigmResults: [],
@@ -72,7 +76,7 @@ export function useVerificationStatus(
   const handleStatusUpdate = useCallback((data: VerificationUpdate['data']) => {
     setStatus((prev) => ({
       ...prev,
-      status: (data.status as VerificationStatus['status']) || prev.status,
+      status: (data.status as VerificationStatusState['status']) || prev.status,
       progress: data.progress || prev.progress,
     }));
   }, []);

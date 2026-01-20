@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCopyToClipboard } from '@/hooks';
 
 interface CodeBlockProps {
   code: string;
@@ -19,13 +19,7 @@ export function CodeBlock({
   showLineNumbers = false,
   className,
 }: CodeBlockProps) {
-  const [copied, setCopied] = useState(false);
-
-  async function copyToClipboard() {
-    await navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
+  const { copied, copy } = useCopyToClipboard();
 
   const lines = code.trim().split('\n');
 
@@ -41,7 +35,7 @@ export function CodeBlock({
 
       {/* Copy button */}
       <button
-        onClick={copyToClipboard}
+        onClick={() => copy(code)}
         className="absolute right-2 top-2 z-10 rounded-md border border-border bg-background p-1.5 opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
         aria-label="Copy code"
       >

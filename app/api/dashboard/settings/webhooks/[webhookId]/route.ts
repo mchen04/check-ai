@@ -2,12 +2,19 @@ import { NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
 import { webhooksTable } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
-import { withDashboardAuth } from '@/lib/api';
+import {
+  withDashboardAuth,
+  extractRouteParam,
+  RouteContext,
+  parseAndValidate,
+  errorResponse,
+  successResponse,
+  formatDateToISO,
+  formatWebhookForResponse,
+} from '@/lib/api';
 import { createAuditLogger } from '@/lib/audit';
-import { UpdateWebhookSchema } from '@/lib/constants/webhooks';
-import { extractRouteParam, RouteContext, parseAndValidate, errorResponse, successResponse } from '@/lib/api/validation';
-import { formatDateToISO, formatWebhookForResponse } from '@/lib/api/formatters';
-import { getWebhook, getWebhookDeliveries, updateWebhook, deleteWebhook } from '@/lib/webhooks/repository';
+import { UpdateWebhookSchema } from '@/lib/constants';
+import { getWebhook, getWebhookDeliveries, updateWebhook, deleteWebhook } from '@/lib/webhooks';
 
 type RouteParams = { webhookId: string };
 

@@ -2,9 +2,9 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/utils/db/db';
 import { waitlistTable } from '@/utils/db/schema';
-import { checkPublicRateLimit } from '@/lib/cache/ratelimit';
+import { checkPublicRateLimit } from '@/lib/cache';
 import { createLogger } from '@/lib/logger';
-import { errorResponse, successResponse, parseAndValidate } from '@/lib/api/validation';
+import { errorResponse, successResponse, parseAndValidate } from '@/lib/api';
 
 const log = createLogger('Waitlist');
 

@@ -4,7 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { ProviderKeys } from '@/lib/llm/types';
+import { ProviderKeys } from '@/lib/llm';
 import {
   ParadigmType,
   ParadigmExecutor,

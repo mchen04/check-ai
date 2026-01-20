@@ -1,0 +1,230 @@
+/**
+ * Provider UI Configuration
+ *
+ * Single source of truth for provider UI metadata (labels, descriptions, colors).
+ * This extends the core config.ts with UI-specific data.
+ *
+ * Usage:
+ * - Import PROVIDER_UI_CONFIG for full metadata
+ * - Import PROVIDER_OPTIONS for select/dropdown options
+ * - Import getProviderColor for badge/indicator colors
+ */
+
+import { LLMProvider } from './types';
+import { PROVIDER_TIERS, ALL_PROVIDERS } from './config';
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+export interface ProviderUIConfig {
+  /** Provider ID (matches LLMProvider type) */
+  id: LLMProvider;
+  /** Display label */
+  label: string;
+  /** Short description for UI */
+  description: string;
+  /** Tailwind color class for badges/indicators */
+  color: string;
+  /** Tier (1-4) */
+  tier: 1 | 2 | 3 | 4;
+  /** Whether this provider is recommended for new users */
+  recommended?: boolean;
+  /** Whether this provider requires enterprise setup */
+  enterprise?: boolean;
+}
+
+export interface ProviderSelectOption {
+  value: LLMProvider;
+  label: string;
+  description: string;
+}
+
+// =============================================================================
+// PROVIDER UI METADATA
+// =============================================================================
+
+const PROVIDER_METADATA: Record<LLMProvider, Omit<ProviderUIConfig, 'id' | 'tier'>> = {
+  // Tier 4: Gateways (recommended first)
+  openrouter: {
+    label: 'OpenRouter',
+    description: 'Recommended - access all models',
+    color: 'bg-violet-500',
+    recommended: true,
+  },
+
+  // Tier 1: First-party providers
+  openai: {
+    label: 'OpenAI',
+    description: 'GPT-4o, GPT-4o-mini',
+    color: 'bg-emerald-500',
+  },
+  anthropic: {
+    label: 'Anthropic',
+    description: 'Claude 3.5 Sonnet, Opus',
+    color: 'bg-orange-500',
+  },
+  google: {
+    label: 'Google AI',
+    description: 'Gemini 2.0',
+    color: 'bg-blue-500',
+  },
+  xai: {
+    label: 'xAI',
+    description: 'Grok models',
+    color: 'bg-gray-500',
+  },
+  mistral: {
+    label: 'Mistral',
+    description: 'Mistral models',
+    color: 'bg-yellow-500',
+  },
+  cohere: {
+    label: 'Cohere',
+    description: 'Command models',
+    color: 'bg-pink-500',
+  },
+  deepseek: {
+    label: 'DeepSeek',
+    description: 'DeepSeek models',
+    color: 'bg-purple-500',
+  },
+
+  // Tier 2: Cloud providers (enterprise)
+  azure: {
+    label: 'Azure OpenAI',
+    description: 'Enterprise Azure deployment',
+    color: 'bg-sky-500',
+    enterprise: true,
+  },
+  bedrock: {
+    label: 'AWS Bedrock',
+    description: 'Enterprise AWS deployment',
+    color: 'bg-amber-500',
+    enterprise: true,
+  },
+
+  // Tier 3: Inference providers
+  groq: {
+    label: 'Groq',
+    description: 'Fast Llama inference',
+    color: 'bg-red-500',
+  },
+  together: {
+    label: 'Together AI',
+    description: 'Open-source models',
+    color: 'bg-cyan-500',
+  },
+  fireworks: {
+    label: 'Fireworks',
+    description: 'Fast inference',
+    color: 'bg-rose-500',
+  },
+  cerebras: {
+    label: 'Cerebras',
+    description: 'Ultra-fast inference',
+    color: 'bg-indigo-500',
+  },
+  perplexity: {
+    label: 'Perplexity',
+    description: 'Search-enhanced models',
+    color: 'bg-teal-500',
+  },
+
+  // Legacy
+  replicate: {
+    label: 'Replicate',
+    description: 'Legacy provider',
+    color: 'bg-slate-500',
+  },
+};
+
+// =============================================================================
+// EXPORTS
+// =============================================================================
+
+/**
+ * Full provider UI configuration with all metadata
+ */
+export const PROVIDER_UI_CONFIG: Record<LLMProvider, ProviderUIConfig> = Object.fromEntries(
+  ALL_PROVIDERS.map((provider) => [
+    provider,
+    {
+      id: provider,
+      tier: PROVIDER_TIERS[provider],
+      ...PROVIDER_METADATA[provider],
+    },
+  ])
+) as Record<LLMProvider, ProviderUIConfig>;
+
+/**
+ * Provider options for select/dropdown components
+ * Sorted by: recommended first, then by tier, then alphabetically
+ */
+export const PROVIDER_OPTIONS: ProviderSelectOption[] = Object.values(PROVIDER_UI_CONFIG)
+  .filter((p) => !p.enterprise) // Exclude enterprise providers from default list
+  .sort((a, b) => {
+    // Recommended first
+    if (a.recommended && !b.recommended) return -1;
+    if (!a.recommended && b.recommended) return 1;
+    // Then by tier (lower tier = higher priority for first-party)
+    if (a.tier !== b.tier) return a.tier - b.tier;
+    // Then alphabetically
+    return a.label.localeCompare(b.label);
+  })
+  .map((p) => ({
+    value: p.id,
+    label: p.label,
+    description: p.description,
+  }));
+
+/**
+ * All provider options including enterprise providers
+ */
+export const ALL_PROVIDER_OPTIONS: ProviderSelectOption[] = Object.values(PROVIDER_UI_CONFIG)
+  .sort((a, b) => {
+    if (a.recommended && !b.recommended) return -1;
+    if (!a.recommended && b.recommended) return 1;
+    if (a.tier !== b.tier) return a.tier - b.tier;
+    return a.label.localeCompare(b.label);
+  })
+  .map((p) => ({
+    value: p.id,
+    label: p.label,
+    description: p.description,
+  }));
+
+/**
+ * Provider colors map for backward compatibility
+ */
+export const PROVIDER_COLORS: Record<LLMProvider, string> = Object.fromEntries(
+  ALL_PROVIDERS.map((provider) => [provider, PROVIDER_METADATA[provider].color])
+) as Record<LLMProvider, string>;
+
+/**
+ * Get provider color class
+ */
+export function getProviderColor(provider: LLMProvider): string {
+  return PROVIDER_UI_CONFIG[provider]?.color ?? 'bg-gray-500';
+}
+
+/**
+ * Get provider label
+ */
+export function getProviderLabel(provider: LLMProvider): string {
+  return PROVIDER_UI_CONFIG[provider]?.label ?? provider;
+}
+
+/**
+ * Get provider description
+ */
+export function getProviderDescription(provider: LLMProvider): string {
+  return PROVIDER_UI_CONFIG[provider]?.description ?? '';
+}
+
+/**
+ * Check if provider is enterprise-only
+ */
+export function isEnterpriseProvider(provider: LLMProvider): boolean {
+  return PROVIDER_UI_CONFIG[provider]?.enterprise ?? false;
+}

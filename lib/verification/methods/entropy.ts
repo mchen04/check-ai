@@ -7,8 +7,7 @@
  * Best for: Detecting hallucinations, uncertain claims
  */
 
-import { LLMClient } from '@/lib/llm/client';
-import { ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm/types';
+import { LLMClient, ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions, Verdict } from '../types';
 import { ENTROPY_SYSTEM_PROMPT, ENTROPY_USER_PROMPT } from '../prompts';
 import {

@@ -7,8 +7,7 @@
  * Best for: Logical claims, mathematical proofs, causal reasoning
  */
 
-import { LLMClient } from '@/lib/llm/client';
-import { ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm/types';
+import { LLMClient, ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions } from '../types';
 import { BIPRM_SYSTEM_PROMPT, BIPRM_USER_PROMPT } from '../prompts';
 import {

@@ -7,7 +7,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { paradigmChartConfig } from './chart-config';
-import type { ParadigmData } from '@/lib/analytics/types';
+import type { ParadigmData } from '@/lib/analytics';
 
 interface ParadigmPerformanceChartProps {
   data: ParadigmData[];

@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+import { ButtonSpinner } from '@/components/ui/loading-spinner';
+import { InlineError } from '@/components/ui/empty-state';
+import { getErrorMessage } from '@/lib/utils';
 
 export function AcceptInviteButton({ token }: { token: string }) {
   const router = useRouter();
@@ -33,7 +36,7 @@ export function AcceptInviteButton({ token }: { token: string }) {
         router.push('/dashboard');
       }, 1500);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to accept invite');
+      setError(getErrorMessage(e, 'Failed to accept invite'));
     } finally {
       setIsLoading(false);
     }
@@ -51,16 +54,10 @@ export function AcceptInviteButton({ token }: { token: string }) {
 
   return (
     <div className="space-y-4">
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      <InlineError message={error} />
       <Button onClick={handleAccept} disabled={isLoading} className="w-full">
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Accepting...
-          </>
-        ) : (
-          'Accept Invitation'
-        )}
+        {isLoading && <ButtonSpinner />}
+        {isLoading ? 'Accepting...' : 'Accept Invitation'}
       </Button>
     </div>
   );

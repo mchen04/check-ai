@@ -1,9 +1,15 @@
 import { db } from '@/utils/db/db';
 import { orgInvitesTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
+import {
+  withDashboardAuth,
+  DashboardRequest,
+  extractRouteParam,
+  RouteContext,
+  errorResponse,
+  successResponse,
+} from '@/lib/api';
 import { createAuditLogger } from '@/lib/audit';
-import { extractRouteParam, RouteContext, errorResponse, successResponse } from '@/lib/api/validation';
 
 // =============================================================================
 // DELETE - Revoke pending invite

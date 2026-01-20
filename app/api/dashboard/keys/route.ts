@@ -1,15 +1,22 @@
 import { NextResponse } from 'next/server';
 import { createAuditLogger } from '@/lib/audit';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api';
+import {
+  withDashboardAuth,
+  DashboardRequest,
+  parseAndValidate,
+  errorResponse,
+  successResponse,
+  formatDateToISO,
+  formatRequiredDateToISO,
+} from '@/lib/api';
 import {
   createApiKey,
   listApiKeys,
   deleteApiKey,
   updateApiKey,
-} from '@/lib/api-keys/service';
-import { createApiKeySchema, updateApiKeySchema } from '@/lib/api-keys/types';
-import { parseAndValidate, errorResponse, successResponse } from '@/lib/api/validation';
-import { formatDateToISO, formatRequiredDateToISO } from '@/lib/api/formatters';
+  createApiKeySchema,
+  updateApiKeySchema,
+} from '@/lib/api-keys';
 
 // =============================================================================
 // GET - List API keys with paradigm config

@@ -2,22 +2,18 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { format } from 'date-fns';
+import { formatDateLong, getErrorMessage } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import {
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  Clock,
-  ArrowLeft,
-  Copy,
-  ExternalLink,
-} from 'lucide-react';
-import { useVerificationStatus } from '@/hooks/useVerificationStatus';
+import { ArrowLeft, Copy, ExternalLink } from 'lucide-react';
+import { Spinner } from '@/components/ui/loading-spinner';
+import { useVerificationStatus, useCopyToClipboard } from '@/hooks';
+import { VerdictIcon, getVerdictColor, type VerdictDisplay } from '@/components/ui/verdict-display';
+import { formatParadigmName } from '@/lib/verification/types';
+import type { VerificationStatus, Decision } from '@/lib/api/types';
 
 // =============================================================================
 // TYPES
@@ -27,7 +23,7 @@ interface ParadigmResult {
   paradigm: string;
   provider: string;
   model: string;
-  verdict: string | null;
+  verdict: VerdictDisplay;
   confidence: number | null;
   reasoning: string | null;
   processingTimeMs: number | null;
@@ -39,10 +35,10 @@ interface VerificationDetail {
   content: string;
   context: Record<string, unknown> | null;
   methodsConfig: Record<string, number>;
-  status: string;
-  verdict: string | null;
+  status: VerificationStatus;
+  verdict: VerdictDisplay;
   confidence: number | null;
-  decision: string | null;
+  decision: Decision | null;
   paradigmResults: ParadigmResult[];
   processingTimeMs: number | null;
   costCents: number | null;
@@ -54,35 +50,7 @@ interface VerificationDetail {
 // HELPERS
 // =============================================================================
 
-function getVerdictIcon(verdict: string | null, size: 'sm' | 'lg' = 'sm') {
-  const sizeClass = size === 'lg' ? 'h-8 w-8' : 'h-4 w-4';
-
-  switch (verdict) {
-    case 'true':
-      return <CheckCircle2 className={`${sizeClass} text-green-500`} />;
-    case 'false':
-      return <XCircle className={`${sizeClass} text-red-500`} />;
-    case 'uncertain':
-      return <AlertCircle className={`${sizeClass} text-yellow-500`} />;
-    default:
-      return <Clock className={`${sizeClass} text-gray-400`} />;
-  }
-}
-
-function getVerdictColor(verdict: string | null): string {
-  switch (verdict) {
-    case 'true':
-      return 'text-green-600';
-    case 'false':
-      return 'text-red-600';
-    case 'uncertain':
-      return 'text-yellow-600';
-    default:
-      return 'text-gray-400';
-  }
-}
-
-function getDecisionBadge(decision: string | null) {
+function getDecisionBadge(decision: Decision | null) {
   switch (decision) {
     case 'accept':
       return <Badge className="bg-green-100 text-green-800">Accept</Badge>;
@@ -97,19 +65,6 @@ function getDecisionBadge(decision: string | null) {
   }
 }
 
-function formatParadigmName(paradigm: string): string {
-  const names: Record<string, string> = {
-    semantic: 'Semantic Analysis',
-    reasoning: 'LLM Reasoning',
-    tool: 'Tool-Augmented',
-    biprm: 'Bidirectional Reasoning',
-    ensemble: 'Multi-Model Ensemble',
-    entropy: 'Semantic Entropy',
-    formal: 'Formal Verification',
-  };
-  return names[paradigm] || paradigm;
-}
-
 // =============================================================================
 // COMPONENT
 // =============================================================================
@@ -120,7 +75,7 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
   const [verification, setVerification] = useState<VerificationDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
 
   // Use real-time hook for live updates
   const liveStatus = useVerificationStatus(verification?.status === 'processing' ? id : null);
@@ -140,7 +95,7 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
         const data = await response.json();
         setVerification(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        setError(getErrorMessage(err));
       } finally {
         setIsLoading(false);
       }
@@ -156,10 +111,10 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
         prev
           ? {
               ...prev,
-              status: 'completed',
-              verdict: liveStatus.result!.verdict,
+              status: 'completed' as const,
+              verdict: liveStatus.result!.verdict as VerdictDisplay,
               confidence: liveStatus.result!.confidence,
-              decision: liveStatus.result!.decision,
+              decision: liveStatus.result!.decision as Decision,
               processingTimeMs: liveStatus.result!.processingTimeMs,
               costCents: liveStatus.result!.costCents,
             }
@@ -168,17 +123,13 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
     }
   }, [liveStatus]);
 
-  const handleCopyId = () => {
-    navigator.clipboard.writeText(id);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const handleCopyId = () => copy(id);
 
   if (isLoading) {
     return (
       <div className="p-4">
         <div className="flex h-32 items-center justify-center">
-          <Clock className="h-5 w-5 animate-spin text-muted-foreground" />
+          <Spinner size="sm" className="h-5 w-5 text-muted-foreground" />
         </div>
       </div>
     );
@@ -231,7 +182,7 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
               {isProcessing ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 animate-spin text-blue-500" />
+                    <Spinner size="sm" className="text-blue-500" />
                     <span className="text-xs">Processing...</span>
                   </div>
                   <Progress value={liveStatus.progress.total > 0 ? (liveStatus.progress.completed / liveStatus.progress.total) * 100 : 0} className="h-1" />
@@ -240,7 +191,7 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
               ) : (
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                    {getVerdictIcon(verification.verdict, 'lg')}
+                    <VerdictIcon verdict={verification.verdict} size="lg" />
                     <div>
                       <p className={`text-xl font-bold ${getVerdictColor(verification.verdict)}`}>
                         {verification.verdict ? verification.verdict.charAt(0).toUpperCase() + verification.verdict.slice(1) : 'Pending'}
@@ -288,7 +239,7 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
                     <div key={index} className="rounded-md border p-2">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-1.5">
-                          {getVerdictIcon(pr.verdict)}
+                          <VerdictIcon verdict={pr.verdict} />
                           <span className="text-xs font-medium">{formatParadigmName(pr.paradigm)}</span>
                         </div>
                         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
@@ -340,12 +291,12 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
               <Separator className="my-1" />
               <div>
                 <span className="text-[10px] text-muted-foreground">Created</span>
-                <p className="text-xs">{format(new Date(verification.createdAt), 'MMM d, yyyy h:mm a')}</p>
+                <p className="text-xs">{formatDateLong(verification.createdAt)}</p>
               </div>
               {verification.completedAt && (
                 <div>
                   <span className="text-[10px] text-muted-foreground">Completed</span>
-                  <p className="text-xs">{format(new Date(verification.completedAt), 'MMM d, yyyy h:mm a')}</p>
+                  <p className="text-xs">{formatDateLong(verification.completedAt)}</p>
                 </div>
               )}
             </div>

@@ -3,9 +3,13 @@ import { z } from 'zod';
 import { db } from '@/utils/db/db';
 import { organizationsTable } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api';
-import { parseAndValidate, errorResponse } from '@/lib/api/validation';
-import { parseDecimalWithDefault } from '@/lib/api/formatters';
+import {
+  withDashboardAuth,
+  DashboardRequest,
+  parseAndValidate,
+  errorResponse,
+  parseDecimalWithDefault,
+} from '@/lib/api';
 
 // =============================================================================
 // SCHEMAS

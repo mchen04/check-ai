@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
-import { getUserOrgContext } from '@/lib/rbac/get-user-org';
+import { getUserOrgContext } from '@/lib/rbac';
 import { ProviderCredentialsCard } from '../settings/ProviderCredentialsCard';
 import { WebhooksCard } from '../settings/WebhooksCard';
 

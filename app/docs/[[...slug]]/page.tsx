@@ -2,8 +2,7 @@ import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getDoc, getAllDocs } from '@/lib/docs/mdx';
-import { findAdjacentDocs } from '@/lib/docs/navigation';
+import { getDoc, getAllDocs, findAdjacentDocs } from '@/lib/docs';
 import { mdxComponents } from '@/components/docs/MDXComponents';
 import { Button } from '@/components/ui/button';
 

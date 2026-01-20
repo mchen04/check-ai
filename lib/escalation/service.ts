@@ -15,7 +15,7 @@ import type {
   EscalationStatus,
   HumanVerdict,
 } from './types';
-import { sendEscalationAlert } from '@/lib/email/send-escalation-alert';
+import { sendEscalationAlert } from '@/lib/email';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('Escalation');

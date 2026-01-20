@@ -79,31 +79,3 @@ export function DeliveryStatusBadge({
     </Badge>
   );
 }
-
-// Compact version for lists
-export function DeliveryStatusDot({
-  status,
-  className,
-}: {
-  status: DeliveryStatus;
-  className?: string;
-}) {
-  const colors: Record<DeliveryStatus, string> = {
-    pending: 'bg-gray-400',
-    processing: 'bg-blue-500 animate-pulse',
-    delivered: 'bg-green-500',
-    retrying: 'bg-yellow-500',
-    failed: 'bg-red-500',
-  };
-
-  return (
-    <span
-      className={cn(
-        'inline-block h-2 w-2 rounded-full',
-        colors[status] || colors.pending,
-        className
-      )}
-      title={statusConfig[status]?.label || status}
-    />
-  );
-}

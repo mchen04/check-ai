@@ -9,7 +9,10 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import {
+  ValidationStatusBadge,
+  TestResultBadge,
+} from '@/components/ui/status-badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -43,61 +46,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { DeleteConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Key,
   MoreHorizontal,
   Trash2,
   TestTube,
-  Loader2,
   CheckCircle,
-  XCircle,
   Plus,
-  AlertCircle,
   Pencil,
 } from 'lucide-react';
-
-// Provider configurations
-const PROVIDERS = [
-  { value: 'openrouter', label: 'OpenRouter', description: 'Recommended - access all models' },
-  { value: 'openai', label: 'OpenAI', description: 'GPT-4o, GPT-4o-mini' },
-  { value: 'anthropic', label: 'Anthropic', description: 'Claude 3.5 Sonnet, Opus' },
-  { value: 'google', label: 'Google AI', description: 'Gemini 2.0' },
-  { value: 'groq', label: 'Groq', description: 'Fast Llama inference' },
-  { value: 'together', label: 'Together AI', description: 'Open-source models' },
-  { value: 'mistral', label: 'Mistral', description: 'Mistral models' },
-  { value: 'cohere', label: 'Cohere', description: 'Command models' },
-  { value: 'deepseek', label: 'DeepSeek', description: 'DeepSeek models' },
-  { value: 'xai', label: 'xAI', description: 'Grok models' },
-  { value: 'fireworks', label: 'Fireworks', description: 'Fast inference' },
-  { value: 'cerebras', label: 'Cerebras', description: 'Ultra-fast inference' },
-  { value: 'perplexity', label: 'Perplexity', description: 'Search-enhanced models' },
-] as const;
-
-const PROVIDER_COLORS: Record<string, string> = {
-  openrouter: 'bg-violet-500',
-  openai: 'bg-emerald-500',
-  anthropic: 'bg-orange-500',
-  google: 'bg-blue-500',
-  groq: 'bg-red-500',
-  together: 'bg-cyan-500',
-  mistral: 'bg-yellow-500',
-  cohere: 'bg-pink-500',
-  deepseek: 'bg-purple-500',
-  xai: 'bg-gray-500',
-  fireworks: 'bg-rose-500',
-  cerebras: 'bg-indigo-500',
-  perplexity: 'bg-teal-500',
-};
+import { LoadingState, LoadingSpinner, ButtonSpinner } from '@/components/ui/loading-spinner';
+import { InlineError } from '@/components/ui/empty-state';
+import { formatDate } from '@/lib/utils';
+import {
+  PROVIDER_OPTIONS,
+  getProviderColor,
+  getProviderLabel,
+} from '@/lib/llm/provider-ui-config';
+import type { LLMProvider } from '@/lib/llm/types';
 
 interface ProviderCredential {
   id: string;
@@ -290,58 +257,25 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   const getStatusBadge = (credential: ProviderCredential) => {
     // Show test result if available
     if (testResult?.id === credential.id) {
-      return testResult.valid ? (
-        <Badge variant="default" className="bg-green-500">
-          <CheckCircle className="mr-1 h-3 w-3" />
-          Valid
-        </Badge>
-      ) : (
-        <Badge variant="destructive">
-          <XCircle className="mr-1 h-3 w-3" />
-          Invalid
-        </Badge>
+      return (
+        <TestResultBadge
+          success={testResult.valid}
+          successLabel="Valid"
+          failureLabel="Invalid"
+        />
       );
     }
 
-    if (!credential.isActive) {
-      return <Badge variant="secondary">Inactive</Badge>;
-    }
-
-    switch (credential.validationStatus) {
-      case 'valid':
-        return (
-          <Badge variant="default" className="bg-green-500">
-            Valid
-          </Badge>
-        );
-      case 'invalid':
-        return <Badge variant="destructive">Invalid</Badge>;
-      default:
-        return (
-          <Badge variant="secondary">
-            <AlertCircle className="mr-1 h-3 w-3" />
-            Pending
-          </Badge>
-        );
-    }
-  };
-
-  const getProviderLabel = (provider: string) => {
-    const p = PROVIDERS.find((p) => p.value === provider);
-    return p?.label || provider;
+    return (
+      <ValidationStatusBadge
+        status={credential.validationStatus}
+        isActive={credential.isActive}
+        showIcon={credential.validationStatus === 'pending'}
+      />
+    );
   };
 
   return (
@@ -388,7 +322,7 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
                           <SelectValue placeholder="Select provider" />
                         </SelectTrigger>
                         <SelectContent>
-                          {PROVIDERS.map((provider) => (
+                          {PROVIDER_OPTIONS.map((provider) => (
                             <SelectItem key={provider.value} value={provider.value}>
                               <div>
                                 <div className="font-medium">{provider.label}</div>
@@ -411,16 +345,14 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
                         onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
                       />
                     </div>
-                    {formError && (
-                      <div className="text-sm text-destructive">{formError}</div>
-                    )}
+                    <InlineError message={formError} />
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                       Cancel
                     </Button>
                     <Button onClick={handleSubmit} disabled={isSubmitting}>
-                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {isSubmitting && <ButtonSpinner />}
                       Add Credential
                     </Button>
                   </DialogFooter>
@@ -435,9 +367,7 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
+            <LoadingState height="sm" />
           ) : credentials.length === 0 ? (
             <div className="rounded-lg bg-muted p-4">
               <p className="mb-3 text-sm text-muted-foreground">
@@ -477,9 +407,9 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <div
-                          className={`h-2 w-2 rounded-full ${PROVIDER_COLORS[credential.provider] || 'bg-gray-500'}`}
+                          className={`h-2 w-2 rounded-full ${getProviderColor(credential.provider as LLMProvider)}`}
                         />
-                        <span>{getProviderLabel(credential.provider)}</span>
+                        <span>{getProviderLabel(credential.provider as LLMProvider)}</span>
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(credential)}</TableCell>
@@ -503,7 +433,7 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
                               disabled={actionLoading === credential.id}
                             >
                               {actionLoading === credential.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <LoadingSpinner size="sm" />
                               ) : (
                                 <MoreHorizontal className="h-4 w-4" />
                               )}
@@ -560,7 +490,7 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
               <Label htmlFor="edit-provider">Provider</Label>
               <Input
                 id="edit-provider"
-                value={getProviderLabel(editCredential?.provider || '')}
+                value={getProviderLabel((editCredential?.provider || 'openai') as LLMProvider)}
                 disabled
                 className="bg-muted"
               />
@@ -581,43 +511,27 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
                 Only fill this if you want to replace the existing API key.
               </p>
             </div>
-            {editError && (
-              <div className="text-sm text-destructive">{editError}</div>
-            )}
+            <InlineError message={editError} />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditCredential(null)}>
               Cancel
             </Button>
             <Button onClick={handleEditSubmit} disabled={isEditSubmitting}>
-              {isEditSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isEditSubmitting && <ButtonSpinner />}
               Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Provider Credential</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this credential? API keys using this credential will
-              no longer be able to make verifications. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={deleteCredential}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={!!deleteId}
+        onOpenChange={() => setDeleteId(null)}
+        itemName="Provider Credential"
+        description="Are you sure you want to delete this credential? API keys using this credential will no longer be able to make verifications. This action cannot be undone."
+        onConfirm={deleteCredential}
+      />
     </>
   );
 }

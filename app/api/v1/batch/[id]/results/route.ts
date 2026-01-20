@@ -4,8 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import { getBatchResults } from '@/lib/batch';
-import { NotFoundError, withApiMiddleware, ApiRequest } from '@/lib/api';
-import { extractRouteParam, RouteContext } from '@/lib/api/validation';
+import { NotFoundError, withApiMiddleware, ApiRequest, extractRouteParam, RouteContext } from '@/lib/api';
 
 // =============================================================================
 // GET - Get Batch Results

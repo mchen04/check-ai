@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
-import { getAnalyticsData, getDateRange } from '@/lib/analytics/queries';
-import { getAdvancedAnalyticsData } from '@/lib/analytics/advanced-queries';
-import { withDashboardRead, type DashboardRequest } from '@/lib/api/dashboard-middleware';
-import { formatRequiredDateToISO } from '@/lib/api/formatters';
-import { errorResponse } from '@/lib/api/validation';
-import type { TimeRange } from '@/lib/analytics/types';
+import {
+  getAnalyticsData,
+  getDateRange,
+  getAdvancedAnalyticsData,
+  type TimeRange,
+} from '@/lib/analytics';
+import {
+  withDashboardRead,
+  type DashboardRequest,
+  formatRequiredDateToISO,
+  errorResponse,
+} from '@/lib/api';
 
 async function handler(req: DashboardRequest) {
   const { context } = req;

@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { LLMProvider } from '@/lib/llm/types';
+import { LLMProvider } from '@/lib/llm';
 
 // =============================================================================
 // PROVIDER CREDENTIAL TYPES

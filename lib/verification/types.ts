@@ -22,6 +22,26 @@ export type ParadigmType =
   | 'entropy'
   | 'formal';
 
+/**
+ * Human-readable display names for each paradigm
+ */
+export const PARADIGM_DISPLAY_NAMES: Record<ParadigmType, string> = {
+  semantic: 'Semantic Analysis',
+  reasoning: 'LLM Reasoning',
+  tool: 'Tool-Augmented',
+  biprm: 'Bidirectional Reasoning',
+  ensemble: 'Multi-Model Ensemble',
+  entropy: 'Semantic Entropy',
+  formal: 'Formal Verification',
+};
+
+/**
+ * Format a paradigm key to its display name
+ */
+export function formatParadigmName(paradigm: string): string {
+  return PARADIGM_DISPLAY_NAMES[paradigm as ParadigmType] || paradigm;
+}
+
 export type Verdict = 'true' | 'false' | 'uncertain';
 
 export type Decision = 'accept' | 'refine' | 'escalate' | 'reject';

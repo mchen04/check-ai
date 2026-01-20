@@ -2,10 +2,17 @@ import { z } from 'zod';
 import { db } from '@/utils/db/db';
 import { orgMembersTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
-import { canModifyRole, canRemoveMember, OrgRole } from '@/lib/rbac/permissions';
+import {
+  withDashboardAuth,
+  DashboardRequest,
+  extractRouteParam,
+  RouteContext,
+  parseAndValidate,
+  errorResponse,
+  successResponse,
+} from '@/lib/api';
+import { canModifyRole, canRemoveMember, OrgRole } from '@/lib/rbac';
 import { createAuditLogger } from '@/lib/audit';
-import { extractRouteParam, RouteContext, parseAndValidate, errorResponse, successResponse } from '@/lib/api/validation';
 
 // =============================================================================
 // PATCH - Update member role

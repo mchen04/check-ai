@@ -4,6 +4,10 @@
  */
 
 import { useState, useCallback } from 'react';
+import { DEFAULT_MODELS } from '@/lib/api-keys';
+
+// Re-export for backward compatibility
+export { DEFAULT_MODELS };
 
 // Paradigm configurations
 export const PARADIGMS = [
@@ -15,15 +19,6 @@ export const PARADIGMS = [
   { key: 'entropy', label: 'Entropy', description: 'Token probability analysis' },
   { key: 'formal', label: 'Formal', description: 'Formal verification logic' },
 ] as const;
-
-export const DEFAULT_MODELS: Record<string, string> = {
-  reasoning: 'anthropic/claude-3.5-sonnet',
-  tool: 'openai/gpt-4o-mini',
-  semantic: 'openai/text-embedding-3-small',
-  biprm: 'anthropic/claude-3.5-sonnet',
-  entropy: 'openai/gpt-4o-mini',
-  formal: 'openai/gpt-4o',
-};
 
 export const AVAILABLE_MODELS = [
   'anthropic/claude-3.5-sonnet',

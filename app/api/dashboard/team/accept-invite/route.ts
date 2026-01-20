@@ -6,7 +6,7 @@ import { eq, and } from 'drizzle-orm';
 import { createClient } from '@/utils/supabase/server';
 import { createAuditLogger } from '@/lib/audit';
 import { createLogger } from '@/lib/logger';
-import { errorResponse, parseAndValidate } from '@/lib/api/validation';
+import { errorResponse, parseAndValidate } from '@/lib/api';
 
 const log = createLogger('AcceptInvite');
 

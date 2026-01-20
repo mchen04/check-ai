@@ -23,7 +23,10 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
-import { Building2, Users, ExternalLink, AlertCircle, Loader2 } from 'lucide-react';
+import { Building2, Users, ExternalLink } from 'lucide-react';
+import { ButtonSpinner } from '@/components/ui/loading-spinner';
+import { InlineError } from '@/components/ui/empty-state';
+import { getErrorMessage } from '@/lib/utils';
 
 interface OrganizationSettingsCardProps {
   organization: {
@@ -104,7 +107,7 @@ export function OrganizationSettingsCard({
       router.refresh();
       setTimeout(() => setSuccess(false), 3000);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to update organization');
+      setError(getErrorMessage(e, 'Failed to update organization'));
     } finally {
       setIsLoading(false);
     }
@@ -236,12 +239,7 @@ export function OrganizationSettingsCard({
           </>
         )}
 
-        {error && (
-          <div className="flex items-center gap-2 text-sm text-destructive">
-            <AlertCircle className="h-4 w-4" />
-            {error}
-          </div>
-        )}
+        <InlineError message={error} />
 
         {success && (
           <div className="text-sm text-green-600">Organization settings updated successfully!</div>
@@ -249,7 +247,7 @@ export function OrganizationSettingsCard({
 
         {canEdit && (
           <Button onClick={handleSave} disabled={isLoading || !hasChanges}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading && <ButtonSpinner />}
             {isLoading ? 'Saving...' : 'Save Changes'}
           </Button>
         )}

@@ -12,7 +12,7 @@ import {
 } from '@/utils/db/schema';
 import { eq, desc, and, sql, count } from 'drizzle-orm';
 import { queueBatchItems, cancelBatchItems } from './trigger';
-import { createAuditLog } from '@/lib/audit/service';
+import { createAuditLog } from '@/lib/audit';
 import {
   BATCH_CONSTANTS,
   type BatchJob,
@@ -24,7 +24,7 @@ import {
   type BatchValidationError,
   type MethodsConfig,
 } from './types';
-import type { VerifyOptions } from '@/lib/verification/types';
+import type { VerifyOptions } from '@/lib/verification';
 
 // =============================================================================
 // Batch Creation

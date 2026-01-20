@@ -23,17 +23,16 @@ import {
   recordCacheHit,
   recordCacheMiss,
 } from '@/lib/cache';
-import { getDecryptedApiKeys } from '@/lib/llm/key-manager';
-import type { ProviderKeys } from '@/lib/llm/types';
+import { getDecryptedApiKeys, type ProviderKeys } from '@/lib/llm';
 import { StreamingVerificationOrchestrator, VerificationUpdate } from './orchestrator';
 import { createEscalation } from '@/lib/escalation';
-import { fireWebhooks } from '@/lib/webhooks/service';
+import { fireWebhooks } from '@/lib/webhooks';
 import {
   broadcastStatusUpdate,
   broadcastParadigmComplete,
   broadcastFinalResult,
 } from '@/utils/supabase/realtime';
-import type { ApiKeyConfiguration } from '@/lib/api/types';
+import type { ApiKeyConfiguration } from '@/lib/api';
 
 // =============================================================================
 // TYPES
@@ -408,19 +407,36 @@ async function executeVerification(input: ExecuteVerificationInput): Promise<Exe
     confidence: result.confidence,
     decision: result.decision,
     reasoning: result.reasoning,
-    paradigmResults: result.paradigmResults.map((pr) => ({
-      paradigm: pr.paradigm,
-      verdict: pr.verdict,
-      confidence: pr.confidence,
-      reasoning: pr.reasoning?.slice(0, 500),
-      processingTimeMs: pr.processingTimeMs,
-      error: pr.error,
-    })),
+    paradigmResults: formatParadigmResults(result.paradigmResults),
     fullParadigmResults: result.paradigmResults,
     processingTimeMs: result.processingTimeMs,
     costCents: result.costCents,
     escalated: shouldEscalate,
   };
+}
+
+/**
+ * Format paradigm results for API response
+ * Handles both in-memory ParadigmResult and database-cached results
+ */
+function formatParadigmResults(
+  results: Array<{
+    paradigm: string;
+    verdict: Verdict | null;
+    confidence: number | string | null;
+    reasoning?: string | null;
+    processingTimeMs?: number | null;
+    error?: string | null;
+  }>
+): VerifyServiceResponse['paradigmResults'] {
+  return results.map((pr) => ({
+    paradigm: pr.paradigm,
+    verdict: pr.verdict,
+    confidence: typeof pr.confidence === 'string' ? parseFloat(pr.confidence) : (pr.confidence ?? 0),
+    reasoning: pr.reasoning?.slice(0, 500) ?? undefined,
+    processingTimeMs: pr.processingTimeMs ?? 0,
+    error: pr.error ?? undefined,
+  }));
 }
 
 function formatCachedResponse(cached: CachedVerificationResult): VerifyServiceResponse {
@@ -431,14 +447,7 @@ function formatCachedResponse(cached: CachedVerificationResult): VerifyServiceRe
     confidence: cached.confidence ?? 0,
     decision: cached.decision ?? 'reject',
     reasoning: '',
-    paradigmResults: cached.paradigmResults.map((pr) => ({
-      paradigm: pr.paradigm,
-      verdict: pr.verdict,
-      confidence: pr.confidence ? parseFloat(pr.confidence) : 0,
-      reasoning: pr.reasoning?.slice(0, 500) ?? undefined,
-      processingTimeMs: pr.processingTimeMs ?? 0,
-      error: pr.error ?? undefined,
-    })),
+    paradigmResults: formatParadigmResults(cached.paradigmResults),
     processingTimeMs: cached.processingTimeMs ?? 0,
     costCents: cached.costCents ?? 0,
     cached: true,
@@ -463,14 +472,7 @@ function formatRedisCachedResponse(cachedResult: {
     confidence: cachedResult.confidence,
     decision: cachedResult.decision,
     reasoning: cachedResult.reasoning,
-    paradigmResults: cachedResult.paradigmResults.map((pr) => ({
-      paradigm: pr.paradigm,
-      verdict: pr.verdict,
-      confidence: pr.confidence,
-      reasoning: pr.reasoning?.slice(0, 500) ?? undefined,
-      processingTimeMs: pr.processingTimeMs,
-      error: pr.error,
-    })),
+    paradigmResults: formatParadigmResults(cachedResult.paradigmResults),
     processingTimeMs: cachedResult.processingTimeMs,
     costCents: cachedResult.costCents,
     cached: true,

@@ -10,39 +10,27 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { EmptyState, ErrorState } from '@/components/ui/empty-state';
 import { BarChart3, RefreshCw, AlertCircle } from 'lucide-react';
+import { getErrorMessage } from '@/lib/utils';
 import { TimeRangeSelector } from '@/components/charts/time-range-selector';
 import { VerificationTrendsChart } from '@/components/charts/verification-trends-chart';
 import { VerdictDistributionChart } from '@/components/charts/verdict-distribution-chart';
 import { ParadigmPerformanceChart } from '@/components/charts/paradigm-performance-chart';
 import { CostBreakdownChart } from '@/components/charts/cost-breakdown-chart';
 import { ProcessingTimeChart } from '@/components/charts/processing-time-chart';
-import type { TimeRange, AnalyticsData } from '@/lib/analytics/types';
+import type { TimeRange, AnalyticsData } from '@/lib/analytics';
 
 function ChartSkeleton({ height = 'h-[300px]' }: { height?: string }) {
   return <Skeleton className={`${height} w-full`} />;
 }
 
-function EmptyState({ message = 'No data available for this period' }: { message?: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <BarChart3 className="mb-4 h-12 w-12 text-muted-foreground/30" />
-      <p className="text-sm text-muted-foreground">{message}</p>
-    </div>
-  );
+function ChartEmptyState({ message = 'No data available for this period' }: { message?: string }) {
+  return <EmptyState icon={BarChart3} message={message} size="lg" />;
 }
 
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <AlertCircle className="mb-4 h-12 w-12 text-destructive/50" />
-      <p className="mb-4 text-sm text-muted-foreground">{message}</p>
-      <Button variant="outline" size="sm" onClick={onRetry}>
-        <RefreshCw className="mr-2 h-4 w-4" />
-        Try Again
-      </Button>
-    </div>
-  );
+function ChartErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return <ErrorState icon={AlertCircle} message={message} onRetry={onRetry} />;
 }
 
 export function AnalyticsSection() {
@@ -63,7 +51,7 @@ export function AnalyticsSection() {
       const result = await response.json();
       setData(result.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -107,7 +95,7 @@ export function AnalyticsSection() {
       {error ? (
         <Card>
           <CardContent className="pt-6">
-            <ErrorState message={error} onRetry={fetchAnalytics} />
+            <ChartErrorState message={error} onRetry={fetchAnalytics} />
           </CardContent>
         </Card>
       ) : (
@@ -122,7 +110,7 @@ export function AnalyticsSection() {
               {isLoading ? (
                 <ChartSkeleton />
               ) : !data?.trends.length ? (
-                <EmptyState />
+                <ChartEmptyState />
               ) : (
                 <VerificationTrendsChart data={data.trends} />
               )}
@@ -141,7 +129,7 @@ export function AnalyticsSection() {
                 {isLoading ? (
                   <ChartSkeleton height="h-[250px]" />
                 ) : !data?.verdicts.length ? (
-                  <EmptyState />
+                  <ChartEmptyState />
                 ) : (
                   <VerdictDistributionChart data={data.verdicts} />
                 )}
@@ -158,7 +146,7 @@ export function AnalyticsSection() {
                 {isLoading ? (
                   <ChartSkeleton height="h-[250px]" />
                 ) : !data?.costByProvider.length ? (
-                  <EmptyState />
+                  <ChartEmptyState />
                 ) : (
                   <CostBreakdownChart data={data.costByProvider} />
                 )}
@@ -178,7 +166,7 @@ export function AnalyticsSection() {
               {isLoading ? (
                 <ChartSkeleton />
               ) : !data?.paradigms.length ? (
-                <EmptyState />
+                <ChartEmptyState />
               ) : (
                 <ParadigmPerformanceChart data={data.paradigms} />
               )}
@@ -197,7 +185,7 @@ export function AnalyticsSection() {
               {isLoading ? (
                 <ChartSkeleton height="h-[250px]" />
               ) : !data?.processingTime.length ? (
-                <EmptyState />
+                <ChartEmptyState />
               ) : (
                 <ProcessingTimeChart data={data.processingTime} />
               )}

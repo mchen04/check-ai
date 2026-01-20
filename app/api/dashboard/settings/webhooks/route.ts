@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api';
-import { generateSigningSecret } from '@/lib/webhooks/service';
-import { listWebhooks, createWebhook } from '@/lib/webhooks/repository';
+import {
+  withDashboardAuth,
+  DashboardRequest,
+  parseAndValidate,
+  formatRequiredDateToISO,
+  formatWebhookForResponse,
+} from '@/lib/api';
+import { generateSigningSecret, listWebhooks, createWebhook } from '@/lib/webhooks';
 import { createAuditLogger } from '@/lib/audit';
-import { CreateWebhookSchema } from '@/lib/constants/webhooks';
-import { parseAndValidate } from '@/lib/api/validation';
-import { formatRequiredDateToISO, formatWebhookForResponse } from '@/lib/api/formatters';
+import { CreateWebhookSchema } from '@/lib/constants';
 
 // =============================================================================
 // GET - List all webhooks for organization

@@ -82,13 +82,14 @@ export async function queryAuditLogs(
 
   if (filter?.search) {
     const searchPattern = `%${filter.search}%`;
-    conditions.push(
-      or(
-        ilike(auditLogsTable.description, searchPattern),
-        ilike(usersTable.name, searchPattern),
-        ilike(usersTable.email, searchPattern)
-      )
+    const searchCondition = or(
+      ilike(auditLogsTable.description, searchPattern),
+      ilike(usersTable.name, searchPattern),
+      ilike(usersTable.email, searchPattern)
     );
+    if (searchCondition) {
+      conditions.push(searchCondition);
+    }
   }
 
   // Execute query with user join

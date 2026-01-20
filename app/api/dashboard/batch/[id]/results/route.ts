@@ -4,8 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import { getBatchResults } from '@/lib/batch';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api';
-import { extractRouteParam, RouteContext } from '@/lib/api/validation';
+import { withDashboardAuth, DashboardRequest, extractRouteParam, RouteContext } from '@/lib/api';
 
 // =============================================================================
 // GET - Get Batch Results

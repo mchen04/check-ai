@@ -1,0 +1,47 @@
+/**
+ * LLM Module Barrel Export
+ */
+
+// Types
+export {
+  type LLMProvider,
+  type LLMMessage,
+  type LLMOptions,
+  type LLMUsage,
+  type LLMResponse,
+  type ProviderConfig,
+  type AzureOpenAIConfig,
+  type BedrockConfig,
+  type ProviderKeys,
+  type ExtendedProviderKeys,
+  PROVIDER_BASE_URLS,
+  calculateCostCents,
+} from './types';
+
+// Client
+export { LLMClient, createLLMClient } from './client';
+
+// Key Manager
+export {
+  encrypt,
+  decrypt,
+  hashApiKey,
+  generateKeyPrefix,
+  generatePlatformApiKey,
+  getKeyManager,
+  getDecryptedApiKeys,
+} from './key-manager';
+
+// Provider UI Config
+export {
+  type ProviderUIConfig,
+  type ProviderSelectOption,
+  PROVIDER_UI_CONFIG,
+  PROVIDER_OPTIONS,
+  ALL_PROVIDER_OPTIONS,
+  PROVIDER_COLORS,
+  getProviderColor,
+  getProviderLabel,
+  getProviderDescription,
+  isEnterpriseProvider,
+} from './provider-ui-config';

@@ -3,8 +3,7 @@
  * Centralizes common functionality to eliminate code duplication
  */
 
-import { LLMClient } from '@/lib/llm/client';
-import { LLMProvider } from '@/lib/llm/types';
+import { LLMClient, LLMProvider } from '@/lib/llm';
 import { ParadigmResult, ParadigmType } from '../types';
 
 // =============================================================================

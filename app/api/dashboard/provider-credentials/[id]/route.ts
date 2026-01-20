@@ -1,13 +1,20 @@
 import { NextResponse } from 'next/server';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api';
+import {
+  withDashboardAuth,
+  DashboardRequest,
+  extractRouteParam,
+  RouteContext,
+  errorResponse,
+  successResponse,
+  parseAndValidate,
+} from '@/lib/api';
 import {
   getProviderCredential,
   updateProviderCredential,
   deleteProviderCredential,
-} from '@/lib/api-keys/provider-credentials';
-import { updateProviderCredentialSchema } from '@/lib/api-keys/types';
+  updateProviderCredentialSchema,
+} from '@/lib/api-keys';
 import { createAuditLogger } from '@/lib/audit';
-import { extractRouteParam, RouteContext, errorResponse, successResponse, parseAndValidate } from '@/lib/api/validation';
 
 // =============================================================================
 // GET - Get a specific provider credential

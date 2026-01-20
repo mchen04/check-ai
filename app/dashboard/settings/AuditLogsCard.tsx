@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,11 +28,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { SimplePagination } from '@/components/ui/pagination';
+import { FilteredEmptyState } from '@/components/ui/empty-state';
+import { LoadingState, ButtonSpinner } from '@/components/ui/loading-spinner';
 import {
   History,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
   Key,
   Users,
   Webhook,
@@ -42,47 +42,18 @@ import {
   Download,
   X,
 } from 'lucide-react';
-import { AUDIT_EVENT_DESCRIPTIONS, RESOURCE_TYPE_LABELS } from '@/lib/audit/types';
-import type { AuditEventType } from '@/utils/db/schema';
+import {
+  AUDIT_EVENT_DESCRIPTIONS,
+  RESOURCE_TYPE_LABELS,
+  transformApiAuditLog,
+  type AuditLogDisplay,
+  type AuditLogsApiResponse,
+} from '@/lib/audit/types';
+import { useFetchWithPagination } from '@/hooks';
 
-interface AuditLog {
-  id: string;
-  eventType: AuditEventType;
-  description: string;
-  resourceType: string;
-  resourceId: string | null;
-  userId: string | null;
-  userName: string | null;
-  userEmail: string | null;
-  changes: Record<string, unknown> | null;
-  metadata: Record<string, unknown> | null;
-  createdAt: string;
-}
-
-interface ApiAuditLog {
-  id: string;
-  eventType: AuditEventType;
-  description: string;
-  resourceType: string;
-  resourceId: string | null;
-  changes: Record<string, unknown> | null;
-  metadata: Record<string, unknown> | null;
-  createdAt: string;
-  user: {
-    id: string;
-    name: string | null;
-    email: string | null;
-  } | null;
-}
-
-interface AuditLogsResponse {
-  logs: ApiAuditLog[];
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
-    hasMore: boolean;
-  };
+interface AuditLogsFilters {
+  category: string;
+  dateRange: string;
 }
 
 const EVENT_CATEGORIES = [
@@ -125,102 +96,69 @@ function getEventBadgeVariant(
   return 'secondary';
 }
 
+// Build query params from filters
+const buildAuditLogQueryParams = (
+  filters: AuditLogsFilters,
+  _search: string
+): Record<string, string> => {
+  const params: Record<string, string> = {};
+
+  if (filters.category !== 'all') {
+    params.resourceType = filters.category;
+  }
+
+  if (filters.dateRange !== 'all') {
+    const days = parseInt(filters.dateRange, 10);
+    const fromDate = startOfDay(subDays(new Date(), days));
+    params.from = fromDate.toISOString();
+    params.to = endOfDay(new Date()).toISOString();
+  }
+
+  return params;
+};
+
 export function AuditLogsCard() {
-  const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
-  const [category, setCategory] = useState('all');
-  const [dateRange, setDateRange] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const [selectedLog, setSelectedLog] = useState<AuditLogDisplay | null>(null);
 
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      setPage(1);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  const {
+    data: logs,
+    isLoading: loading,
+    pagination,
+    searchQuery,
+    setSearchQuery,
+    filters,
+    setFilter,
+    resetFilters,
+    setPage,
+    hasActiveFilters,
+  } = useFetchWithPagination<AuditLogDisplay, AuditLogsApiResponse, AuditLogsFilters>({
+    endpoint: '/api/dashboard/audit-logs',
+    pageSize: 10,
+    initialFilters: { category: 'all', dateRange: 'all' },
+    transformResponse: (response) => ({
+      data: response.logs.map(transformApiAuditLog),
+      total: response.pagination.total,
+    }),
+    buildQueryParams: buildAuditLogQueryParams,
+  });
 
-  const fetchLogs = useCallback(async () => {
-    setLoading(true);
-    try {
-      const pageSize = 10;
-      const params = new URLSearchParams({
-        limit: pageSize.toString(),
-        offset: ((page - 1) * pageSize).toString(),
-      });
-
-      if (category !== 'all') {
-        params.set('resourceType', category);
-      }
-
-      if (debouncedSearch) {
-        params.set('search', debouncedSearch);
-      }
-
-      if (dateRange !== 'all') {
-        const days = parseInt(dateRange, 10);
-        const fromDate = startOfDay(subDays(new Date(), days));
-        params.set('from', fromDate.toISOString());
-        params.set('to', endOfDay(new Date()).toISOString());
-      }
-
-      const res = await fetch(`/api/dashboard/audit-logs?${params}`);
-      if (res.ok) {
-        const data: AuditLogsResponse = await res.json();
-        const transformedLogs: AuditLog[] = data.logs.map((log) => ({
-          id: log.id,
-          eventType: log.eventType,
-          description: log.description,
-          resourceType: log.resourceType,
-          resourceId: log.resourceId,
-          changes: log.changes,
-          metadata: log.metadata,
-          createdAt: log.createdAt,
-          userId: log.user?.id || null,
-          userName: log.user?.name || null,
-          userEmail: log.user?.email || null,
-        }));
-        setLogs(transformedLogs);
-        setTotal(data.pagination.total);
-        setTotalPages(Math.ceil(data.pagination.total / pageSize));
-      }
-    } catch (error) {
-      console.error('Error fetching audit logs:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, category, debouncedSearch, dateRange]);
-
-  useEffect(() => {
-    fetchLogs();
-  }, [fetchLogs]);
-
-  const handleExport = async () => {
+  const handleExport = useCallback(async () => {
     setExporting(true);
     try {
-      // Fetch all logs for export (up to 1000)
-      const params = new URLSearchParams({
-        limit: '1000',
-        offset: '0',
-      });
+      // Build query params for export
+      const params = new URLSearchParams({ limit: '1000', offset: '0' });
 
-      if (category !== 'all') {
-        params.set('resourceType', category);
+      if (filters.category !== 'all') {
+        params.set('resourceType', filters.category);
       }
 
-      if (debouncedSearch) {
-        params.set('search', debouncedSearch);
+      if (searchQuery) {
+        params.set('search', searchQuery);
       }
 
-      if (dateRange !== 'all') {
-        const days = parseInt(dateRange, 10);
+      if (filters.dateRange !== 'all') {
+        const days = parseInt(filters.dateRange, 10);
         const fromDate = startOfDay(subDays(new Date(), days));
         params.set('from', fromDate.toISOString());
         params.set('to', endOfDay(new Date()).toISOString());
@@ -229,7 +167,7 @@ export function AuditLogsCard() {
       const res = await fetch(`/api/dashboard/audit-logs?${params}`);
       if (!res.ok) throw new Error('Failed to fetch logs');
 
-      const data: AuditLogsResponse = await res.json();
+      const data: AuditLogsApiResponse = await res.json();
 
       // Convert to CSV
       const headers = ['Timestamp', 'Event', 'Description', 'User', 'Resource Type', 'Resource ID'];
@@ -259,16 +197,7 @@ export function AuditLogsCard() {
     } finally {
       setExporting(false);
     }
-  };
-
-  const clearFilters = () => {
-    setCategory('all');
-    setDateRange('all');
-    setSearchQuery('');
-    setPage(1);
-  };
-
-  const hasActiveFilters = category !== 'all' || dateRange !== 'all' || searchQuery !== '';
+  }, [filters, searchQuery]);
 
   return (
     <>
@@ -282,7 +211,7 @@ export function AuditLogsCard() {
               <div>
                 <CardTitle>Audit Logs</CardTitle>
                 <CardDescription>
-                  Track all activity in your organization ({total} events)
+                  Track all activity in your organization ({pagination.total} events)
                 </CardDescription>
               </div>
             </div>
@@ -293,7 +222,7 @@ export function AuditLogsCard() {
               disabled={exporting || logs.length === 0}
             >
               {exporting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <ButtonSpinner />
               ) : (
                 <Download className="mr-2 h-4 w-4" />
               )}
@@ -313,11 +242,8 @@ export function AuditLogsCard() {
               />
             </div>
             <Select
-              value={category}
-              onValueChange={(v) => {
-                setCategory(v);
-                setPage(1);
-              }}
+              value={filters.category}
+              onValueChange={(v) => setFilter('category', v)}
             >
               <SelectTrigger className="w-[140px]">
                 <SelectValue />
@@ -331,11 +257,8 @@ export function AuditLogsCard() {
               </SelectContent>
             </Select>
             <Select
-              value={dateRange}
-              onValueChange={(v) => {
-                setDateRange(v);
-                setPage(1);
-              }}
+              value={filters.dateRange}
+              onValueChange={(v) => setFilter('dateRange', v)}
             >
               <SelectTrigger className="w-[140px]">
                 <SelectValue />
@@ -349,7 +272,7 @@ export function AuditLogsCard() {
               </SelectContent>
             </Select>
             {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
+              <Button variant="ghost" size="sm" onClick={resetFilters}>
                 <X className="mr-1 h-4 w-4" />
                 Clear
               </Button>
@@ -358,19 +281,16 @@ export function AuditLogsCard() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex h-40 items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
+            <LoadingState height="sm" className="h-40" />
           ) : logs.length === 0 ? (
-            <div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
-              <History className="mb-2 h-8 w-8 opacity-50" />
-              <p>{hasActiveFilters ? 'No logs match your filters' : 'No audit logs found'}</p>
-              {hasActiveFilters && (
-                <Button variant="link" size="sm" onClick={clearFilters} className="mt-2">
-                  Clear filters
-                </Button>
-              )}
-            </div>
+            <FilteredEmptyState
+              icon={History}
+              hasActiveFilters={hasActiveFilters}
+              filteredMessage="No logs match your filters"
+              emptyMessage="No audit logs found"
+              onClearFilters={resetFilters}
+              className="h-40"
+            />
           ) : (
             <>
               <div className="rounded-md border">
@@ -409,32 +329,11 @@ export function AuditLogsCard() {
                 </Table>
               </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Page {page} of {totalPages}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      disabled={page === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={page === totalPages}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              <SimplePagination
+                page={pagination.page}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+              />
             </>
           )}
         </CardContent>

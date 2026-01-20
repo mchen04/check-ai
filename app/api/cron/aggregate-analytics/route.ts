@@ -10,10 +10,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { runDailyAggregation, backfillAggregations } from '@/lib/analytics/aggregation-service';
+import { runDailyAggregation, backfillAggregations } from '@/lib/analytics';
 import { subDays, parseISO, isValid } from 'date-fns';
-import { createCronHandlers, cronLog as log } from '@/lib/api/cron-middleware';
-import { errorResponse } from '@/lib/api/validation';
+import { createCronHandlers, cronLog as log, errorResponse } from '@/lib/api';
 
 // Vercel Cron config
 export const maxDuration = 300; // 5 minutes max

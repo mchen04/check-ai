@@ -7,9 +7,15 @@ import { NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
 import { verificationsTable } from '@/utils/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api';
-import { parseDecimal, parseDecimalWithDefault, formatParadigmResultForResponse } from '@/lib/api/formatters';
-import { extractRouteParam, RouteContext } from '@/lib/api/validation';
+import {
+  withDashboardAuth,
+  DashboardRequest,
+  parseDecimal,
+  parseDecimalWithDefault,
+  formatParadigmResultForResponse,
+  extractRouteParam,
+  RouteContext,
+} from '@/lib/api';
 
 // =============================================================================
 // HANDLER

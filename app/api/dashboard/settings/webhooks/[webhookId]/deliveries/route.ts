@@ -2,12 +2,18 @@ import { NextResponse } from 'next/server';
 import { db } from '@/utils/db/db';
 import { webhookDeliveriesTable } from '@/utils/db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
-import { extractRouteParam, RouteContext, errorResponse, validateEnumParam } from '@/lib/api/validation';
-import { formatWebhookDeliveryForResponse } from '@/lib/api/formatters';
-import { parsePagination } from '@/lib/api/types';
-import { WEBHOOK_DELIVERY_STATUSES } from '@/lib/constants/webhooks';
-import { getWebhook } from '@/lib/webhooks/repository';
+import {
+  withDashboardAuth,
+  DashboardRequest,
+  extractRouteParam,
+  RouteContext,
+  errorResponse,
+  validateEnumParam,
+  formatWebhookDeliveryForResponse,
+  parsePagination,
+} from '@/lib/api';
+import { WEBHOOK_DELIVERY_STATUSES } from '@/lib/constants';
+import { getWebhook } from '@/lib/webhooks';
 
 /**
  * GET - List webhook deliveries with filtering and pagination

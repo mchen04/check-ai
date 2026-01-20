@@ -9,7 +9,7 @@ import {
   ChartLegendContent,
 } from '@/components/ui/chart';
 import { processingTimeChartConfig } from './chart-config';
-import type { ProcessingTimeData } from '@/lib/analytics/types';
+import type { ProcessingTimeData } from '@/lib/analytics';
 import { format, parseISO } from 'date-fns';
 
 interface ProcessingTimeChartProps {

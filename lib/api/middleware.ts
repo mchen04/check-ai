@@ -15,11 +15,11 @@ import {
   createErrorResponse,
 } from './errors';
 import { isDateExpired } from './formatters';
-import { hashApiKey } from '@/lib/llm/key-manager';
+import { hashApiKey } from '@/lib/llm';
 import { PLAN_LIMITS, type PlanType } from '@/utils/db/schema';
-import { checkRateLimit, cleanupInMemoryRateLimits } from '@/lib/cache/ratelimit';
+import { checkRateLimit, cleanupInMemoryRateLimits } from '@/lib/cache';
 import { createLogger, createRequestLogger, generateRequestId } from '@/lib/logger';
-import type { ApiKeyParadigmConfig, ApiKeyThresholds } from '@/lib/api-keys/types';
+import type { ApiKeyParadigmConfig, ApiKeyThresholds } from '@/lib/api-keys';
 
 const log = createLogger('API');
 

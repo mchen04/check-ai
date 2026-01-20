@@ -3,7 +3,7 @@
  * Delivers webhooks to customer URLs with automatic retries
  */
 
-import { task, logger, AbortTaskRunError } from "@trigger.dev/sdk";
+import { task, logger, AbortTaskRunError } from "@trigger.dev/sdk/v3";
 import { db } from "@/utils/db/db";
 import { webhooksTable, webhookDeliveriesTable } from "@/utils/db/schema";
 import { eq } from "drizzle-orm";
@@ -243,7 +243,7 @@ export const webhookDeliveryTask = task({
     throw new Error(result.error || `HTTP ${result.statusCode}`);
   },
   // Handle final failure after all retries exhausted
-  onFailure: async ({ payload, error }) => {
+  onFailure: async (payload, error) => {
     const { deliveryId, webhookId } = payload;
     const errorMessage = error instanceof Error ? error.message : String(error);
 

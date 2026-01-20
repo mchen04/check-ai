@@ -16,9 +16,10 @@ import {
   FileText,
   AlertCircle,
   CheckCircle2,
-  Loader2,
   X,
 } from 'lucide-react';
+import { Spinner } from '@/components/ui/loading-spinner';
+import { getErrorMessage } from '@/lib/utils';
 
 // =============================================================================
 // TYPES
@@ -145,7 +146,7 @@ export default function BatchUploadPage() {
         setBatchName(nameWithoutExt);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      setError(getErrorMessage(err, 'Upload failed'));
       setFile(null);
     } finally {
       setIsUploading(false);
@@ -218,7 +219,7 @@ export default function BatchUploadPage() {
       // Redirect to batch detail page
       router.push(`/dashboard/batch/${data.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create batch');
+      setError(getErrorMessage(err, 'Failed to create batch'));
     } finally {
       setIsCreating(false);
     }
@@ -282,7 +283,7 @@ export default function BatchUploadPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" /> : uploadResult ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> : null}
+                    {isUploading ? <Spinner size="xs" className="h-3.5 w-3.5 text-blue-500" /> : uploadResult ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> : null}
                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={clearFile}><X className="h-3 w-3" /></Button>
                   </div>
                 </div>
@@ -415,7 +416,7 @@ export default function BatchUploadPage() {
         <div className="flex justify-end gap-2">
           <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => router.push('/dashboard/batch')}>Cancel</Button>
           <Button size="sm" className="h-7 text-xs" onClick={handleSubmit} disabled={!uploadResult || isCreating || !isWeightValid}>
-            {isCreating ? <><Loader2 className="mr-1.5 h-3 w-3 animate-spin" />Creating...</> : <>Create ({uploadResult?.itemCount || 0} items)</>}
+            {isCreating ? <><Spinner size="xs" className="mr-1.5" />Creating...</> : <>Create ({uploadResult?.itemCount || 0} items)</>}
           </Button>
         </div>
       </div>

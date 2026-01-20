@@ -9,7 +9,7 @@ import {
   ChartLegendContent,
 } from '@/components/ui/chart';
 import { costChartConfig } from './chart-config';
-import type { ProviderCost } from '@/lib/analytics/types';
+import type { ProviderCost } from '@/lib/analytics';
 
 interface CostBreakdownChartProps {
   data: ProviderCost[];

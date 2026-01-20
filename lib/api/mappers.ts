@@ -16,8 +16,7 @@ import {
   ServiceUnavailableError,
   InternalServerError,
 } from './errors';
-import type { VerifyServiceError } from '@/lib/verification/service';
-import type { ParadigmResult as InternalParadigmResult } from '@/lib/verification/types';
+import type { VerifyServiceError, ParadigmResult as InternalParadigmResult } from '@/lib/verification';
 import type { ParadigmResult as ApiParadigmResult, VerifyResponse } from './types';
 
 // =============================================================================

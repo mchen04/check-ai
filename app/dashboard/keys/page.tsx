@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation';
-import { getUserOrgContext } from '@/lib/rbac/get-user-org';
+import { getUserOrgContext } from '@/lib/rbac';
 import { db } from '@/utils/db/db';
 import { apiKeysTable } from '@/utils/db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Key, AlertCircle } from 'lucide-react';
+import { AlertBanner } from '@/components/ui/alert-banner';
+import { Key } from 'lucide-react';
 import CreateApiKeyDialog from './CreateApiKeyDialog';
 import { ApiKeysList } from './ApiKeysList';
 
@@ -56,17 +57,14 @@ export default async function ApiKeysPage() {
       </div>
 
       {/* Security Notice - Compact */}
-      <Card className="mb-4 border-amber-200 bg-amber-50 p-3">
-        <div className="flex items-start gap-2">
-          <AlertCircle className="mt-0.5 h-3.5 w-3.5 text-amber-600" />
-          <div>
-            <p className="text-xs font-medium text-amber-800">Keep your API keys secure</p>
-            <p className="text-[10px] text-amber-700">
-              Never share them publicly or commit them to version control.
-            </p>
-          </div>
-        </div>
-      </Card>
+      <AlertBanner
+        variant="warning"
+        size="sm"
+        title="Keep your API keys secure"
+        className="mb-4"
+      >
+        Never share them publicly or commit them to version control.
+      </AlertBanner>
 
       {/* API Keys List */}
       <Card className="mb-4">

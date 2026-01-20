@@ -4,8 +4,7 @@ import { db } from '@/utils/db/db';
 import { organizationsTable } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
 import { createClient } from '@/utils/supabase/server';
-import { withDashboardAuth, DashboardRequest } from '@/lib/api/dashboard-middleware';
-import { parseAndValidate } from '@/lib/api/validation';
+import { withDashboardAuth, DashboardRequest, parseAndValidate } from '@/lib/api';
 
 // =============================================================================
 // DELETE - Delete organization (owner only)

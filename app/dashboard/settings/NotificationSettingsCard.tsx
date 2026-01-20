@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -11,7 +11,10 @@ import {
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Bell, Loader2 } from 'lucide-react';
+import { Bell } from 'lucide-react';
+import { Spinner } from '@/components/ui/loading-spinner';
+
+type PreferenceKey = 'emailNotifications' | 'weeklyReport' | 'escalationAlerts';
 
 interface NotificationSettingsCardProps {
   initialPreferences?: {
@@ -22,17 +25,16 @@ interface NotificationSettingsCardProps {
 }
 
 export function NotificationSettingsCard({ initialPreferences }: NotificationSettingsCardProps) {
-  const [emailNotifications, setEmailNotifications] = useState(
-    initialPreferences?.emailNotifications ?? true
-  );
-  const [weeklyReport, setWeeklyReport] = useState(initialPreferences?.weeklyReport ?? false);
-  const [escalationAlerts, setEscalationAlerts] = useState(
-    initialPreferences?.escalationAlerts ?? true
-  );
-  const [savingField, setSavingField] = useState<string | null>(null);
+  const [preferences, setPreferences] = useState({
+    emailNotifications: initialPreferences?.emailNotifications ?? true,
+    weeklyReport: initialPreferences?.weeklyReport ?? false,
+    escalationAlerts: initialPreferences?.escalationAlerts ?? true,
+  });
+  const [savingField, setSavingField] = useState<PreferenceKey | null>(null);
 
-  const updatePreference = async (field: string, value: boolean) => {
+  const updatePreference = async (field: PreferenceKey, value: boolean) => {
     setSavingField(field);
+    setPreferences((prev) => ({ ...prev, [field]: value }));
 
     try {
       const response = await fetch('/api/dashboard/settings/notifications', {
@@ -42,50 +44,13 @@ export function NotificationSettingsCard({ initialPreferences }: NotificationSet
       });
 
       if (!response.ok) {
-        // Revert on error
-        switch (field) {
-          case 'emailNotifications':
-            setEmailNotifications(!value);
-            break;
-          case 'weeklyReport':
-            setWeeklyReport(!value);
-            break;
-          case 'escalationAlerts':
-            setEscalationAlerts(!value);
-            break;
-        }
+        setPreferences((prev) => ({ ...prev, [field]: !value }));
       }
     } catch {
-      // Revert on error
-      switch (field) {
-        case 'emailNotifications':
-          setEmailNotifications(!value);
-          break;
-        case 'weeklyReport':
-          setWeeklyReport(!value);
-          break;
-        case 'escalationAlerts':
-          setEscalationAlerts(!value);
-          break;
-      }
+      setPreferences((prev) => ({ ...prev, [field]: !value }));
     } finally {
       setSavingField(null);
     }
-  };
-
-  const handleEmailNotifications = (checked: boolean) => {
-    setEmailNotifications(checked);
-    updatePreference('emailNotifications', checked);
-  };
-
-  const handleWeeklyReport = (checked: boolean) => {
-    setWeeklyReport(checked);
-    updatePreference('weeklyReport', checked);
-  };
-
-  const handleEscalationAlerts = (checked: boolean) => {
-    setEscalationAlerts(checked);
-    updatePreference('escalationAlerts', checked);
   };
 
   return (
@@ -107,11 +72,11 @@ export function NotificationSettingsCard({ initialPreferences }: NotificationSet
           </div>
           <div className="flex items-center gap-2">
             {savingField === 'emailNotifications' && (
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <Spinner size="sm" className="text-muted-foreground" />
             )}
             <Switch
-              checked={emailNotifications}
-              onCheckedChange={handleEmailNotifications}
+              checked={preferences.emailNotifications}
+              onCheckedChange={(checked) => updatePreference('emailNotifications', checked)}
               disabled={savingField !== null}
             />
           </div>
@@ -126,11 +91,11 @@ export function NotificationSettingsCard({ initialPreferences }: NotificationSet
           </div>
           <div className="flex items-center gap-2">
             {savingField === 'weeklyReport' && (
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <Spinner size="sm" className="text-muted-foreground" />
             )}
             <Switch
-              checked={weeklyReport}
-              onCheckedChange={handleWeeklyReport}
+              checked={preferences.weeklyReport}
+              onCheckedChange={(checked) => updatePreference('weeklyReport', checked)}
               disabled={savingField !== null}
             />
           </div>
@@ -145,11 +110,11 @@ export function NotificationSettingsCard({ initialPreferences }: NotificationSet
           </div>
           <div className="flex items-center gap-2">
             {savingField === 'escalationAlerts' && (
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <Spinner size="sm" className="text-muted-foreground" />
             )}
             <Switch
-              checked={escalationAlerts}
-              onCheckedChange={handleEscalationAlerts}
+              checked={preferences.escalationAlerts}
+              onCheckedChange={(checked) => updatePreference('escalationAlerts', checked)}
               disabled={savingField !== null}
             />
           </div>

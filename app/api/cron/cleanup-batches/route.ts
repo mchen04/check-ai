@@ -14,9 +14,8 @@ import {
   cleanupExpiredBatches,
   cleanupExpiredVerifications,
   getFullCleanupStats,
-} from '@/lib/batch/cleanup-service';
-import { createCronHandlers, cronLog as log } from '@/lib/api/cron-middleware';
-import { errorResponse } from '@/lib/api/validation';
+} from '@/lib/batch';
+import { createCronHandlers, cronLog as log, errorResponse } from '@/lib/api';
 
 // Vercel Cron config
 export const maxDuration = 300; // 5 minutes max

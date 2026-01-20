@@ -7,8 +7,7 @@
  * Best for: High-stakes decisions, reducing single-model bias
  */
 
-import { LLMClient } from '@/lib/llm/client';
-import { ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm/types';
+import { LLMClient, ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions, Verdict } from '../types';
 import {
   ENSEMBLE_SYSTEM_PROMPT,

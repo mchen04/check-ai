@@ -24,8 +24,8 @@ import {
   Verdict,
   Decision,
   ParadigmResult as InternalParadigmResult,
-} from '@/lib/verification/types';
-import type { ApiKeyParadigmConfig, ApiKeyThresholds } from '@/lib/api-keys/types';
+} from '@/lib/verification';
+import type { ApiKeyParadigmConfig, ApiKeyThresholds } from '@/lib/api-keys';
 
 // Re-export verification types for convenience
 export { methodsConfigSchema };

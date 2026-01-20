@@ -16,6 +16,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { EmptyState, ErrorState } from '@/components/ui/empty-state';
 import {
   BarChart3,
   RefreshCw,
@@ -26,46 +27,23 @@ import {
   DollarSign,
   Activity,
 } from 'lucide-react';
+import { getErrorMessage } from '@/lib/utils';
 import { TimeRangeSelector } from '@/components/charts/time-range-selector';
 import { FPRChart } from '@/components/charts/fpr-chart';
 import { CostEfficiencyChart } from '@/components/charts/cost-efficiency-chart';
 import { CalibrationChart } from '@/components/charts/calibration-chart';
-import type { TimeRange, AdvancedAnalyticsData } from '@/lib/analytics/types';
+import type { TimeRange, AdvancedAnalyticsData } from '@/lib/analytics';
 
 function ChartSkeleton({ height = 'h-[300px]' }: { height?: string }) {
   return <Skeleton className={`${height} w-full`} />;
 }
 
-function EmptyState({
-  message = 'No data available for this period',
-}: {
-  message?: string;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <BarChart3 className="mb-4 h-12 w-12 text-muted-foreground/30" />
-      <p className="text-sm text-muted-foreground">{message}</p>
-    </div>
-  );
+function ChartEmptyState({ message = 'No data available for this period' }: { message?: string }) {
+  return <EmptyState icon={BarChart3} message={message} size="lg" />;
 }
 
-function ErrorState({
-  message,
-  onRetry,
-}: {
-  message: string;
-  onRetry: () => void;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <AlertCircle className="mb-4 h-12 w-12 text-destructive/50" />
-      <p className="mb-4 text-sm text-muted-foreground">{message}</p>
-      <Button variant="outline" size="sm" onClick={onRetry}>
-        <RefreshCw className="mr-2 h-4 w-4" />
-        Try Again
-      </Button>
-    </div>
-  );
+function ChartErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return <ErrorState icon={AlertCircle} message={message} onRetry={onRetry} />;
 }
 
 interface SummaryCardProps {
@@ -119,7 +97,7 @@ export function AdvancedAnalyticsSection() {
       const result = await response.json();
       setData(result.advanced);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -189,7 +167,7 @@ export function AdvancedAnalyticsSection() {
               </div>
 
               {error ? (
-                <ErrorState message={error} onRetry={fetchAdvancedAnalytics} />
+                <ChartErrorState message={error} onRetry={fetchAdvancedAnalytics} />
               ) : (
                 <>
                   {/* Summary Cards */}
@@ -246,7 +224,7 @@ export function AdvancedAnalyticsSection() {
                         {isLoading ? (
                           <ChartSkeleton />
                         ) : !data?.paradigmFPR.length ? (
-                          <EmptyState message="No resolved escalations with human feedback yet" />
+                          <ChartEmptyState message="No resolved escalations with human feedback yet" />
                         ) : (
                           <FPRChart data={data.paradigmFPR} threshold={0.1} />
                         )}
@@ -267,7 +245,7 @@ export function AdvancedAnalyticsSection() {
                         {isLoading ? (
                           <ChartSkeleton />
                         ) : !data?.costEfficiency.length ? (
-                          <EmptyState />
+                          <ChartEmptyState />
                         ) : (
                           <CostEfficiencyChart data={data.costEfficiency} />
                         )}
@@ -289,7 +267,7 @@ export function AdvancedAnalyticsSection() {
                         {isLoading ? (
                           <ChartSkeleton height="h-[350px]" />
                         ) : !data?.calibration.length ? (
-                          <EmptyState message="Not enough data for calibration analysis" />
+                          <ChartEmptyState message="Not enough data for calibration analysis" />
                         ) : (
                           <CalibrationChart data={data.calibration} />
                         )}

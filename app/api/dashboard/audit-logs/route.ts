@@ -2,9 +2,12 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { queryAuditLogs } from '@/lib/audit';
 import { auditEventTypeEnum } from '@/utils/db/schema';
-import { withDashboardAuth, type DashboardRequest } from '@/lib/api/dashboard-middleware';
-import { validate, createValidationErrorResponse } from '@/lib/api/validation';
-import { formatRequiredDateToISO } from '@/lib/api/formatters';
+import {
+  withDashboardAuth,
+  type DashboardRequest,
+  validate,
+  formatRequiredDateToISO,
+} from '@/lib/api';
 
 // =============================================================================
 // GET - List audit logs with filtering and pagination

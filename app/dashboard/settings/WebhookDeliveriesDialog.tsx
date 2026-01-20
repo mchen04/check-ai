@@ -28,12 +28,15 @@ import {
   type DeliveryStatus,
 } from '@/components/ui/delivery-status-badge';
 import {
-  Loader2,
   ChevronDown,
   ChevronRight,
   RotateCcw,
   History,
 } from 'lucide-react';
+import { Spinner } from '@/components/ui/loading-spinner';
+import { SimplePagination } from '@/components/ui/pagination';
+import { EmptyState } from '@/components/ui/empty-state';
+import { formatDateTime } from '@/lib/utils';
 
 interface AttemptRecord {
   attemptNumber: number;
@@ -139,17 +142,6 @@ export function WebhookDeliveriesDialog({
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
-  };
-
   const totalCount = Object.values(statusCounts).reduce((a, b) => a + b, 0);
 
   return (
@@ -199,12 +191,10 @@ export function WebhookDeliveriesDialog({
         <div className="flex-1 overflow-auto">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <Spinner size="default" className="text-muted-foreground" />
             </div>
           ) : deliveries.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              No deliveries found
-            </div>
+            <EmptyState message="No deliveries found" size="default" />
           ) : (
             <Table>
               <TableHeader>
@@ -274,7 +264,7 @@ export function WebhookDeliveriesDialog({
                           {delivery.durationMs ? `${delivery.durationMs}ms` : '-'}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
-                          {formatDate(delivery.createdAt)}
+                          {formatDateTime(delivery.createdAt)}
                         </TableCell>
                         {canEdit && (
                           <TableCell>
@@ -289,7 +279,7 @@ export function WebhookDeliveriesDialog({
                                 disabled={retryingId === delivery.id}
                               >
                                 {retryingId === delivery.id ? (
-                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  <Spinner size="xs" />
                                 ) : (
                                   <>
                                     <RotateCcw className="h-3 w-3 mr-1" />
@@ -348,7 +338,7 @@ export function WebhookDeliveriesDialog({
                                             #{attempt.attemptNumber}
                                           </span>
                                           <span className="text-muted-foreground">
-                                            {formatDate(attempt.timestamp)}
+                                            {formatDateTime(attempt.timestamp)}
                                           </span>
                                           {attempt.responseStatus && (
                                             <Badge
@@ -379,14 +369,14 @@ export function WebhookDeliveriesDialog({
 
                               {/* Timestamps */}
                               <div className="flex gap-6 text-xs text-muted-foreground">
-                                <span>Created: {formatDate(delivery.createdAt)}</span>
+                                <span>Created: {formatDateTime(delivery.createdAt)}</span>
                                 {delivery.deliveredAt && (
                                   <span>
-                                    Delivered: {formatDate(delivery.deliveredAt)}
+                                    Delivered: {formatDateTime(delivery.deliveredAt)}
                                   </span>
                                 )}
                                 {delivery.failedAt && (
-                                  <span>Failed: {formatDate(delivery.failedAt)}</span>
+                                  <span>Failed: {formatDateTime(delivery.failedAt)}</span>
                                 )}
                               </div>
                             </div>
@@ -402,31 +392,12 @@ export function WebhookDeliveriesDialog({
         </div>
 
         {/* Pagination */}
-        {pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between pt-4 border-t">
-            <p className="text-xs text-muted-foreground">
-              Page {page} of {pagination.totalPages} ({pagination.total} total)
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => p - 1)}
-                disabled={page <= 1}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => p + 1)}
-                disabled={page >= pagination.totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        )}
+        <SimplePagination
+          page={page}
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+          className="pt-4 border-t"
+        />
       </DialogContent>
     </Dialog>
   );

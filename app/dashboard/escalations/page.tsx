@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { EscalationActions } from '@/components/escalation/EscalationActions';
+import { truncateString } from '@/lib/api/formatters';
+import type { HumanVerdict } from '@/lib/escalation/types';
 
 // =============================================================================
 // HELPER FUNCTIONS
@@ -45,7 +47,7 @@ function formatReason(reason: string): string {
 
 function getStatus(
   resolvedAt: Date | null,
-  humanVerdict: string | null
+  humanVerdict: HumanVerdict | null
 ): 'pending' | 'in_review' | 'resolved' | 'dismissed' {
   if (!resolvedAt) return 'pending';
   if (humanVerdict) return 'resolved';
@@ -118,14 +120,14 @@ export default async function EscalationsPage() {
     verificationId: e.verificationId,
     reason: formatReason(e.reason),
     reasonRaw: e.reason,
-    status: getStatus(e.resolvedAt, e.humanVerdict),
+    status: getStatus(e.resolvedAt, e.humanVerdict as HumanVerdict | null),
     priority: e.priority,
     createdAt: e.createdAt,
     resolvedAt: e.resolvedAt || undefined,
     deadline: e.deadline || undefined,
     humanVerdict: e.humanVerdict,
     resolution: e.resolution,
-    content: e.verificationContent?.slice(0, 150) || '',
+    content: truncateString(e.verificationContent, 150, true),
     confidence: e.verificationConfidence
       ? parseFloat(e.verificationConfidence)
       : null,

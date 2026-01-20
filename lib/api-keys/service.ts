@@ -9,8 +9,8 @@ import crypto from 'crypto';
 import { db, withTransaction, DbOrTx } from '@/utils/db/db';
 import { apiKeysTable, providerCredentialsTable, apiKeyCredentialsTable } from '@/utils/db/schema';
 import { eq, and, isNull, inArray, sql } from 'drizzle-orm';
-import { decrypt } from '@/lib/llm/key-manager';
-import { isDateExpired } from '@/lib/api/formatters';
+import { decrypt } from '@/lib/llm';
+import { isDateExpired } from '@/lib/api';
 import {
   ApiKeyWithConfig,
   ApiKeyParadigmConfig,
