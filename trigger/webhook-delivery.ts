@@ -243,7 +243,7 @@ export const webhookDeliveryTask = task({
     throw new Error(result.error || `HTTP ${result.statusCode}`);
   },
   // Handle final failure after all retries exhausted
-  onFailure: async (payload, error) => {
+  onFailure: async ({ payload, error }) => {
     const { deliveryId, webhookId } = payload;
     const errorMessage = error instanceof Error ? error.message : String(error);
 

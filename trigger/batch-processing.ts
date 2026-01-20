@@ -286,7 +286,7 @@ export const batchItemProcessingTask = task({
     }
   },
   // Handle final failure after all retries exhausted
-  onFailure: async (payload, error) => {
+  onFailure: async ({ payload, error }) => {
     const { batchId, itemId, itemIndex, orgId } = payload;
     const processingTimeMs = 0;
     const errorMessage = error instanceof Error ? error.message : String(error);
