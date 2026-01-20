@@ -28,7 +28,7 @@ async function UserPlanBadge() {
 }
 
 export default async function DashboardHeader() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
     error,

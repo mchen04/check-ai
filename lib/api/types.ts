@@ -174,16 +174,17 @@ import type { RouteContext } from './validation';
  */
 export type ApiHandler = (
   req: AuthenticatedRequest,
-  context: RouteContext | undefined
+  context?: RouteContext
 ) => Promise<Response>;
 
 /**
  * Handler function for public (unauthenticated) API routes
  * Used for the outer wrapper that performs authentication
+ * Note: Next.js 15 requires the context parameter to not allow undefined
  */
 export type PublicApiHandler = (
   req: NextRequest,
-  context: RouteContext | undefined
+  context: RouteContext
 ) => Promise<Response>;
 
 // =============================================================================
@@ -246,7 +247,7 @@ export const createBatchSchema = z.object({
       concurrency: z.number().min(1).max(10).optional(),
     })
     .optional(),
-  webhookUrl: z.string().url().optional(),
+  webhookUrl: z.url().optional(),
 });
 
 export type CreateBatchRequest = z.infer<typeof createBatchSchema>;
@@ -308,7 +309,7 @@ export type WebhookEventType =
  * Webhook creation request
  */
 export const createWebhookSchema = z.object({
-  url: z.string().url(),
+  url: z.url(),
   events: z.array(
     z.enum([
       'verification.completed',

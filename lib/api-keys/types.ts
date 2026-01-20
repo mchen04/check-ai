@@ -175,7 +175,7 @@ export const createProviderCredentialSchema = z.object({
   apiKey: z.string().min(1), // Will be encrypted before storage
   config: z
     .object({
-      endpoint: z.string().url().optional(),
+      endpoint: z.url().optional(),
       deploymentId: z.string().optional(),
       apiVersion: z.string().optional(),
       region: z.string().optional(),
@@ -195,7 +195,7 @@ export const updateProviderCredentialSchema = z.object({
   apiKey: z.string().min(1).optional(), // Will be encrypted before storage
   config: z
     .object({
-      endpoint: z.string().url().optional(),
+      endpoint: z.url().optional(),
       deploymentId: z.string().optional(),
       apiVersion: z.string().optional(),
       region: z.string().optional(),
@@ -265,9 +265,9 @@ const paradigmConfigObjectSchema = z.object({
 export const createApiKeySchema = z.object({
   name: z.string().min(1).max(100),
   providerCredentialIds: z
-    .array(z.string().uuid())
+    .array(z.uuid())
     .min(1, 'At least one provider credential is required'),
-  defaultCredentialId: z.string().uuid().optional(),
+  defaultCredentialId: z.uuid().optional(),
   paradigmConfig: paradigmConfigObjectSchema,
   defaultThresholds: thresholdsSchema.optional(),
   expiresAt: z.string().datetime().optional(),

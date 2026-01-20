@@ -3,6 +3,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import {
   createBatch,
   createBatchSchema,
@@ -34,7 +35,7 @@ async function handleCreateBatch(req: DashboardRequest): Promise<NextResponse> {
   const parseResult = createBatchSchema.safeParse(body);
   if (!parseResult.success) {
     return NextResponse.json(
-      { error: 'Invalid request body', details: parseResult.error.flatten() },
+      { error: 'Invalid request body', details: z.flattenError(parseResult.error) },
       { status: 400 }
     );
   }

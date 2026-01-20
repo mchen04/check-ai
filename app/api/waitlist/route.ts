@@ -9,7 +9,7 @@ import { errorResponse, successResponse, parseAndValidate } from '@/lib/api';
 const log = createLogger('Waitlist');
 
 const WaitlistSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.email({ message: 'Invalid email address' }),
   source: z.string().optional().default('landing'),
 });
 

@@ -102,7 +102,7 @@ export const mdxComponents = {
   ),
   pre: ({ className, children, ...props }: React.HTMLAttributes<HTMLPreElement>) => {
     // If children is a code element with a language class, extract and render with CodeBlock
-    const codeElement = children as React.ReactElement;
+    const codeElement = children as React.ReactElement<{ className?: string; children?: React.ReactNode }>;
     if (codeElement?.props?.className?.startsWith('language-')) {
       const language = codeElement.props.className.replace('language-', '');
       const code = typeof codeElement.props.children === 'string'

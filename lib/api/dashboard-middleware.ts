@@ -23,9 +23,11 @@ export type DashboardHandler<TParams = Record<string, string>> = (
   routeContext?: { params: Promise<TParams> }
 ) => Promise<Response>;
 
+// Note: Next.js 15 requires the route context type to not allow undefined for the second parameter
+// We use a union type that allows both the context object and void (for internal handler calls)
 export type PublicDashboardHandler<TParams = Record<string, string>> = (
   req: NextRequest,
-  routeContext?: { params: Promise<TParams> }
+  routeContext: { params: Promise<TParams> }
 ) => Promise<Response>;
 
 export interface DashboardMiddlewareOptions {
@@ -84,7 +86,7 @@ export function withDashboardAuth<TParams = Record<string, string>>(
   handler: DashboardHandler<TParams>,
   options: DashboardMiddlewareOptions = {}
 ): PublicDashboardHandler<TParams> {
-  return async (req: NextRequest, routeContext?: { params: Promise<TParams> }) => {
+  return async (req: NextRequest, routeContext: { params: Promise<TParams> }) => {
     try {
       // Get authenticated user context
       const context = await getUserOrgContext();

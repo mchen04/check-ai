@@ -64,7 +64,7 @@ export const GET = withDashboardAuth(getHandler, { permission: 'team:view' });
 // =============================================================================
 
 const InviteSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.email({ message: 'Invalid email address' }),
   role: z.enum(['admin', 'member', 'viewer']),
 });
 

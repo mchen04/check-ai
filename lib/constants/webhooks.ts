@@ -52,7 +52,7 @@ export const WebhookEventSchema = z.enum(WEBHOOK_EVENTS);
  * Schema for creating a new webhook
  */
 export const CreateWebhookSchema = z.object({
-  url: z.string().url('Invalid URL'),
+  url: z.url({ message: 'Invalid URL' }),
   events: z.array(WebhookEventSchema).min(1, 'At least one event is required'),
   description: z.string().max(500).optional(),
 });
@@ -61,7 +61,7 @@ export const CreateWebhookSchema = z.object({
  * Schema for updating an existing webhook
  */
 export const UpdateWebhookSchema = z.object({
-  url: z.string().url('Invalid URL').optional(),
+  url: z.url({ message: 'Invalid URL' }).optional(),
   events: z.array(WebhookEventSchema).min(1).optional(),
   description: z.string().max(500).optional().nullable(),
   isActive: z.boolean().optional(),

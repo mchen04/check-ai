@@ -31,7 +31,7 @@ const log = createLogger('API');
  * Middleware that validates API key and attaches organization context
  */
 export function withApiAuth(handler: ApiHandler): PublicApiHandler {
-  return async (req, context) => {
+  return async (req, context: { params: Promise<Record<string, string>> }) => {
     const requestId = generateRequestId();
 
     try {

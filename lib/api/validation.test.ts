@@ -113,7 +113,7 @@ describe('parseJsonBodyOrThrow', () => {
 
 describe('parseAndValidateOrThrow', () => {
   const TestSchema = z.object({
-    email: z.string().email(),
+    email: z.email(),
     age: z.number().min(0),
   });
 
@@ -177,7 +177,7 @@ describe('parseAndValidateOrThrow', () => {
 
 describe('validate', () => {
   const TestSchema = z.object({
-    email: z.string().email(),
+    email: z.email(),
   });
 
   it('should validate correct data', () => {

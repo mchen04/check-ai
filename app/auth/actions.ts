@@ -15,7 +15,7 @@ const log = createLogger('Auth');
 const PUBLIC_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || 'http://localhost:3001';
 
 export async function resetPassword(currentState: { message: string }, formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const passwordData = {
     password: formData.get('password') as string,
     confirm_password: formData.get('confirm_password') as string,
@@ -37,7 +37,7 @@ export async function resetPassword(currentState: { message: string }, formData:
 }
 
 export async function forgotPassword(currentState: { message: string }, formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const email = formData.get('email') as string;
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${PUBLIC_URL}/forgot-password/reset`,
@@ -50,7 +50,7 @@ export async function forgotPassword(currentState: { message: string }, formData
 }
 
 export async function signup(currentState: { message: string }, formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const data = {
     email: formData.get('email') as string,
@@ -122,7 +122,7 @@ export async function signup(currentState: { message: string }, formData: FormDa
 }
 
 export async function loginUser(currentState: { message: string }, formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const data = {
     email: formData.get('email') as string,
@@ -140,13 +140,13 @@ export async function loginUser(currentState: { message: string }, formData: For
 }
 
 export async function logout() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.auth.signOut();
   redirect('/login');
 }
 
 export async function signInWithGoogle() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
@@ -160,7 +160,7 @@ export async function signInWithGoogle() {
 }
 
 export async function signInWithGithub() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {

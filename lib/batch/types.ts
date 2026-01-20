@@ -97,7 +97,7 @@ export const createBatchSchema = z.object({
     .min(1)
     .max(100)
     .optional(),
-  fileId: z.string().uuid().optional(),
+  fileId: z.uuid().optional(),
   methods: methodsConfigSchema,
   options: VerifyOptionsSchema,
   context: z.record(z.string(), z.unknown()).optional(),

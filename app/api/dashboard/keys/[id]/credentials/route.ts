@@ -55,7 +55,7 @@ export const GET = withDashboardAuth(
 // =============================================================================
 
 const addCredentialSchema = z.object({
-  credentialId: z.string().uuid(),
+  credentialId: z.uuid(),
   setAsDefault: z.boolean().optional().default(false),
 });
 
@@ -142,7 +142,7 @@ export const DELETE = withDashboardAuth(
 // =============================================================================
 
 const setDefaultSchema = z.object({
-  credentialId: z.string().uuid(),
+  credentialId: z.uuid(),
 });
 
 export const PATCH = withDashboardAuth(

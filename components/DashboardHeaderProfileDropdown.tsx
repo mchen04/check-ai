@@ -14,7 +14,7 @@ import { logout } from '@/app/auth/actions';
 import { generateStripeBillingPortalLink } from '@/utils/stripe/api';
 
 export default async function DashboardHeaderProfileDropdown() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
