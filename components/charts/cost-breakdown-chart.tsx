@@ -65,7 +65,7 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
   }, {} as Record<string, { label: string; color: string }>);
 
   return (
-    <ChartContainer config={{ ...costChartConfig, ...dynamicConfig }} className="min-h-[250px] w-full">
+    <ChartContainer config={{ ...costChartConfig, ...dynamicConfig }} className="min-h-[150px] w-full">
       <PieChart>
         <ChartTooltip
           content={
@@ -97,9 +97,9 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
           dataKey="value"
           nameKey="name"
           cx="50%"
-          cy="50%"
-          innerRadius={60}
-          outerRadius={90}
+          cy="45%"
+          innerRadius={35}
+          outerRadius={55}
           strokeWidth={2}
           stroke="hsl(var(--background))"
         >
@@ -114,21 +114,21 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
         {/* Center label */}
         <text
           x="50%"
-          y="50%"
+          y="45%"
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-foreground text-xl font-bold"
+          className="fill-foreground text-base font-bold"
         >
           ${(totalCost / 100).toFixed(2)}
         </text>
         <text
           x="50%"
-          y="58%"
+          y="52%"
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-muted-foreground text-xs"
+          className="fill-muted-foreground text-[10px]"
         >
-          Total Cost
+          Total
         </text>
       </PieChart>
     </ChartContainer>

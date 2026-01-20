@@ -293,49 +293,50 @@ console.log(result);`;
   const enabledMethodsCount = Object.values(methods).filter((m) => m.enabled).length;
 
   return (
-    <div className="p-4">
-      <div className="mb-4">
+    <div className="p-3">
+      <div className="mb-2">
         <h1 className="text-sm font-semibold">Playground</h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         {/* Left Column - Input */}
-        <div className="space-y-4">
+        <div className="space-y-2">
           {/* Content Input */}
           <Card>
-            <CardHeader>
-              <CardTitle>Content to Verify</CardTitle>
-              <CardDescription>Enter the claim or statement you want to verify</CardDescription>
+            <CardHeader className="py-2 px-3">
+              <CardTitle className="text-xs">Content to Verify</CardTitle>
+              <CardDescription className="text-[10px]">Enter claim or statement</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 pt-0">
               <Textarea
                 placeholder="The Eiffel Tower is located in Paris, France and was completed in 1889..."
-                className="min-h-[150px] font-mono"
+                className="min-h-[80px] font-mono text-xs"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
               />
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">{content.length} characters</span>
+              <div className="mt-1.5 flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground">{content.length} chars</span>
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="h-6 text-[10px] px-2"
                   onClick={() => setShowCodeSnippet(!showCodeSnippet)}
                 >
-                  <Code className="mr-2 h-4 w-4" />
+                  <Code className="mr-1 h-3 w-3" />
                   {showCodeSnippet ? 'Hide' : 'Show'} Code
                 </Button>
               </div>
 
               {showCodeSnippet && (
-                <div className="mt-4">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-sm font-medium">API Code Snippet</span>
-                    <Button variant="ghost" size="sm" onClick={handleCopyCode}>
-                      <Copy className="mr-2 h-4 w-4" />
+                <div className="mt-3">
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span className="text-[10px] font-medium">API Code Snippet</span>
+                    <Button variant="ghost" size="sm" className="h-5 text-[10px] px-1.5" onClick={handleCopyCode}>
+                      <Copy className="mr-1 h-2.5 w-2.5" />
                       {copied ? 'Copied!' : 'Copy'}
                     </Button>
                   </div>
-                  <pre className="overflow-x-auto rounded-lg bg-muted p-4 text-xs">
+                  <pre className="overflow-x-auto rounded-md bg-muted p-2 text-[10px] max-h-[120px]">
                     {generateCodeSnippet()}
                   </pre>
                 </div>
@@ -345,11 +346,11 @@ console.log(result);`;
 
           {/* Methods Configuration */}
           <Card>
-            <CardHeader>
-              <CardTitle>Verification Methods</CardTitle>
-              <CardDescription>Configure which methods to use and their weights</CardDescription>
+            <CardHeader className="py-2 px-3">
+              <CardTitle className="text-xs">Verification Methods</CardTitle>
+              <CardDescription className="text-[10px]">Select methods and weights</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="p-2 space-y-1.5">
               <TooltipProvider>
                 {(Object.keys(methods) as Array<keyof MethodsState>).map((method) => {
                   const info = METHOD_INFO[method];
@@ -358,38 +359,39 @@ console.log(result);`;
                   return (
                     <div
                       key={method}
-                      className={`rounded-lg border p-4 transition-colors ${
+                      className={`rounded-md border px-2 py-1.5 transition-colors ${
                         config.enabled ? 'border-primary/20 bg-muted/50' : 'bg-background'
                       }`}
                     >
-                      <div className="mb-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
                           <Switch
                             checked={config.enabled}
                             onCheckedChange={() => handleMethodToggle(method)}
+                            className="scale-75"
                           />
-                          <Label className="font-medium">{info.name}</Label>
+                          <Label className="text-xs font-medium">{info.name}</Label>
                           <Tooltip>
                             <TooltipTrigger>
-                              <Info className="h-4 w-4 text-muted-foreground" />
+                              <Info className="h-3 w-3 text-muted-foreground" />
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>{info.description}</p>
-                              <p className="mt-1 text-xs">
+                              <p className="text-xs">{info.description}</p>
+                              <p className="mt-1 text-[10px]">
                                 FPR: {info.fpr} | Latency: {info.latency}
                               </p>
                             </TooltipContent>
                           </Tooltip>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">FPR: {info.fpr}</Badge>
-                          <Badge variant="secondary">{info.latency}</Badge>
+                        <div className="flex items-center gap-1">
+                          <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">{info.fpr}</Badge>
+                          <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">{info.latency}</Badge>
                         </div>
                       </div>
 
                       {config.enabled && (
-                        <div className="mt-3 flex items-center gap-4">
-                          <span className="w-16 text-sm text-muted-foreground">Weight:</span>
+                        <div className="mt-1.5 flex items-center gap-2">
+                          <span className="w-12 text-[10px] text-muted-foreground">Weight:</span>
                           <Slider
                             value={[config.weight]}
                             onValueChange={([value]) => handleWeightChange(method, value)}
@@ -398,7 +400,7 @@ console.log(result);`;
                             step={0.1}
                             className="flex-1"
                           />
-                          <span className="w-12 font-mono text-sm">{config.weight.toFixed(1)}</span>
+                          <span className="w-8 font-mono text-[10px]">{config.weight.toFixed(1)}</span>
                         </div>
                       )}
                     </div>
@@ -410,26 +412,27 @@ console.log(result);`;
 
           {/* Advanced Options */}
           <Card>
-            <CardHeader className="cursor-pointer" onClick={() => setOptions(prev => ({ ...prev, showAdvanced: !prev.showAdvanced }))}>
+            <CardHeader className="cursor-pointer py-2 px-3" onClick={() => setOptions(prev => ({ ...prev, showAdvanced: !prev.showAdvanced }))}>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-base">Advanced Options</CardTitle>
-                  <CardDescription>Configure thresholds and retry behavior</CardDescription>
+                  <CardTitle className="text-xs">Advanced Options</CardTitle>
+                  <CardDescription className="text-[10px]">Thresholds and retry behavior</CardDescription>
                 </div>
                 <Switch
                   checked={options.showAdvanced}
                   onCheckedChange={(checked) => setOptions(prev => ({ ...prev, showAdvanced: checked }))}
                   onClick={(e) => e.stopPropagation()}
+                  className="scale-75"
                 />
               </div>
             </CardHeader>
             {options.showAdvanced && (
-              <CardContent className="space-y-4">
+              <CardContent className="p-2 space-y-2">
                 {/* Accept Threshold */}
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm">Accept Threshold</Label>
-                    <span className="font-mono text-sm">{(options.acceptThreshold * 100).toFixed(0)}%</span>
+                    <Label className="text-[10px]">Accept Threshold</Label>
+                    <span className="font-mono text-[10px]">{(options.acceptThreshold * 100).toFixed(0)}%</span>
                   </div>
                   <Slider
                     value={[options.acceptThreshold]}
@@ -438,16 +441,15 @@ console.log(result);`;
                     max={1}
                     step={0.05}
                   />
-                  <p className="text-xs text-muted-foreground">Auto-approve if confidence ≥ this value</p>
                 </div>
 
                 <Separator />
 
                 {/* Escalate Threshold */}
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm">Escalate Threshold</Label>
-                    <span className="font-mono text-sm">{(options.escalateThreshold * 100).toFixed(0)}%</span>
+                    <Label className="text-[10px]">Escalate Threshold</Label>
+                    <span className="font-mono text-[10px]">{(options.escalateThreshold * 100).toFixed(0)}%</span>
                   </div>
                   <Slider
                     value={[options.escalateThreshold]}
@@ -456,16 +458,15 @@ console.log(result);`;
                     max={0.9}
                     step={0.05}
                   />
-                  <p className="text-xs text-muted-foreground">Trigger human review if confidence &lt; this with disagreement</p>
                 </div>
 
                 <Separator />
 
                 {/* Max Retries */}
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm">Max Retries</Label>
-                    <span className="font-mono text-sm">{options.maxRetries}</span>
+                    <Label className="text-[10px]">Max Retries</Label>
+                    <span className="font-mono text-[10px]">{options.maxRetries}</span>
                   </div>
                   <Slider
                     value={[options.maxRetries]}
@@ -474,28 +475,25 @@ console.log(result);`;
                     max={5}
                     step={1}
                   />
-                  <p className="text-xs text-muted-foreground">Retry failed paradigm executions (0-5)</p>
                 </div>
 
                 <Separator />
 
                 {/* Retry on Low Confidence */}
-                <div className="space-y-3">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm">Retry on Low Confidence</Label>
-                      <p className="text-xs text-muted-foreground">Retry all paradigms if confidence is too low</p>
-                    </div>
+                    <Label className="text-[10px]">Retry on Low Confidence</Label>
                     <Switch
                       checked={options.retryOnLowConfidence}
                       onCheckedChange={(checked) => setOptions(prev => ({ ...prev, retryOnLowConfidence: checked }))}
+                      className="scale-75"
                     />
                   </div>
                   {options.retryOnLowConfidence && (
-                    <div className="space-y-2 pl-4 border-l-2 border-muted">
+                    <div className="space-y-1 pl-2 border-l-2 border-muted">
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm">Min Confidence Target</Label>
-                        <span className="font-mono text-sm">{(options.minConfidence * 100).toFixed(0)}%</span>
+                        <Label className="text-[10px]">Min Confidence</Label>
+                        <span className="font-mono text-[10px]">{(options.minConfidence * 100).toFixed(0)}%</span>
                       </div>
                       <Slider
                         value={[options.minConfidence]}
@@ -514,7 +512,7 @@ console.log(result);`;
           {/* Submit Button */}
           <Button
             className="w-full"
-            size="lg"
+            size="sm"
             onClick={handleSubmit}
             disabled={isSubmitting || !content.trim() || enabledMethodsCount === 0}
           >
@@ -525,7 +523,7 @@ console.log(result);`;
               </>
             ) : (
               <>
-                <Play className="mr-2 h-4 w-4" />
+                <Play className="mr-1.5 h-3 w-3" />
                 Verify ({enabledMethodsCount} method
                 {enabledMethodsCount !== 1 ? 's' : ''})
               </>
@@ -534,12 +532,12 @@ console.log(result);`;
         </div>
 
         {/* Right Column - Results */}
-        <div className="space-y-6">
+        <div className="space-y-2">
           {/* Error Display */}
           {error && (
             <Card className="border-red-200 bg-red-50">
-              <CardContent className="pt-6">
-                <p className="text-red-600">{error}</p>
+              <CardContent className="p-3">
+                <p className="text-xs text-red-600">{error}</p>
               </CardContent>
             </Card>
           )}
@@ -547,22 +545,21 @@ console.log(result);`;
           {/* Processing Status */}
           {isSubmitting && !result && (
             <Card>
-              <CardHeader>
-                <CardTitle>Processing</CardTitle>
+              <CardHeader className="py-2 px-3">
+                <CardTitle className="text-xs">Processing</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
+              <CardContent className="p-3 pt-0 space-y-2">
+                <div className="flex items-center gap-2">
                   <Spinner size="sm" className="text-blue-500" />
-                  <span>Running verification methods...</span>
+                  <span className="text-xs">Running verification methods...</span>
                 </div>
                 {liveStatus.progress.total > 0 && (
                   <>
                     <Progress
                       value={(liveStatus.progress.completed / liveStatus.progress.total) * 100}
                     />
-                    <p className="text-sm text-muted-foreground">
-                      {liveStatus.progress.completed} of {liveStatus.progress.total} methods
-                      completed
+                    <p className="text-[10px] text-muted-foreground">
+                      {liveStatus.progress.completed} of {liveStatus.progress.total} completed
                     </p>
                   </>
                 )}
@@ -575,25 +572,25 @@ console.log(result);`;
             <>
               {/* Main Result */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Verification Result</CardTitle>
+                <CardHeader className="py-2 px-3">
+                  <CardTitle className="text-xs">Verification Result</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="mb-4 flex items-center gap-4">
+                <CardContent className="p-3 pt-0">
+                  <div className="mb-2 flex items-center gap-3">
                     <VerdictIcon verdict={result.verdict} size="lg" />
                     <div>
-                      <p className={`text-3xl font-bold ${getVerdictColor(result.verdict)}`}>
+                      <p className={`text-xl font-bold ${getVerdictColor(result.verdict)}`}>
                         {result.verdict
                           ? result.verdict.charAt(0).toUpperCase() + result.verdict.slice(1)
                           : 'Pending'}
                       </p>
-                      <p className="text-muted-foreground">
+                      <p className="text-[10px] text-muted-foreground">
                         {(result.confidence * 100).toFixed(1)}% confidence
                       </p>
                     </div>
                     <div className="ml-auto">
                       <Badge
-                        className={
+                        className={`text-[9px] px-1 py-0 h-4 ${
                           result.decision === 'accept'
                             ? 'bg-green-100 text-green-800'
                             : result.decision === 'reject'
@@ -601,16 +598,16 @@ console.log(result);`;
                               : result.decision === 'escalate'
                                 ? 'bg-orange-100 text-orange-800'
                                 : 'bg-blue-100 text-blue-800'
-                        }
+                        }`}
                       >
                         {result.decision}
                       </Badge>
                     </div>
                   </div>
 
-                  <Progress value={result.confidence * 100} className="mb-4" />
+                  <Progress value={result.confidence * 100} className="mb-2" />
 
-                  <div className="flex gap-4 text-sm text-muted-foreground">
+                  <div className="flex gap-3 text-[10px] text-muted-foreground">
                     <span>{result.processingTimeMs}ms</span>
                     <span>•</span>
                     <span>${(result.costCents / 100).toFixed(4)}</span>
@@ -618,10 +615,10 @@ console.log(result);`;
                     <Button
                       variant="link"
                       size="sm"
-                      className="h-auto p-0"
+                      className="h-auto p-0 text-[10px]"
                       onClick={() => router.push(`/dashboard/verify/${result.id}`)}
                     >
-                      View Details
+                      Details
                     </Button>
                   </div>
                 </CardContent>
@@ -629,35 +626,35 @@ console.log(result);`;
 
               {/* Paradigm Results */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Method Results</CardTitle>
+                <CardHeader className="py-2 px-3">
+                  <CardTitle className="text-xs">Method Results</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="p-2 space-y-1.5">
                   {result.paradigmResults.map((pr, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
+                      className="flex items-center justify-between rounded-md bg-muted/50 px-2 py-1.5"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <VerdictIcon verdict={pr.verdict} />
                         <div>
-                          <p className="font-medium">
+                          <p className="text-xs font-medium">
                             {METHOD_INFO[pr.paradigm]?.name || pr.paradigm}
                           </p>
                           {pr.error ? (
-                            <p className="text-xs text-red-500">{pr.error}</p>
+                            <p className="text-[10px] text-red-500">{pr.error}</p>
                           ) : (
-                            <p className="text-xs text-muted-foreground">
-                              {truncateString(pr.reasoning, 80, true)}
+                            <p className="text-[10px] text-muted-foreground">
+                              {truncateString(pr.reasoning, 60, true)}
                             </p>
                           )}
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className={`font-medium ${getVerdictColor(pr.verdict)}`}>
+                        <p className={`text-xs font-medium ${getVerdictColor(pr.verdict)}`}>
                           {pr.verdict || 'N/A'}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[10px] text-muted-foreground">
                           {(pr.confidence * 100).toFixed(0)}% • {pr.processingTimeMs}ms
                         </p>
                       </div>
@@ -671,10 +668,10 @@ console.log(result);`;
           {/* Empty State */}
           {!isSubmitting && !result && !error && (
             <Card className="border-dashed">
-              <CardContent className="py-12 text-center">
+              <CardContent className="py-8 text-center">
                 <div className="text-muted-foreground">
-                  <Play className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                  <p>Enter content and click Verify to see results</p>
+                  <Play className="mx-auto mb-2 h-8 w-8 opacity-50" />
+                  <p className="text-xs">Enter content and click Verify to see results</p>
                 </div>
               </CardContent>
             </Card>

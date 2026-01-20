@@ -191,34 +191,34 @@ export default async function UsagePage() {
       : 0;
 
   return (
-    <div className="p-4">
+    <div className="p-3">
       {/* Header with Billing Period */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <h1 className="text-sm font-semibold">Usage & Billing</h1>
           <span className="text-[10px] text-muted-foreground">
             {format(monthStart, 'MMM d')} - {format(monthEnd, 'MMM d, yyyy')}
           </span>
         </div>
-        <Button variant="outline" size="sm" className="h-7 text-xs" asChild>
+        <Button variant="outline" size="sm" className="h-6 text-[10px] px-2" asChild>
           <Link href="/subscribe">
-            <CreditCard className="mr-1.5 h-3 w-3" />
+            <CreditCard className="mr-1 h-3 w-3" />
             Manage
           </Link>
         </Button>
       </div>
 
       {/* Stats Grid - Compact */}
-      <div className="mb-4 grid gap-3 grid-cols-2 lg:grid-cols-4">
+      <div className="mb-2 grid gap-2 grid-cols-2 lg:grid-cols-4">
         {/* Monthly Verifications */}
-        <Card className="p-3">
+        <Card className="p-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">Verifications</span>
+            <span className="text-[10px] font-medium text-muted-foreground">Verifications</span>
             <Activity className="h-3 w-3 text-muted-foreground" />
           </div>
-          <div className="mt-1 text-lg font-semibold">
+          <div className="mt-0.5 text-base font-semibold">
             {stats.monthlyVerifications}
-            <span className="text-xs font-normal text-muted-foreground">
+            <span className="text-[10px] font-normal text-muted-foreground">
               {' '}/ {stats.verificationsLimit === Infinity ? '∞' : stats.verificationsLimit}
             </span>
           </div>
@@ -226,37 +226,37 @@ export default async function UsagePage() {
         </Card>
 
         {/* Tokens Used */}
-        <Card className="p-3">
+        <Card className="p-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">Tokens Used</span>
+            <span className="text-[10px] font-medium text-muted-foreground">Tokens Used</span>
             <Zap className="h-3 w-3 text-muted-foreground" />
           </div>
-          <div className="mt-1 text-lg font-semibold">{stats.monthlyTokens.toLocaleString()}</div>
-          <p className="text-[10px] text-muted-foreground">This month</p>
+          <div className="mt-0.5 text-base font-semibold">{stats.monthlyTokens.toLocaleString()}</div>
+          <p className="text-[9px] text-muted-foreground">This month</p>
         </Card>
 
         {/* API Cost */}
-        <Card className="p-3">
+        <Card className="p-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">API Cost</span>
+            <span className="text-[10px] font-medium text-muted-foreground">API Cost</span>
             <TrendingUp className="h-3 w-3 text-muted-foreground" />
           </div>
-          <div className="mt-1 text-lg font-semibold">${(stats.monthlyCost / 100).toFixed(2)}</div>
-          <p className="text-[10px] text-muted-foreground">LLM usage</p>
+          <div className="mt-0.5 text-base font-semibold">${(stats.monthlyCost / 100).toFixed(2)}</div>
+          <p className="text-[9px] text-muted-foreground">LLM usage</p>
         </Card>
 
         {/* Plan */}
-        <Card className="p-3">
+        <Card className="p-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">Plan</span>
+            <span className="text-[10px] font-medium text-muted-foreground">Plan</span>
             <CreditCard className="h-3 w-3 text-muted-foreground" />
           </div>
-          <div className="mt-1 flex items-center gap-1.5">
-            <span className="text-lg font-semibold">{capitalize(organization.planType)}</span>
-            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">Active</Badge>
+          <div className="mt-0.5 flex items-center gap-1">
+            <span className="text-base font-semibold">{capitalize(organization.planType)}</span>
+            <Badge variant="outline" className="text-[8px] px-1 py-0 h-3.5">Active</Badge>
           </div>
           {organization.planType === 'free' && (
-            <Link href="/subscribe" className="text-[10px] text-primary hover:underline">
+            <Link href="/subscribe" className="text-[9px] text-primary hover:underline">
               Upgrade
             </Link>
           )}
@@ -264,30 +264,30 @@ export default async function UsagePage() {
       </div>
 
       {/* Usage Breakdown */}
-      <div className="grid gap-4 lg:grid-cols-2 mb-4">
+      <div className="grid gap-2 lg:grid-cols-2 mb-2">
         {/* Usage by Provider */}
         <Card>
-          <div className="border-b px-4 py-2.5">
+          <div className="border-b px-3 py-2">
             <h3 className="text-xs font-semibold">Usage by Provider</h3>
           </div>
-          <div className="p-3">
+          <div className="p-2">
             {usageByProvider.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-6 text-center">
-                <BarChart3 className="mb-2 h-6 w-6 text-muted-foreground/30" />
+              <div className="flex flex-col items-center justify-center py-4 text-center">
+                <BarChart3 className="mb-1.5 h-5 w-5 text-muted-foreground/30" />
                 <p className="text-[10px] text-muted-foreground">No usage data yet</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {usageByProvider.map((p) => (
-                  <div key={p.provider} className="space-y-1">
+                  <div key={p.provider} className="space-y-0.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium capitalize">{p.provider}</span>
+                      <span className="text-[10px] font-medium capitalize">{p.provider}</span>
                       <span className="text-[10px] text-muted-foreground">
-                        {p.totalTokens.toLocaleString()} tokens
+                        {p.totalTokens.toLocaleString()} tok
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                      <span>{p.count} requests</span>
+                      <span>{p.count} req</span>
                       <span>${(p.totalCost / 100).toFixed(4)}</span>
                     </div>
                     <Progress
@@ -303,29 +303,29 @@ export default async function UsagePage() {
 
         {/* Usage by Model */}
         <Card>
-          <div className="border-b px-4 py-2.5">
+          <div className="border-b px-3 py-2">
             <h3 className="text-xs font-semibold">Usage by Model</h3>
           </div>
           <div className="p-2">
             {usageByModel.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-6 text-center">
-                <BarChart3 className="mb-2 h-6 w-6 text-muted-foreground/30" />
+              <div className="flex flex-col items-center justify-center py-4 text-center">
+                <BarChart3 className="mb-1.5 h-5 w-5 text-muted-foreground/30" />
                 <p className="text-[10px] text-muted-foreground">No usage data yet</p>
               </div>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {usageByModel.slice(0, 5).map((m) => (
                   <div
                     key={`${m.provider}-${m.model}`}
-                    className="flex items-center justify-between rounded-md px-2 py-1.5 hover:bg-muted/50"
+                    className="flex items-center justify-between rounded px-1.5 py-1 hover:bg-muted/50"
                   >
                     <div>
-                      <p className="text-xs font-medium">{m.model}</p>
-                      <p className="text-[10px] text-muted-foreground capitalize">{m.provider}</p>
+                      <p className="text-[10px] font-medium">{m.model}</p>
+                      <p className="text-[9px] text-muted-foreground capitalize">{m.provider}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-medium">{m.totalTokens.toLocaleString()}</p>
-                      <p className="text-[10px] text-muted-foreground">${(m.totalCost / 100).toFixed(4)}</p>
+                      <p className="text-[10px] font-medium">{m.totalTokens.toLocaleString()}</p>
+                      <p className="text-[9px] text-muted-foreground">${(m.totalCost / 100).toFixed(4)}</p>
                     </div>
                   </div>
                 ))}
@@ -338,15 +338,18 @@ export default async function UsagePage() {
       {/* Analytics Section */}
       <Suspense
         fallback={
-          <div className="mt-8 space-y-6">
+          <div className="mt-2 space-y-2">
             <div className="flex items-center justify-between">
               <div>
-                <Skeleton className="h-7 w-24" />
-                <Skeleton className="mt-1 h-4 w-48" />
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="mt-1 h-2 w-24" />
               </div>
-              <Skeleton className="h-10 w-[140px]" />
+              <Skeleton className="h-7 w-[90px]" />
             </div>
-            <Skeleton className="h-[400px] w-full" />
+            <div className="grid gap-2 lg:grid-cols-2">
+              <Skeleton className="h-[160px] w-full" />
+              <Skeleton className="h-[160px] w-full" />
+            </div>
           </div>
         }
       >
@@ -357,14 +360,14 @@ export default async function UsagePage() {
       <AdvancedAnalyticsSection />
 
       {/* Recent Usage */}
-      <Card className="mt-4">
-        <div className="border-b px-4 py-2.5">
+      <Card className="mt-2">
+        <div className="border-b px-3 py-2">
           <h3 className="text-xs font-semibold">Recent API Calls</h3>
         </div>
         <div className="p-2">
           {recentUsage.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-6 text-center">
-              <Activity className="mb-2 h-6 w-6 text-muted-foreground/30" />
+            <div className="flex flex-col items-center justify-center py-4 text-center">
+              <Activity className="mb-1.5 h-5 w-5 text-muted-foreground/30" />
               <p className="text-[10px] text-muted-foreground">No recent activity</p>
             </div>
           ) : (
@@ -372,23 +375,23 @@ export default async function UsagePage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b text-left text-[10px] font-medium text-muted-foreground">
-                    <th className="pb-2 pr-4">Provider</th>
-                    <th className="pb-2 pr-4">Model</th>
-                    <th className="pb-2 pr-4 text-right">Input</th>
-                    <th className="pb-2 pr-4 text-right">Output</th>
-                    <th className="pb-2 pr-4 text-right">Cost</th>
-                    <th className="pb-2 text-right">Time</th>
+                    <th className="pb-1.5 pr-3">Provider</th>
+                    <th className="pb-1.5 pr-3">Model</th>
+                    <th className="pb-1.5 pr-3 text-right">In</th>
+                    <th className="pb-1.5 pr-3 text-right">Out</th>
+                    <th className="pb-1.5 pr-3 text-right">Cost</th>
+                    <th className="pb-1.5 text-right">Time</th>
                   </tr>
                 </thead>
-                <tbody className="text-xs">
+                <tbody className="text-[10px]">
                   {recentUsage.map((u) => (
                     <tr key={u.id} className="border-b last:border-0">
-                      <td className="py-2 pr-4 capitalize">{u.provider}</td>
-                      <td className="py-2 pr-4 font-mono text-[10px]">{u.model}</td>
-                      <td className="py-2 pr-4 text-right">{u.inputTokens.toLocaleString()}</td>
-                      <td className="py-2 pr-4 text-right">{u.outputTokens.toLocaleString()}</td>
-                      <td className="py-2 pr-4 text-right">${(u.costCents / 100).toFixed(4)}</td>
-                      <td className="py-2 text-right text-muted-foreground">
+                      <td className="py-1.5 pr-3 capitalize">{u.provider}</td>
+                      <td className="py-1.5 pr-3 font-mono">{u.model}</td>
+                      <td className="py-1.5 pr-3 text-right">{u.inputTokens.toLocaleString()}</td>
+                      <td className="py-1.5 pr-3 text-right">{u.outputTokens.toLocaleString()}</td>
+                      <td className="py-1.5 pr-3 text-right">${(u.costCents / 100).toFixed(4)}</td>
+                      <td className="py-1.5 text-right text-muted-foreground">
                         {formatRelativeTime(u.createdAt)}
                       </td>
                     </tr>

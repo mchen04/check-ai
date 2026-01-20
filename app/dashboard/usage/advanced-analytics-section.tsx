@@ -34,12 +34,12 @@ import { CostEfficiencyChart } from '@/components/charts/cost-efficiency-chart';
 import { CalibrationChart } from '@/components/charts/calibration-chart';
 import type { TimeRange, AdvancedAnalyticsData } from '@/lib/analytics';
 
-function ChartSkeleton({ height = 'h-[300px]' }: { height?: string }) {
+function ChartSkeleton({ height = 'h-[160px]' }: { height?: string }) {
   return <Skeleton className={`${height} w-full`} />;
 }
 
-function ChartEmptyState({ message = 'No data available for this period' }: { message?: string }) {
-  return <EmptyState icon={BarChart3} message={message} size="lg" />;
+function ChartEmptyState({ message = 'No data available' }: { message?: string }) {
+  return <EmptyState icon={BarChart3} message={message} size="sm" />;
 }
 
 function ChartErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
@@ -57,18 +57,18 @@ interface SummaryCardProps {
 function SummaryCard({ title, value, icon, description, badge }: SummaryCardProps) {
   return (
     <Card>
-      <CardContent className="pt-6">
+      <CardContent className="p-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
             {icon}
-            <span className="text-sm font-medium">{title}</span>
+            <span className="text-[11px] font-medium">{title}</span>
           </div>
-          {badge && <Badge variant={badge.variant}>{badge.label}</Badge>}
+          {badge && <Badge variant={badge.variant} className="text-[9px] px-1 py-0 h-4">{badge.label}</Badge>}
         </div>
-        <div className="mt-2">
-          <span className="text-2xl font-bold">{value}</span>
+        <div className="mt-1">
+          <span className="text-lg font-bold">{value}</span>
           {description && (
-            <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+            <p className="text-[10px] text-muted-foreground">{description}</p>
           )}
         </div>
       </CardContent>
@@ -118,29 +118,29 @@ export function AdvancedAnalyticsSection() {
   const summary = data?.advancedSummary;
 
   return (
-    <div className="mt-8">
+    <div className="mt-2">
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <Card>
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50">
+            <CardHeader className="cursor-pointer hover:bg-muted/50 py-2 px-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-xs">
+                    <Activity className="h-3.5 w-3.5" />
                     Advanced Analytics
-                    <Badge variant="secondary" className="ml-2">
+                    <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
                       Beta
                     </Badge>
                   </CardTitle>
-                  <CardDescription>
-                    Deep insights: FPR analysis, cost efficiency, and calibration metrics
+                  <CardDescription className="text-[10px]">
+                    FPR analysis, cost efficiency, and calibration
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                   {isExpanded ? (
-                    <ChevronUp className="h-5 w-5" />
+                    <ChevronUp className="h-4 w-4" />
                   ) : (
-                    <ChevronDown className="h-5 w-5" />
+                    <ChevronDown className="h-4 w-4" />
                   )}
                 </div>
               </div>
@@ -148,18 +148,19 @@ export function AdvancedAnalyticsSection() {
           </CollapsibleTrigger>
 
           <CollapsibleContent>
-            <CardContent className="space-y-6 border-t pt-6">
+            <CardContent className="space-y-3 border-t pt-3 px-3">
               {/* Controls */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
+                    className="h-7 w-7 p-0"
                     onClick={fetchAdvancedAnalytics}
                     disabled={isLoading}
                   >
                     <RefreshCw
-                      className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+                      className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`}
                     />
                   </Button>
                   <TimeRangeSelector value={range} onChange={setRange} />
@@ -172,11 +173,11 @@ export function AdvancedAnalyticsSection() {
                 <>
                   {/* Summary Cards */}
                   {summary && !isLoading && (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid gap-2 grid-cols-2 lg:grid-cols-4">
                       <SummaryCard
                         title="Overall FPR"
                         value={`${(summary.overallFPR * 100).toFixed(1)}%`}
-                        icon={<Target className="h-4 w-4" />}
+                        icon={<Target className="h-3 w-3" />}
                         badge={
                           summary.overallFPR > 0.1
                             ? { label: 'High', variant: 'destructive' }
@@ -186,19 +187,19 @@ export function AdvancedAnalyticsSection() {
                       <SummaryCard
                         title="Best Paradigm"
                         value={summary.bestPerformingParadigm || 'N/A'}
-                        icon={<Activity className="h-4 w-4" />}
+                        icon={<Activity className="h-3 w-3" />}
                         description="By accuracy"
                       />
                       <SummaryCard
                         title="Most Efficient"
                         value={summary.mostCostEfficient || 'N/A'}
-                        icon={<DollarSign className="h-4 w-4" />}
+                        icon={<DollarSign className="h-3 w-3" />}
                         description="Cost per accurate"
                       />
                       <SummaryCard
                         title="Calibration Error"
                         value={`${(summary.avgCalibrationError * 100).toFixed(1)}%`}
-                        icon={<BarChart3 className="h-4 w-4" />}
+                        icon={<BarChart3 className="h-3 w-3" />}
                         badge={
                           summary.avgCalibrationError > 0.1
                             ? { label: 'High', variant: 'destructive' }
@@ -208,23 +209,21 @@ export function AdvancedAnalyticsSection() {
                     </div>
                   )}
 
-                  {/* Charts */}
-                  <div className="space-y-6">
+                  {/* Charts - Side by side layout */}
+                  <div className="grid gap-3 lg:grid-cols-2">
                     {/* FPR by Paradigm */}
                     <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">
-                          False Positive Rate by Method
-                        </CardTitle>
-                        <CardDescription>
-                          Lower is better. The 10% threshold line indicates acceptable FPR.
+                      <CardHeader className="py-2 px-3">
+                        <CardTitle className="text-xs">FPR by Method</CardTitle>
+                        <CardDescription className="text-[10px]">
+                          Lower is better (10% threshold)
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="p-3 pt-0">
                         {isLoading ? (
                           <ChartSkeleton />
                         ) : !data?.paradigmFPR.length ? (
-                          <ChartEmptyState message="No resolved escalations with human feedback yet" />
+                          <ChartEmptyState message="No resolved escalations yet" />
                         ) : (
                           <FPRChart data={data.paradigmFPR} threshold={0.1} />
                         )}
@@ -233,15 +232,13 @@ export function AdvancedAnalyticsSection() {
 
                     {/* Cost Efficiency */}
                     <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">
-                          Cost Efficiency by Method
-                        </CardTitle>
-                        <CardDescription>
-                          Cost per accurate verification. Lower bars = more cost efficient.
+                      <CardHeader className="py-2 px-3">
+                        <CardTitle className="text-xs">Cost Efficiency</CardTitle>
+                        <CardDescription className="text-[10px]">
+                          Cost per accurate verification
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="p-3 pt-0">
                         {isLoading ? (
                           <ChartSkeleton />
                         ) : !data?.costEfficiency.length ? (
@@ -253,21 +250,18 @@ export function AdvancedAnalyticsSection() {
                     </Card>
 
                     {/* Calibration */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">
-                          Confidence Calibration
-                        </CardTitle>
-                        <CardDescription>
-                          Points on the diagonal line are perfectly calibrated.
-                          Above = underconfident, below = overconfident.
+                    <Card className="lg:col-span-2">
+                      <CardHeader className="py-2 px-3">
+                        <CardTitle className="text-xs">Confidence Calibration</CardTitle>
+                        <CardDescription className="text-[10px]">
+                          Diagonal = perfect. Above = underconfident, below = overconfident.
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="p-3 pt-0">
                         {isLoading ? (
-                          <ChartSkeleton height="h-[350px]" />
+                          <ChartSkeleton height="h-[180px]" />
                         ) : !data?.calibration.length ? (
-                          <ChartEmptyState message="Not enough data for calibration analysis" />
+                          <ChartEmptyState message="Not enough data for calibration" />
                         ) : (
                           <CalibrationChart data={data.calibration} />
                         )}
@@ -278,38 +272,35 @@ export function AdvancedAnalyticsSection() {
                   {/* Calibration Details */}
                   {data?.calibration && data.calibration.length > 0 && !isLoading && (
                     <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">
-                          Calibration Status by Method
-                        </CardTitle>
-                        <CardDescription>
-                          How well each method&apos;s confidence matches actual accuracy
+                      <CardHeader className="py-2 px-3">
+                        <CardTitle className="text-xs">Calibration Status</CardTitle>
+                        <CardDescription className="text-[10px]">
+                          Confidence vs actual accuracy by method
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
+                      <CardContent className="p-2">
+                        <div className="space-y-1.5">
                           {data.calibration.map((paradigm) => (
                             <div
                               key={paradigm.paradigmType}
-                              className="flex items-center justify-between rounded-lg border p-3"
+                              className="flex items-center justify-between rounded-md border px-2 py-1.5"
                             >
-                              <div className="flex items-center gap-3">
-                                <span className="font-medium">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium">
                                   {paradigm.displayName}
                                 </span>
                                 {paradigm.isOverconfident && (
-                                  <Badge variant="destructive">Overconfident</Badge>
+                                  <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4">Over</Badge>
                                 )}
                                 {paradigm.isUnderconfident && (
-                                  <Badge variant="outline">Underconfident</Badge>
+                                  <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">Under</Badge>
                                 )}
                                 {!paradigm.isOverconfident &&
                                   !paradigm.isUnderconfident && (
-                                    <Badge variant="secondary">Well Calibrated</Badge>
+                                    <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">Good</Badge>
                                   )}
                               </div>
-                              <div className="text-sm text-muted-foreground">
-                                Error:{' '}
+                              <div className="text-[10px] text-muted-foreground">
                                 <span className="font-mono">
                                   {(paradigm.overallCalibrationError * 100).toFixed(1)}%
                                 </span>

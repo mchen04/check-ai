@@ -24,7 +24,7 @@ export function ProcessingTimeChart({ data }: ProcessingTimeChartProps) {
   }));
 
   return (
-    <ChartContainer config={processingTimeChartConfig} className="min-h-[250px] w-full">
+    <ChartContainer config={processingTimeChartConfig} className="min-h-[150px] w-full">
       <LineChart
         accessibilityLayer
         data={formattedData}
@@ -35,13 +35,16 @@ export function ProcessingTimeChart({ data }: ProcessingTimeChartProps) {
           dataKey="displayDate"
           tickLine={false}
           axisLine={false}
-          tickMargin={8}
+          tickMargin={4}
+          tick={{ fontSize: 10 }}
         />
         <YAxis
           tickLine={false}
           axisLine={false}
-          tickMargin={8}
+          tickMargin={4}
           tickFormatter={(value) => `${value}ms`}
+          tick={{ fontSize: 10 }}
+          width={40}
         />
         <ChartTooltip
           content={

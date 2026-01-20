@@ -41,7 +41,7 @@ export function CalibrationChart({ data }: CalibrationChartProps) {
   // Guard against empty/undefined data
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[350px] text-muted-foreground">
+      <div className="flex items-center justify-center h-[180px] text-muted-foreground text-xs">
         No data available
       </div>
     );
@@ -85,8 +85,8 @@ export function CalibrationChart({ data }: CalibrationChartProps) {
   };
 
   return (
-    <ChartContainer config={config} className="min-h-[350px] w-full">
-      <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+    <ChartContainer config={config} className="min-h-[180px] w-full">
+      <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           type="number"
@@ -95,13 +95,9 @@ export function CalibrationChart({ data }: CalibrationChartProps) {
           domain={[0, 100]}
           tickLine={false}
           axisLine={false}
-          tickMargin={8}
+          tickMargin={4}
           tickFormatter={(value) => `${value}%`}
-          label={{
-            value: 'Predicted Confidence',
-            position: 'bottom',
-            offset: 0,
-          }}
+          tick={{ fontSize: 9 }}
         />
         <YAxis
           type="number"
@@ -110,18 +106,15 @@ export function CalibrationChart({ data }: CalibrationChartProps) {
           domain={[0, 100]}
           tickLine={false}
           axisLine={false}
-          tickMargin={8}
+          tickMargin={4}
           tickFormatter={(value) => `${value}%`}
-          label={{
-            value: 'Actual Accuracy',
-            angle: -90,
-            position: 'insideLeft',
-          }}
+          tick={{ fontSize: 9 }}
+          width={30}
         />
         <ZAxis
           type="number"
           dataKey="count"
-          range={[50, 400]}
+          range={[30, 200]}
           name="Sample Size"
         />
         {/* Perfect calibration line (y = x) */}

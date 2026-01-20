@@ -30,7 +30,7 @@ export function VerificationTrendsChart({ data }: VerificationTrendsChartProps) 
   }));
 
   return (
-    <ChartContainer config={trendsChartConfig} className="min-h-[300px] w-full">
+    <ChartContainer config={trendsChartConfig} className="min-h-[180px] w-full">
       <AreaChart
         accessibilityLayer
         data={formattedData}
@@ -41,13 +41,16 @@ export function VerificationTrendsChart({ data }: VerificationTrendsChartProps) 
           dataKey="displayDate"
           tickLine={false}
           axisLine={false}
-          tickMargin={8}
+          tickMargin={4}
+          tick={{ fontSize: 10 }}
         />
         <YAxis
           tickLine={false}
           axisLine={false}
-          tickMargin={8}
+          tickMargin={4}
           tickFormatter={(value) => value.toLocaleString()}
+          tick={{ fontSize: 10 }}
+          width={35}
         />
         <ChartTooltip
           content={

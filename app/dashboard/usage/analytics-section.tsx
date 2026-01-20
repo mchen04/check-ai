@@ -21,12 +21,12 @@ import { CostBreakdownChart } from '@/components/charts/cost-breakdown-chart';
 import { ProcessingTimeChart } from '@/components/charts/processing-time-chart';
 import type { TimeRange, AnalyticsData } from '@/lib/analytics';
 
-function ChartSkeleton({ height = 'h-[300px]' }: { height?: string }) {
+function ChartSkeleton({ height = 'h-[180px]' }: { height?: string }) {
   return <Skeleton className={`${height} w-full`} />;
 }
 
-function ChartEmptyState({ message = 'No data available for this period' }: { message?: string }) {
-  return <EmptyState icon={BarChart3} message={message} size="lg" />;
+function ChartEmptyState({ message = 'No data available' }: { message?: string }) {
+  return <EmptyState icon={BarChart3} message={message} size="sm" />;
 }
 
 function ChartErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
@@ -70,23 +70,24 @@ export function AnalyticsSection() {
   );
 
   return (
-    <div className="mt-8 space-y-6">
+    <div className="mt-2 space-y-2">
       {/* Header with time selector */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Analytics</h2>
-          <p className="text-sm text-muted-foreground">
-            Verification trends and performance metrics
+          <h2 className="text-xs font-semibold">Analytics</h2>
+          <p className="text-[10px] text-muted-foreground">
+            Trends and performance
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
+            className="h-7 w-7 p-0"
             onClick={fetchAnalytics}
             disabled={isLoading}
           >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
           <TimeRangeSelector value={range} onChange={setRange} />
         </div>
@@ -99,35 +100,52 @@ export function AnalyticsSection() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6">
-          {/* Verification Trends - Full Width */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Verification Trends</CardTitle>
-              <CardDescription>Daily verification volume by status</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <ChartSkeleton />
-              ) : !data?.trends.length ? (
-                <ChartEmptyState />
-              ) : (
-                <VerificationTrendsChart data={data.trends} />
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Two Column Row */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Verdict Distribution */}
+        <div className="grid gap-3">
+          {/* Top Row - Verification Trends + Method Performance */}
+          <div className="grid gap-3 lg:grid-cols-2">
             <Card>
-              <CardHeader>
-                <CardTitle>Verdict Distribution</CardTitle>
-                <CardDescription>Success, failure, and uncertain rates</CardDescription>
+              <CardHeader className="py-2 px-3">
+                <CardTitle className="text-xs">Verification Trends</CardTitle>
+                <CardDescription className="text-[10px]">Daily volume by status</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 pt-0">
                 {isLoading ? (
-                  <ChartSkeleton height="h-[250px]" />
+                  <ChartSkeleton />
+                ) : !data?.trends.length ? (
+                  <ChartEmptyState />
+                ) : (
+                  <VerificationTrendsChart data={data.trends} />
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="py-2 px-3">
+                <CardTitle className="text-xs">Method Performance</CardTitle>
+                <CardDescription className="text-[10px]">Success rate by method</CardDescription>
+              </CardHeader>
+              <CardContent className="p-3 pt-0">
+                {isLoading ? (
+                  <ChartSkeleton />
+                ) : !data?.paradigms.length ? (
+                  <ChartEmptyState />
+                ) : (
+                  <ParadigmPerformanceChart data={data.paradigms} />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Bottom Row - Three columns */}
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader className="py-2 px-3">
+                <CardTitle className="text-xs">Verdict Distribution</CardTitle>
+                <CardDescription className="text-[10px]">Success/failure rates</CardDescription>
+              </CardHeader>
+              <CardContent className="p-3 pt-0">
+                {isLoading ? (
+                  <ChartSkeleton height="h-[150px]" />
                 ) : !data?.verdicts.length ? (
                   <ChartEmptyState />
                 ) : (
@@ -136,15 +154,14 @@ export function AnalyticsSection() {
               </CardContent>
             </Card>
 
-            {/* Cost Breakdown */}
             <Card>
-              <CardHeader>
-                <CardTitle>Cost Breakdown</CardTitle>
-                <CardDescription>API costs by provider</CardDescription>
+              <CardHeader className="py-2 px-3">
+                <CardTitle className="text-xs">Cost Breakdown</CardTitle>
+                <CardDescription className="text-[10px]">API costs by provider</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 pt-0">
                 {isLoading ? (
-                  <ChartSkeleton height="h-[250px]" />
+                  <ChartSkeleton height="h-[150px]" />
                 ) : !data?.costByProvider.length ? (
                   <ChartEmptyState />
                 ) : (
@@ -152,45 +169,23 @@ export function AnalyticsSection() {
                 )}
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader className="py-2 px-3">
+                <CardTitle className="text-xs">Processing Time</CardTitle>
+                <CardDescription className="text-[10px]">Avg/P95 latency</CardDescription>
+              </CardHeader>
+              <CardContent className="p-3 pt-0">
+                {isLoading ? (
+                  <ChartSkeleton height="h-[150px]" />
+                ) : !data?.processingTime.length ? (
+                  <ChartEmptyState />
+                ) : (
+                  <ProcessingTimeChart data={data.processingTime} />
+                )}
+              </CardContent>
+            </Card>
           </div>
-
-          {/* Paradigm Performance - Full Width */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Method Performance</CardTitle>
-              <CardDescription>
-                Success rate comparison of verification methods
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <ChartSkeleton />
-              ) : !data?.paradigms.length ? (
-                <ChartEmptyState />
-              ) : (
-                <ParadigmPerformanceChart data={data.paradigms} />
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Processing Time - Full Width */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Processing Time</CardTitle>
-              <CardDescription>
-                Average and P95 latency metrics over time
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <ChartSkeleton height="h-[250px]" />
-              ) : !data?.processingTime.length ? (
-                <ChartEmptyState />
-              ) : (
-                <ProcessingTimeChart data={data.processingTime} />
-              )}
-            </CardContent>
-          </Card>
         </div>
       )}
     </div>

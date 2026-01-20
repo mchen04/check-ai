@@ -33,7 +33,7 @@ export function VerdictDistributionChart({ data }: VerdictDistributionChartProps
   const total = chartData.reduce((sum, d) => sum + d.value, 0);
 
   return (
-    <ChartContainer config={verdictChartConfig} className="min-h-[250px] w-full">
+    <ChartContainer config={verdictChartConfig} className="min-h-[150px] w-full">
       <PieChart>
         <ChartTooltip
           content={
@@ -56,9 +56,9 @@ export function VerdictDistributionChart({ data }: VerdictDistributionChartProps
           dataKey="value"
           nameKey="name"
           cx="50%"
-          cy="50%"
-          innerRadius={60}
-          outerRadius={90}
+          cy="45%"
+          innerRadius={35}
+          outerRadius={55}
           strokeWidth={2}
           stroke="hsl(var(--background))"
         >
@@ -73,19 +73,19 @@ export function VerdictDistributionChart({ data }: VerdictDistributionChartProps
         {/* Center label */}
         <text
           x="50%"
-          y="50%"
+          y="45%"
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-foreground text-2xl font-bold"
+          className="fill-foreground text-lg font-bold"
         >
           {total.toLocaleString()}
         </text>
         <text
           x="50%"
-          y="58%"
+          y="53%"
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-muted-foreground text-xs"
+          className="fill-muted-foreground text-[10px]"
         >
           Total
         </text>

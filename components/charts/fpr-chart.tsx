@@ -25,7 +25,7 @@ export function FPRChart({ data, threshold = 0.1 }: FPRChartProps) {
   // Guard against empty/undefined data
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+      <div className="flex items-center justify-center h-[160px] text-muted-foreground text-xs">
         No data available
       </div>
     );
@@ -52,7 +52,7 @@ export function FPRChart({ data, threshold = 0.1 }: FPRChartProps) {
   };
 
   return (
-    <ChartContainer config={config} className="min-h-[300px] w-full">
+    <ChartContainer config={config} className="min-h-[160px] w-full">
       <BarChart
         accessibilityLayer
         data={chartData}
@@ -65,16 +65,18 @@ export function FPRChart({ data, threshold = 0.1 }: FPRChartProps) {
           type="category"
           tickLine={false}
           axisLine={false}
-          width={80}
-          tickMargin={8}
+          width={65}
+          tickMargin={4}
+          tick={{ fontSize: 10 }}
         />
         <XAxis
           type="number"
           tickLine={false}
           axisLine={false}
-          tickMargin={8}
+          tickMargin={4}
           domain={[0, Math.max(threshold * 100 * 2, 25)]}
           tickFormatter={(value) => `${value}%`}
+          tick={{ fontSize: 10 }}
         />
         <ReferenceLine
           x={threshold * 100}

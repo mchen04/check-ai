@@ -24,7 +24,7 @@ export function ParadigmPerformanceChart({ data }: ParadigmPerformanceChartProps
   }));
 
   return (
-    <ChartContainer config={paradigmChartConfig} className="min-h-[300px] w-full">
+    <ChartContainer config={paradigmChartConfig} className="min-h-[180px] w-full">
       <BarChart
         accessibilityLayer
         data={chartData}
@@ -37,16 +37,18 @@ export function ParadigmPerformanceChart({ data }: ParadigmPerformanceChartProps
           type="category"
           tickLine={false}
           axisLine={false}
-          width={80}
-          tickMargin={8}
+          width={65}
+          tickMargin={4}
+          tick={{ fontSize: 10 }}
         />
         <XAxis
           type="number"
           tickLine={false}
           axisLine={false}
-          tickMargin={8}
+          tickMargin={4}
           domain={[0, 100]}
           tickFormatter={(value) => `${value}%`}
+          tick={{ fontSize: 10 }}
         />
         <ChartTooltip
           cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
