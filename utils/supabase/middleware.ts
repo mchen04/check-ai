@@ -27,22 +27,24 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // IMPORTANT: Use getClaims() for faster JWT validation in middleware.
+  // getClaims() validates the JWT locally using cached JWKS keys, which is
+  // significantly faster than getUser() which makes a network request.
+  // This also automatically refreshes the session if the token is near expiration.
+  const { data, error } = await supabase.auth.getClaims();
+  const isAuthenticated = !error && data?.claims?.sub;
   const url = request.nextUrl.clone();
 
   // Skip auth redirect for webhook and API routes (they handle their own auth)
-  if (request.nextUrl.pathname.startsWith('/webhook') ||
-      request.nextUrl.pathname.startsWith('/api/')) {
+  if (
+    request.nextUrl.pathname.startsWith('/webhook') ||
+    request.nextUrl.pathname.startsWith('/api/')
+  ) {
     return supabaseResponse;
   }
 
   if (
-    !user &&
+    !isAuthenticated &&
     !request.nextUrl.pathname.startsWith('/login') &&
     !request.nextUrl.pathname.startsWith('/auth') &&
     !request.nextUrl.pathname.startsWith('/signup') &&
@@ -53,12 +55,13 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/terms') &&
     !(request.nextUrl.pathname === '/')
   ) {
-    // no user, potentially respond by redirecting the user to the login page
+    // no user, redirect to login page
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
-  // // If user is logged in, redirect to dashboard
-  if (user && request.nextUrl.pathname === '/') {
+
+  // If user is logged in, redirect from landing to dashboard
+  if (isAuthenticated && request.nextUrl.pathname === '/') {
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);
   }

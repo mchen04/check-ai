@@ -141,6 +141,20 @@
       "when": 1768362941192,
       "tag": "0019_neat_emma_frost",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1768450000000,
+      "tag": "0020_remove_legacy_user_billing_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1769034217056,
+      "tag": "0021_drop_waitlist_table",
+      "breakpoints": true
     }
   ]
 }

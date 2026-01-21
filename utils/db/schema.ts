@@ -772,21 +772,6 @@ export type InsertAnalyticsDailySnapshot = typeof analyticsDailySnapshotsTable.$
 export type SelectAnalyticsDailySnapshot = typeof analyticsDailySnapshotsTable.$inferSelect;
 
 // =============================================================================
-// WAITLIST (Beta signups from landing page)
-// =============================================================================
-
-export const waitlistTable = pgTable('waitlist', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  email: text('email').notNull().unique(),
-  source: text('source').default('landing').notNull(),
-  referrer: text('referrer'),
-  createdAt: timestamptz('created_at').defaultNow().notNull(),
-});
-
-export type InsertWaitlist = typeof waitlistTable.$inferInsert;
-export type SelectWaitlist = typeof waitlistTable.$inferSelect;
-
-// =============================================================================
 // RELATIONS
 // =============================================================================
 

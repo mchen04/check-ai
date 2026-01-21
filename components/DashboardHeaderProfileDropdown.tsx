@@ -6,12 +6,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Bell, ReceiptText, User, Settings, HelpCircle, LogOut } from 'lucide-react';
+import { Bell, ReceiptText, User, Settings, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
-import { logout } from '@/app/auth/actions';
 import { generateStripeBillingPortalLink } from '@/utils/stripe/api';
+import { LogoutButton } from '@/components/LogoutButton';
 
 export default async function DashboardHeaderProfileDropdown() {
   const supabase = await createClient();
@@ -66,14 +66,7 @@ export default async function DashboardHeaderProfileDropdown() {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <form action={logout} className="w-full">
-              <button type="submit" className="flex w-full cursor-pointer items-center">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </button>
-            </form>
-          </DropdownMenuItem>
+          <LogoutButton />
         </DropdownMenuContent>
       </DropdownMenu>
     </nav>

@@ -141,7 +141,8 @@ export async function loginUser(currentState: { message: string }, formData: For
 
 export async function logout() {
   const supabase = await createClient();
-  const { error } = await supabase.auth.signOut();
+  await supabase.auth.signOut();
+  revalidatePath('/', 'layout');
   redirect('/login');
 }
 

@@ -1,32 +1,10 @@
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from '@/components/ui/card';
 import Link from 'next/link';
-import {
-  AlertCircle,
-  Shield,
-  Zap,
-  Code,
-  Activity,
-  BarChart,
-  FileText,
-  CheckCircle,
-  XCircle,
-  Check,
-  X,
-} from 'lucide-react';
+import { Shield, Zap, Code, Activity, BarChart, FileText, Check, CheckCircle } from 'lucide-react';
 import Stripe from 'stripe';
 import NeuralNetwork from '@/components/neural-network';
 import UseCaseCarousel from '@/components/use-case-carousel';
 import HeroDashboard from '@/components/hero-dashboard';
-import { WaitlistForm } from '@/components/WaitlistForm';
 
 // Types
 interface StripeProduct {
@@ -87,9 +65,14 @@ export default async function LandingPage() {
                 Pricing
               </a>
             </nav>
-            <Button asChild size="sm" className="ml-8">
-              <Link href="#waitlist">Join Beta</Link>
-            </Button>
+            <div className="ml-8 flex items-center gap-3">
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/login">Log in</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link href="/signup">Sign up</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -105,14 +88,6 @@ export default async function LandingPage() {
             <div className="content-constrained grid-4col items-center gap-y-16">
               {/* Left: Text Content - Columns 1-2 */}
               <div className="col-1-2 relative z-10 space-y-8">
-                <div className="status-badge">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
-                  </span>
-                  <span className="font-medium">Now in Beta</span>
-                </div>
-
                 <div className="space-y-6">
                   <h1 className="text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
                     Your AI outputs cost you{' '}
@@ -131,23 +106,11 @@ export default async function LandingPage() {
 
                 <div className="flex flex-col gap-4 sm:flex-row">
                   <Button size="lg" className="text-base shadow-lg shadow-primary/20" asChild>
-                    <Link href="#waitlist">Join the beta</Link>
+                    <Link href="/signup">Get started free</Link>
                   </Button>
                   <Button variant="outline" size="lg" className="text-base" asChild>
                     <Link href="#methods">See how it works</Link>
                   </Button>
-                </div>
-
-                {/* Trust indicator */}
-                <div className="flex items-center gap-3 pt-4">
-                  <div className="flex -space-x-2">
-                    <div className="h-8 w-8 rounded-full border-2 border-background bg-primary/20"></div>
-                    <div className="h-8 w-8 rounded-full border-2 border-background bg-primary/30"></div>
-                    <div className="h-8 w-8 rounded-full border-2 border-background bg-primary/40"></div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-semibold text-foreground">12 teams</span> in private beta
-                  </p>
                 </div>
               </div>
 
@@ -339,8 +302,10 @@ export default async function LandingPage() {
               <div className="col-2">
                 <CheckCircle className="mb-3 h-5 w-5 text-primary" />
                 <h3 className="mb-2 text-sm font-semibold">Semantic Entropy</h3>
-                <p className="mb-3 text-xs text-muted-foreground">Consistency pattern detection</p>
-                <div className="text-xs text-muted-foreground">~200ms • FPR: TBD</div>
+                <p className="mb-3 text-xs text-muted-foreground">
+                  Multi-sample consistency analysis
+                </p>
+                <div className="text-xs text-muted-foreground">~200ms • FPR: ~15%</div>
               </div>
 
               <div className="col-3">
@@ -520,11 +485,15 @@ export default async function LandingPage() {
                   <ul className="mb-8 flex-1 space-y-3 text-sm">
                     <li className="flex items-start gap-2.5">
                       <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-                      <span>100 verifications</span>
+                      <span>100 verifications/month</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-                      <span>Semantic method</span>
+                      <span>Semantic method only</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>10 req/min rate limit</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
@@ -532,16 +501,13 @@ export default async function LandingPage() {
                     </li>
                   </ul>
                   <Button variant="outline" size="default" asChild className="w-full">
-                    <Link href="#waitlist">Join beta</Link>
+                    <Link href="/signup">Get started free</Link>
                   </Button>
                 </div>
 
                 {/* Pro */}
                 <div className="flex flex-col rounded-xl border border-border bg-card p-6">
                   <div className="mb-6">
-                    <div className="mb-4 inline-flex rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary">
-                      Most Popular
-                    </div>
                     <div className="mb-1 text-4xl font-bold">$99-299</div>
                     <div className="mb-1 text-sm text-muted-foreground">/month</div>
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
@@ -553,7 +519,7 @@ export default async function LandingPage() {
                     <li className="flex items-start gap-3">
                       <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
                       <span>
-                        <strong>Unlimited</strong> verifications
+                        <strong>5,000</strong> verifications/month
                       </span>
                     </li>
                     <li className="flex items-start gap-3">
@@ -570,12 +536,12 @@ export default async function LandingPage() {
                     </li>
                     <li className="flex items-start gap-3">
                       <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-                      <span>Priority support</span>
+                      <span>100 req/min rate limit</span>
                     </li>
                   </ul>
 
                   <Button asChild className="w-full" size="default">
-                    <Link href="#waitlist">Join beta</Link>
+                    <Link href="/signup">Subscribe</Link>
                   </Button>
                 </div>
 
@@ -590,7 +556,11 @@ export default async function LandingPage() {
                   <ul className="mb-8 flex-1 space-y-3 text-sm">
                     <li className="flex items-start gap-2.5">
                       <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-                      <span>Everything in Pro</span>
+                      <span>Unlimited verifications</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                      <span>1,000 req/min rate limit</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
@@ -602,15 +572,11 @@ export default async function LandingPage() {
                     </li>
                     <li className="flex items-start gap-2.5">
                       <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-                      <span>Custom methods</span>
-                    </li>
-                    <li className="flex items-start gap-2.5">
-                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
                       <span>Dedicated support</span>
                     </li>
                   </ul>
                   <Button variant="outline" size="default" asChild className="w-full">
-                    <Link href="#waitlist">Contact sales</Link>
+                    <Link href="mailto:sales@checkapi.ai">Contact sales</Link>
                   </Button>
                 </div>
               </div>
@@ -618,8 +584,8 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* CTA Section / Waitlist - Dark navy Stripe style */}
-        <section className="bg-section-navy relative w-full overflow-hidden" id="waitlist">
+        {/* CTA Section */}
+        <section className="bg-section-navy relative w-full overflow-hidden">
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-accent-cyan/10 via-transparent to-accent-purple/10"></div>
           <div className="parallax-slow pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl"></div>
           <div
@@ -633,28 +599,39 @@ export default async function LandingPage() {
               <div className="col-2-3">
                 <div className="relative text-center">
                   <h2 className="mb-6 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                    Join the beta
+                    Get started today
                   </h2>
                   <p className="mb-12 text-base text-white/60">
-                    We&apos;re working with design partners in healthcare, legal, and finance to
-                    validate our approach.
+                    Start verifying your AI outputs in minutes. No credit card required.
                   </p>
 
-                  <WaitlistForm />
+                  <div className="mb-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                    <Button size="lg" className="bg-white text-slate-900 hover:bg-white/90" asChild>
+                      <Link href="/signup">Create free account</Link>
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="border-white/30 bg-white/10 text-white hover:bg-white/20"
+                      asChild
+                    >
+                      <Link href="/login">Log in</Link>
+                    </Button>
+                  </div>
 
                   {/* Benefits - Simple horizontal badges */}
                   <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-white/80">
                     <div className="flex items-center gap-2">
                       <Check className="h-4 w-4" />
-                      <span>Extended free tier</span>
+                      <span>100 free verifications</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Check className="h-4 w-4" />
-                      <span>Shape the product</span>
+                      <span>No credit card required</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Check className="h-4 w-4" />
-                      <span>Lock in beta pricing</span>
+                      <span>API access included</span>
                     </div>
                   </div>
                 </div>
@@ -667,7 +644,7 @@ export default async function LandingPage() {
       <footer className="w-full border-t">
         <div className="content-wrapper">
           <div className="content-constrained flex flex-col items-center gap-6 px-6 py-12 sm:flex-row">
-            <p className="text-sm text-muted-foreground">© 2025 Check</p>
+            <p className="text-sm text-muted-foreground">© 2026 Check</p>
             <nav className="flex gap-8 sm:ml-auto">
               <a
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
