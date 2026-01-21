@@ -150,7 +150,7 @@ export async function getUsageStats(orgId: string): Promise<{
       and(
         eq(verificationsTable.orgId, orgId),
         gte(verificationsTable.createdAt, startOfPreviousMonth),
-        sql`created_at < ${startOfCurrentMonth}`
+        sql`created_at < ${startOfCurrentMonth.toISOString()}`
       )
     );
 
