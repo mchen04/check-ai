@@ -70,24 +70,23 @@ export function AnalyticsSection() {
   );
 
   return (
-    <div className="mt-2 space-y-2">
+    <div className="mb-6 space-y-4">
       {/* Header with time selector */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xs font-semibold">Analytics</h2>
-          <p className="text-[10px] text-muted-foreground">
+          <h2 className="text-sm font-semibold">Analytics</h2>
+          <p className="text-xs text-muted-foreground">
             Trends and performance
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
-            size="sm"
-            className="h-7 w-7 p-0"
+            size="icon"
             onClick={fetchAnalytics}
             disabled={isLoading}
           >
-            <RefreshCw className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
           <TimeRangeSelector value={range} onChange={setRange} />
         </div>
@@ -95,20 +94,20 @@ export function AnalyticsSection() {
 
       {error ? (
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="p-6">
             <ChartErrorState message={error} onRetry={fetchAnalytics} />
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-3">
+        <div className="grid gap-4">
           {/* Top Row - Verification Trends + Method Performance */}
-          <div className="grid gap-3 lg:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-2">
             <Card>
-              <CardHeader className="py-2 px-3">
-                <CardTitle className="text-xs">Verification Trends</CardTitle>
-                <CardDescription className="text-[10px]">Daily volume by status</CardDescription>
+              <CardHeader className="py-3 px-4">
+                <CardTitle className="text-sm">Verification Trends</CardTitle>
+                <CardDescription className="text-xs">Daily volume by status</CardDescription>
               </CardHeader>
-              <CardContent className="p-3 pt-0">
+              <CardContent className="p-4 pt-0">
                 {isLoading ? (
                   <ChartSkeleton />
                 ) : !data?.trends.length ? (
@@ -120,11 +119,11 @@ export function AnalyticsSection() {
             </Card>
 
             <Card>
-              <CardHeader className="py-2 px-3">
-                <CardTitle className="text-xs">Method Performance</CardTitle>
-                <CardDescription className="text-[10px]">Success rate by method</CardDescription>
+              <CardHeader className="py-3 px-4">
+                <CardTitle className="text-sm">Method Performance</CardTitle>
+                <CardDescription className="text-xs">Success rate by method</CardDescription>
               </CardHeader>
-              <CardContent className="p-3 pt-0">
+              <CardContent className="p-4 pt-0">
                 {isLoading ? (
                   <ChartSkeleton />
                 ) : !data?.paradigms.length ? (
@@ -137,13 +136,13 @@ export function AnalyticsSection() {
           </div>
 
           {/* Bottom Row - Three columns */}
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
-              <CardHeader className="py-2 px-3">
-                <CardTitle className="text-xs">Verdict Distribution</CardTitle>
-                <CardDescription className="text-[10px]">Success/failure rates</CardDescription>
+              <CardHeader className="py-3 px-4">
+                <CardTitle className="text-sm">Verdict Distribution</CardTitle>
+                <CardDescription className="text-xs">Success/failure rates</CardDescription>
               </CardHeader>
-              <CardContent className="p-3 pt-0">
+              <CardContent className="p-4 pt-0">
                 {isLoading ? (
                   <ChartSkeleton height="h-[150px]" />
                 ) : !data?.verdicts.length ? (
@@ -155,11 +154,11 @@ export function AnalyticsSection() {
             </Card>
 
             <Card>
-              <CardHeader className="py-2 px-3">
-                <CardTitle className="text-xs">Cost Breakdown</CardTitle>
-                <CardDescription className="text-[10px]">API costs by provider</CardDescription>
+              <CardHeader className="py-3 px-4">
+                <CardTitle className="text-sm">Cost Breakdown</CardTitle>
+                <CardDescription className="text-xs">API costs by provider</CardDescription>
               </CardHeader>
-              <CardContent className="p-3 pt-0">
+              <CardContent className="p-4 pt-0">
                 {isLoading ? (
                   <ChartSkeleton height="h-[150px]" />
                 ) : !data?.costByProvider.length ? (
@@ -171,11 +170,11 @@ export function AnalyticsSection() {
             </Card>
 
             <Card>
-              <CardHeader className="py-2 px-3">
-                <CardTitle className="text-xs">Processing Time</CardTitle>
-                <CardDescription className="text-[10px]">Avg/P95 latency</CardDescription>
+              <CardHeader className="py-3 px-4">
+                <CardTitle className="text-sm">Processing Time</CardTitle>
+                <CardDescription className="text-xs">Avg/P95 latency</CardDescription>
               </CardHeader>
-              <CardContent className="p-3 pt-0">
+              <CardContent className="p-4 pt-0">
                 {isLoading ? (
                   <ChartSkeleton height="h-[150px]" />
                 ) : !data?.processingTime.length ? (

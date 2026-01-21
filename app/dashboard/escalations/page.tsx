@@ -142,75 +142,76 @@ export default async function EscalationsPage() {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-6">
       {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-sm font-semibold">Escalations</h1>
+      <div className="mb-6">
+        <h1 className="text-lg font-semibold">Escalations</h1>
+        <p className="text-sm text-muted-foreground">Review verifications flagged for human review</p>
       </div>
 
-      {/* Stats - Compact */}
-      <div className="mb-4 grid gap-3 grid-cols-4">
-        <Card className="p-3">
+      {/* Stats */}
+      <div className="mb-6 grid gap-4 grid-cols-4">
+        <Card className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">Pending</span>
-            <Clock className="h-3 w-3 text-amber-500" />
+            <span className="text-xs font-medium text-muted-foreground">Pending</span>
+            <Clock className="h-4 w-4 text-amber-500" />
           </div>
-          <div className="mt-1 text-lg font-semibold">{stats.pending}</div>
-          <p className="text-[10px] text-muted-foreground">Awaiting</p>
+          <div className="mt-2 text-2xl font-semibold">{stats.pending}</div>
+          <p className="text-xs text-muted-foreground">Awaiting review</p>
         </Card>
 
-        <Card className="p-3">
+        <Card className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">In Review</span>
-            <AlertTriangle className="h-3 w-3 text-blue-500" />
+            <span className="text-xs font-medium text-muted-foreground">In Review</span>
+            <AlertTriangle className="h-4 w-4 text-blue-500" />
           </div>
-          <div className="mt-1 text-lg font-semibold">{stats.inReview}</div>
-          <p className="text-[10px] text-muted-foreground">Active</p>
+          <div className="mt-2 text-2xl font-semibold">{stats.inReview}</div>
+          <p className="text-xs text-muted-foreground">Active</p>
         </Card>
 
-        <Card className="p-3">
+        <Card className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">Resolved</span>
-            <CheckCircle2 className="h-3 w-3 text-green-500" />
+            <span className="text-xs font-medium text-muted-foreground">Resolved</span>
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
           </div>
-          <div className="mt-1 text-lg font-semibold">{stats.resolved}</div>
-          <p className="text-[10px] text-muted-foreground">Done</p>
+          <div className="mt-2 text-2xl font-semibold">{stats.resolved}</div>
+          <p className="text-xs text-muted-foreground">Completed</p>
         </Card>
 
-        <Card className="p-3">
+        <Card className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">Dismissed</span>
-            <XCircle className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">Dismissed</span>
+            <XCircle className="h-4 w-4 text-muted-foreground" />
           </div>
-          <div className="mt-1 text-lg font-semibold">{stats.dismissed}</div>
-          <p className="text-[10px] text-muted-foreground">False +</p>
+          <div className="mt-2 text-2xl font-semibold">{stats.dismissed}</div>
+          <p className="text-xs text-muted-foreground">False positives</p>
         </Card>
       </div>
 
       {/* Escalations List */}
-      <Card className="mb-4">
-        <div className="border-b px-4 py-2.5">
-          <h3 className="text-xs font-semibold">Recent Escalations</h3>
+      <Card className="mb-6">
+        <div className="border-b px-4 py-3">
+          <h3 className="text-sm font-semibold">Recent Escalations</h3>
         </div>
-        <div className="p-2">
+        <div className="p-4">
           {escalations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-6 text-center">
-              <AlertTriangle className="mb-2 h-6 w-6 text-muted-foreground/30" />
-              <p className="mb-1 text-xs font-medium">No escalations</p>
-              <p className="max-w-sm text-[10px] text-muted-foreground">
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <AlertTriangle className="mb-3 h-10 w-10 text-muted-foreground/30" />
+              <p className="mb-1 text-sm font-medium">No escalations</p>
+              <p className="max-w-sm text-xs text-muted-foreground">
                 When verifications are flagged for human review, they&apos;ll appear here.
               </p>
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-2">
               {escalations.map((escalation) => (
                 <div
                   key={escalation.id}
-                  className="flex items-start justify-between gap-3 rounded-md px-2 py-2 hover:bg-muted/50"
+                  className="flex items-start justify-between gap-4 rounded-md px-3 py-3 hover:bg-muted/50"
                 >
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-3">
                     <div
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded ${
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded ${
                         escalation.status === 'pending'
                           ? 'bg-amber-100'
                           : escalation.status === 'in_review'
@@ -221,7 +222,7 @@ export default async function EscalationsPage() {
                       }`}
                     >
                       <AlertTriangle
-                        className={`h-3 w-3 ${
+                        className={`h-4 w-4 ${
                           escalation.status === 'pending'
                             ? 'text-amber-600'
                             : escalation.status === 'in_review'
@@ -233,36 +234,36 @@ export default async function EscalationsPage() {
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-medium">{escalation.reason}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium">{escalation.reason}</p>
                         {getPriorityBadge(escalation.priority)}
                       </div>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {escalation.verificationId.slice(0, 8)}...
                         {escalation.confidence !== null && (
-                          <span className="ml-1">({(escalation.confidence * 100).toFixed(0)}%)</span>
+                          <span className="ml-1">({(escalation.confidence * 100).toFixed(0)}% confidence)</span>
                         )}
                       </p>
                       {escalation.status === 'resolved' && escalation.humanVerdict && (
                         <Badge
                           variant={escalation.humanVerdict === 'true' ? 'default' : escalation.humanVerdict === 'false' ? 'destructive' : 'secondary'}
-                          className="mt-1 text-[9px] px-1 py-0 h-4"
+                          className="mt-1"
                         >
                           {escalation.humanVerdict}
                         </Badge>
                       )}
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Badge variant={escalation.status === 'pending' ? 'outline' : escalation.status === 'resolved' ? 'default' : 'secondary'} className="text-[9px] px-1 py-0 h-4">
+                  <div className="flex shrink-0 items-center gap-3">
+                    <Badge variant={escalation.status === 'pending' ? 'outline' : escalation.status === 'resolved' ? 'default' : 'secondary'}>
                       {escalation.status}
                     </Badge>
                     {escalation.status === 'pending' && (
                       <EscalationActions escalationId={escalation.id} verificationId={escalation.verificationId} />
                     )}
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" asChild>
+                    <Button variant="ghost" size="icon" asChild>
                       <Link href={`/dashboard/verify/${escalation.verificationId}`}>
-                        <ArrowRight className="h-3 w-3" />
+                        <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
                   </div>
@@ -273,29 +274,29 @@ export default async function EscalationsPage() {
         </div>
       </Card>
 
-      {/* Info Card - Collapsible */}
+      {/* Info Card */}
       <details className="group">
-        <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-xs font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
+        <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-3 text-sm font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
           <span>About Escalations</span>
-          <svg className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </summary>
-        <Card className="mt-2">
-          <div className="p-3 text-[10px] text-muted-foreground space-y-2">
+        <Card className="mt-3">
+          <div className="p-4 text-sm text-muted-foreground space-y-3">
             <p>Escalations are triggered when:</p>
-            <ul className="ml-3 list-disc space-y-0.5">
+            <ul className="ml-4 list-disc space-y-1">
               <li><strong>Low confidence</strong> - Below 70%</li>
               <li><strong>Conflicting results</strong> - {">"}30% disagreement</li>
               <li><strong>Model failures</strong> - Paradigm errors</li>
               <li><strong>Timeouts</strong> - Processing too long</li>
             </ul>
-            <div className="flex items-center gap-2 pt-1">
-              <Badge variant="destructive" className="text-[8px] px-1 py-0 h-3">High</Badge>
+            <div className="flex items-center gap-3 pt-2">
+              <Badge variant="destructive">High</Badge>
               <span>&lt;30%</span>
-              <Badge variant="secondary" className="text-[8px] px-1 py-0 h-3">Med</Badge>
+              <Badge variant="secondary">Med</Badge>
               <span>30-50%</span>
-              <Badge variant="outline" className="text-[8px] px-1 py-0 h-3">Low</Badge>
+              <Badge variant="outline">Low</Badge>
               <span>50-70%</span>
             </div>
           </div>

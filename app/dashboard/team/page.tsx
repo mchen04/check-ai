@@ -70,23 +70,23 @@ export default async function TeamPage() {
   const canManageRoles = context.role === 'owner' || context.role === 'admin';
 
   return (
-    <div className="p-4">
+    <div className="p-6">
       {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-sm font-semibold">Team</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-lg font-semibold">Team</h1>
         {canInvite && <InviteMemberDialog />}
       </div>
 
       {/* Pro Plan Gate */}
       {context.organization.planType === 'free' && (
-        <Card className="mb-4 border-amber-200 bg-amber-50 p-3">
-          <div className="flex items-start gap-3">
-            <Users className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-            <div className="flex-1">
-              <p className="text-xs font-medium text-amber-800">Team management requires Pro plan</p>
-              <p className="text-[10px] text-amber-700">Upgrade to invite members and collaborate.</p>
-            </div>
-            <Button size="sm" className="h-7 text-xs" asChild>
+        <Card className="mb-6 border-amber-200 bg-amber-50 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Users className="h-5 w-5 shrink-0 text-amber-600" />
+            <p className="flex-1 text-sm text-amber-800">
+              <span className="font-medium">Pro plan required</span>
+              <span className="text-amber-700"> to invite team members</span>
+            </p>
+            <Button size="sm" asChild>
               <Link href="/subscribe">Upgrade</Link>
             </Button>
           </div>
@@ -94,15 +94,15 @@ export default async function TeamPage() {
       )}
 
       {/* Members List */}
-      <Card className="mb-4">
-        <div className="flex items-center justify-between border-b px-4 py-2.5">
-          <h3 className="text-xs font-semibold">Team Members</h3>
-          <span className="text-[10px] text-muted-foreground">
+      <Card className="mb-6">
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <h3 className="text-sm font-semibold">Team Members</h3>
+          <span className="text-xs text-muted-foreground">
             {members.length} in {context.organization.name}
           </span>
         </div>
-        <div className="p-2">
-          <div className="space-y-1">
+        <div className="p-4">
+          <div className="divide-y">
             {members.map((member) => {
               const RoleIcon = ROLE_ICONS[member.role as keyof typeof ROLE_ICONS];
               const isCurrentUser = member.id === context.userId;
@@ -110,36 +110,36 @@ export default async function TeamPage() {
               return (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between rounded-md px-2 py-2 hover:bg-muted/50"
+                  className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted">
-                      <span className="text-[10px] font-medium">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted shrink-0">
+                      <span className="text-xs font-medium">
                         {member.name?.charAt(0)?.toUpperCase() ||
                           member.email.charAt(0).toUpperCase()}
                       </span>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-medium">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium truncate">
                           {member.name || 'Unknown'}
                           {isCurrentUser && (
-                            <span className="ml-1 text-[10px] text-muted-foreground">(you)</span>
+                            <span className="ml-1 text-xs text-muted-foreground">(you)</span>
                           )}
                         </p>
                         <Badge
                           variant="secondary"
-                          className={`${ROLE_COLORS[member.role as keyof typeof ROLE_COLORS]} text-[9px] px-1 py-0 h-4`}
+                          className={`${ROLE_COLORS[member.role as keyof typeof ROLE_COLORS]} text-xs px-1.5 py-0`}
                         >
-                          <RoleIcon className="mr-0.5 h-2.5 w-2.5" />
+                          <RoleIcon className="mr-1 h-3 w-3" />
                           {member.role}
                         </Badge>
                       </div>
-                      <p className="text-[10px] text-muted-foreground">{member.email}</p>
+                      <p className="text-xs text-muted-foreground truncate">{member.email}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-muted-foreground">
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-xs text-muted-foreground">
                       {formatRelativeTime(member.joinedAt)}
                     </span>
                     {canManageRoles && !isCurrentUser && member.role !== 'owner' && (
@@ -159,27 +159,27 @@ export default async function TeamPage() {
 
       {/* Pending Invites */}
       {pendingInvites.length > 0 && (
-        <Card className="mb-4">
-          <div className="flex items-center justify-between border-b px-4 py-2.5">
-            <div className="flex items-center gap-1.5">
-              <Mail className="h-3.5 w-3.5" />
-              <h3 className="text-xs font-semibold">Pending Invitations</h3>
+        <Card className="mb-6">
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              <h3 className="text-sm font-semibold">Pending Invitations</h3>
             </div>
-            <span className="text-[10px] text-muted-foreground">{pendingInvites.length} pending</span>
+            <span className="text-xs text-muted-foreground">{pendingInvites.length} pending</span>
           </div>
-          <div className="p-2">
-            <div className="space-y-1">
+          <div className="p-4">
+            <div className="space-y-3">
               {pendingInvites.map((invite) => (
                 <div
                   key={invite.id}
-                  className="flex items-center justify-between rounded-md border border-dashed px-2 py-2"
+                  className="flex items-center justify-between rounded-md border border-dashed px-4 py-3"
                 >
-                  <div className="flex items-start gap-2">
-                    <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  <div className="flex items-start gap-3">
+                    <Clock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                     <div>
-                      <p className="text-xs font-medium">{invite.email}</p>
-                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                        <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">{invite.role}</Badge>
+                      <p className="text-sm font-medium">{invite.email}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Badge variant="outline" className="text-xs">{invite.role}</Badge>
                         <span>Expires {formatRelativeTime(invite.expiresAt)}</span>
                       </div>
                     </div>
@@ -194,44 +194,44 @@ export default async function TeamPage() {
         </Card>
       )}
 
-      {/* Role Descriptions - Collapsible */}
+      {/* Role Descriptions */}
       <details className="group">
-        <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-xs font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
+        <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-3 text-sm font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
           <span>Role Permissions</span>
-          <svg className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </summary>
-        <Card className="mt-2">
-          <div className="p-3">
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-md border p-2">
-                <div className="mb-1 flex items-center gap-1.5">
-                  <Crown className="h-3 w-3 text-amber-600" />
-                  <span className="text-xs font-medium">Owner</span>
+        <Card className="mt-3">
+          <div className="p-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-md border p-3">
+                <div className="mb-2 flex items-center gap-2">
+                  <Crown className="h-4 w-4 text-amber-600" />
+                  <span className="text-sm font-medium">Owner</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground">Full access including billing.</p>
+                <p className="text-xs text-muted-foreground">Full access including billing.</p>
               </div>
-              <div className="rounded-md border p-2">
-                <div className="mb-1 flex items-center gap-1.5">
-                  <Shield className="h-3 w-3 text-blue-600" />
-                  <span className="text-xs font-medium">Admin</span>
+              <div className="rounded-md border p-3">
+                <div className="mb-2 flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium">Admin</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground">Manage members and features.</p>
+                <p className="text-xs text-muted-foreground">Manage members and features.</p>
               </div>
-              <div className="rounded-md border p-2">
-                <div className="mb-1 flex items-center gap-1.5">
-                  <User className="h-3 w-3 text-green-600" />
-                  <span className="text-xs font-medium">Member</span>
+              <div className="rounded-md border p-3">
+                <div className="mb-2 flex items-center gap-2">
+                  <User className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium">Member</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground">Use API and create keys.</p>
+                <p className="text-xs text-muted-foreground">Use API and create keys.</p>
               </div>
-              <div className="rounded-md border p-2">
-                <div className="mb-1 flex items-center gap-1.5">
-                  <Eye className="h-3 w-3 text-gray-600" />
-                  <span className="text-xs font-medium">Viewer</span>
+              <div className="rounded-md border p-3">
+                <div className="mb-2 flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-gray-600" />
+                  <span className="text-sm font-medium">Viewer</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground">Read-only dashboard access.</p>
+                <p className="text-xs text-muted-foreground">Read-only dashboard access.</p>
               </div>
             </div>
           </div>

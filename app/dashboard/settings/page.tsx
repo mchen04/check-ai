@@ -65,13 +65,13 @@ export default async function SettingsPage() {
   const canEdit = orgContext.role === 'owner' || orgContext.role === 'admin';
 
   return (
-    <div className="p-4">
-      <div className="mb-4">
-        <h1 className="text-sm font-semibold">Settings</h1>
-        <p className="text-xs text-muted-foreground">Manage your account and workspace settings</p>
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-lg font-semibold">Settings</h1>
+        <p className="text-sm text-muted-foreground">Manage your account and workspace settings</p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {/* Account Settings */}
         <ProfileSettingsCard
           initialName={user.user_metadata?.full_name || ''}

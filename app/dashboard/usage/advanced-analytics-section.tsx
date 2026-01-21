@@ -57,18 +57,18 @@ interface SummaryCardProps {
 function SummaryCard({ title, value, icon, description, badge }: SummaryCardProps) {
   return (
     <Card>
-      <CardContent className="p-3">
+      <CardContent className="p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-muted-foreground">
+          <div className="flex items-center gap-2 text-muted-foreground">
             {icon}
-            <span className="text-[11px] font-medium">{title}</span>
+            <span className="text-xs font-medium">{title}</span>
           </div>
-          {badge && <Badge variant={badge.variant} className="text-[9px] px-1 py-0 h-4">{badge.label}</Badge>}
+          {badge && <Badge variant={badge.variant} className="text-xs">{badge.label}</Badge>}
         </div>
-        <div className="mt-1">
-          <span className="text-lg font-bold">{value}</span>
+        <div className="mt-2">
+          <span className="text-2xl font-bold">{value}</span>
           {description && (
-            <p className="text-[10px] text-muted-foreground">{description}</p>
+            <p className="text-xs text-muted-foreground">{description}</p>
           )}
         </div>
       </CardContent>
@@ -118,21 +118,21 @@ export function AdvancedAnalyticsSection() {
   const summary = data?.advancedSummary;
 
   return (
-    <div className="mt-2">
+    <div className="mb-6">
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <Card>
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 py-2 px-3">
+            <CardHeader className="cursor-pointer hover:bg-muted/50 py-3 px-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="flex items-center gap-2 text-xs">
-                    <Activity className="h-3.5 w-3.5" />
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <Activity className="h-4 w-4" />
                     Advanced Analytics
-                    <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
+                    <Badge variant="secondary" className="text-xs">
                       Beta
                     </Badge>
                   </CardTitle>
-                  <CardDescription className="text-[10px]">
+                  <CardDescription className="text-xs">
                     FPR analysis, cost efficiency, and calibration
                   </CardDescription>
                 </div>
@@ -148,19 +148,18 @@ export function AdvancedAnalyticsSection() {
           </CollapsibleTrigger>
 
           <CollapsibleContent>
-            <CardContent className="space-y-3 border-t pt-3 px-3">
+            <CardContent className="space-y-4 border-t pt-4 px-4">
               {/* Controls */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0"
+                    size="icon"
                     onClick={fetchAdvancedAnalytics}
                     disabled={isLoading}
                   >
                     <RefreshCw
-                      className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`}
+                      className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
                     />
                   </Button>
                   <TimeRangeSelector value={range} onChange={setRange} />
@@ -173,11 +172,11 @@ export function AdvancedAnalyticsSection() {
                 <>
                   {/* Summary Cards */}
                   {summary && !isLoading && (
-                    <div className="grid gap-2 grid-cols-2 lg:grid-cols-4">
+                    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
                       <SummaryCard
                         title="Overall FPR"
                         value={`${(summary.overallFPR * 100).toFixed(1)}%`}
-                        icon={<Target className="h-3 w-3" />}
+                        icon={<Target className="h-4 w-4" />}
                         badge={
                           summary.overallFPR > 0.1
                             ? { label: 'High', variant: 'destructive' }
@@ -187,19 +186,19 @@ export function AdvancedAnalyticsSection() {
                       <SummaryCard
                         title="Best Paradigm"
                         value={summary.bestPerformingParadigm || 'N/A'}
-                        icon={<Activity className="h-3 w-3" />}
+                        icon={<Activity className="h-4 w-4" />}
                         description="By accuracy"
                       />
                       <SummaryCard
                         title="Most Efficient"
                         value={summary.mostCostEfficient || 'N/A'}
-                        icon={<DollarSign className="h-3 w-3" />}
+                        icon={<DollarSign className="h-4 w-4" />}
                         description="Cost per accurate"
                       />
                       <SummaryCard
                         title="Calibration Error"
                         value={`${(summary.avgCalibrationError * 100).toFixed(1)}%`}
-                        icon={<BarChart3 className="h-3 w-3" />}
+                        icon={<BarChart3 className="h-4 w-4" />}
                         badge={
                           summary.avgCalibrationError > 0.1
                             ? { label: 'High', variant: 'destructive' }
@@ -210,16 +209,16 @@ export function AdvancedAnalyticsSection() {
                   )}
 
                   {/* Charts - Side by side layout */}
-                  <div className="grid gap-3 lg:grid-cols-2">
+                  <div className="grid gap-4 lg:grid-cols-2">
                     {/* FPR by Paradigm */}
                     <Card>
-                      <CardHeader className="py-2 px-3">
-                        <CardTitle className="text-xs">FPR by Method</CardTitle>
-                        <CardDescription className="text-[10px]">
+                      <CardHeader className="py-3 px-4">
+                        <CardTitle className="text-sm">FPR by Method</CardTitle>
+                        <CardDescription className="text-xs">
                           Lower is better (10% threshold)
                         </CardDescription>
                       </CardHeader>
-                      <CardContent className="p-3 pt-0">
+                      <CardContent className="p-4 pt-0">
                         {isLoading ? (
                           <ChartSkeleton />
                         ) : !data?.paradigmFPR.length ? (
@@ -232,13 +231,13 @@ export function AdvancedAnalyticsSection() {
 
                     {/* Cost Efficiency */}
                     <Card>
-                      <CardHeader className="py-2 px-3">
-                        <CardTitle className="text-xs">Cost Efficiency</CardTitle>
-                        <CardDescription className="text-[10px]">
+                      <CardHeader className="py-3 px-4">
+                        <CardTitle className="text-sm">Cost Efficiency</CardTitle>
+                        <CardDescription className="text-xs">
                           Cost per accurate verification
                         </CardDescription>
                       </CardHeader>
-                      <CardContent className="p-3 pt-0">
+                      <CardContent className="p-4 pt-0">
                         {isLoading ? (
                           <ChartSkeleton />
                         ) : !data?.costEfficiency.length ? (
@@ -251,13 +250,13 @@ export function AdvancedAnalyticsSection() {
 
                     {/* Calibration */}
                     <Card className="lg:col-span-2">
-                      <CardHeader className="py-2 px-3">
-                        <CardTitle className="text-xs">Confidence Calibration</CardTitle>
-                        <CardDescription className="text-[10px]">
+                      <CardHeader className="py-3 px-4">
+                        <CardTitle className="text-sm">Confidence Calibration</CardTitle>
+                        <CardDescription className="text-xs">
                           Diagonal = perfect. Above = underconfident, below = overconfident.
                         </CardDescription>
                       </CardHeader>
-                      <CardContent className="p-3 pt-0">
+                      <CardContent className="p-4 pt-0">
                         {isLoading ? (
                           <ChartSkeleton height="h-[180px]" />
                         ) : !data?.calibration.length ? (
@@ -272,35 +271,35 @@ export function AdvancedAnalyticsSection() {
                   {/* Calibration Details */}
                   {data?.calibration && data.calibration.length > 0 && !isLoading && (
                     <Card>
-                      <CardHeader className="py-2 px-3">
-                        <CardTitle className="text-xs">Calibration Status</CardTitle>
-                        <CardDescription className="text-[10px]">
+                      <CardHeader className="py-3 px-4">
+                        <CardTitle className="text-sm">Calibration Status</CardTitle>
+                        <CardDescription className="text-xs">
                           Confidence vs actual accuracy by method
                         </CardDescription>
                       </CardHeader>
-                      <CardContent className="p-2">
-                        <div className="space-y-1.5">
+                      <CardContent className="p-4 pt-0">
+                        <div className="space-y-2">
                           {data.calibration.map((paradigm) => (
                             <div
                               key={paradigm.paradigmType}
-                              className="flex items-center justify-between rounded-md border px-2 py-1.5"
+                              className="flex items-center justify-between rounded-md border px-3 py-2.5"
                             >
                               <div className="flex items-center gap-2">
-                                <span className="text-xs font-medium">
+                                <span className="text-sm font-medium">
                                   {paradigm.displayName}
                                 </span>
                                 {paradigm.isOverconfident && (
-                                  <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4">Over</Badge>
+                                  <Badge variant="destructive" className="text-xs">Over</Badge>
                                 )}
                                 {paradigm.isUnderconfident && (
-                                  <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">Under</Badge>
+                                  <Badge variant="outline" className="text-xs">Under</Badge>
                                 )}
                                 {!paradigm.isOverconfident &&
                                   !paradigm.isUnderconfident && (
-                                    <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">Good</Badge>
+                                    <Badge variant="secondary" className="text-xs">Good</Badge>
                                   )}
                               </div>
-                              <div className="text-[10px] text-muted-foreground">
+                              <div className="text-xs text-muted-foreground">
                                 <span className="font-mono">
                                   {(paradigm.overallCalibrationError * 100).toFixed(1)}%
                                 </span>

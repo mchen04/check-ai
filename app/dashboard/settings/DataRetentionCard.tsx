@@ -112,22 +112,21 @@ export function DataRetentionCard({ initialSettings, canEdit }: DataRetentionCar
   return (
     <>
       <Card>
-        <CardHeader>
+        <CardHeader className="py-3 px-4">
           <div className="flex items-center gap-2">
-            <Clock className="h-6 w-6 shrink-0 text-muted-foreground" />
-            <CardTitle>Data Retention</CardTitle>
+            <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <CardTitle className="text-sm">Data Retention</CardTitle>
           </div>
-          <CardDescription>
-            Configure how long verification and batch data is retained. Data older than the
-            retention period is automatically deleted.
+          <CardDescription className="text-xs">
+            Configure data retention periods. Old data is automatically deleted.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="px-4 pb-4 pt-0 space-y-4">
           {/* Enable/Disable Toggle */}
           <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="retention-enabled">Automatic Data Cleanup</Label>
-              <p className="text-sm text-muted-foreground">
+            <div className="space-y-1">
+              <Label htmlFor="retention-enabled" className="text-sm">Automatic Data Cleanup</Label>
+              <p className="text-xs text-muted-foreground">
                 Automatically delete old verifications and batch results
               </p>
             </div>

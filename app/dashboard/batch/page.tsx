@@ -149,45 +149,45 @@ export default function BatchListPage() {
   };
 
   return (
-    <div className="p-4">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-sm font-semibold">Batch Jobs</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleRefresh} disabled={isLoading}>
-            <RefreshCw className={`mr-1.5 h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
+    <div className="p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-lg font-semibold">Batch Jobs</h1>
+        <div className="flex gap-3">
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="h-7 text-xs">
-                <Plus className="mr-1.5 h-3 w-3" />
+              <Button size="sm">
+                <Plus className="mr-2 h-4 w-4" />
                 New
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle className="text-sm">Create Batch Job</DialogTitle>
-                <DialogDescription className="text-xs">
+                <DialogTitle>Create Batch Job</DialogTitle>
+                <DialogDescription>
                   Upload a CSV or JSON file, or use the API to create a batch job.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-3 py-3">
+              <div className="grid gap-4 py-4">
                 <Button
                   variant="outline"
-                  className="h-16 flex-col gap-1"
+                  className="h-20 flex-col gap-2"
                   onClick={() => {
                     setIsCreateDialogOpen(false);
                     router.push('/dashboard/batch/upload');
                   }}
                 >
-                  <Upload className="h-4 w-4" />
-                  <span className="text-xs">Upload File</span>
-                  <span className="text-[10px] text-muted-foreground">CSV or JSON</span>
+                  <Upload className="h-5 w-5" />
+                  <span className="text-sm">Upload File</span>
+                  <span className="text-xs text-muted-foreground">CSV or JSON</span>
                 </Button>
-                <div className="text-center text-[10px] text-muted-foreground">or</div>
-                <div className="rounded-md border border-dashed p-3">
-                  <p className="text-xs font-medium">Use the API</p>
-                  <code className="mt-1 block rounded bg-muted p-1.5 text-[10px]">
+                <div className="text-center text-xs text-muted-foreground">or</div>
+                <div className="rounded-md border border-dashed p-4">
+                  <p className="text-sm font-medium">Use the API</p>
+                  <code className="mt-2 block rounded bg-muted p-2 text-xs">
                     POST /api/v1/batch
                   </code>
                 </div>
@@ -197,46 +197,46 @@ export default function BatchListPage() {
         </div>
       </div>
 
-      {/* Stats Cards - Compact */}
-      <div className="mb-4 grid grid-cols-4 gap-3">
-        <Card className="p-3">
-          <span className="text-[10px] text-muted-foreground">Total</span>
-          <p className="text-lg font-semibold">{stats.total}</p>
+      {/* Stats Cards */}
+      <div className="mb-6 grid grid-cols-4 gap-4">
+        <Card className="p-4">
+          <span className="text-xs text-muted-foreground">Total</span>
+          <p className="text-2xl font-semibold">{stats.total}</p>
         </Card>
-        <Card className="p-3">
-          <span className="text-[10px] text-muted-foreground">Processing</span>
-          <p className="text-lg font-semibold text-blue-600">{stats.processing}</p>
+        <Card className="p-4">
+          <span className="text-xs text-muted-foreground">Processing</span>
+          <p className="text-2xl font-semibold text-blue-600">{stats.processing}</p>
         </Card>
-        <Card className="p-3">
-          <span className="text-[10px] text-muted-foreground">Completed</span>
-          <p className="text-lg font-semibold text-green-600">{stats.completed}</p>
+        <Card className="p-4">
+          <span className="text-xs text-muted-foreground">Completed</span>
+          <p className="text-2xl font-semibold text-green-600">{stats.completed}</p>
         </Card>
-        <Card className="p-3">
-          <span className="text-[10px] text-muted-foreground">Failed</span>
-          <p className="text-lg font-semibold text-red-600">{stats.failed}</p>
+        <Card className="p-4">
+          <span className="text-xs text-muted-foreground">Failed</span>
+          <p className="text-2xl font-semibold text-red-600">{stats.failed}</p>
         </Card>
       </div>
 
       {/* Batches Table */}
       <Card>
-        <div className="border-b px-4 py-2.5">
-          <h3 className="text-xs font-semibold">Recent Batch Jobs</h3>
+        <div className="border-b px-4 py-3">
+          <h3 className="text-sm font-semibold">Recent Batch Jobs</h3>
         </div>
-        <div className="p-2">
+        <div className="p-4">
           {error ? (
-            <div className="py-6 text-center text-red-500 text-xs">
-              <p>{error}</p>
-              <Button variant="outline" size="sm" className="mt-3 h-7 text-xs" onClick={handleRefresh}>
+            <div className="py-8 text-center text-red-500">
+              <p className="text-sm">{error}</p>
+              <Button variant="outline" size="sm" className="mt-4" onClick={handleRefresh}>
                 Try Again
               </Button>
             </div>
           ) : batches.length === 0 && !isLoading ? (
-            <div className="py-6 text-center text-muted-foreground">
-              <Layers className="mx-auto mb-2 h-8 w-8 opacity-50" />
-              <p className="mb-1 text-xs">No batch jobs yet</p>
-              <p className="mb-3 text-[10px]">Create your first batch to process multiple verifications.</p>
-              <Button size="sm" className="h-7 text-xs" onClick={() => setIsCreateDialogOpen(true)}>
-                <Plus className="mr-1.5 h-3 w-3" />
+            <div className="py-8 text-center text-muted-foreground">
+              <Layers className="mx-auto mb-3 h-10 w-10 opacity-50" />
+              <p className="mb-1 text-sm">No batch jobs yet</p>
+              <p className="mb-4 text-xs">Create your first batch to process multiple verifications.</p>
+              <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
                 Create Batch
               </Button>
             </div>

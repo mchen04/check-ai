@@ -17,30 +17,32 @@ import { Shield } from 'lucide-react';
 export function SecuritySettingsCard() {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="py-3 px-4">
         <div className="flex items-center gap-2">
-          <Shield className="h-6 w-6 shrink-0 text-muted-foreground" />
-          <CardTitle>Security</CardTitle>
+          <Shield className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <CardTitle className="text-sm">Security</CardTitle>
         </div>
-        <CardDescription>Manage your security preferences</CardDescription>
+        <CardDescription className="text-xs">Manage your security preferences</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="px-4 pb-4 pt-0 space-y-4">
         <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>Two-Factor Authentication</Label>
-            <p className="text-sm text-muted-foreground">
-              Add an extra layer of security to your account
+          <div className="space-y-1">
+            <Label className="text-sm">Two-Factor Authentication</Label>
+            <p className="text-xs text-muted-foreground">
+              Add extra security to your account
             </p>
           </div>
           <Badge variant="outline">Coming Soon</Badge>
         </div>
         <Separator />
-        <div className="space-y-2">
-          <Label>Password</Label>
-          <p className="text-sm text-muted-foreground">
-            Change your password or reset it via email
-          </p>
-          <Button variant="outline" asChild>
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <Label className="text-sm">Password</Label>
+            <p className="text-xs text-muted-foreground">
+              Change your password or reset via email
+            </p>
+          </div>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/forgot-password">Change Password</Link>
           </Button>
         </div>

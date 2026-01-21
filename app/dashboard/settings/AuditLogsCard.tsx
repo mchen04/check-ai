@@ -202,18 +202,16 @@ export function AuditLogsCard() {
   return (
     <>
       <Card>
-        <CardHeader>
+        <CardHeader className="py-3 px-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <History className="h-5 w-5 text-primary" />
+            <div>
+              <div className="flex items-center gap-2">
+                <History className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <CardTitle className="text-sm">Audit Logs</CardTitle>
               </div>
-              <div>
-                <CardTitle>Audit Logs</CardTitle>
-                <CardDescription>
-                  Track all activity in your organization ({pagination.total} events)
-                </CardDescription>
-              </div>
+              <CardDescription className="text-xs">
+                Track activity in your organization ({pagination.total} events)
+              </CardDescription>
             </div>
             <Button
               variant="outline"
@@ -226,7 +224,7 @@ export function AuditLogsCard() {
               ) : (
                 <Download className="mr-2 h-4 w-4" />
               )}
-              Export CSV
+              Export
             </Button>
           </div>
 

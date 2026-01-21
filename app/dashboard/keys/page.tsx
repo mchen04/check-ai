@@ -49,35 +49,35 @@ export default async function ApiKeysPage() {
   }
 
   return (
-    <div className="p-4">
+    <div className="p-6">
       {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-sm font-semibold">API Keys</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-lg font-semibold">API Keys</h1>
         <CreateApiKeyDialog />
       </div>
 
-      {/* Security Notice - Compact */}
+      {/* Security Notice */}
       <AlertBanner
         variant="warning"
         size="sm"
         title="Keep your API keys secure"
-        className="mb-4"
+        className="mb-6"
       >
         Never share them publicly or commit them to version control.
       </AlertBanner>
 
       {/* API Keys List */}
-      <Card className="mb-4">
-        <div className="flex items-center justify-between border-b px-4 py-2.5">
-          <h3 className="text-xs font-semibold">Your API Keys</h3>
-          <span className="text-[10px] text-muted-foreground">{apiKeys.length} key{apiKeys.length !== 1 ? 's' : ''}</span>
+      <Card className="mb-6">
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <h3 className="text-sm font-semibold">Your API Keys</h3>
+          <span className="text-xs text-muted-foreground">{apiKeys.length} key{apiKeys.length !== 1 ? 's' : ''}</span>
         </div>
-        <div className="p-2">
+        <div className="p-4">
           {apiKeys.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Key className="mb-2 h-8 w-8 text-muted-foreground/30" />
-              <p className="mb-1 text-xs font-medium">No API keys yet</p>
-              <p className="mb-3 text-[10px] text-muted-foreground">
+              <Key className="mb-3 h-10 w-10 text-muted-foreground/30" />
+              <p className="mb-1 text-sm font-medium">No API keys yet</p>
+              <p className="mb-4 text-xs text-muted-foreground">
                 Create your first API key to start using the Check API
               </p>
               <CreateApiKeyDialog />
@@ -88,28 +88,28 @@ export default async function ApiKeysPage() {
         </div>
       </Card>
 
-      {/* BYOK Section - Collapsible */}
+      {/* BYOK Section */}
       <details className="group">
-        <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-xs font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
+        <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-3 text-sm font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
           <span>Bring Your Own Keys (BYOK)</span>
-          <svg className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </summary>
-        <Card className="mt-2">
-          <div className="p-3">
-            <p className="mb-3 text-[10px] text-muted-foreground">
+        <Card className="mt-3">
+          <div className="p-4">
+            <p className="mb-4 text-sm text-muted-foreground">
               Use your own API keys from providers like OpenAI, Anthropic, and Google. Keys are encrypted with AES-256-GCM.
             </p>
-            <div className="flex flex-wrap gap-1.5">
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0">OpenAI</Badge>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0">Anthropic</Badge>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0">Google AI</Badge>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0">DeepSeek</Badge>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0">Groq</Badge>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0">Together</Badge>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0">Mistral</Badge>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0">Cohere</Badge>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline">OpenAI</Badge>
+              <Badge variant="outline">Anthropic</Badge>
+              <Badge variant="outline">Google AI</Badge>
+              <Badge variant="outline">DeepSeek</Badge>
+              <Badge variant="outline">Groq</Badge>
+              <Badge variant="outline">Together</Badge>
+              <Badge variant="outline">Mistral</Badge>
+              <Badge variant="outline">Cohere</Badge>
             </div>
           </div>
         </Card>

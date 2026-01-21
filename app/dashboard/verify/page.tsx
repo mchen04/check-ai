@@ -152,17 +152,17 @@ export default function VerificationHistoryPage() {
   };
 
   return (
-    <div className="p-4">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-sm font-semibold">Verification History</h1>
-        <div className="flex gap-2">
+    <div className="p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-lg font-semibold">Verification History</h1>
+        <div className="flex gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-7 text-xs" disabled={isExporting || verifications.length === 0}>
+              <Button variant="outline" size="sm" disabled={isExporting || verifications.length === 0}>
                 {isExporting ? (
-                  <Spinner size="xs" className="mr-1.5" />
+                  <Spinner size="xs" className="mr-2" />
                 ) : (
-                  <Download className="mr-1.5 h-3 w-3" />
+                  <Download className="mr-2 h-4 w-4" />
                 )}
                 Export
               </Button>
@@ -176,55 +176,55 @@ export default function VerificationHistoryPage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleRefresh} disabled={isLoading}>
-            <RefreshCw className={`mr-1.5 h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button size="sm" className="h-7 text-xs" onClick={() => router.push('/dashboard/playground')}>New</Button>
+          <Button size="sm" onClick={() => router.push('/dashboard/playground')}>New</Button>
         </div>
       </div>
 
-      {/* Stats Cards - Compact */}
-      <div className="mb-4 grid grid-cols-5 gap-3">
-        <Card className="p-3">
-          <span className="text-[10px] text-muted-foreground">Total</span>
-          <p className="text-lg font-semibold">{stats.total}</p>
+      {/* Stats Cards */}
+      <div className="mb-6 grid grid-cols-5 gap-4">
+        <Card className="p-4">
+          <span className="text-xs text-muted-foreground">Total</span>
+          <p className="text-2xl font-semibold">{stats.total}</p>
         </Card>
-        <Card className="p-3">
-          <span className="text-[10px] text-muted-foreground">Verified</span>
-          <p className="text-lg font-semibold text-green-600">{stats.verified}</p>
+        <Card className="p-4">
+          <span className="text-xs text-muted-foreground">Verified</span>
+          <p className="text-2xl font-semibold text-green-600">{stats.verified}</p>
         </Card>
-        <Card className="p-3">
-          <span className="text-[10px] text-muted-foreground">False</span>
-          <p className="text-lg font-semibold text-red-600">{stats.false}</p>
+        <Card className="p-4">
+          <span className="text-xs text-muted-foreground">False</span>
+          <p className="text-2xl font-semibold text-red-600">{stats.false}</p>
         </Card>
-        <Card className="p-3">
-          <span className="text-[10px] text-muted-foreground">Uncertain</span>
-          <p className="text-lg font-semibold text-yellow-600">{stats.uncertain}</p>
+        <Card className="p-4">
+          <span className="text-xs text-muted-foreground">Uncertain</span>
+          <p className="text-2xl font-semibold text-yellow-600">{stats.uncertain}</p>
         </Card>
-        <Card className="p-3">
-          <span className="text-[10px] text-muted-foreground">Avg Confidence</span>
-          <p className="text-lg font-semibold">{stats.avgConfidence}%</p>
+        <Card className="p-4">
+          <span className="text-xs text-muted-foreground">Avg Confidence</span>
+          <p className="text-2xl font-semibold">{stats.avgConfidence}%</p>
         </Card>
       </div>
 
       {/* Verifications Table */}
       <Card>
-        <div className="border-b px-4 py-2.5">
-          <h3 className="text-xs font-semibold">Recent Verifications</h3>
+        <div className="border-b px-4 py-3">
+          <h3 className="text-sm font-semibold">Recent Verifications</h3>
         </div>
-        <div className="p-2">
+        <div className="p-4">
           {error ? (
             <div className="py-8 text-center text-red-500">
-              <p>{error}</p>
-              <Button variant="outline" size="sm" className="mt-3 h-7 text-xs" onClick={handleRefresh}>
+              <p className="text-sm">{error}</p>
+              <Button variant="outline" size="sm" className="mt-4" onClick={handleRefresh}>
                 Try Again
               </Button>
             </div>
           ) : verifications.length === 0 && !isLoading ? (
             <div className="py-8 text-center text-muted-foreground">
-              <p>No verifications yet</p>
-              <Button variant="outline" size="sm" className="mt-3 h-7 text-xs" onClick={() => router.push('/dashboard/playground')}>
+              <p className="text-sm">No verifications yet</p>
+              <Button variant="outline" size="sm" className="mt-4" onClick={() => router.push('/dashboard/playground')}>
                 Create your first verification
               </Button>
             </div>

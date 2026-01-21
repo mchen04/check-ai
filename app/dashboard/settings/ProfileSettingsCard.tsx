@@ -66,14 +66,14 @@ export function ProfileSettingsCard({ initialName, email }: ProfileSettingsCardP
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="py-3 px-4">
         <div className="flex items-center gap-2">
-          <User className="h-6 w-6 shrink-0 text-muted-foreground" />
-          <CardTitle>Profile</CardTitle>
+          <User className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <CardTitle className="text-sm">Profile</CardTitle>
         </div>
-        <CardDescription>Your personal account settings</CardDescription>
+        <CardDescription className="text-xs">Your personal account settings</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="px-4 pb-4 pt-0 space-y-3">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>

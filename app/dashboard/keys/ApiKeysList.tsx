@@ -64,29 +64,29 @@ export function ApiKeysList({ initialKeys }: ApiKeysListProps) {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="divide-y">
         {initialKeys.map((key) => (
           <div
             key={key.id}
-            className="flex items-center justify-between rounded-lg border p-4"
+            className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
           >
-            <div className="flex items-center gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                <Key className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded bg-muted shrink-0">
+                <Key className="h-4 w-4 text-muted-foreground" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="font-medium">{key.name}</p>
+                  <p className="text-sm font-medium truncate">{key.name}</p>
                   {!key.isActive && (
-                    <Badge variant="outline" className="text-muted-foreground">
+                    <Badge variant="outline" className="text-xs">
                       Inactive
                     </Badge>
                   )}
                   {key.expiresAt && new Date(key.expiresAt) < new Date() && (
-                    <Badge variant="destructive">Expired</Badge>
+                    <Badge variant="destructive" className="text-xs">Expired</Badge>
                   )}
                 </div>
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
                     {key.keyPrefix}...
                   </code>
@@ -101,20 +101,19 @@ export function ApiKeysList({ initialKeys }: ApiKeysListProps) {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setDeleteId(key.id)}
-                disabled={isDeleting && deleteId === key.id}
-              >
-                {isDeleting && deleteId === key.id ? (
-                  <Spinner size="sm" />
-                ) : (
-                  <Trash2 className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="shrink-0"
+              onClick={() => setDeleteId(key.id)}
+              disabled={isDeleting && deleteId === key.id}
+            >
+              {isDeleting && deleteId === key.id ? (
+                <Spinner size="sm" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+            </Button>
           </div>
         ))}
       </div>

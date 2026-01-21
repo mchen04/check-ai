@@ -19,15 +19,15 @@ export function AppearanceSettingsCard() {
   if (!mounted) {
     return (
       <Card>
-        <CardHeader>
+        <CardHeader className="py-3 px-4">
           <div className="flex items-center gap-2">
-            <Palette className="h-6 w-6 shrink-0 text-muted-foreground" />
-            <CardTitle>Appearance</CardTitle>
+            <Palette className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <CardTitle className="text-sm">Appearance</CardTitle>
           </div>
-          <CardDescription>Customize how Check looks for you</CardDescription>
+          <CardDescription className="text-xs">Customize how Check looks for you</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="h-[72px]" />
+        <CardContent className="px-4 pb-4 pt-0">
+          <div className="h-[56px]" />
         </CardContent>
       </Card>
     );
@@ -41,16 +41,16 @@ export function AppearanceSettingsCard() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="py-3 px-4">
         <div className="flex items-center gap-2">
-          <Palette className="h-6 w-6 shrink-0 text-muted-foreground" />
-          <CardTitle>Appearance</CardTitle>
+          <Palette className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <CardTitle className="text-sm">Appearance</CardTitle>
         </div>
-        <CardDescription>Customize how Check looks for you</CardDescription>
+        <CardDescription className="text-xs">Customize how Check looks for you</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 pb-4 pt-0">
         <div className="space-y-2">
-          <Label>Theme</Label>
+          <Label className="text-sm">Theme</Label>
           <div className="flex gap-2">
             {options.map((option) => {
               const Icon = option.icon;
@@ -60,7 +60,7 @@ export function AppearanceSettingsCard() {
                   key={option.value}
                   onClick={() => setTheme(option.value)}
                   className={cn(
-                    'flex flex-1 flex-col items-center gap-2 rounded-lg border p-3 transition-colors',
+                    'flex flex-1 flex-col items-center gap-1.5 rounded-md border p-3 transition-colors',
                     isSelected
                       ? 'border-primary bg-primary/5 text-primary'
                       : 'border-border hover:border-primary/50 hover:bg-muted/50'
@@ -73,7 +73,7 @@ export function AppearanceSettingsCard() {
             })}
           </div>
           <p className="text-xs text-muted-foreground">
-            Select your preferred theme or sync with your system settings
+            Select your preferred theme or sync with system
           </p>
         </div>
       </CardContent>

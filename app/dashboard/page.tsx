@@ -26,7 +26,7 @@ import { formatRelativeTime } from '@/lib/utils';
 import { truncateString } from '@/lib/api/formatters';
 import type { VerificationStatus } from '@/lib/api/types';
 import { OnboardingChecklist } from '@/components/OnboardingChecklist';
-import { VerdictIcon, VerdictBadge, type VerdictDisplay } from '@/components/ui/verdict-display';
+import { VerdictBadge, type VerdictDisplay } from '@/components/ui/verdict-display';
 
 // Get the start of the current month
 function getMonthStart() {
@@ -194,7 +194,7 @@ export default async function Dashboard() {
     : 0;
 
   return (
-    <div className="p-4">
+    <div className="p-6">
       {/* Onboarding Checklist */}
       {!onboarding.completed && (
         <OnboardingChecklist
@@ -205,137 +205,148 @@ export default async function Dashboard() {
         />
       )}
 
-      {/* Stats Grid - Compact */}
-      <div className="mb-4 grid gap-3 grid-cols-2 lg:grid-cols-4">
+      {/* Stats Grid */}
+      <div className="mb-6 grid gap-4 grid-cols-2 lg:grid-cols-4">
         {/* Total Verifications */}
-        <Card className="p-3">
+        <Card className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">Total Verifications</span>
-            <Shield className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">Total Verifications</span>
+            <Shield className="h-4 w-4 text-muted-foreground" />
           </div>
-          <div className="mt-1 text-lg font-semibold">{stats.totalVerifications}</div>
-          <p className="text-[10px] text-muted-foreground">All time</p>
+          <div className="mt-2 text-2xl font-semibold">{stats.totalVerifications}</div>
+          <p className="text-xs text-muted-foreground">All time</p>
         </Card>
 
         {/* Monthly Usage */}
-        <Card className="p-3">
+        <Card className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">Monthly Usage</span>
-            <Activity className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">Monthly Usage</span>
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </div>
-          <div className="mt-1 text-lg font-semibold">
-            {stats.monthlyVerifications} / {stats.verificationsLimit === Infinity ? '∞' : stats.verificationsLimit}
+          <div className="mt-2 text-2xl font-semibold">
+            {stats.monthlyVerifications}
+            <span className="text-sm font-normal text-muted-foreground">
+              {' '}/ {stats.verificationsLimit === Infinity ? '∞' : stats.verificationsLimit}
+            </span>
           </div>
-          <Progress value={usagePercentage} className="mt-1 h-1" />
+          <Progress value={usagePercentage} className="mt-2 h-1.5" />
         </Card>
 
         {/* API Keys */}
-        <Card className="p-3">
+        <Card className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">API Keys</span>
-            <Key className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">API Keys</span>
+            <Key className="h-4 w-4 text-muted-foreground" />
           </div>
-          <div className="mt-1 text-lg font-semibold">{stats.activeApiKeys}</div>
-          <p className="text-[10px] text-muted-foreground">Active keys</p>
+          <div className="mt-2 text-2xl font-semibold">{stats.activeApiKeys}</div>
+          <p className="text-xs text-muted-foreground">Active keys</p>
         </Card>
 
         {/* Monthly Cost */}
-        <Card className="p-3">
+        <Card className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">Monthly Cost</span>
-            <TrendingUp className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">Monthly Cost</span>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </div>
-          <div className="mt-1 text-lg font-semibold">
+          <div className="mt-2 text-2xl font-semibold">
             ${(stats.monthlyCost / 100).toFixed(2)}
           </div>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {stats.monthlyTokens.toLocaleString()} tokens
           </p>
         </Card>
       </div>
 
-      {/* Recent Verifications - Full Width */}
-      <Card className="mb-4">
-        <div className="flex items-center justify-between border-b px-4 py-2.5">
+      {/* Recent Verifications */}
+      <Card className="mb-6">
+        <div className="flex items-center justify-between border-b px-4 py-3">
           <h3 className="text-sm font-semibold">Recent Verifications</h3>
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-            <Link href="/dashboard/verify" className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/dashboard/verify" className="flex items-center gap-1.5">
               View All
-              <ArrowUpRight className="h-3 w-3" />
+              <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
           </Button>
         </div>
-        <div className="p-2">
+        <div className="p-4">
           {recentVerifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-6 text-center">
-              <Shield className="mb-2 h-8 w-8 text-muted-foreground/30" />
-              <p className="mb-1 text-xs font-medium">No verifications yet</p>
-              <p className="mb-3 text-[10px] text-muted-foreground">
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Shield className="mb-3 h-10 w-10 text-muted-foreground/30" />
+              <p className="mb-1 text-sm font-medium">No verifications yet</p>
+              <p className="mb-4 text-xs text-muted-foreground">
                 Run your first verification in the playground
               </p>
-              <Button size="sm" className="h-7 text-xs" asChild>
+              <Button size="sm" asChild>
                 <Link href="/dashboard/playground">
-                  <PlayCircle className="mr-1.5 h-3 w-3" />
+                  <PlayCircle className="mr-2 h-4 w-4" />
                   Try Playground
                 </Link>
               </Button>
             </div>
           ) : (
-            <div className="space-y-0.5">
-              {recentVerifications.map((v) => (
-                <Link
-                  key={v.id}
-                  href={`/dashboard/verify/${v.id}`}
-                  className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-muted/50"
-                >
-                  <VerdictIcon verdict={v.finalVerdict} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-medium">
-                      {truncateString(v.content, 80, true)}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {formatRelativeTime(v.createdAt)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <VerdictBadge verdict={v.finalVerdict} />
-                    {v.confidenceScore && (
-                      <span className="text-[10px] text-muted-foreground">
-                        {(parseFloat(v.confidenceScore) * 100).toFixed(0)}%
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b text-left text-xs font-medium text-muted-foreground">
+                    <th className="pb-2 pr-4">Content</th>
+                    <th className="pb-2 pr-4">Verdict</th>
+                    <th className="pb-2 pr-4 text-right">Confidence</th>
+                    <th className="pb-2 text-right">Created</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm">
+                  {recentVerifications.map((v) => (
+                    <tr key={v.id} className="border-b last:border-0 group">
+                      <td className="py-2.5 pr-4 max-w-[300px]">
+                        <Link
+                          href={`/dashboard/verify/${v.id}`}
+                          className="block truncate group-hover:text-primary"
+                        >
+                          {truncateString(v.content, 50, true)}
+                        </Link>
+                      </td>
+                      <td className="py-2.5 pr-4">
+                        <VerdictBadge verdict={v.finalVerdict} />
+                      </td>
+                      <td className="py-2.5 pr-4 text-right text-muted-foreground">
+                        {v.confidenceScore ? `${(parseFloat(v.confidenceScore) * 100).toFixed(0)}%` : '-'}
+                      </td>
+                      <td className="py-2.5 text-right text-muted-foreground">
+                        {formatRelativeTime(v.createdAt)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
       </Card>
 
-      {/* Getting Started - Collapsible */}
+      {/* Getting Started */}
       <details className="group">
-        <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-sm font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
+        <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-3 text-sm font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
           <span>Getting Started</span>
           <svg className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </summary>
-        <Card className="mt-2">
-          <div className="p-3">
-            <div className="rounded-md bg-muted p-3">
-              <p className="mb-2 text-xs font-medium">Quick API Example</p>
-              <pre className="overflow-x-auto rounded bg-background p-2 font-mono text-[10px] leading-relaxed">
+        <Card className="mt-3">
+          <div className="p-4">
+            <div className="rounded-md bg-muted p-4">
+              <p className="mb-2 text-sm font-medium">Quick API Example</p>
+              <pre className="overflow-x-auto rounded bg-background p-3 font-mono text-xs leading-relaxed">
 {`curl -X POST https://api.check.ai/v1/verify \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"content": "The Eiffel Tower is in Paris"}'`}
               </pre>
             </div>
-            <div className="mt-3 flex gap-2">
-              <Button variant="outline" size="sm" className="h-7 text-xs" asChild>
+            <div className="mt-4 flex gap-3">
+              <Button variant="outline" size="sm" asChild>
                 <Link href="/docs">View Docs</Link>
               </Button>
-              <Button variant="outline" size="sm" className="h-7 text-xs" asChild>
+              <Button variant="outline" size="sm" asChild>
                 <Link href="/dashboard/keys">Get API Key</Link>
               </Button>
             </div>

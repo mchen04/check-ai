@@ -55,19 +55,19 @@ export function NotificationSettingsCard({ initialPreferences }: NotificationSet
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="py-3 px-4">
         <div className="flex items-center gap-2">
-          <Bell className="h-6 w-6 shrink-0 text-muted-foreground" />
-          <CardTitle>Notifications</CardTitle>
+          <Bell className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <CardTitle className="text-sm">Notifications</CardTitle>
         </div>
-        <CardDescription>Configure how you receive alerts and updates</CardDescription>
+        <CardDescription className="text-xs">Configure how you receive alerts and updates</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="px-4 pb-4 pt-0 space-y-4">
         <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>Email Notifications</Label>
-            <p className="text-sm text-muted-foreground">
-              Receive email alerts for escalations and usage limits
+          <div className="space-y-1">
+            <Label className="text-sm">Email Notifications</Label>
+            <p className="text-xs text-muted-foreground">
+              Email alerts for escalations and usage limits
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -83,10 +83,10 @@ export function NotificationSettingsCard({ initialPreferences }: NotificationSet
         </div>
         <Separator />
         <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>Weekly Usage Report</Label>
-            <p className="text-sm text-muted-foreground">
-              Get a weekly summary of your API usage
+          <div className="space-y-1">
+            <Label className="text-sm">Weekly Usage Report</Label>
+            <p className="text-xs text-muted-foreground">
+              Weekly summary of your API usage
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -102,10 +102,10 @@ export function NotificationSettingsCard({ initialPreferences }: NotificationSet
         </div>
         <Separator />
         <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>Escalation Alerts</Label>
-            <p className="text-sm text-muted-foreground">
-              Get notified when verifications are escalated
+          <div className="space-y-1">
+            <Label className="text-sm">Escalation Alerts</Label>
+            <p className="text-xs text-muted-foreground">
+              Notified when verifications are escalated
             </p>
           </div>
           <div className="flex items-center gap-2">

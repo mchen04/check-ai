@@ -77,16 +77,19 @@ export function DangerZoneCard({ organizationName }: DangerZoneCardProps) {
 
   return (
     <Card className="border-destructive/50">
-      <CardHeader>
-        <CardTitle className="text-destructive">Danger Zone</CardTitle>
-        <CardDescription>Irreversible actions that affect your organization</CardDescription>
+      <CardHeader className="py-3 px-4">
+        <div className="flex items-center gap-2">
+          <Trash2 className="h-4 w-4 shrink-0 text-destructive" />
+          <CardTitle className="text-sm text-destructive">Danger Zone</CardTitle>
+        </div>
+        <CardDescription className="text-xs">Irreversible actions that affect your organization</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="px-4 pb-4 pt-0 space-y-4">
         <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label>Delete Organization</Label>
-            <p className="text-sm text-muted-foreground">
-              Permanently delete &quot;{organizationName}&quot; and all associated data
+          <div className="space-y-1">
+            <Label className="text-sm">Delete Organization</Label>
+            <p className="text-xs text-muted-foreground">
+              Permanently delete &quot;{organizationName}&quot;
             </p>
           </div>
           <AlertDialog open={open} onOpenChange={setOpen}>

@@ -115,14 +115,14 @@ export function OrganizationSettingsCard({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="py-3 px-4">
         <div className="flex items-center gap-2">
-          <Building2 className="h-6 w-6 shrink-0 text-muted-foreground" />
-          <CardTitle>Organization</CardTitle>
+          <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <CardTitle className="text-sm">Organization</CardTitle>
         </div>
-        <CardDescription>Manage your organization settings and defaults</CardDescription>
+        <CardDescription className="text-xs">Manage your organization settings and defaults</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="px-4 pb-4 pt-0 space-y-4">
         {/* Basic Info */}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
@@ -142,20 +142,19 @@ export function OrganizationSettingsCard({
         </div>
 
         {/* Plan Info */}
-        <div className="flex items-center gap-4 rounded-lg bg-muted p-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-medium">Current Plan:</p>
-              <Badge variant={organization.planType === 'free' ? 'outline' : 'default'}>
-                {organization.planType.charAt(0).toUpperCase() + organization.planType.slice(1)}
-              </Badge>
-            </div>
-            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-              <Users className="h-3 w-3" />
-              {memberCount} team member{memberCount !== 1 ? 's' : ''}
-            </p>
+        <div className="flex items-center justify-between rounded-lg bg-muted px-4 py-3">
+          <div className="flex items-center gap-3 text-sm">
+            <span className="font-medium">Current Plan:</span>
+            <Badge variant={organization.planType === 'free' ? 'outline' : 'default'}>
+              {organization.planType.charAt(0).toUpperCase() + organization.planType.slice(1)}
+            </Badge>
+            <span className="text-muted-foreground">·</span>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Users className="h-4 w-4" />
+              {memberCount} member{memberCount !== 1 ? 's' : ''}
+            </span>
           </div>
-          <Button variant="outline" asChild>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/dashboard/team">Manage Team</Link>
           </Button>
         </div>
