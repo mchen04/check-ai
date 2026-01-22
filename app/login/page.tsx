@@ -18,7 +18,7 @@ export default function Login() {
         <CardHeader className="space-y-2">
           <div className="flex justify-center pb-4">
             <Link href="/">
-              <Image src="/logo.png" alt="logo" width={50} height={50} />
+              <Image src="/logo.svg" alt="logo" width={50} height={50} />
             </Link>
           </div>
           <CardTitle className="text-center text-2xl font-bold">Login</CardTitle>

@@ -21,7 +21,7 @@ export default async function Subscribe() {
     <div className="flex min-h-screen flex-col bg-muted/40">
       <header className="sticky top-0 z-50 flex h-16 w-full items-center border-b bg-background px-4 lg:px-6">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.png" alt="logo" width={50} height={50} />
+          <Image src="/logo.svg" alt="logo" width={50} height={50} />
           <span className="sr-only">Acme Inc</span>
         </Link>
       </header>

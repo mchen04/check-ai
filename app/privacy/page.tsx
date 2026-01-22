@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { Shield } from 'lucide-react';
+import Image from 'next/image';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Check',
@@ -14,9 +14,7 @@ export default function PrivacyPage() {
       <header className="border-b border-border/50">
         <div className="mx-auto max-w-3xl px-6 py-6">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Shield className="h-5 w-5 text-primary-foreground" />
-            </div>
+            <Image src="/logo.svg" alt="Check logo" width={40} height={40} />
             <span className="text-xl font-semibold tracking-tight">Check</span>
           </Link>
         </div>

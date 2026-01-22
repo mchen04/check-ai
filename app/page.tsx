@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Shield, Zap, Code, Activity, BarChart, FileText, Check, CheckCircle } from 'lucide-react';
+import Image from 'next/image';
 import Stripe from 'stripe';
 import NeuralNetwork from '@/components/neural-network';
 import UseCaseCarousel from '@/components/use-case-carousel';
@@ -46,9 +47,7 @@ export default async function LandingPage() {
         <div className="content-wrapper">
           <div className="content-constrained flex h-20 items-center px-6">
             <Link className="flex items-center gap-3" href="#">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                <Shield className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <Image src="/logo.svg" alt="Check logo" width={40} height={40} />
               <span className="text-xl font-semibold tracking-tight">Check</span>
             </Link>
             <nav className="ml-auto hidden items-center gap-8 md:flex">

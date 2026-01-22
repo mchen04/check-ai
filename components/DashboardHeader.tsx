@@ -1,5 +1,6 @@
-import { Menu, Shield } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/utils/supabase/server';
@@ -39,9 +40,7 @@ export default async function DashboardHeader() {
       <div className="flex h-12 items-center gap-3 px-3">
         {/* Logo */}
         <Link className="flex items-center gap-1.5" href="/dashboard">
-          <div className="flex h-6 w-6 items-center justify-center rounded bg-primary">
-            <Shield className="h-3.5 w-3.5 text-primary-foreground" />
-          </div>
+          <Image src="/logo.svg" alt="Check logo" width={24} height={24} />
           <span className="hidden text-sm font-semibold tracking-tight md:inline-block">
             Check
           </span>
