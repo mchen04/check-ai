@@ -10,8 +10,9 @@ import {
 import { eq, and, gte, sql } from 'drizzle-orm';
 
 // Stripe SDK configuration following best practices:
-// - Pin API version for stability (matches SDK v16.9.0)
+// - Pin API version for stability and predictable behavior (matches SDK v16.9.0)
 // - Enable automatic retries for network resilience
+// Note: To use newer API versions, update stripe SDK: npm install stripe@latest
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20',
   maxNetworkRetries: 2,

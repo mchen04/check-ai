@@ -4,32 +4,50 @@ import { organizationsTable, PLAN_LIMITS } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
 import { stripe, getPlanTypeFromName, PlanType } from '@/utils/stripe/api';
 import { createLogger } from '@/lib/logger';
+import { getRedisClient } from '@/lib/cache/redis';
 
 const log = createLogger('StripeWebhook');
 
-// In-memory cache for processed event IDs to prevent duplicate processing
-// In production with multiple instances, use Redis or database
-const processedEvents = new Set<string>();
-const MAX_PROCESSED_EVENTS = 10000;
+// Event idempotency key prefix and TTL (7 days - matches Stripe's retry window of 3 days with buffer)
+const IDEMPOTENCY_PREFIX = 'stripe:webhook:processed:';
+const IDEMPOTENCY_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 /**
  * Check if an event has already been processed (idempotency guard)
- * Uses combination of event ID and object ID for robust deduplication
+ * Uses Redis for persistence across serverless function invocations
  */
-function isEventProcessed(eventId: string): boolean {
-  return processedEvents.has(eventId);
+async function isEventProcessed(eventId: string): Promise<boolean> {
+  const redis = getRedisClient();
+  if (!redis) {
+    // If Redis is not available, log warning but allow processing
+    // Better to risk duplicate processing than to block all webhooks
+    log.warn({ eventId }, 'Redis not available for idempotency check');
+    return false;
+  }
+
+  try {
+    const exists = await redis.exists(`${IDEMPOTENCY_PREFIX}${eventId}`);
+    return exists === 1;
+  } catch (error) {
+    log.error({ err: error, eventId }, 'Redis idempotency check error');
+    return false;
+  }
 }
 
 /**
- * Mark an event as processed
+ * Mark an event as processed with TTL
  */
-function markEventProcessed(eventId: string): void {
-  // Prevent unbounded growth - clear oldest entries if too large
-  if (processedEvents.size >= MAX_PROCESSED_EVENTS) {
-    const entriesToDelete = Array.from(processedEvents).slice(0, 1000);
-    entriesToDelete.forEach((id) => processedEvents.delete(id));
+async function markEventProcessed(eventId: string): Promise<void> {
+  const redis = getRedisClient();
+  if (!redis) {
+    return;
   }
-  processedEvents.add(eventId);
+
+  try {
+    await redis.setex(`${IDEMPOTENCY_PREFIX}${eventId}`, IDEMPOTENCY_TTL_SECONDS, '1');
+  } catch (error) {
+    log.error({ err: error, eventId }, 'Redis mark processed error');
+  }
 }
 
 export async function POST(req: Request) {
@@ -60,7 +78,7 @@ export async function POST(req: Request) {
   }
 
   // Check for duplicate events (idempotency)
-  if (isEventProcessed(event.id)) {
+  if (await isEventProcessed(event.id)) {
     log.info({ eventId: event.id }, 'Duplicate event received, skipping');
     return new Response('Event already processed', { status: 200 });
   }
@@ -145,7 +163,7 @@ export async function POST(req: Request) {
     }
 
     // Mark event as processed to prevent duplicate processing
-    markEventProcessed(event.id);
+    await markEventProcessed(event.id);
 
     return new Response('Success', { status: 200 });
   } catch (err) {
@@ -155,7 +173,7 @@ export async function POST(req: Request) {
     log.error({ err, eventId: event.id, eventType: event.type }, 'Stripe webhook processing error');
 
     // Still mark as processed to prevent retries from causing issues
-    markEventProcessed(event.id);
+    await markEventProcessed(event.id);
 
     return new Response('Acknowledged with error', { status: 200 });
   }
