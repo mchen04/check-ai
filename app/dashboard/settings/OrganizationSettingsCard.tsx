@@ -97,9 +97,8 @@ export function OrganizationSettingsCard({
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
         throw new Error(data.error || 'Failed to update organization');
       }
 

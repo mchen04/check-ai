@@ -155,9 +155,17 @@ export async function signInWithGoogle() {
     },
   });
 
-  if (data.url) {
-    redirect(data.url); // use the redirect API for your server framework
+  if (error) {
+    log.error({ err: error }, 'Google OAuth error');
+    redirect('/login?error=oauth_failed');
   }
+
+  if (data.url) {
+    redirect(data.url);
+  }
+
+  // Fallback if no URL returned (shouldn't happen but handle gracefully)
+  redirect('/login?error=oauth_failed');
 }
 
 export async function signInWithGithub() {
@@ -169,7 +177,15 @@ export async function signInWithGithub() {
     },
   });
 
-  if (data.url) {
-    redirect(data.url); // use the redirect API for your server framework
+  if (error) {
+    log.error({ err: error }, 'GitHub OAuth error');
+    redirect('/login?error=oauth_failed');
   }
+
+  if (data.url) {
+    redirect(data.url);
+  }
+
+  // Fallback if no URL returned (shouldn't happen but handle gracefully)
+  redirect('/login?error=oauth_failed');
 }

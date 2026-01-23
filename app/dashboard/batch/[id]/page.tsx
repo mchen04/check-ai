@@ -186,9 +186,11 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
     }
   }, [liveStatus, batch, fetchBatch, fetchItems]);
 
-  // Poll for updates when processing or validating
+  // Poll for updates when processing or validating (fallback if live updates fail)
   useEffect(() => {
+    // Don't poll if not in active state or if live updates have already completed
     if (batch?.status !== 'processing' && batch?.status !== 'validating') return;
+    if (liveStatus.isComplete) return; // Live updates already handled completion
 
     const interval = setInterval(() => {
       fetchBatch();
@@ -197,7 +199,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [batch?.status, fetchBatch, fetchItems]);
+  }, [batch?.status, liveStatus.isComplete, fetchBatch, fetchItems]);
 
   const handleCopyId = () => copy(id);
 
