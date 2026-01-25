@@ -65,46 +65,46 @@ export default function DashboardSidebar() {
         key={item.name}
         href={item.href}
         className={cn(
-          'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+          'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-150',
           active
-            ? 'bg-primary/10 text-primary'
-            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            ? 'bg-foreground/5 font-medium text-foreground'
+            : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground'
         )}
       >
-        <Icon className="h-4 w-4" />
+        <Icon className={cn('h-4 w-4', active && 'text-primary')} />
         {item.name}
       </Link>
     );
   };
 
   return (
-    <aside className="hidden w-52 shrink-0 border-r border-border bg-background lg:block">
-      <nav className="flex h-full flex-col gap-1 px-3 py-4">
+    <aside className="hidden w-56 shrink-0 border-r border-border/50 bg-background lg:block">
+      <nav className="flex h-full flex-col gap-0.5 px-3 py-4">
         {/* Core Actions */}
-        <div className="space-y-1">{coreNavigation.map(renderNavItem)}</div>
+        <div className="space-y-0.5">{coreNavigation.map(renderNavItem)}</div>
 
-        <div className="my-3 h-px bg-border" />
+        <div className="my-4 h-px bg-border/50" />
 
         {/* Monitoring */}
-        <div className="space-y-1">{monitoringNavigation.map(renderNavItem)}</div>
+        <div className="space-y-0.5">{monitoringNavigation.map(renderNavItem)}</div>
 
-        <div className="my-3 h-px bg-border" />
+        <div className="my-4 h-px bg-border/50" />
 
         {/* Configuration */}
-        <div className="space-y-1">{configNavigation.map(renderNavItem)}</div>
+        <div className="space-y-0.5">{configNavigation.map(renderNavItem)}</div>
 
-        <div className="my-3 h-px bg-border" />
+        <div className="my-4 h-px bg-border/50" />
 
         {/* Account */}
-        <div className="space-y-1">{accountNavigation.map(renderNavItem)}</div>
+        <div className="space-y-0.5">{accountNavigation.map(renderNavItem)}</div>
 
         {/* Spacer */}
         <div className="flex-1" />
 
         {/* Help Link */}
-        <div className="rounded-md border border-border bg-muted/50 p-3">
-          <p className="mb-1 text-sm font-medium">Need help?</p>
-          <Link href="/docs" className="text-xs text-muted-foreground hover:text-primary">
+        <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
+          <p className="mb-1.5 text-sm font-medium">Need help?</p>
+          <Link href="/docs" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
             View Documentation →
           </Link>
         </div>

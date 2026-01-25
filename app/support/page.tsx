@@ -16,19 +16,21 @@ import {
 export default function SupportPage() {
   return (
     <div className="flex min-h-screen flex-col bg-muted/40">
-      <header className="sticky top-0 z-50 flex h-16 w-full items-center border-b bg-background px-4 lg:px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.svg" alt="logo" width={50} height={50} />
-          <span className="sr-only">Shove</span>
-        </Link>
-        <nav className="ml-auto flex gap-4">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/dashboard">Dashboard</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/docs">Docs</Link>
-          </Button>
-        </nav>
+      <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-6">
+          <Link href="/" className="flex items-center gap-3">
+            <Image src="/logo.svg" alt="Check logo" width={32} height={32} />
+            <span className="text-lg font-semibold tracking-tight">Check</span>
+          </Link>
+          <nav className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/dashboard">Dashboard</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/docs">Docs</Link>
+            </Button>
+          </nav>
+        </div>
       </header>
 
       <main className="container flex-1 py-12 md:py-16">
@@ -157,7 +159,7 @@ export default function SupportPage() {
             <CardContent className="px-5 pb-5 pt-0">
               <div className="flex flex-wrap gap-3">
                 <Button variant="outline" size="sm" asChild>
-                  <a href="mailto:support@shove.ai">
+                  <a href="mailto:support@check.ai">
                     <Mail className="mr-2 h-4 w-4" />
                     Email Support
                   </a>
@@ -174,19 +176,29 @@ export default function SupportPage() {
         </div>
       </main>
 
-      <footer className="border-t py-6">
-        <div className="container flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Shove. All rights reserved.
-          </p>
-          <div className="flex gap-4">
-            <Link href="/privacy" className="text-xs text-muted-foreground hover:underline">
-              Privacy
+      <footer className="w-full border-t">
+        <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 py-12 sm:flex-row">
+          <p className="text-sm text-muted-foreground">© 2026 Check</p>
+          <nav className="flex gap-8 sm:ml-auto">
+            <Link
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              href="/docs"
+            >
+              Docs
             </Link>
-            <Link href="/terms" className="text-xs text-muted-foreground hover:underline">
+            <Link
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              href="/terms"
+            >
               Terms
             </Link>
-          </div>
+            <Link
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              href="/privacy"
+            >
+              Privacy
+            </Link>
+          </nav>
         </div>
       </footer>
     </div>

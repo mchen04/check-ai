@@ -11,11 +11,11 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border/50">
-        <div className="mx-auto max-w-3xl px-6 py-6">
+      <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-3xl items-center px-6">
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo.svg" alt="Check logo" width={40} height={40} />
-            <span className="text-xl font-semibold tracking-tight">Check</span>
+            <Image src="/logo.svg" alt="Check logo" width={32} height={32} />
+            <span className="text-lg font-semibold tracking-tight">Check</span>
           </Link>
         </div>
       </header>

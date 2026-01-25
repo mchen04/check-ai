@@ -192,15 +192,15 @@ export default function VerificationHistoryPage() {
         </Card>
         <Card className="p-4">
           <span className="text-xs text-muted-foreground">Verified</span>
-          <p className="text-2xl font-semibold text-green-600">{stats.verified}</p>
+          <p className="text-2xl font-semibold text-success">{stats.verified}</p>
         </Card>
         <Card className="p-4">
           <span className="text-xs text-muted-foreground">False</span>
-          <p className="text-2xl font-semibold text-red-600">{stats.false}</p>
+          <p className="text-2xl font-semibold text-destructive">{stats.false}</p>
         </Card>
         <Card className="p-4">
           <span className="text-xs text-muted-foreground">Uncertain</span>
-          <p className="text-2xl font-semibold text-yellow-600">{stats.uncertain}</p>
+          <p className="text-2xl font-semibold text-warning">{stats.uncertain}</p>
         </Card>
         <Card className="p-4">
           <span className="text-xs text-muted-foreground">Avg Confidence</span>
@@ -215,7 +215,7 @@ export default function VerificationHistoryPage() {
         </div>
         <div className="p-4">
           {error ? (
-            <div className="py-8 text-center text-red-500">
+            <div className="py-8 text-center text-destructive">
               <p className="text-sm">{error}</p>
               <Button variant="outline" size="sm" className="mt-4" onClick={handleRefresh}>
                 Try Again

@@ -27,11 +27,11 @@ export function VerdictIcon({ verdict, size = 'sm', className }: VerdictIconProp
 
   switch (verdict) {
     case 'true':
-      return <CheckCircle2 className={`${sizeClass} text-green-500`} />;
+      return <CheckCircle2 className={`${sizeClass} text-success`} />;
     case 'false':
-      return <XCircle className={`${sizeClass} text-red-500`} />;
+      return <XCircle className={`${sizeClass} text-destructive`} />;
     case 'uncertain':
-      return <AlertCircle className={`${sizeClass} text-yellow-500`} />;
+      return <AlertCircle className={`${sizeClass} text-warning`} />;
     default:
       return <Clock className={`${sizeClass} text-muted-foreground`} />;
   }
@@ -43,11 +43,11 @@ export function VerdictIcon({ verdict, size = 'sm', className }: VerdictIconProp
 export function getVerdictColor(verdict: VerdictDisplay): string {
   switch (verdict) {
     case 'true':
-      return 'text-green-600';
+      return 'text-success';
     case 'false':
-      return 'text-red-600';
+      return 'text-destructive';
     case 'uncertain':
-      return 'text-yellow-600';
+      return 'text-warning';
     default:
       return 'text-muted-foreground';
   }

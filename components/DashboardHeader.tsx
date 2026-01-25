@@ -36,12 +36,12 @@ export default async function DashboardHeader() {
   } = await supabase.auth.getUser();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-12 items-center gap-3 px-3">
+    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
+      <div className="flex h-14 items-center gap-4 px-4">
         {/* Logo */}
-        <Link className="flex items-center gap-1.5" href="/dashboard">
-          <Image src="/logo.svg" alt="Check logo" width={24} height={24} />
-          <span className="hidden text-sm font-semibold tracking-tight md:inline-block">
+        <Link className="flex items-center gap-2" href="/dashboard">
+          <Image src="/logo.svg" alt="Check logo" width={26} height={26} />
+          <span className="hidden text-sm font-semibold md:inline-block">
             Check
           </span>
         </Link>
@@ -49,7 +49,7 @@ export default async function DashboardHeader() {
         {/* Plan Badge */}
         <Suspense
           fallback={
-            <Badge variant="outline" className="h-5 text-[10px] px-1.5">
+            <Badge variant="outline" className="h-5 px-1.5 text-[10px]">
               <Skeleton className="h-3 w-8" />
             </Badge>
           }
@@ -64,7 +64,7 @@ export default async function DashboardHeader() {
         </Button>
 
         {/* Right side - Profile */}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-3">
           <DashboardHeaderProfileDropdown />
         </div>
       </div>

@@ -141,7 +141,11 @@ export async function loginUser(currentState: { message: string }, formData: For
 
 export async function logout() {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+
+  // Sign out from local session only to avoid network delays
+  // The middleware will handle session validation on next request
+  await supabase.auth.signOut({ scope: 'local' });
+
   revalidatePath('/', 'layout');
   redirect('/login');
 }

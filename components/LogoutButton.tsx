@@ -8,7 +8,8 @@ import { LogOut } from 'lucide-react';
 export function LogoutButton() {
   const [isPending, startTransition] = useTransition();
 
-  const handleLogout = () => {
+  const handleLogout = (e: Event) => {
+    e.preventDefault();
     startTransition(async () => {
       await logout();
     });
@@ -16,9 +17,9 @@ export function LogoutButton() {
 
   return (
     <DropdownMenuItem
-      onClick={handleLogout}
+      onSelect={handleLogout}
       disabled={isPending}
-      className="cursor-pointer"
+      className="cursor-pointer text-destructive focus:text-destructive"
     >
       <LogOut className="mr-2 h-4 w-4" />
       <span>{isPending ? 'Logging out...' : 'Log out'}</span>
