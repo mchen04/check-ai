@@ -63,8 +63,8 @@ export default function HeroDashboard() {
             Live Verification
           </h3>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-4xl font-bold">1,247</span>
-            <span className="text-sm text-success">+12.5%</span>
+            <span className="text-4xl font-bold">847</span>
+            <span className="text-sm text-success">+8.3%</span>
           </div>
           <p className="text-xs text-muted-foreground">Today</p>
         </div>

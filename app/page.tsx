@@ -94,23 +94,23 @@ export default async function LandingPage() {
                 {/* Eyebrow */}
                 <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5">
                   <Sparkles className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs font-medium text-primary">Seven verification methods, one API</span>
+                  <span className="text-xs font-medium text-primary">Built on peer-reviewed research</span>
                 </div>
 
                 <h1 className="mb-6 text-4xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-[3.5rem]">
-                  Your AI outputs cost{' '}
-                  <span className="text-primary">$2.4M</span>{' '}
-                  when they&apos;re wrong
+                  Your AI is confidently wrong{' '}
+                  <span className="text-primary">15%</span>{' '}
+                  of the time
                 </h1>
 
                 <p className="mb-8 max-w-lg text-lg leading-relaxed text-muted-foreground">
-                  Catch hallucinations before deployment with seven research-backed verification methods. Configure the mix for your use case.
+                  We built 7 different ways to catch hallucinations. Mix and match them depending on whether you need speed or precision.
                 </p>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <Button size="lg" asChild className="gap-2">
                     <Link href="/signup">
-                      Get started free
+                      Try 100 free verifications
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>
@@ -120,14 +120,18 @@ export default async function LandingPage() {
                 </div>
 
                 {/* Trust indicators */}
-                <div className="mt-10 flex items-center gap-6 text-sm text-muted-foreground">
+                <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-primary" />
                     <span>No credit card</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-primary" />
-                    <span>100 free verifications</span>
+                    <span>Works with any LLM</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>Response in &lt;200ms</span>
                   </div>
                 </div>
               </div>
@@ -142,28 +146,20 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Stats Section - Editorial typography */}
+        {/* Context Section - Story-driven */}
         <section className="relative border-y border-border/50 bg-muted/30 py-16 lg:py-20">
           <div className="mx-auto max-w-6xl px-6">
-            <div className="grid gap-12 lg:grid-cols-3">
-              <div>
-                <div className="mb-2 text-5xl font-semibold tracking-tight text-foreground">$2.4M</div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Average cost per hallucination incident in regulated industries
-                </p>
-              </div>
-              <div>
-                <div className="mb-2 text-5xl font-semibold tracking-tight text-foreground">78%</div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Of enterprises now deploy AI in production systems
-                </p>
-              </div>
-              <div>
-                <div className="mb-2 text-5xl font-semibold tracking-tight text-foreground">100%</div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Legally liable for every AI-generated output
-                </p>
-              </div>
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-xl leading-relaxed text-foreground sm:text-2xl">
+                Enterprise AI systems hallucinate on{' '}
+                <span className="font-semibold text-primary">8-15% of queries</span>.
+                In regulated industries, a single wrong answer can cost{' '}
+                <span className="font-semibold">$2.4M in liability</span>.
+                Manual review doesn&apos;t scale.
+              </p>
+              <p className="mt-4 text-lg text-muted-foreground">
+                That&apos;s why we built Check.
+              </p>
             </div>
           </div>
         </section>
@@ -173,10 +169,10 @@ export default async function LandingPage() {
           <div className="mx-auto max-w-6xl px-6">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="mb-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                One method doesn&apos;t fit all use cases
+                Medical AI and customer support need different guardrails
               </h2>
               <p className="text-lg leading-relaxed text-muted-foreground">
-                Existing solutions lock you into a single approach. Medical AI needs different verification than customer support.
+                A wrong medical dosage and a slightly off refund policy aren&apos;t the same risk. Your verification should know the difference.
               </p>
             </div>
 
@@ -190,15 +186,15 @@ export default async function LandingPage() {
                 <ul className="space-y-3 text-muted-foreground">
                   <li className="flex items-center gap-3">
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
-                    Fixed weights across all domains
+                    Same guardrails for medical advice and marketing copy
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
-                    Domain-specific solutions only
+                    Rebuild from scratch for every new use case
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
-                    One-size-fits-all tradeoffs
+                    Choose between slow-and-accurate or fast-and-risky
                   </li>
                 </ul>
               </div>
@@ -212,18 +208,29 @@ export default async function LandingPage() {
                 <ul className="space-y-3 text-muted-foreground">
                   <li className="flex items-center gap-3">
                     <Check className="h-4 w-4 text-primary" />
-                    Custom weights per use case
+                    Dial up accuracy for medical, speed for support
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="h-4 w-4 text-primary" />
-                    Universal coverage, any domain
+                    One API for every domain you ship to
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="h-4 w-4 text-primary" />
-                    Tune speed vs. accuracy tradeoffs
+                    You choose the tradeoff, not us
                   </li>
                 </ul>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Why We Built This - Founder credibility */}
+        <section className="border-t border-border/50 bg-muted/10 py-12 lg:py-16">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-lg italic leading-relaxed text-muted-foreground">
+                &ldquo;We spent 3 years building AI systems at production scale. The hardest part wasn&apos;t making AI smart&mdash;it was trusting its outputs. Every deployment was a liability question. We built Check because we needed it ourselves.&rdquo;
+              </p>
             </div>
           </div>
         </section>
@@ -233,10 +240,10 @@ export default async function LandingPage() {
           <div className="mx-auto max-w-6xl px-6">
             <div className="mb-16">
               <h2 className="mb-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                Seven verification methods
+                Seven ways to catch mistakes
               </h2>
               <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
-                Mix and match based on your use case. Each method has different speed-accuracy tradeoffs.
+                Each method catches different types of errors. Combine them based on your risk tolerance.
               </p>
             </div>
 
@@ -244,51 +251,51 @@ export default async function LandingPage() {
               <MethodCard
                 icon={<Zap className="h-5 w-5" />}
                 title="Semantic Similarity"
-                description="Quick embedding comparison for initial filtering"
+                description="Fast first-pass check. Catches obvious errors instantly."
                 speed="~100ms"
-                fpr="50-100%"
+                bestFor="High-volume screening"
               />
               <MethodCard
                 icon={<Activity className="h-5 w-5" />}
                 title="Reasoning-Based"
-                description="Chain-of-thought analysis for general verification"
+                description="Asks 'does this make sense?' step by step."
                 speed="2-3s"
-                fpr="7%"
+                bestFor="General accuracy"
               />
               <MethodCard
                 icon={<Code className="h-5 w-5" />}
                 title="Tool-Augmented"
-                description="Web search and code execution for facts"
+                description="Looks up facts in real-time. Best for claims about the world."
                 speed="1-2s"
-                fpr="~2%"
+                bestFor="Factual claims"
               />
               <MethodCard
                 icon={<Shield className="h-5 w-5" />}
                 title="BiPRM"
-                description="Bidirectional reasoning for high-stakes domains"
+                description="Reasons forward and backward. Catches subtle logical errors."
                 speed="3-5s"
-                fpr="~10%"
+                bestFor="Complex reasoning"
               />
               <MethodCard
                 icon={<BarChart className="h-5 w-5" />}
                 title="Ensemble"
-                description="Multiple model voting for precision"
+                description="Multiple AI models vote. Disagreement means flag it."
                 speed="5-10s"
-                fpr="20-40%"
+                bestFor="Critical decisions"
               />
               <MethodCard
                 icon={<CheckCircle className="h-5 w-5" />}
                 title="Semantic Entropy"
-                description="Multi-sample consistency analysis"
+                description="Asks the same question multiple ways. Inconsistency means hallucination."
                 speed="~200ms"
-                fpr="~15%"
+                bestFor="Uncertainty detection"
               />
               <MethodCard
                 icon={<FileText className="h-5 w-5" />}
                 title="Formal Verification"
-                description="Mathematical proofs for cryptography"
+                description="Mathematical proof that it's correct. Zero false positives."
                 speed="Variable"
-                fpr="0%"
+                bestFor="Absolute certainty"
                 badge="Soon"
               />
             </div>
@@ -301,10 +308,10 @@ export default async function LandingPage() {
             <div className="grid items-center gap-12 lg:grid-cols-2">
               <div>
                 <h2 className="mb-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                  Developer-friendly API
+                  Ship in 10 lines of code
                 </h2>
                 <p className="mb-8 text-lg leading-relaxed text-muted-foreground">
-                  Simple REST API that fits your workflow. Send a request, get a verdict.
+                  POST your AI output. Get back pass/fail, confidence score, and reasoning. That&apos;s it.
                 </p>
 
                 <div className="grid grid-cols-2 gap-6">
@@ -376,10 +383,10 @@ export default async function LandingPage() {
           <div className="mx-auto max-w-6xl px-6">
             <div className="mb-16 text-center">
               <h2 className="mb-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                Transparent pricing
+                Pricing that makes sense
               </h2>
               <p className="mx-auto max-w-lg text-lg text-muted-foreground">
-                Bring your own API keys. No token markups. Just platform access.
+                Bring your own API keys. We don&apos;t mark up tokens. You pay for verifications, not our margins.
               </p>
             </div>
 
@@ -416,8 +423,8 @@ export default async function LandingPage() {
               {/* Pro - Featured */}
               <div className="relative flex flex-col rounded-2xl border-2 border-primary bg-card p-6 shadow-lg shadow-primary/10">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-                    Most popular
+                  <span className="whitespace-nowrap rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+                    Recommended
                   </span>
                 </div>
                 <div className="mb-6">
@@ -497,15 +504,15 @@ export default async function LandingPage() {
 
               <div className="relative">
                 <h2 className="mb-4 text-3xl font-semibold tracking-tight text-background sm:text-4xl">
-                  Get started today
+                  See if your AI is hallucinating
                 </h2>
                 <p className="mx-auto mb-8 max-w-md text-lg text-background/70">
-                  Start verifying your AI outputs in minutes. No credit card required.
+                  100 free verifications. No credit card. Results in under a second.
                 </p>
 
                 <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <Button size="lg" className="bg-background text-foreground hover:bg-background/90" asChild>
-                    <Link href="/signup">Create free account</Link>
+                    <Link href="/signup">Start free verification</Link>
                   </Button>
                   <Button
                     size="lg"
@@ -569,14 +576,14 @@ function MethodCard({
   title,
   description,
   speed,
-  fpr,
+  bestFor,
   badge,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   speed: string;
-  fpr: string;
+  bestFor: string;
   badge?: string;
 }) {
   return (
@@ -586,10 +593,10 @@ function MethodCard({
       </div>
       <h3 className="mb-2 font-medium">{title}</h3>
       <p className="mb-3 text-sm leading-relaxed text-muted-foreground">{description}</p>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs text-muted-foreground">{speed}</span>
         <span className="text-xs text-muted-foreground">•</span>
-        <span className="text-xs text-muted-foreground">FPR: {fpr}</span>
+        <span className="text-xs text-primary font-medium">{bestFor}</span>
         {badge && (
           <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
             {badge}
