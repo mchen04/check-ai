@@ -21,10 +21,10 @@ const ROLE_ICONS = {
 };
 
 const ROLE_COLORS = {
-  owner: 'bg-amber-100 text-amber-800',
-  admin: 'bg-blue-100 text-blue-800',
-  member: 'bg-green-100 text-green-800',
-  viewer: 'bg-gray-100 text-gray-800',
+  owner: 'bg-warning/10 text-warning',
+  admin: 'bg-primary/10 text-primary',
+  member: 'bg-success/10 text-success',
+  viewer: 'bg-muted text-muted-foreground',
 };
 
 export default async function TeamPage() {
@@ -207,28 +207,28 @@ export default async function TeamPage() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-md border p-3">
                 <div className="mb-2 flex items-center gap-2">
-                  <Crown className="h-4 w-4 text-amber-600" />
+                  <Crown className="h-4 w-4 text-warning" />
                   <span className="text-sm font-medium">Owner</span>
                 </div>
                 <p className="text-xs text-muted-foreground">Full access including billing.</p>
               </div>
               <div className="rounded-md border p-3">
                 <div className="mb-2 flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-blue-600" />
+                  <Shield className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium">Admin</span>
                 </div>
                 <p className="text-xs text-muted-foreground">Manage members and features.</p>
               </div>
               <div className="rounded-md border p-3">
                 <div className="mb-2 flex items-center gap-2">
-                  <User className="h-4 w-4 text-green-600" />
+                  <User className="h-4 w-4 text-success" />
                   <span className="text-sm font-medium">Member</span>
                 </div>
                 <p className="text-xs text-muted-foreground">Use API and create keys.</p>
               </div>
               <div className="rounded-md border p-3">
                 <div className="mb-2 flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-gray-600" />
+                  <Eye className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">Viewer</span>
                 </div>
                 <p className="text-xs text-muted-foreground">Read-only dashboard access.</p>

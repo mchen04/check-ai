@@ -63,11 +63,11 @@ interface VerdictBadgeProps {
 export function VerdictBadge({ verdict }: VerdictBadgeProps) {
   switch (verdict) {
     case 'true':
-      return <Badge className="bg-green-100 text-green-800">Verified</Badge>;
+      return <Badge className="bg-success/10 text-success">Verified</Badge>;
     case 'false':
-      return <Badge className="bg-red-100 text-red-800">False</Badge>;
+      return <Badge className="bg-destructive/10 text-destructive">False</Badge>;
     case 'uncertain':
-      return <Badge className="bg-yellow-100 text-yellow-800">Uncertain</Badge>;
+      return <Badge className="bg-warning/10 text-warning">Uncertain</Badge>;
     default:
       return <Badge variant="outline">Pending</Badge>;
   }

@@ -13,23 +13,23 @@ interface CalloutProps {
 const CALLOUT_STYLES: Record<CalloutType, { icon: typeof Info; className: string }> = {
   info: {
     icon: Info,
-    className: 'border-blue-500/30 bg-blue-500/5 text-blue-700 dark:text-blue-300',
+    className: 'border-info/30 bg-info/5 text-info',
   },
   warning: {
     icon: AlertTriangle,
-    className: 'border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-300',
+    className: 'border-warning/30 bg-warning/5 text-warning',
   },
   danger: {
     icon: AlertCircle,
-    className: 'border-red-500/30 bg-red-500/5 text-red-700 dark:text-red-300',
+    className: 'border-destructive/30 bg-destructive/5 text-destructive',
   },
   success: {
     icon: CheckCircle2,
-    className: 'border-green-500/30 bg-green-500/5 text-green-700 dark:text-green-300',
+    className: 'border-success/30 bg-success/5 text-success',
   },
   tip: {
     icon: Info,
-    className: 'border-purple-500/30 bg-purple-500/5 text-purple-700 dark:text-purple-300',
+    className: 'border-primary/30 bg-primary/5 text-primary',
   },
 };
 

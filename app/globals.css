@@ -46,6 +46,13 @@
   --color-accent-teal: hsl(var(--accent-teal));
   --color-accent-green: hsl(var(--accent-green));
   --color-accent-purple: hsl(var(--accent-purple));
+  --color-accent-coral: hsl(var(--accent-coral));
+  --color-accent-sky: hsl(var(--accent-sky));
+  --color-accent-emerald: hsl(var(--accent-emerald));
+  --color-accent-amber: hsl(var(--accent-amber));
+
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
 
   --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
@@ -333,7 +340,7 @@
 }
 
 @utility text-gradient {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent-purple)));
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent-sky)));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -383,6 +390,18 @@
 
 @utility bg-radial-gradient {
   background: radial-gradient(ellipse 1200px 800px at 50% -20%, hsl(var(--primary) / 0.08), transparent 50%);
+}
+
+@utility bg-hero-glow {
+  background: radial-gradient(circle, hsl(var(--primary) / 0.4), transparent 70%);
+}
+
+@utility bg-cta-glow {
+  background: radial-gradient(circle, hsl(var(--primary) / 0.5), transparent 70%);
+}
+
+@utility bg-auth-gradient {
+  background: radial-gradient(ellipse at top, hsl(var(--primary) / 0.08), transparent 50%);
 }
 
 @utility bg-radial-gradient-bottom {
@@ -523,7 +542,7 @@
 }
 
 @utility morph-gradient {
-  background: linear-gradient(120deg, hsl(var(--primary) / 0.05), hsl(var(--accent-cyan) / 0.05), hsl(var(--accent-purple) / 0.05), hsl(var(--primary) / 0.05));
+  background: linear-gradient(120deg, hsl(var(--primary) / 0.05), hsl(var(--accent-sky) / 0.05), hsl(var(--accent-emerald) / 0.05), hsl(var(--primary) / 0.05));
   background-size: 200% 200%;
   animation: morph 8s ease infinite;
 }
@@ -563,58 +582,81 @@
 
 @layer base {
   :root {
-    /* Modern Monochrome Palette - Linear/Vercel inspired */
-    --background: 0 0% 100%;
-    --background-alt: 0 0% 98%;
-    --foreground: 0 0% 4%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 4%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 4%;
+    /*
+     * Check Design System - Distinctive Teal Palette
+     * Philosophy: Professional trust + approachable warmth
+     * Avoids: Purple/indigo (AI-default), pure black/white
+     */
 
-    /* Primary - Modern Violet */
-    --primary: 262 83% 58%;
+    /* Neutral Base - Warm Stone tones */
+    --background: 30 6% 99%;
+    --background-alt: 30 6% 96%;
+    --foreground: 24 10% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 24 10% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 24 10% 10%;
+
+    /* Primary - Deep Teal (Trust + Growth) */
+    --primary: 168 76% 32%;
     --primary-foreground: 0 0% 100%;
 
-    /* Accent colors - Subtle and modern */
-    --accent-cyan: 199 89% 48%;
-    --accent-teal: 172 66% 50%;
-    --accent-green: 142 71% 45%;
-    --accent-purple: 262 83% 58%;
+    /* Accent Colors - Warm and distinctive */
+    --accent-coral: 24 94% 53%;
+    --accent-sky: 200 90% 48%;
+    --accent-emerald: 160 84% 39%;
+    --accent-amber: 38 92% 50%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84% 60%;
+    /* Legacy accent mappings for compatibility */
+    --accent-cyan: 200 90% 48%;
+    --accent-teal: 168 76% 32%;
+    --accent-green: 160 84% 39%;
+    --accent-purple: 168 76% 32%;
+
+    /* Secondary and Muted */
+    --secondary: 30 6% 96%;
+    --secondary-foreground: 24 10% 10%;
+    --muted: 30 6% 96%;
+    --muted-foreground: 25 5% 45%;
+    --accent: 30 6% 96%;
+    --accent-foreground: 24 10% 10%;
+
+    /* Semantic Colors */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --success: 142 71% 45%;
+    --success: 160 84% 39%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 262 83% 58%;
-    --radius: 0.75rem;
+    --warning-foreground: 24 10% 10%;
+    --info: 200 90% 48%;
+    --info-foreground: 0 0% 100%;
+
+    /* Borders and Inputs */
+    --border: 30 6% 90%;
+    --input: 30 6% 90%;
+    --ring: 168 76% 32%;
+    --radius: 0.625rem;
     --radius-button: 0.5rem;
 
-    /* Chart Colors */
-    --chart-1: 262 83% 58%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 0 84% 60%;
-    --chart-4: 38 92% 50%;
-    --chart-5: 199 89% 48%;
+    /* Chart Colors - Harmonious palette */
+    --chart-1: 168 76% 32%;
+    --chart-2: 160 84% 39%;
+    --chart-3: 200 90% 48%;
+    --chart-4: 24 94% 53%;
+    --chart-5: 38 92% 50%;
+    --chart-6: 195 100% 50%;
+    --chart-7: 180 100% 45%;
+    --chart-8: 30 100% 50%;
 
     /* Transitions - Smooth and modern */
     --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* Dark section colors */
-    --navy-dark: 240 10% 4%;
-    --navy-medium: 240 6% 10%;
-    --navy-light: 240 5% 15%;
+    /* Dark section colors - Warm dark */
+    --navy-dark: 24 10% 4%;
+    --navy-medium: 24 8% 10%;
+    --navy-light: 24 6% 15%;
 
     /* Spacing Tokens - 4pt/8pt Grid System */
     --spacing-0: 0;
@@ -632,9 +674,9 @@
     --spacing-24: 6rem;
     --spacing-32: 8rem;
 
-    /* Section Padding - More generous */
-    --section-padding-mobile: 5rem;
-    --section-padding-desktop: 7rem;
+    /* Section Padding - Generous whitespace */
+    --section-padding-mobile: 4rem;
+    --section-padding-desktop: 6rem;
 
     /* Typography Tokens */
     --font-size-xs: 0.75rem;
@@ -643,65 +685,84 @@
     --font-size-lg: 1.125rem;
     --font-size-xl: 1.25rem;
     --font-size-2xl: 1.5rem;
-    --font-size-3xl: 2rem;
-    --font-size-4xl: 2.5rem;
-    --font-size-5xl: 3.5rem;
-    --font-size-6xl: 4rem;
-    --font-size-7xl: 5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+    --font-size-5xl: 3rem;
+    --font-size-6xl: 3.75rem;
+    --font-size-7xl: 4.5rem;
 
     /* Line Heights */
     --leading-none: 1;
     --leading-tight: 1.15;
     --leading-snug: 1.3;
     --leading-normal: 1.5;
-    --leading-relaxed: 1.65;
+    --leading-relaxed: 1.625;
     --leading-loose: 2;
 
-    /* Font Weights - Modern lighter scale */
+    /* Font Weights */
     --font-light: 300;
     --font-normal: 400;
     --font-medium: 500;
     --font-semibold: 600;
     --font-bold: 700;
 
-    /* Letter Spacing - Tighter for modern feel */
-    --tracking-tighter: -0.04em;
-    --tracking-tight: -0.025em;
+    /* Letter Spacing */
+    --tracking-tighter: -0.03em;
+    --tracking-tight: -0.02em;
     --tracking-normal: -0.01em;
     --tracking-wide: 0.025em;
+    --tracking-wider: 0.05em;
   }
 
   .dark {
-    /* Intentionally designed dark mode - not just inverted */
-    --background: 240 10% 4%;
-    --background-alt: 240 6% 7%;
-    --foreground: 0 0% 98%;
-    --card: 240 6% 7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 6% 10%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 262 83% 68%;
+    /*
+     * Dark Mode - Intentionally designed, not inverted
+     * Uses warm dark grays for less eye strain
+     */
+    --background: 24 10% 4%;
+    --background-alt: 24 8% 8%;
+    --foreground: 30 6% 98%;
+    --card: 24 8% 8%;
+    --card-foreground: 30 6% 98%;
+    --popover: 24 8% 10%;
+    --popover-foreground: 30 6% 98%;
+
+    /* Primary - Slightly lighter for dark mode visibility */
+    --primary: 168 70% 42%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 4% 16%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 4% 16%;
-    --muted-foreground: 0 0% 64%;
-    --accent: 240 4% 16%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 98%;
-    --success: 142 70% 45%;
-    --success-foreground: 0 0% 98%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 240 10% 4%;
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 262 83% 68%;
-    --chart-1: 262 83% 68%;
-    --chart-2: 142 70% 50%;
-    --chart-3: 0 72% 55%;
-    --chart-4: 38 92% 55%;
-    --chart-5: 199 89% 55%;
+
+    /* Secondary and Muted */
+    --secondary: 24 6% 15%;
+    --secondary-foreground: 30 6% 98%;
+    --muted: 24 6% 15%;
+    --muted-foreground: 30 5% 63%;
+    --accent: 24 6% 15%;
+    --accent-foreground: 30 6% 98%;
+
+    /* Semantic - Adjusted for dark backgrounds */
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 160 70% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 90% 55%;
+    --warning-foreground: 24 10% 4%;
+    --info: 200 85% 55%;
+    --info-foreground: 0 0% 100%;
+
+    /* Borders */
+    --border: 24 6% 18%;
+    --input: 24 6% 18%;
+    --ring: 168 70% 42%;
+
+    /* Chart colors - Brighter for dark mode */
+    --chart-1: 168 70% 45%;
+    --chart-2: 160 75% 45%;
+    --chart-3: 200 85% 55%;
+    --chart-4: 24 90% 58%;
+    --chart-5: 38 88% 55%;
+    --chart-6: 195 100% 55%;
+    --chart-7: 180 100% 50%;
+    --chart-8: 30 100% 55%;
   }
 }
 

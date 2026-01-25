@@ -72,17 +72,35 @@ export function EmptyState({
     <div
       className={cn(
         'flex flex-col items-center justify-center text-center text-muted-foreground',
+        // Entrance animation
+        'animate-in fade-in-0 zoom-in-95 duration-300',
         config.container,
         className
       )}
     >
-      {Icon && <Icon className={cn('opacity-50', config.icon)} />}
-      <p className={config.message}>{message}</p>
+      {Icon && (
+        <Icon
+          className={cn(
+            'opacity-50 transition-transform duration-300',
+            config.icon
+          )}
+        />
+      )}
+      <p className={cn(config.message, 'animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-75')}>
+        {message}
+      </p>
       {description && (
-        <p className={cn('mt-1 opacity-75', config.description)}>{description}</p>
+        <p className={cn('mt-1 opacity-75 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-100', config.description)}>
+          {description}
+        </p>
       )}
       {action && (
-        <Button variant="link" size="sm" onClick={action.onClick} className="mt-2">
+        <Button
+          variant="link"
+          size="sm"
+          onClick={action.onClick}
+          className="mt-2 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-150"
+        >
           {action.label}
         </Button>
       )}
@@ -165,13 +183,23 @@ export function ErrorState({
     <div
       className={cn(
         'flex flex-col items-center justify-center py-12 text-center',
+        'animate-in fade-in-0 zoom-in-95 duration-300',
         className
       )}
     >
-      {Icon && <Icon className="mb-4 h-12 w-12 text-destructive/50" />}
-      <p className="mb-4 text-sm text-muted-foreground">{message}</p>
+      {Icon && (
+        <Icon className="mb-4 h-12 w-12 text-destructive/50 animate-in fade-in-0 scale-in-50 duration-300" />
+      )}
+      <p className="mb-4 text-sm text-muted-foreground animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-75">
+        {message}
+      </p>
       {onRetry && (
-        <Button variant="outline" size="sm" onClick={onRetry}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onRetry}
+          className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-100"
+        >
           {retryLabel}
         </Button>
       )}

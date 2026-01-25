@@ -97,12 +97,12 @@ export function OnboardingChecklist({
   }
 
   return (
-    <Card className="mb-4 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-      <div className="p-3">
-        <div className="mb-2 flex items-center justify-between">
+    <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+      <div className="p-4">
+        <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold">Get Started</span>
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-sm font-semibold">Get Started</span>
+            <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
               {completedCount}/{steps.length}
             </span>
           </div>
@@ -113,26 +113,26 @@ export function OnboardingChecklist({
             onClick={handleDismiss}
             disabled={isDismissing}
           >
-            <X className="h-3 w-3" />
+            <X className="h-3.5 w-3.5" />
             <span className="sr-only">Dismiss</span>
           </Button>
         </div>
-        <Progress value={progressPercent} className="mb-2 h-1" />
-        <div className="flex gap-2">
+        <Progress value={progressPercent} className="mb-3 h-1.5" />
+        <div className="flex gap-3">
           {steps.map((step) => (
             <Link
               key={step.id}
               href={step.href}
-              className={`flex flex-1 items-center gap-2 rounded-md border px-2 py-1.5 transition-colors ${
+              className={`flex flex-1 items-center gap-2.5 rounded-lg border px-3 py-2 transition-all ${
                 step.completed
-                  ? 'border-green-200 bg-green-50/50 dark:border-green-900/50 dark:bg-green-950/20'
-                  : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                  ? 'border-success/30 bg-success/5'
+                  : 'border-border/60 hover:border-primary/40 hover:bg-muted/50'
               }`}
             >
               <div
                 className={`flex h-5 w-5 items-center justify-center rounded-full ${
                   step.completed
-                    ? 'bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400'
+                    ? 'bg-success/20 text-success'
                     : 'bg-muted text-muted-foreground'
                 }`}
               >
@@ -143,7 +143,7 @@ export function OnboardingChecklist({
                 )}
               </div>
               <span
-                className={`text-[10px] font-medium ${step.completed ? 'text-green-700 dark:text-green-400' : ''}`}
+                className={`text-xs font-medium ${step.completed ? 'text-success' : 'text-foreground'}`}
               >
                 {step.title}
               </span>

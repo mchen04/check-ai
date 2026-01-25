@@ -47,6 +47,10 @@ const config = {
           DEFAULT: 'hsl(var(--success))',
           foreground: 'hsl(var(--success-foreground))',
         },
+        info: {
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
+        },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
@@ -54,6 +58,11 @@ const config = {
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
+          coral: 'hsl(var(--accent-coral))',
+          sky: 'hsl(var(--accent-sky))',
+          emerald: 'hsl(var(--accent-emerald))',
+          amber: 'hsl(var(--accent-amber))',
+          // Legacy compatibility
           cyan: 'hsl(var(--accent-cyan))',
           teal: 'hsl(var(--accent-teal))',
           green: 'hsl(var(--accent-green))',

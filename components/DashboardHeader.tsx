@@ -19,12 +19,20 @@ async function UserPlanBadge() {
 
   const { planType } = context.organization;
   const label = planType.charAt(0).toUpperCase() + planType.slice(1);
-  const variant = planType === 'free' ? 'outline' : 'default';
+
+  // Different styling per plan type
+  if (planType === 'free') {
+    return (
+      <span className="rounded-md border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+        {label}
+      </span>
+    );
+  }
 
   return (
-    <Badge variant={variant} className="h-5 px-1.5 text-[10px] font-medium">
+    <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
       {label}
-    </Badge>
+    </span>
   );
 }
 
@@ -36,12 +44,12 @@ export default async function DashboardHeader() {
   } = await supabase.auth.getUser();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
-      <div className="flex h-14 items-center gap-4 px-4">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-md">
+      <div className="flex h-14 items-center gap-4 px-5">
         {/* Logo */}
-        <Link className="flex items-center gap-2" href="/dashboard">
-          <Image src="/logo.svg" alt="Check logo" width={26} height={26} />
-          <span className="hidden text-sm font-semibold md:inline-block">
+        <Link className="flex items-center gap-2.5 transition-opacity hover:opacity-80" href="/dashboard">
+          <Image src="/logo.svg" alt="Check" width={24} height={24} />
+          <span className="hidden text-sm font-semibold tracking-tight md:inline-block">
             Check
           </span>
         </Link>
@@ -49,22 +57,25 @@ export default async function DashboardHeader() {
         {/* Plan Badge */}
         <Suspense
           fallback={
-            <Badge variant="outline" className="h-5 px-1.5 text-[10px]">
+            <span className="rounded-md border border-border bg-muted px-2 py-0.5">
               <Skeleton className="h-3 w-8" />
-            </Badge>
+            </span>
           }
         >
           <UserPlanBadge />
         </Suspense>
 
+        {/* Spacer */}
+        <div className="flex-1" />
+
         {/* Mobile menu button */}
-        <Button variant="ghost" size="icon" className="ml-auto h-8 w-8 lg:hidden">
+        <Button variant="ghost" size="icon" className="h-8 w-8 lg:hidden">
           <Menu className="h-4 w-4" />
           <span className="sr-only">Toggle Menu</span>
         </Button>
 
         {/* Right side - Profile */}
-        <div className="ml-auto flex items-center gap-3">
+        <div className="flex items-center">
           <DashboardHeaderProfileDropdown />
         </div>
       </div>

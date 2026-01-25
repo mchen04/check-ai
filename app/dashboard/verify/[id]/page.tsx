@@ -53,13 +53,13 @@ interface VerificationDetail {
 function getDecisionBadge(decision: Decision | null) {
   switch (decision) {
     case 'accept':
-      return <Badge className="bg-green-100 text-green-800">Accept</Badge>;
+      return <Badge className="bg-success/10 text-success">Accept</Badge>;
     case 'refine':
-      return <Badge className="bg-blue-100 text-blue-800">Refine</Badge>;
+      return <Badge className="bg-info/10 text-info">Refine</Badge>;
     case 'escalate':
-      return <Badge className="bg-orange-100 text-orange-800">Escalate</Badge>;
+      return <Badge className="bg-warning/10 text-warning">Escalate</Badge>;
     case 'reject':
-      return <Badge className="bg-red-100 text-red-800">Reject</Badge>;
+      return <Badge className="bg-destructive/10 text-destructive">Reject</Badge>;
     default:
       return <Badge variant="outline">Pending</Badge>;
   }
@@ -139,7 +139,7 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
     return (
       <div className="p-6">
         <Card className="p-6 text-center">
-          <p className="mb-4 text-sm text-red-500">{error || 'Verification not found'}</p>
+          <p className="mb-4 text-sm text-destructive">{error || 'Verification not found'}</p>
           <Button variant="outline" size="sm" onClick={() => router.push('/dashboard/verify')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
@@ -165,7 +165,7 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopyId}>
               <Copy className="h-4 w-4" />
             </Button>
-            {copied && <span className="text-xs text-green-600">Copied!</span>}
+            {copied && <span className="text-xs text-success">Copied!</span>}
           </div>
         </div>
       </div>
@@ -182,7 +182,7 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
               {isProcessing ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <Spinner size="sm" className="text-blue-500" />
+                    <Spinner size="sm" className="text-primary" />
                     <span className="text-sm">Processing...</span>
                   </div>
                   <Progress value={liveStatus.progress.total > 0 ? (liveStatus.progress.completed / liveStatus.progress.total) * 100 : 0} className="h-1.5" />
@@ -248,7 +248,7 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
                         </div>
                       </div>
                       {pr.error ? (
-                        <p className="text-sm text-red-500">{pr.error}</p>
+                        <p className="text-sm text-destructive">{pr.error}</p>
                       ) : (
                         <>
                           <div className="flex items-center gap-3 text-sm">
@@ -278,7 +278,7 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
             <div className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Status</span>
-                <Badge className={`${verification.status === 'completed' ? 'bg-blue-100 text-blue-800' : verification.status === 'processing' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100'}`}>{verification.status}</Badge>
+                <Badge className={`${verification.status === 'completed' ? 'bg-success/10 text-success' : verification.status === 'processing' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>{verification.status}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Time</span>

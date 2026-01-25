@@ -60,11 +60,11 @@ export const paradigmChartConfig = {
   },
   entropy: {
     label: 'Entropy',
-    color: 'hsl(195 100% 50%)',
+    color: 'hsl(var(--chart-6))',
   },
   formal: {
     label: 'Formal',
-    color: 'hsl(180 100% 50%)',
+    color: 'hsl(var(--chart-7))',
   },
 } satisfies ChartConfig;
 
@@ -92,15 +92,15 @@ export const costChartConfig = {
   },
   together: {
     label: 'Together',
-    color: 'hsl(195 100% 50%)',
+    color: 'hsl(var(--chart-6))',
   },
   mistral: {
     label: 'Mistral',
-    color: 'hsl(180 100% 50%)',
+    color: 'hsl(var(--chart-7))',
   },
   cohere: {
     label: 'Cohere',
-    color: 'hsl(30 100% 50%)',
+    color: 'hsl(var(--chart-8))',
   },
 } satisfies ChartConfig;
 

@@ -101,7 +101,7 @@ export function CostEfficiencyChart({ data }: CostEfficiencyChartProps) {
                         <span className="text-muted-foreground">
                           Verified Accuracy:
                         </span>
-                        <span className="font-mono font-medium text-green-600">
+                        <span className="font-mono font-medium text-success">
                           {(item.verifiedAccuracy * 100).toFixed(1)}%
                           <span className="ml-1 text-xs text-muted-foreground">
                             ({item.verifiedTotalCount})

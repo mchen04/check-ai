@@ -240,7 +240,7 @@ export function OrganizationSettingsCard({
         <InlineError message={error} />
 
         {success && (
-          <div className="text-sm text-green-600">Organization settings updated successfully!</div>
+          <div className="text-sm text-success">Organization settings updated successfully!</div>
         )}
 
         {canEdit && (

@@ -45,7 +45,7 @@ export function AcceptInviteButton({ token }: { token: string }) {
   if (success) {
     return (
       <div className="flex flex-col items-center py-4">
-        <CheckCircle className="mb-2 h-8 w-8 text-green-600" />
+        <CheckCircle className="mb-2 h-8 w-8 text-success" />
         <p className="font-medium">Welcome to the team!</p>
         <p className="text-sm text-muted-foreground">Redirecting to dashboard...</p>
       </div>

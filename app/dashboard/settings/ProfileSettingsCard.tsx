@@ -99,7 +99,7 @@ export function ProfileSettingsCard({ initialName, email }: ProfileSettingsCardP
         <InlineError message={error} />
 
         {success && (
-          <div className="text-sm text-green-600">
+          <div className="text-sm text-success">
             Profile updated successfully!
           </div>
         )}

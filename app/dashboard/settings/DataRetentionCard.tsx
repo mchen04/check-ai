@@ -204,8 +204,8 @@ export function DataRetentionCard({ initialSettings, canEdit }: DataRetentionCar
 
           {/* Warning about disabled retention */}
           {!settings.dataRetentionEnabled && (
-            <div className="rounded-lg bg-yellow-500/10 p-3 text-sm">
-              <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-500">
+            <div className="rounded-lg bg-warning/10 p-3 text-sm">
+              <div className="flex items-center gap-2 text-warning">
                 <AlertTriangle className="h-4 w-4" />
                 <span className="font-medium">Retention disabled</span>
               </div>

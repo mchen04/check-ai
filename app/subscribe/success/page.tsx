@@ -15,7 +15,7 @@ export default function SubscribeSuccess() {
             </Link>
           </div>
           <div className="flex justify-center">
-            <CheckCircle className="h-12 w-12 text-green-500" />
+            <CheckCircle className="h-12 w-12 text-success" />
           </div>
           <CardTitle className="text-center text-2xl font-bold">Welcome Aboard!</CardTitle>
           <CardDescription className="text-center">

@@ -76,14 +76,14 @@ interface BatchStats {
 function getStatusIcon(status: BatchStatus) {
   switch (status) {
     case 'completed':
-      return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      return <CheckCircle2 className="h-4 w-4 text-success" />;
     case 'processing':
-      return <Spinner size="sm" className="text-blue-500" />;
+      return <Spinner size="sm" className="text-primary" />;
     case 'failed':
     case 'cancelled':
-      return <XCircle className="h-4 w-4 text-red-500" />;
+      return <XCircle className="h-4 w-4 text-destructive" />;
     default:
-      return <Clock className="h-4 w-4 text-gray-400" />;
+      return <Clock className="h-4 w-4 text-muted-foreground" />;
   }
 }
 
@@ -205,15 +205,15 @@ export default function BatchListPage() {
         </Card>
         <Card className="p-4">
           <span className="text-xs text-muted-foreground">Processing</span>
-          <p className="text-2xl font-semibold text-blue-600">{stats.processing}</p>
+          <p className="text-2xl font-semibold text-primary">{stats.processing}</p>
         </Card>
         <Card className="p-4">
           <span className="text-xs text-muted-foreground">Completed</span>
-          <p className="text-2xl font-semibold text-green-600">{stats.completed}</p>
+          <p className="text-2xl font-semibold text-success">{stats.completed}</p>
         </Card>
         <Card className="p-4">
           <span className="text-xs text-muted-foreground">Failed</span>
-          <p className="text-2xl font-semibold text-red-600">{stats.failed}</p>
+          <p className="text-2xl font-semibold text-destructive">{stats.failed}</p>
         </Card>
       </div>
 
@@ -224,7 +224,7 @@ export default function BatchListPage() {
         </div>
         <div className="p-4">
           {error ? (
-            <div className="py-8 text-center text-red-500">
+            <div className="py-8 text-center text-destructive">
               <p className="text-sm">{error}</p>
               <Button variant="outline" size="sm" className="mt-4" onClick={handleRefresh}>
                 Try Again
@@ -287,9 +287,9 @@ export default function BatchListPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 text-sm">
-                        <span className="text-green-600">{batch.successCount}</span>
+                        <span className="text-success">{batch.successCount}</span>
                         <span className="text-muted-foreground">/</span>
-                        <span className="text-red-600">{batch.failureCount}</span>
+                        <span className="text-destructive">{batch.failureCount}</span>
                       </div>
                     </TableCell>
                     <TableCell>

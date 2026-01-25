@@ -14,21 +14,21 @@ export type BatchDisplayStatus = BatchStatus | BatchItemStatus;
 export function BatchStatusBadge({ status }: { status: BatchDisplayStatus }) {
   switch (status) {
     case 'completed':
-      return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
+      return <Badge className="bg-success/10 text-success">Completed</Badge>;
     case 'processing':
-      return <Badge className="bg-blue-100 text-blue-800">Processing</Badge>;
+      return <Badge className="bg-primary/10 text-primary">Processing</Badge>;
     case 'pending':
-      return <Badge className="bg-gray-100 text-gray-800">Pending</Badge>;
+      return <Badge className="bg-muted text-muted-foreground">Pending</Badge>;
     case 'validating':
-      return <Badge className="bg-purple-100 text-purple-800">Validating</Badge>;
+      return <Badge className="bg-primary/10 text-primary">Validating</Badge>;
     case 'queued':
-      return <Badge className="bg-purple-100 text-purple-800">Queued</Badge>;
+      return <Badge className="bg-muted text-muted-foreground">Queued</Badge>;
     case 'failed':
-      return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
+      return <Badge className="bg-destructive/10 text-destructive">Failed</Badge>;
     case 'cancelled':
-      return <Badge className="bg-orange-100 text-orange-800">Cancelled</Badge>;
+      return <Badge className="bg-warning/10 text-warning">Cancelled</Badge>;
     case 'skipped':
-      return <Badge className="bg-gray-100 text-gray-800">Skipped</Badge>;
+      return <Badge className="bg-muted text-muted-foreground">Skipped</Badge>;
     default:
       return <Badge variant="outline">{status}</Badge>;
   }
@@ -40,13 +40,13 @@ export function BatchStatusBadge({ status }: { status: BatchDisplayStatus }) {
 export function VerificationStatusBadge({ status }: { status: VerificationStatus }) {
   switch (status) {
     case 'completed':
-      return <Badge className="bg-blue-100 text-blue-800">Completed</Badge>;
+      return <Badge className="bg-success/10 text-success">Completed</Badge>;
     case 'processing':
-      return <Badge className="bg-purple-100 text-purple-800">Processing</Badge>;
+      return <Badge className="bg-primary/10 text-primary">Processing</Badge>;
     case 'failed':
-      return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
+      return <Badge className="bg-destructive/10 text-destructive">Failed</Badge>;
     case 'escalated':
-      return <Badge className="bg-orange-100 text-orange-800">Escalated</Badge>;
+      return <Badge className="bg-warning/10 text-warning">Escalated</Badge>;
     default:
       return <Badge variant="outline">Pending</Badge>;
   }
@@ -75,21 +75,21 @@ export function ValidationStatusBadge({
   switch (status) {
     case 'valid':
       return (
-        <Badge variant="default" className="bg-green-500">
+        <Badge className="bg-success/10 text-success">
           {showIcon && <CheckCircle className="mr-1 h-3 w-3" />}
           Valid
         </Badge>
       );
     case 'invalid':
       return (
-        <Badge variant="destructive">
+        <Badge className="bg-destructive/10 text-destructive">
           {showIcon && <XCircle className="mr-1 h-3 w-3" />}
           Invalid
         </Badge>
       );
     default:
       return (
-        <Badge variant="secondary">
+        <Badge variant="ghost">
           {showIcon && <AlertCircle className="mr-1 h-3 w-3" />}
           Pending
         </Badge>
@@ -113,12 +113,12 @@ export function TestResultBadge({
   failureLabel = 'Failed',
 }: TestResultBadgeProps) {
   return success ? (
-    <Badge variant="default" className="bg-green-500">
+    <Badge className="bg-success text-success-foreground">
       <CheckCircle className="mr-1 h-3 w-3" />
       {successLabel}
     </Badge>
   ) : (
-    <Badge variant="destructive">
+    <Badge className="bg-destructive text-destructive-foreground">
       <XCircle className="mr-1 h-3 w-3" />
       {failureLabel}
     </Badge>
@@ -140,10 +140,10 @@ export function ActiveStatusBadge({
   inactiveLabel = 'Inactive',
 }: ActiveStatusBadgeProps) {
   return isActive ? (
-    <Badge variant="default" className="bg-green-500">
+    <Badge className="bg-success text-success-foreground">
       {activeLabel}
     </Badge>
   ) : (
-    <Badge variant="secondary">{inactiveLabel}</Badge>
+    <Badge variant="ghost">{inactiveLabel}</Badge>
   );
 }

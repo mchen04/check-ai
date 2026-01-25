@@ -2,11 +2,29 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Whether the card should have hover effects */
+  interactive?: boolean;
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, interactive = false, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('rounded-xl border border-border/60 bg-card text-card-foreground', className)}
+      className={cn(
+        'rounded-xl border border-border/60 bg-card text-card-foreground',
+        // Add transition for smooth hover effects
+        'transition-all duration-200',
+        // Interactive cards get hover effects
+        interactive && [
+          'cursor-pointer',
+          'hover:border-border',
+          'hover:shadow-md hover:shadow-primary/5',
+          'hover:-translate-y-0.5',
+          'active:translate-y-0 active:shadow-sm',
+        ],
+        className
+      )}
       {...props}
     />
   )

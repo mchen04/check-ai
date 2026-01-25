@@ -564,9 +564,9 @@ console.log(result);`;
         <div className="space-y-4">
           {/* Error Display */}
           {error && (
-            <Card className="border-red-200 bg-red-50">
+            <Card className="border-destructive/30 bg-destructive/5">
               <CardContent className="p-4">
-                <p className="text-sm text-red-600">{error}</p>
+                <p className="text-sm text-destructive">{error}</p>
               </CardContent>
             </Card>
           )}
@@ -579,7 +579,7 @@ console.log(result);`;
               </CardHeader>
               <CardContent className="p-4 pt-0 space-y-3">
                 <div className="flex items-center gap-3">
-                  <Spinner size="sm" className="text-blue-500" />
+                  <Spinner size="sm" className="text-primary" />
                   <span className="text-sm">Running verification methods...</span>
                 </div>
                 {liveStatus.progress.total > 0 && (
@@ -621,12 +621,12 @@ console.log(result);`;
                       <Badge
                         className={`text-xs ${
                           result.decision === 'accept'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-success/10 text-success'
                             : result.decision === 'reject'
-                              ? 'bg-red-100 text-red-800'
+                              ? 'bg-destructive/10 text-destructive'
                               : result.decision === 'escalate'
-                                ? 'bg-orange-100 text-orange-800'
-                                : 'bg-blue-100 text-blue-800'
+                                ? 'bg-warning/10 text-warning'
+                                : 'bg-info/10 text-info'
                         }`}
                       >
                         {result.decision}
@@ -671,7 +671,7 @@ console.log(result);`;
                             {METHOD_INFO[pr.paradigm]?.name || pr.paradigm}
                           </p>
                           {pr.error ? (
-                            <p className="text-xs text-red-500">{pr.error}</p>
+                            <p className="text-xs text-destructive">{pr.error}</p>
                           ) : (
                             <p className="text-xs text-muted-foreground">
                               {truncateString(pr.reasoning, 60, true)}

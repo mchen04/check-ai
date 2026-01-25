@@ -375,15 +375,15 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
               </p>
               <ul className="space-y-1 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  <CheckCircle className="h-3 w-3 text-success" />
                   OpenRouter is recommended for access to all models
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  <CheckCircle className="h-3 w-3 text-success" />
                   Or use direct provider keys (OpenAI, Anthropic, etc.)
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  <CheckCircle className="h-3 w-3 text-success" />
                   All credentials are encrypted at rest
                 </li>
               </ul>

@@ -262,7 +262,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
     return (
       <div className="p-4">
         <Card className="p-4 text-center">
-          <p className="mb-3 text-xs text-red-500">{error || 'Batch not found'}</p>
+          <p className="mb-3 text-xs text-destructive">{error || 'Batch not found'}</p>
           <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => router.push('/dashboard/batch')}>
             <ArrowLeft className="mr-1.5 h-3 w-3" />
             Back
@@ -290,7 +290,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopyId}>
                 <Copy className="h-4 w-4" />
               </Button>
-              {copied && <span className="text-xs text-green-600">Copied!</span>}
+              {copied && <span className="text-xs text-success">Copied!</span>}
             </div>
           </div>
         </div>
@@ -343,7 +343,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
               <div className="space-y-4">
                 {isProcessing && (
                   <div className="flex items-center gap-3">
-                    <Spinner size="xs" className="h-4 w-4 text-blue-500" />
+                    <Spinner size="xs" className="h-4 w-4 text-primary" />
                     <span className="text-sm">Processing...</span>
                   </div>
                 )}
@@ -354,16 +354,16 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                     <p className="text-xs text-muted-foreground">Processed</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-semibold text-green-600">{batch.successCount}</p>
+                    <p className="text-2xl font-semibold text-success">{batch.successCount}</p>
                     <p className="text-xs text-muted-foreground">Succeeded</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-semibold text-red-600">{batch.failureCount}</p>
+                    <p className="text-2xl font-semibold text-destructive">{batch.failureCount}</p>
                     <p className="text-xs text-muted-foreground">Failed</p>
                   </div>
                 </div>
                 {batch.errorMessage && (
-                  <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">{batch.errorMessage}</div>
+                  <div className="rounded-md bg-destructive/5 p-3 text-sm text-destructive">{batch.errorMessage}</div>
                 )}
               </div>
             </div>

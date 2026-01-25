@@ -246,7 +246,7 @@ export default function BatchUploadPage() {
 
       {/* Error Alert */}
       {error && (
-        <div className="mb-6 flex items-center gap-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        <div className="mb-6 flex items-center gap-3 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
           <AlertCircle className="h-4 w-4" />
           <p className="flex-1">{error}</p>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setError(null)}>
@@ -283,7 +283,7 @@ export default function BatchUploadPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {isUploading ? <Spinner size="xs" className="h-4 w-4 text-blue-500" /> : uploadResult ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : null}
+                    {isUploading ? <Spinner size="xs" className="h-4 w-4 text-primary" /> : uploadResult ? <CheckCircle2 className="h-4 w-4 text-success" /> : null}
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={clearFile}><X className="h-4 w-4" /></Button>
                   </div>
                 </div>
@@ -294,9 +294,9 @@ export default function BatchUploadPage() {
                       <span className="text-sm"><strong>{uploadResult.itemCount}</strong> items</span>
                     </div>
                     {uploadResult.validationErrors.length > 0 && (
-                      <div className="rounded-md border border-yellow-200 bg-yellow-50 p-3">
-                        <p className="text-sm font-medium text-yellow-800">{uploadResult.validationErrors.length} warning(s)</p>
-                        <ul className="mt-2 space-y-1 text-xs text-yellow-700">
+                      <div className="rounded-md border border-warning/30 bg-warning/5 p-3">
+                        <p className="text-sm font-medium text-warning">{uploadResult.validationErrors.length} warning(s)</p>
+                        <ul className="mt-2 space-y-1 text-xs text-warning/80">
                           {uploadResult.validationErrors.slice(0, 3).map((err, i) => (<li key={i}>Row {err.row}: {err.error}</li>))}
                           {uploadResult.validationErrors.length > 3 && <li>...{uploadResult.validationErrors.length - 3} more</li>}
                         </ul>
@@ -323,7 +323,7 @@ export default function BatchUploadPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-sm">Methods</Label>
-                <span className={`text-xs ${isWeightValid ? 'text-green-600' : 'text-red-600'}`}>Total: {(totalWeight * 100).toFixed(0)}%</span>
+                <span className={`text-xs ${isWeightValid ? 'text-success' : 'text-destructive'}`}>Total: {(totalWeight * 100).toFixed(0)}%</span>
               </div>
               {Object.entries(methods).map(([method, weight]) => (
                 <div key={method} className="space-y-2">
@@ -334,7 +334,7 @@ export default function BatchUploadPage() {
                   <Slider value={[weight]} onValueChange={(value) => handleMethodChange(method as keyof MethodConfig, value)} min={0} max={1} step={0.1} className="w-full" />
                 </div>
               ))}
-              {!isWeightValid && <p className="text-xs text-red-600">Must sum to 100%</p>}
+              {!isWeightValid && <p className="text-xs text-destructive">Must sum to 100%</p>}
             </div>
           </div>
         </Card>

@@ -15,17 +15,17 @@ interface CostBreakdownChartProps {
   data: ProviderCost[];
 }
 
-// Generate colors for providers
+// Generate colors for providers - using CSS variables for consistency
 const PROVIDER_COLORS: Record<string, string> = {
   openai: 'hsl(var(--chart-1))',
   anthropic: 'hsl(var(--chart-2))',
   google: 'hsl(var(--chart-3))',
   deepseek: 'hsl(var(--chart-4))',
   groq: 'hsl(var(--chart-5))',
-  together: 'hsl(195 100% 50%)',
-  mistral: 'hsl(180 100% 50%)',
-  cohere: 'hsl(30 100% 50%)',
-  mixed: 'hsl(220 15% 60%)',
+  together: 'hsl(var(--chart-6))',
+  mistral: 'hsl(var(--chart-7))',
+  cohere: 'hsl(var(--chart-8))',
+  mixed: 'hsl(var(--muted-foreground))',
 };
 
 function getProviderColor(provider: string): string {

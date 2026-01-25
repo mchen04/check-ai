@@ -163,7 +163,7 @@ export default async function EscalationsPage() {
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">In Review</span>
-            <AlertTriangle className="h-4 w-4 text-blue-500" />
+            <AlertTriangle className="h-4 w-4 text-info" />
           </div>
           <div className="mt-2 text-2xl font-semibold">{stats.inReview}</div>
           <p className="text-xs text-muted-foreground">Active</p>
@@ -172,7 +172,7 @@ export default async function EscalationsPage() {
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Resolved</span>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <CheckCircle2 className="h-4 w-4 text-success" />
           </div>
           <div className="mt-2 text-2xl font-semibold">{stats.resolved}</div>
           <p className="text-xs text-muted-foreground">Completed</p>
@@ -213,22 +213,22 @@ export default async function EscalationsPage() {
                     <div
                       className={`flex h-8 w-8 shrink-0 items-center justify-center rounded ${
                         escalation.status === 'pending'
-                          ? 'bg-amber-100'
+                          ? 'bg-warning/10'
                           : escalation.status === 'in_review'
-                            ? 'bg-blue-100'
+                            ? 'bg-info/10'
                             : escalation.status === 'resolved'
-                              ? 'bg-green-100'
+                              ? 'bg-success/10'
                               : 'bg-muted'
                       }`}
                     >
                       <AlertTriangle
                         className={`h-4 w-4 ${
                           escalation.status === 'pending'
-                            ? 'text-amber-600'
+                            ? 'text-warning'
                             : escalation.status === 'in_review'
-                              ? 'text-blue-600'
+                              ? 'text-info'
                               : escalation.status === 'resolved'
-                                ? 'text-green-600'
+                                ? 'text-success'
                                 : 'text-muted-foreground'
                         }`}
                       />

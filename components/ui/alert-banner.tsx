@@ -28,36 +28,36 @@ export interface AlertBannerProps {
 
 const variantConfig = {
   warning: {
-    border: 'border-amber-200',
-    bg: 'bg-amber-50',
+    border: 'border-warning/30',
+    bg: 'bg-warning/5',
     icon: AlertCircle,
-    iconColor: 'text-amber-600',
-    titleColor: 'text-amber-800',
-    textColor: 'text-amber-700',
+    iconColor: 'text-warning',
+    titleColor: 'text-warning',
+    textColor: 'text-warning/80',
   },
   error: {
-    border: 'border-red-200',
-    bg: 'bg-red-50',
+    border: 'border-destructive/30',
+    bg: 'bg-destructive/5',
     icon: AlertCircle,
-    iconColor: 'text-red-600',
-    titleColor: 'text-red-800',
-    textColor: 'text-red-700',
+    iconColor: 'text-destructive',
+    titleColor: 'text-destructive',
+    textColor: 'text-destructive/80',
   },
   info: {
-    border: 'border-blue-200',
-    bg: 'bg-blue-50',
+    border: 'border-info/30',
+    bg: 'bg-info/5',
     icon: Info,
-    iconColor: 'text-blue-600',
-    titleColor: 'text-blue-800',
-    textColor: 'text-blue-700',
+    iconColor: 'text-info',
+    titleColor: 'text-info',
+    textColor: 'text-info/80',
   },
   success: {
-    border: 'border-green-200',
-    bg: 'bg-green-50',
+    border: 'border-success/30',
+    bg: 'bg-success/5',
     icon: CheckCircle,
-    iconColor: 'text-green-600',
-    titleColor: 'text-green-800',
-    textColor: 'text-green-700',
+    iconColor: 'text-success',
+    titleColor: 'text-success',
+    textColor: 'text-success/80',
   },
 };
 
@@ -108,6 +108,8 @@ export function AlertBanner({
     <div
       className={cn(
         'rounded-lg border',
+        // Entrance animation
+        'animate-in fade-in-0 slide-in-from-top-2 duration-300',
         config.border,
         config.bg,
         sizes.padding,
@@ -115,7 +117,7 @@ export function AlertBanner({
       )}
     >
       <div className={cn('flex items-start', sizes.gap)}>
-        <Icon className={cn('mt-0.5 shrink-0', sizes.iconSize, config.iconColor)} />
+        <Icon className={cn('mt-0.5 shrink-0 animate-in zoom-in-50 duration-300', sizes.iconSize, config.iconColor)} />
         <div className="flex-1 min-w-0">
           {title && (
             <p className={cn('font-medium', sizes.titleSize, config.titleColor)}>

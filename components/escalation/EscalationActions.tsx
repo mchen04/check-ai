@@ -136,7 +136,7 @@ export function EscalationActions({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => setIsResolveOpen(true)}>
-            <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+            <CheckCircle className="mr-2 h-4 w-4 text-success" />
             Resolve with Verdict
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setIsDismissOpen(true)}>

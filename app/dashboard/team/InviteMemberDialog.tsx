@@ -99,8 +99,8 @@ export function InviteMemberDialog() {
         {success ? (
           <>
             <DialogHeader>
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                <Check className="h-6 w-6 text-green-600" />
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
+                <Check className="h-6 w-6 text-success" />
               </div>
               <DialogTitle>Invitation Created!</DialogTitle>
               <DialogDescription>
@@ -115,7 +115,7 @@ export function InviteMemberDialog() {
                   <Input value={inviteUrl} readOnly className="flex-1 text-xs" />
                   <Button variant="outline" size="icon" onClick={handleCopyLink}>
                     {copied ? (
-                      <Check className="h-4 w-4 text-green-600" />
+                      <Check className="h-4 w-4 text-success" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}

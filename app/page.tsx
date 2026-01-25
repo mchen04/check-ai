@@ -1,10 +1,8 @@
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Shield, Zap, Code, Activity, BarChart, FileText, Check, CheckCircle } from 'lucide-react';
+import { Shield, Zap, Code, Activity, BarChart, FileText, Check, CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import Stripe from 'stripe';
-import NeuralNetwork from '@/components/neural-network';
-import UseCaseCarousel from '@/components/use-case-carousel';
 import HeroDashboard from '@/components/hero-dashboard';
 
 // Types
@@ -42,76 +40,101 @@ export default async function LandingPage() {
   const products = await getStripeProducts();
 
   return (
-    <div className="relative flex min-h-[100dvh] flex-col">
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
-        <div className="content-wrapper">
-          <div className="content-constrained flex h-16 items-center px-6">
-            <Link className="flex items-center gap-2.5" href="#">
-              <Image src="/logo.svg" alt="Check logo" width={32} height={32} />
-              <span className="text-lg font-semibold">Check</span>
+    <div className="relative flex min-h-[100dvh] flex-col bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+          <Link className="flex items-center gap-2.5" href="/">
+            <Image src="/logo.svg" alt="Check" width={28} height={28} />
+            <span className="text-lg font-semibold tracking-tight">Check</span>
+          </Link>
+
+          <nav className="hidden items-center gap-8 md:flex">
+            <a
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              href="#methods"
+            >
+              How it works
+            </a>
+            <a
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              href="#pricing"
+            >
+              Pricing
+            </a>
+            <Link
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              href="/docs"
+            >
+              Docs
             </Link>
-            <nav className="ml-auto hidden items-center gap-8 md:flex">
-              <a
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                href="#methods"
-              >
-                How it works
-              </a>
-              <a
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                href="#pricing"
-              >
-                Pricing
-              </a>
-            </nav>
-            <div className="ml-8 flex items-center gap-2">
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/login">Log in</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/signup">Get started</Link>
-              </Button>
-            </div>
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/login">Log in</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link href="/signup">Get started</Link>
+            </Button>
           </div>
         </div>
       </header>
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative w-full overflow-hidden pb-20 pt-12 lg:pb-32 lg:pt-20">
-          {/* Subtle gradient background */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background via-background to-background-alt"></div>
-          <div className="pointer-events-none absolute right-0 top-0 h-[500px] w-[500px] -translate-y-1/4 translate-x-1/4 rounded-full bg-primary/5 blur-3xl"></div>
+        {/* Hero Section - Clean and focused */}
+        <section className="relative overflow-hidden pb-24 pt-16 lg:pb-32 lg:pt-24">
+          {/* Subtle gradient orb */}
+          <div className="bg-hero-glow pointer-events-none absolute -right-40 top-0 h-[600px] w-[600px] rounded-full opacity-30 blur-[120px]" />
 
-          <div className="content-wrapper">
-            <div className="content-constrained grid-4col items-center gap-y-16">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
               {/* Left: Text Content */}
-              <div className="col-1-2 relative z-10 space-y-8">
-                <div className="space-y-5">
-                  <h1 className="text-4xl font-semibold leading-[1.1] sm:text-5xl lg:text-6xl">
-                    Your AI outputs cost you{' '}
-                    <span className="text-primary">$2.4M</span>{' '}
-                    when they&apos;re wrong
-                  </h1>
-                  <p className="max-w-lg text-lg leading-relaxed text-muted-foreground">
-                    Catch hallucinations before deployment with seven research-backed verification
-                    methods. Configure the mix for your use case.
-                  </p>
+              <div className="relative z-10">
+                {/* Eyebrow */}
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs font-medium text-primary">Seven verification methods, one API</span>
                 </div>
 
+                <h1 className="mb-6 text-4xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-[3.5rem]">
+                  Your AI outputs cost{' '}
+                  <span className="text-primary">$2.4M</span>{' '}
+                  when they&apos;re wrong
+                </h1>
+
+                <p className="mb-8 max-w-lg text-lg leading-relaxed text-muted-foreground">
+                  Catch hallucinations before deployment with seven research-backed verification methods. Configure the mix for your use case.
+                </p>
+
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <Button size="lg" asChild>
-                    <Link href="/signup">Get started free</Link>
+                  <Button size="lg" asChild className="gap-2">
+                    <Link href="/signup">
+                      Get started free
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
                   </Button>
                   <Button variant="outline" size="lg" asChild>
                     <Link href="#methods">See how it works</Link>
                   </Button>
                 </div>
+
+                {/* Trust indicators */}
+                <div className="mt-10 flex items-center gap-6 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>No credit card</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>100 free verifications</span>
+                  </div>
+                </div>
               </div>
 
               {/* Right: Dashboard Preview */}
-              <div className="col-3-4 extend-right relative z-20 flex min-h-[400px] items-center">
-                <div className="absolute left-[20%] top-1/2 w-[130%] -translate-y-1/2">
+              <div className="relative lg:pl-8">
+                <div className="relative mx-auto max-w-md lg:max-w-none">
                   <HeroDashboard />
                 </div>
               </div>
@@ -119,302 +142,208 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Problem - Stats section */}
-        <section className="bg-section-dark relative w-full overflow-hidden">
-          <div className="content-wrapper">
-            <div className="content-constrained grid-4col gap-y-16">
-              {/* Heading */}
-              <div className="col-1-2">
-                <h2 className="mb-5 text-3xl font-semibold sm:text-4xl lg:text-5xl">
-                  The stakes are higher than you think
-                </h2>
-                <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
-                  Even GPT-5 will have an 8% error rate. Zero hallucinations is mathematically
-                  impossible—but you&apos;re legally liable for every output.
+        {/* Stats Section - Editorial typography */}
+        <section className="relative border-y border-border/50 bg-muted/30 py-16 lg:py-20">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="grid gap-12 lg:grid-cols-3">
+              <div>
+                <div className="mb-2 text-5xl font-semibold tracking-tight text-foreground">$2.4M</div>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Average cost per hallucination incident in regulated industries
                 </p>
               </div>
-
-              {/* Neural network animation */}
-              <div className="col-3-4 relative row-span-2 min-h-[350px]">
-                <div className="absolute inset-0 h-full w-full opacity-80">
-                  <NeuralNetwork
-                    particleCount={60}
-                    linkDistance={100}
-                    particleColor="rgba(139, 92, 246, 0.5)"
-                    linkColor="139, 92, 246"
-                    particleSize={2}
-                  />
-                </div>
+              <div>
+                <div className="mb-2 text-5xl font-semibold tracking-tight text-foreground">78%</div>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Of enterprises now deploy AI in production systems
+                </p>
               </div>
-
-              {/* Stats Grid */}
-              <div className="col-1-3 grid grid-cols-3 gap-8">
-                <div>
-                  <div className="mb-2 text-3xl font-semibold text-white">$2.4M</div>
-                  <p className="text-sm text-muted-foreground">
-                    Average cost per hallucination in regulated industries
-                  </p>
-                </div>
-
-                <div>
-                  <div className="mb-2 text-3xl font-semibold text-white">78%</div>
-                  <p className="text-sm text-muted-foreground">
-                    Of enterprises deploy AI in production systems
-                  </p>
-                </div>
-
-                <div>
-                  <div className="mb-2 text-3xl font-semibold text-white">100%</div>
-                  <p className="text-sm text-muted-foreground">
-                    Legally liable for every AI output generated
-                  </p>
-                </div>
+              <div>
+                <div className="mb-2 text-5xl font-semibold tracking-tight text-foreground">100%</div>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Legally liable for every AI-generated output
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Why Different - Editorial Typography Comparison */}
-        <section className="bg-section-white relative w-full overflow-hidden">
-          <div className="content-wrapper">
-            <div className="content-constrained grid-4col gap-y-20">
-              {/* Heading */}
-              <div className="col-1-3">
-                <h2 className="mb-5 text-3xl font-semibold sm:text-4xl lg:text-5xl">
-                  One method doesn&apos;t fit all use cases
-                </h2>
-                <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
-                  Existing solutions lock you into a single approach. Medical AI needs different
-                  verification than customer support.
-                </p>
-              </div>
+        {/* Problem Section */}
+        <section className="py-20 lg:py-28">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="mb-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+                One method doesn&apos;t fit all use cases
+              </h2>
+              <p className="text-lg leading-relaxed text-muted-foreground">
+                Existing solutions lock you into a single approach. Medical AI needs different verification than customer support.
+              </p>
+            </div>
 
+            <div className="mt-16 grid gap-8 lg:grid-cols-2">
               {/* Traditional */}
-              <div className="col-1 space-y-4">
-                <div className="relative">
-                  <div className="text-[100px] font-semibold leading-none text-muted-foreground/10">
-                    1
-                  </div>
-                  <div className="absolute bottom-1 left-0 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Traditional
-                  </div>
+              <div className="rounded-2xl border border-border/60 bg-card p-8">
+                <div className="mb-6 inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+                  Traditional approach
                 </div>
-
-                <div className="space-y-2">
-                  <h3 className="font-medium">Single method</h3>
-                  <p className="text-sm text-muted-foreground">Fixed weights</p>
-                  <p className="text-sm text-muted-foreground">Domain-specific</p>
-                  <p className="text-sm text-muted-foreground">One-size-fits-all</p>
-                </div>
+                <h3 className="mb-4 text-xl font-semibold">Single method verification</h3>
+                <ul className="space-y-3 text-muted-foreground">
+                  <li className="flex items-center gap-3">
+                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
+                    Fixed weights across all domains
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
+                    Domain-specific solutions only
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
+                    One-size-fits-all tradeoffs
+                  </li>
+                </ul>
               </div>
 
               {/* Check */}
-              <div className="col-2-4 space-y-4">
-                <div className="relative">
-                  <div className="text-[100px] font-semibold leading-none text-primary/10">
-                    7
-                  </div>
-                  <div className="absolute bottom-1 left-0 text-xs font-medium uppercase tracking-wider text-primary">
-                    Check
-                  </div>
+              <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-8">
+                <div className="mb-6 inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  Check&apos;s approach
                 </div>
-
-                <div className="space-y-2">
-                  <h3 className="font-medium">Seven methods</h3>
-                  <p className="text-sm text-muted-foreground">Custom weights</p>
-                  <p className="text-sm text-muted-foreground">Universal coverage</p>
-                  <p className="text-sm text-muted-foreground">Configure per use case</p>
-                </div>
+                <h3 className="mb-4 text-xl font-semibold">Seven configurable methods</h3>
+                <ul className="space-y-3 text-muted-foreground">
+                  <li className="flex items-center gap-3">
+                    <Check className="h-4 w-4 text-primary" />
+                    Custom weights per use case
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="h-4 w-4 text-primary" />
+                    Universal coverage, any domain
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="h-4 w-4 text-primary" />
+                    Tune speed vs. accuracy tradeoffs
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
         </section>
 
         {/* The 7 Methods */}
-        <section className="bg-section-gray relative w-full overflow-hidden" id="methods">
-          <div className="content-wrapper">
-            <div className="content-constrained grid-4col gap-y-12">
-              {/* Heading */}
-              <div className="col-1-2">
-                <h2 className="mb-4 text-3xl font-semibold sm:text-4xl lg:text-5xl">
-                  Seven verification methods
-                </h2>
-                <p className="text-lg leading-relaxed text-muted-foreground">
-                  Mix and match based on your use case. Each method has different speed-accuracy
-                  tradeoffs.
-                </p>
-              </div>
-
-              {/* Methods grid */}
-              <div className="col-1">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <Zap className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="mb-2 font-medium">Semantic Similarity</h3>
-                <p className="mb-2 text-sm text-muted-foreground">
-                  Quick embedding comparison for initial filtering
-                </p>
-                <p className="text-xs text-muted-foreground/70">~100ms • FPR: 50-100%</p>
-              </div>
-
-              <div className="col-2">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <Activity className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="mb-2 font-medium">Reasoning-Based</h3>
-                <p className="mb-2 text-sm text-muted-foreground">
-                  Chain-of-thought analysis for general verification
-                </p>
-                <p className="text-xs text-muted-foreground/70">2-3s • FPR: 7%</p>
-              </div>
-
-              <div className="col-3">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <Code className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="mb-2 font-medium">Tool-Augmented</h3>
-                <p className="mb-2 text-sm text-muted-foreground">
-                  Web search and code execution for facts
-                </p>
-                <p className="text-xs text-muted-foreground/70">1-2s • FPR: ~2%</p>
-              </div>
-
-              <div className="col-4">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <Shield className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="mb-2 font-medium">BiPRM</h3>
-                <p className="mb-2 text-sm text-muted-foreground">
-                  Bidirectional reasoning for high-stakes domains
-                </p>
-                <p className="text-xs text-muted-foreground/70">3-5s • FPR: ~10%</p>
-              </div>
-
-              <div className="col-1">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <BarChart className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="mb-2 font-medium">Ensemble</h3>
-                <p className="mb-2 text-sm text-muted-foreground">
-                  Multiple model voting for precision
-                </p>
-                <p className="text-xs text-muted-foreground/70">5-10s • FPR: 20-40%</p>
-              </div>
-
-              <div className="col-2">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <CheckCircle className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="mb-2 font-medium">Semantic Entropy</h3>
-                <p className="mb-2 text-sm text-muted-foreground">
-                  Multi-sample consistency analysis
-                </p>
-                <p className="text-xs text-muted-foreground/70">~200ms • FPR: ~15%</p>
-              </div>
-
-              <div className="col-3">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <FileText className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="mb-2 font-medium">Formal Verification</h3>
-                <p className="mb-2 text-sm text-muted-foreground">
-                  Mathematical proofs for cryptography
-                </p>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-muted-foreground/70">Variable • FPR: 0%</p>
-                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                    Soon
-                  </span>
-                </div>
-              </div>
+        <section className="border-t border-border/50 bg-muted/20 py-20 lg:py-28" id="methods">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="mb-16">
+              <h2 className="mb-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+                Seven verification methods
+              </h2>
+              <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
+                Mix and match based on your use case. Each method has different speed-accuracy tradeoffs.
+              </p>
             </div>
-          </div>
-        </section>
 
-        {/* Use Cases */}
-        <section className="bg-section-white relative w-full overflow-hidden">
-          <div className="content-wrapper">
-            <div className="content-constrained grid-4col gap-y-12">
-              <div className="col-1-2">
-                <h2 className="mb-4 text-3xl font-semibold sm:text-4xl lg:text-5xl">
-                  Configure for your domain
-                </h2>
-                <p className="text-lg leading-relaxed text-muted-foreground">
-                  Different industries need different verification mixes. Here&apos;s how teams
-                  configure Check.
-                </p>
-              </div>
-
-              <div className="col-3-4">
-                <UseCaseCarousel />
-              </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <MethodCard
+                icon={<Zap className="h-5 w-5" />}
+                title="Semantic Similarity"
+                description="Quick embedding comparison for initial filtering"
+                speed="~100ms"
+                fpr="50-100%"
+              />
+              <MethodCard
+                icon={<Activity className="h-5 w-5" />}
+                title="Reasoning-Based"
+                description="Chain-of-thought analysis for general verification"
+                speed="2-3s"
+                fpr="7%"
+              />
+              <MethodCard
+                icon={<Code className="h-5 w-5" />}
+                title="Tool-Augmented"
+                description="Web search and code execution for facts"
+                speed="1-2s"
+                fpr="~2%"
+              />
+              <MethodCard
+                icon={<Shield className="h-5 w-5" />}
+                title="BiPRM"
+                description="Bidirectional reasoning for high-stakes domains"
+                speed="3-5s"
+                fpr="~10%"
+              />
+              <MethodCard
+                icon={<BarChart className="h-5 w-5" />}
+                title="Ensemble"
+                description="Multiple model voting for precision"
+                speed="5-10s"
+                fpr="20-40%"
+              />
+              <MethodCard
+                icon={<CheckCircle className="h-5 w-5" />}
+                title="Semantic Entropy"
+                description="Multi-sample consistency analysis"
+                speed="~200ms"
+                fpr="~15%"
+              />
+              <MethodCard
+                icon={<FileText className="h-5 w-5" />}
+                title="Formal Verification"
+                description="Mathematical proofs for cryptography"
+                speed="Variable"
+                fpr="0%"
+                badge="Soon"
+              />
             </div>
           </div>
         </section>
 
         {/* Developer Experience */}
-        <section className="bg-section-dark relative w-full overflow-hidden">
-          <div className="content-wrapper">
-            <div className="content-constrained grid-4col gap-y-12">
-              <div className="col-1-2 space-y-10">
-                <div>
-                  <h2 className="mb-4 text-3xl font-semibold sm:text-4xl lg:text-5xl">
-                    Developer-friendly API
-                  </h2>
-                  <p className="text-lg leading-relaxed text-muted-foreground">
-                    Simple REST API that fits your workflow. Send a request, get a verdict.
-                  </p>
-                </div>
+        <section className="py-20 lg:py-28">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="grid items-center gap-12 lg:grid-cols-2">
+              <div>
+                <h2 className="mb-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+                  Developer-friendly API
+                </h2>
+                <p className="mb-8 text-lg leading-relaxed text-muted-foreground">
+                  Simple REST API that fits your workflow. Send a request, get a verdict.
+                </p>
 
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
-                      <Code className="h-4 w-4 text-white" />
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <Code className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="mb-1.5 text-sm font-medium text-white">RESTful API</h3>
-                    <p className="text-sm text-white/60">
-                      Standard HTTP with JSON responses
-                    </p>
+                    <h3 className="mb-1 text-sm font-medium">RESTful API</h3>
+                    <p className="text-sm text-muted-foreground">Standard HTTP with JSON responses</p>
                   </div>
-
                   <div>
-                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
-                      <FileText className="h-4 w-4 text-white" />
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <FileText className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="mb-1.5 text-sm font-medium text-white">Clear Docs</h3>
-                    <p className="text-sm text-white/60">
-                      Python, Node.js, and cURL examples
-                    </p>
+                    <h3 className="mb-1 text-sm font-medium">Clear Docs</h3>
+                    <p className="text-sm text-muted-foreground">Python, Node.js, and cURL</p>
                   </div>
-
                   <div>
-                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
-                      <Zap className="h-4 w-4 text-white" />
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <Zap className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="mb-1.5 text-sm font-medium text-white">Fast Integration</h3>
-                    <p className="text-sm text-white/60">
-                      Under 10 lines of code
-                    </p>
+                    <h3 className="mb-1 text-sm font-medium">Fast Integration</h3>
+                    <p className="text-sm text-muted-foreground">Under 10 lines of code</p>
                   </div>
-
                   <div>
-                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
-                      <Shield className="h-4 w-4 text-white" />
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <Shield className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="mb-1.5 text-sm font-medium text-white">Type-Safe SDKs</h3>
-                    <p className="text-sm text-white/60">
-                      Full TypeScript support
-                    </p>
+                    <h3 className="mb-1 text-sm font-medium">Type-Safe SDKs</h3>
+                    <p className="text-sm text-muted-foreground">Full TypeScript support</p>
                   </div>
                 </div>
               </div>
 
-              <div className="col-3-4">
-                <div className="space-y-4">
-                  <div>
-                    <p className="mb-2 font-mono text-xs uppercase tracking-wider text-white/50">Request</p>
-                    <pre className="overflow-hidden rounded-xl border border-white/10 bg-white/5 p-5 font-mono text-sm">
-                      <code className="text-white/90">{`{
+              <div className="space-y-4">
+                <div>
+                  <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Request</div>
+                  <pre className="overflow-hidden rounded-xl border border-border bg-muted/50 p-5 font-mono text-sm">
+                    <code className="text-foreground">{`{
   "content": "Patient should
     take 500mg aspirin daily",
   "methods": {
@@ -423,21 +352,19 @@ export default async function LandingPage() {
     "biprm": 0.2
   }
 }`}</code>
-                    </pre>
-                  </div>
-
-                  <div>
-                    <p className="mb-2 font-mono text-xs uppercase tracking-wider text-white/50">Response</p>
-                    <pre className="overflow-hidden rounded-xl border border-destructive/20 bg-destructive/10 p-5 font-mono text-sm">
-                      <code className="text-white/90">{`{
+                  </pre>
+                </div>
+                <div>
+                  <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Response</div>
+                  <pre className="overflow-hidden rounded-xl border border-destructive/20 bg-destructive/5 p-5 font-mono text-sm">
+                    <code className="text-foreground">{`{
   "verdict": "false",
   "confidence": 0.94,
   "decision": "reject",
   "reasoning": "Dosage exceeds
     safe limits (max 325mg)"
 }`}</code>
-                    </pre>
-                  </div>
+                  </pre>
                 </div>
               </div>
             </div>
@@ -445,167 +372,149 @@ export default async function LandingPage() {
         </section>
 
         {/* Pricing Section */}
-        <section className="bg-section-white relative w-full overflow-hidden" id="pricing">
-          <div className="content-wrapper">
-            <div className="content-constrained grid-4col gap-y-12">
-              <div className="col-1-4">
-                <h2 className="mb-4 text-3xl font-semibold sm:text-4xl lg:text-5xl">
-                  Transparent pricing
-                </h2>
-                <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
-                  Bring your own API keys. No token markups. Just platform access.
-                </p>
+        <section className="border-t border-border/50 bg-muted/20 py-20 lg:py-28" id="pricing">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="mb-16 text-center">
+              <h2 className="mb-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+                Transparent pricing
+              </h2>
+              <p className="mx-auto max-w-lg text-lg text-muted-foreground">
+                Bring your own API keys. No token markups. Just platform access.
+              </p>
+            </div>
+
+            <div className="mx-auto grid max-w-4xl gap-6 lg:grid-cols-3">
+              {/* Free */}
+              <div className="flex flex-col rounded-2xl border border-border/60 bg-card p-6">
+                <div className="mb-6">
+                  <div className="mb-1 text-sm font-medium text-muted-foreground">Free</div>
+                  <div className="text-4xl font-semibold tracking-tight">$0</div>
+                </div>
+                <ul className="mb-8 flex-1 space-y-3 text-sm">
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>100 verifications/month</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>Semantic method only</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>10 req/min rate limit</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>API access</span>
+                  </li>
+                </ul>
+                <Button variant="outline" asChild className="w-full">
+                  <Link href="/signup">Get started</Link>
+                </Button>
               </div>
 
-              {/* Pricing cards */}
-              <div className="col-1-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-                {/* Free */}
-                <div className="flex flex-col rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md">
-                  <div className="mb-5">
-                    <h3 className="mb-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                      Free
-                    </h3>
-                    <div className="text-4xl font-semibold">$0</div>
-                  </div>
-                  <ul className="mb-6 flex-1 space-y-3 text-sm">
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>100 verifications/month</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>Semantic method only</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>10 req/min rate limit</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>API access</span>
-                    </li>
-                  </ul>
-                  <Button variant="outline" asChild className="w-full">
-                    <Link href="/signup">Get started</Link>
-                  </Button>
+              {/* Pro - Featured */}
+              <div className="relative flex flex-col rounded-2xl border-2 border-primary bg-card p-6 shadow-lg shadow-primary/10">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+                    Most popular
+                  </span>
                 </div>
+                <div className="mb-6">
+                  <div className="mb-1 text-sm font-medium text-primary">Pro</div>
+                  <div className="text-4xl font-semibold tracking-tight">$99-299</div>
+                  <div className="text-sm text-muted-foreground">/month</div>
+                </div>
+                <ul className="mb-8 flex-1 space-y-3 text-sm">
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span><strong>5,000</strong> verifications/month</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>All 7 verification methods</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>Custom weight configuration</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>Bring your own API keys</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>100 req/min rate limit</span>
+                  </li>
+                </ul>
+                <Button asChild className="w-full">
+                  <Link href="/signup">Subscribe</Link>
+                </Button>
+              </div>
 
-                {/* Pro */}
-                <div className="flex flex-col rounded-2xl border-2 border-primary/20 bg-card p-6 ring-1 ring-primary/10 transition-shadow hover:shadow-md">
-                  <div className="mb-5">
-                    <h3 className="mb-2 text-sm font-medium uppercase tracking-wide text-primary">
-                      Pro
-                    </h3>
-                    <div className="text-4xl font-semibold">$99-299</div>
-                    <p className="text-sm text-muted-foreground">/month</p>
-                  </div>
-                  <ul className="mb-6 flex-1 space-y-3 text-sm">
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span><strong>5,000</strong> verifications/month</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>All 7 verification methods</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>Custom weight configuration</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>Bring your own API keys</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>100 req/min rate limit</span>
-                    </li>
-                  </ul>
-                  <Button asChild className="w-full">
-                    <Link href="/signup">Subscribe</Link>
-                  </Button>
+              {/* Enterprise */}
+              <div className="flex flex-col rounded-2xl border border-border/60 bg-card p-6">
+                <div className="mb-6">
+                  <div className="mb-1 text-sm font-medium text-muted-foreground">Enterprise</div>
+                  <div className="text-4xl font-semibold tracking-tight">Custom</div>
                 </div>
-
-                {/* Enterprise */}
-                <div className="flex flex-col rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md">
-                  <div className="mb-5">
-                    <h3 className="mb-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                      Enterprise
-                    </h3>
-                    <div className="text-4xl font-semibold">Custom</div>
-                  </div>
-                  <ul className="mb-6 flex-1 space-y-3 text-sm">
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>Unlimited verifications</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>1,000 req/min rate limit</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>Custom SLAs</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>White-label options</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>Dedicated support</span>
-                    </li>
-                  </ul>
-                  <Button variant="outline" asChild className="w-full">
-                    <Link href="mailto:sales@checkapi.ai">Contact sales</Link>
-                  </Button>
-                </div>
+                <ul className="mb-8 flex-1 space-y-3 text-sm">
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>Unlimited verifications</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>1,000 req/min rate limit</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>Custom SLAs</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>White-label options</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>Dedicated support</span>
+                  </li>
+                </ul>
+                <Button variant="outline" asChild className="w-full">
+                  <Link href="mailto:sales@checkapi.ai">Contact sales</Link>
+                </Button>
               </div>
             </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="bg-section-dark relative w-full overflow-hidden">
-          <div className="pointer-events-none absolute left-1/2 top-0 h-[400px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl"></div>
+        <section className="py-20 lg:py-28">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="relative overflow-hidden rounded-3xl bg-foreground px-8 py-16 text-center lg:px-16 lg:py-20">
+              {/* Gradient orb */}
+              <div className="bg-cta-glow pointer-events-none absolute left-1/2 top-0 h-[400px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-20 blur-[100px]" />
 
-          <div className="content-wrapper">
-            <div className="content-constrained">
-              <div className="mx-auto max-w-2xl text-center">
-                <h2 className="mb-5 text-4xl font-semibold text-white sm:text-5xl">
+              <div className="relative">
+                <h2 className="mb-4 text-3xl font-semibold tracking-tight text-background sm:text-4xl">
                   Get started today
                 </h2>
-                <p className="mb-10 text-lg text-white/60">
+                <p className="mx-auto mb-8 max-w-md text-lg text-background/70">
                   Start verifying your AI outputs in minutes. No credit card required.
                 </p>
 
-                <div className="mb-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                  <Button size="lg" className="bg-white text-neutral-900 hover:bg-white/90" asChild>
+                <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <Button size="lg" className="bg-background text-foreground hover:bg-background/90" asChild>
                     <Link href="/signup">Create free account</Link>
                   </Button>
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-white/20 bg-white/5 text-white hover:bg-white/10"
+                    className="border-background/20 bg-background/10 text-background hover:bg-background/20"
                     asChild
                   >
                     <Link href="/login">Log in</Link>
                   </Button>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-white/50">
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4" />
-                    <span>100 free verifications</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4" />
-                    <span>No credit card</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4" />
-                    <span>API access</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -613,35 +522,80 @@ export default async function LandingPage() {
         </section>
       </main>
 
-      <footer className="w-full border-t">
-        <div className="content-wrapper">
-          <div className="content-constrained flex flex-col items-center gap-6 px-6 py-12 sm:flex-row">
-            <p className="text-sm text-muted-foreground">© 2026 Check</p>
-            <nav className="flex gap-8 sm:ml-auto">
-              <a
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                href="https://arxiv.org/abs/2512.15068"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Research
-              </a>
-              <Link
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                href="/terms"
-              >
-                Terms
-              </Link>
-              <Link
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                href="/privacy"
-              >
-                Privacy
-              </Link>
-            </nav>
+      {/* Footer */}
+      <footer className="border-t border-border/50">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-6 py-8 sm:flex-row">
+          <div className="flex items-center gap-2">
+            <Image src="/logo.svg" alt="Check" width={20} height={20} />
+            <span className="text-sm text-muted-foreground">© 2026 Check</span>
           </div>
+          <nav className="flex gap-6 sm:ml-auto">
+            <a
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              href="https://arxiv.org/abs/2512.15068"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Research
+            </a>
+            <Link
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              href="/docs"
+            >
+              Docs
+            </Link>
+            <Link
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              href="/terms"
+            >
+              Terms
+            </Link>
+            <Link
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              href="/privacy"
+            >
+              Privacy
+            </Link>
+          </nav>
         </div>
       </footer>
+    </div>
+  );
+}
+
+// Method Card Component
+function MethodCard({
+  icon,
+  title,
+  description,
+  speed,
+  fpr,
+  badge,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  speed: string;
+  fpr: string;
+  badge?: string;
+}) {
+  return (
+    <div className="group rounded-xl border border-border/60 bg-card p-5 transition-all hover:border-border hover:shadow-sm">
+      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+        {icon}
+      </div>
+      <h3 className="mb-2 font-medium">{title}</h3>
+      <p className="mb-3 text-sm leading-relaxed text-muted-foreground">{description}</p>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground">{speed}</span>
+        <span className="text-xs text-muted-foreground">•</span>
+        <span className="text-xs text-muted-foreground">FPR: {fpr}</span>
+        {badge && (
+          <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+            {badge}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

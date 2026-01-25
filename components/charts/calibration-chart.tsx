@@ -157,7 +157,7 @@ export function CalibrationChart({ data }: CalibrationChartProps) {
                         <span className="text-muted-foreground">
                           Verified Accuracy:
                         </span>
-                        <span className="font-mono font-medium text-green-600">
+                        <span className="font-mono font-medium text-success">
                           {item.verifiedAccuracy.toFixed(1)}%
                           <span className="ml-1 text-xs text-muted-foreground">
                             ({item.verifiedCount})

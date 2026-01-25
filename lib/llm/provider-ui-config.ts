@@ -49,7 +49,7 @@ const PROVIDER_METADATA: Record<LLMProvider, Omit<ProviderUIConfig, 'id' | 'tier
   openrouter: {
     label: 'OpenRouter',
     description: 'Recommended - access all models',
-    color: 'bg-violet-500',
+    color: 'bg-primary',
     recommended: true,
   },
 
@@ -57,7 +57,7 @@ const PROVIDER_METADATA: Record<LLMProvider, Omit<ProviderUIConfig, 'id' | 'tier
   openai: {
     label: 'OpenAI',
     description: 'GPT-4o, GPT-4o-mini',
-    color: 'bg-emerald-500',
+    color: 'bg-emerald-600',
   },
   anthropic: {
     label: 'Anthropic',
@@ -72,12 +72,12 @@ const PROVIDER_METADATA: Record<LLMProvider, Omit<ProviderUIConfig, 'id' | 'tier
   xai: {
     label: 'xAI',
     description: 'Grok models',
-    color: 'bg-gray-500',
+    color: 'bg-stone-600',
   },
   mistral: {
     label: 'Mistral',
     description: 'Mistral models',
-    color: 'bg-yellow-500',
+    color: 'bg-amber-500',
   },
   cohere: {
     label: 'Cohere',
@@ -87,7 +87,7 @@ const PROVIDER_METADATA: Record<LLMProvider, Omit<ProviderUIConfig, 'id' | 'tier
   deepseek: {
     label: 'DeepSeek',
     description: 'DeepSeek models',
-    color: 'bg-purple-500',
+    color: 'bg-cyan-600',
   },
 
   // Tier 2: Cloud providers (enterprise)
@@ -100,7 +100,7 @@ const PROVIDER_METADATA: Record<LLMProvider, Omit<ProviderUIConfig, 'id' | 'tier
   bedrock: {
     label: 'AWS Bedrock',
     description: 'Enterprise AWS deployment',
-    color: 'bg-amber-500',
+    color: 'bg-amber-600',
     enterprise: true,
   },
 
@@ -123,7 +123,7 @@ const PROVIDER_METADATA: Record<LLMProvider, Omit<ProviderUIConfig, 'id' | 'tier
   cerebras: {
     label: 'Cerebras',
     description: 'Ultra-fast inference',
-    color: 'bg-indigo-500',
+    color: 'bg-teal-600',
   },
   perplexity: {
     label: 'Perplexity',
@@ -135,7 +135,7 @@ const PROVIDER_METADATA: Record<LLMProvider, Omit<ProviderUIConfig, 'id' | 'tier
   replicate: {
     label: 'Replicate',
     description: 'Legacy provider',
-    color: 'bg-slate-500',
+    color: 'bg-stone-500',
   },
 };
 
