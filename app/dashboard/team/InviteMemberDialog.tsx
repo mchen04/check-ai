@@ -113,7 +113,7 @@ export function InviteMemberDialog() {
                 <Label className="mb-2 block text-sm">Invite Link</Label>
                 <div className="flex gap-2">
                   <Input value={inviteUrl} readOnly className="flex-1 text-xs" />
-                  <Button variant="outline" size="icon" onClick={handleCopyLink}>
+                  <Button variant="outline" size="icon" onClick={handleCopyLink} aria-label="Copy invite link">
                     {copied ? (
                       <Check className="h-4 w-4 text-success" />
                     ) : (

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +13,11 @@ import {
   PlayCircle,
   Shield,
 } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Help & Support | Check',
+  description: 'Get help with Check AI verification. Find answers to common questions and contact our support team.',
+};
 
 export default function SupportPage() {
   return (

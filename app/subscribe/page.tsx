@@ -1,9 +1,15 @@
 import StripePricingTable from '@/components/StripePricingTable';
 import Image from 'next/image';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { createStripeCheckoutSession } from '@/utils/stripe/api';
+
+export const metadata: Metadata = {
+  title: 'Subscribe | Check',
+  description: 'Choose a Check plan that fits your needs. Get access to multi-method AI verification with custom weighting.',
+};
 
 export default async function Subscribe() {
   const supabase = await createClient();
@@ -21,8 +27,8 @@ export default async function Subscribe() {
     <div className="flex min-h-screen flex-col bg-muted/40">
       <header className="sticky top-0 z-50 flex h-16 w-full items-center border-b bg-background px-4 lg:px-6">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.svg" alt="logo" width={50} height={50} />
-          <span className="sr-only">Acme Inc</span>
+          <Image src="/logo.svg" alt="Check logo" width={50} height={50} />
+          <span className="sr-only">Check</span>
         </Link>
       </header>
 

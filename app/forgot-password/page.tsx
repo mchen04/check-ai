@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 import {
   Card,
   CardContent,
@@ -9,6 +10,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import ForgotPasswordForm from '@/components/ForgotPasswordForm';
+
+export const metadata: Metadata = {
+  title: 'Reset Password | Check',
+  description: 'Reset your Check account password. Enter your email to receive a password reset link.',
+};
 
 export default function ForgotPassword() {
   return (

@@ -142,7 +142,7 @@ export default async function LandingPage() {
                     </div>
                     {/* Code content */}
                     <div className="p-5 font-mono text-sm leading-relaxed">
-                      <div className="text-white/40">// Verify any AI output in one line</div>
+                      <div className="text-white/40">{/* Verify any AI output in one line */}{'// Verify any AI output in one line'}</div>
                       <div className="mt-3">
                         <span className="text-[#c678dd]">const</span>
                         <span className="text-white"> result </span>
@@ -156,7 +156,7 @@ export default async function LandingPage() {
                         <span className="text-white">);</span>
                       </div>
                       <div className="mt-6 rounded-lg bg-white/5 p-4">
-                        <div className="text-white/40 mb-2">// Response</div>
+                        <div className="text-white/40 mb-2">{/* Response */}{'// Response'}</div>
                         <div className="text-white">{'{'}</div>
                         <div className="ml-4">
                           <span className="text-[#e06c75]">verified</span>

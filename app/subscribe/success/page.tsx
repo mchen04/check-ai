@@ -1,8 +1,14 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Subscription Successful | Check',
+  description: 'Thank you for subscribing to Check. Your account is now active.',
+};
 
 export default function SubscribeSuccess() {
   return (
@@ -11,7 +17,7 @@ export default function SubscribeSuccess() {
         <CardHeader className="space-y-4">
           <div className="flex justify-center pb-2">
             <Link href="/">
-              <Image src="/logo.svg" alt="logo" width={50} height={50} />
+              <Image src="/logo.svg" alt="Check logo" width={50} height={50} />
             </Link>
           </div>
           <div className="flex justify-center">

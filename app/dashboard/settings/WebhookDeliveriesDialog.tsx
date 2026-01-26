@@ -222,7 +222,7 @@ export function WebhookDeliveriesDialog({
                       <TableRow className="cursor-pointer hover:bg-muted/50">
                         <TableCell>
                           <CollapsibleTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                            <Button variant="ghost" size="icon" className="h-6 w-6" aria-label={expandedId === delivery.id ? "Collapse delivery details" : "Expand delivery details"}>
                               {expandedId === delivery.id ? (
                                 <ChevronDown className="h-4 w-4" />
                               ) : (

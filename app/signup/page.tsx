@@ -1,8 +1,14 @@
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 import SignupForm from '@/components/SignupForm';
 import ProviderSigninBlock from '@/components/ProviderSigninBlock';
+
+export const metadata: Metadata = {
+  title: 'Sign Up | Check',
+  description: 'Create a free Check account. Get 100 free AI verifications and access to multi-method hallucination detection.',
+};
 
 export default function Signup() {
   return (

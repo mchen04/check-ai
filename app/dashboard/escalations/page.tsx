@@ -261,7 +261,7 @@ export default async function EscalationsPage() {
                     {escalation.status === 'pending' && (
                       <EscalationActions escalationId={escalation.id} verificationId={escalation.verificationId} />
                     )}
-                    <Button variant="ghost" size="icon" asChild>
+                    <Button variant="ghost" size="icon" asChild aria-label="View verification details">
                       <Link href={`/dashboard/verify/${escalation.verificationId}`}>
                         <ArrowRight className="h-4 w-4" />
                       </Link>

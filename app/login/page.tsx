@@ -1,8 +1,14 @@
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 import ProviderSigninBlock from '@/components/ProviderSigninBlock';
 import LoginForm from '@/components/LoginForm';
+
+export const metadata: Metadata = {
+  title: 'Log In | Check',
+  description: 'Sign in to your Check account to access AI verification tools and manage your API keys.',
+};
 
 export default function Login() {
   return (

@@ -1,6 +1,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+
+export const metadata: Metadata = {
+  title: 'Check Your Email | Check',
+  description: 'A password reset link has been sent to your email address.',
+};
 
 export default function ForgotPasswordSuccess() {
   return (
@@ -9,7 +15,7 @@ export default function ForgotPasswordSuccess() {
         <CardHeader className="space-y-4">
           <div className="flex justify-center pb-4">
             <Link href="/">
-              <Image src="/logo.svg" alt="logo" width={50} height={50} />
+              <Image src="/logo.svg" alt="Check logo" width={50} height={50} />
             </Link>
           </div>
           <CardTitle className="text-center text-2xl font-bold">Check Your Email</CardTitle>

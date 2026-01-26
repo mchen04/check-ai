@@ -238,7 +238,7 @@ export default function BatchUploadPage() {
     <div className="p-6 max-w-2xl">
       {/* Header */}
       <div className="mb-6 flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/batch')}>
+        <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/batch')} aria-label="Go back to batch jobs">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-lg font-semibold">Create Batch Job</h1>
@@ -249,7 +249,7 @@ export default function BatchUploadPage() {
         <div className="mb-6 flex items-center gap-3 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
           <AlertCircle className="h-4 w-4" />
           <p className="flex-1">{error}</p>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setError(null)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setError(null)} aria-label="Dismiss error">
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -284,7 +284,7 @@ export default function BatchUploadPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {isUploading ? <Spinner size="xs" className="h-4 w-4 text-primary" /> : uploadResult ? <CheckCircle2 className="h-4 w-4 text-success" /> : null}
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={clearFile}><X className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={clearFile} aria-label="Remove file"><X className="h-4 w-4" /></Button>
                   </div>
                 </div>
                 {uploadResult && (

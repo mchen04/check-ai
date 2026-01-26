@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 import {
   Card,
   CardContent,
@@ -10,6 +11,11 @@ import {
 } from '@/components/ui/card';
 import ResetPasswordForm from '@/components/ResetPasswordForm';
 
+export const metadata: Metadata = {
+  title: 'Reset Your Password | Check',
+  description: 'Enter your new password to complete the password reset process.',
+};
+
 export default function ResetPassword() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4">
@@ -17,7 +23,7 @@ export default function ResetPassword() {
         <CardHeader className="space-y-2">
           <div className="flex justify-center pb-4">
             <Link href="/">
-              <Image src="/logo.svg" alt="logo" width={50} height={50} />
+              <Image src="/logo.svg" alt="Check logo" width={50} height={50} />
             </Link>
           </div>
           <CardTitle className="text-center text-2xl font-bold">Reset Your Password</CardTitle>

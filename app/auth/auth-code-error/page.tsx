@@ -1,6 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Authentication Error | Check',
+  description: 'There was an error with your authentication. Please try again or contact support.',
+};
 
 export default function AuthCodeErrorPage() {
   return (

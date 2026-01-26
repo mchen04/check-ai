@@ -155,14 +155,14 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
     <div className="p-6">
       {/* Header */}
       <div className="mb-6 flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/verify')}>
+        <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/verify')} aria-label="Go back to verification history">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="flex-1">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-semibold">Verification</h1>
             <code className="text-xs text-muted-foreground">{id.slice(0, 8)}...</code>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopyId}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopyId} aria-label="Copy verification ID">
               <Copy className="h-4 w-4" />
             </Button>
             {copied && <span className="text-xs text-success">Copied!</span>}

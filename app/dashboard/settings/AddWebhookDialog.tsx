@@ -139,7 +139,7 @@ export function AddWebhookDialog({ onSuccess }: AddWebhookDialogProps) {
                     readOnly
                     className="flex-1 font-mono text-xs"
                   />
-                  <Button variant="outline" size="icon" onClick={handleCopySecret}>
+                  <Button variant="outline" size="icon" onClick={handleCopySecret} aria-label="Copy signing secret">
                     {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
