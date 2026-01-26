@@ -1,9 +1,8 @@
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Shield, Zap, Code, Activity, BarChart, FileText, Check, CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { Shield, Zap, Code, Activity, BarChart, FileText, Check, CheckCircle, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Stripe from 'stripe';
-import HeroDashboard from '@/components/hero-dashboard';
 
 // Types
 interface StripeProduct {
@@ -91,12 +90,6 @@ export default async function LandingPage() {
             <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
               {/* Left: Text Content */}
               <div className="relative z-10">
-                {/* Eyebrow */}
-                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5">
-                  <Sparkles className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs font-medium text-primary">Built on peer-reviewed research</span>
-                </div>
-
                 <h1 className="mb-6 text-4xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-[3.5rem]">
                   Your AI is confidently wrong{' '}
                   <span className="text-primary">15%</span>{' '}
@@ -136,10 +129,56 @@ export default async function LandingPage() {
                 </div>
               </div>
 
-              {/* Right: Dashboard Preview */}
+              {/* Right: Code Example */}
               <div className="relative lg:pl-8">
                 <div className="relative mx-auto max-w-md lg:max-w-none">
-                  <HeroDashboard />
+                  <div className="overflow-hidden rounded-xl border border-border/60 bg-[#1a1a1a] shadow-2xl">
+                    {/* Window chrome */}
+                    <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+                      <div className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+                      <div className="h-3 w-3 rounded-full bg-[#febc2e]" />
+                      <div className="h-3 w-3 rounded-full bg-[#28c840]" />
+                      <span className="ml-3 text-xs text-white/40">verify.ts</span>
+                    </div>
+                    {/* Code content */}
+                    <div className="p-5 font-mono text-sm leading-relaxed">
+                      <div className="text-white/40">// Verify any AI output in one line</div>
+                      <div className="mt-3">
+                        <span className="text-[#c678dd]">const</span>
+                        <span className="text-white"> result </span>
+                        <span className="text-[#c678dd]">=</span>
+                        <span className="text-[#c678dd]"> await</span>
+                        <span className="text-[#61afef]"> check</span>
+                        <span className="text-white">.</span>
+                        <span className="text-[#61afef]">verify</span>
+                        <span className="text-white">(</span>
+                        <span className="text-[#98c379]">aiOutput</span>
+                        <span className="text-white">);</span>
+                      </div>
+                      <div className="mt-6 rounded-lg bg-white/5 p-4">
+                        <div className="text-white/40 mb-2">// Response</div>
+                        <div className="text-white">{'{'}</div>
+                        <div className="ml-4">
+                          <span className="text-[#e06c75]">verified</span>
+                          <span className="text-white">: </span>
+                          <span className="text-[#d19a66]">false</span>
+                          <span className="text-white">,</span>
+                        </div>
+                        <div className="ml-4">
+                          <span className="text-[#e06c75]">confidence</span>
+                          <span className="text-white">: </span>
+                          <span className="text-[#d19a66]">0.94</span>
+                          <span className="text-white">,</span>
+                        </div>
+                        <div className="ml-4">
+                          <span className="text-[#e06c75]">reason</span>
+                          <span className="text-white">: </span>
+                          <span className="text-[#98c379]">&quot;Dosage exceeds safe limit&quot;</span>
+                        </div>
+                        <div className="text-white">{'}'}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
