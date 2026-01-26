@@ -35,11 +35,10 @@ import {
   RefreshCw,
   StopCircle,
   Download,
-  ChevronRight,
 } from 'lucide-react';
 import { Spinner } from '@/components/ui/loading-spinner';
 import { useBatchStatus, useCopyToClipboard } from '@/hooks';
-import { VerdictIcon, VerdictBadge, type VerdictDisplay } from '@/components/ui/verdict-display';
+import { VerdictIcon, type VerdictDisplay } from '@/components/ui/verdict-display';
 import { formatParadigmName } from '@/lib/verification/types';
 import { truncateString } from '@/lib/api/formatters';
 import { PAGINATION_LIMITS } from '@/lib/constants';
@@ -152,8 +151,8 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
         setHasMoreItems(data.pagination.hasMore);
         setItemsPage(page);
         currentPageRef.current = page;
-      } catch (err) {
-        console.error('Failed to fetch items:', err);
+      } catch {
+        // Fetch errors are handled silently - empty state will be shown
       }
     },
     [id]
@@ -215,8 +214,8 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
       }
 
       fetchBatch();
-    } catch (err) {
-      console.error('Failed to cancel batch:', err);
+    } catch {
+      // Cancel errors are handled silently - UI state remains unchanged
     } finally {
       setIsCancelling(false);
     }

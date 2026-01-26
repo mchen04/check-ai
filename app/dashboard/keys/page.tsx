@@ -44,8 +44,8 @@ export default async function ApiKeysPage() {
       .limit(50);
 
     apiKeys = keys;
-  } catch (e) {
-    console.error('Error fetching API keys:', e);
+  } catch {
+    // Database errors are handled silently - empty state will be shown
   }
 
   return (

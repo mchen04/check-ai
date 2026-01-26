@@ -36,6 +36,7 @@ import {
 import { Spinner } from '@/components/ui/loading-spinner';
 import { SimplePagination } from '@/components/ui/pagination';
 import { EmptyState } from '@/components/ui/empty-state';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import { formatDateTime } from '@/lib/utils';
 
 interface AttemptRecord {
@@ -89,6 +90,7 @@ export function WebhookDeliveriesDialog({
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, totalPages: 0 });
+  const [retryError, setRetryError] = useState<string | null>(null);
 
   const fetchDeliveries = useCallback(async () => {
     setIsLoading(true);
@@ -107,8 +109,8 @@ export function WebhookDeliveriesDialog({
         setStatusCounts(data.statusCounts);
         setPagination(data.pagination);
       }
-    } catch (error) {
-      console.error('Error fetching deliveries:', error);
+    } catch {
+      // Network errors are handled silently - empty state will be shown
     } finally {
       setIsLoading(false);
     }
@@ -122,6 +124,7 @@ export function WebhookDeliveriesDialog({
 
   const retryDelivery = async (deliveryId: string) => {
     setRetryingId(deliveryId);
+    setRetryError(null);
     try {
       const response = await fetch(
         `/api/dashboard/settings/webhooks/${webhookId}/deliveries/${deliveryId}/retry`,
@@ -133,10 +136,10 @@ export function WebhookDeliveriesDialog({
         fetchDeliveries();
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to retry delivery');
+        setRetryError(data.error || 'Failed to retry delivery');
       }
-    } catch (error) {
-      console.error('Error retrying delivery:', error);
+    } catch {
+      setRetryError('Failed to retry delivery. Please try again.');
     } finally {
       setRetryingId(null);
     }
@@ -156,6 +159,13 @@ export function WebhookDeliveriesDialog({
             {webhookUrl}
           </p>
         </DialogHeader>
+
+        {/* Error Banner */}
+        {retryError && (
+          <AlertBanner variant="error" size="sm">
+            {retryError}
+          </AlertBanner>
+        )}
 
         {/* Filter Tabs */}
         <Tabs
@@ -329,9 +339,9 @@ export function WebhookDeliveriesDialog({
                                       Attempt History:
                                     </p>
                                     <div className="space-y-2">
-                                      {delivery.attemptHistory.map((attempt, index) => (
+                                      {delivery.attemptHistory.map((attempt) => (
                                         <div
-                                          key={index}
+                                          key={`attempt-${attempt.attemptNumber}-${attempt.timestamp}`}
                                           className="flex items-center gap-4 text-xs bg-muted/50 p-2 rounded"
                                         >
                                           <span className="font-medium">

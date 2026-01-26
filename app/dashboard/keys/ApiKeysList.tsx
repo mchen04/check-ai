@@ -54,8 +54,8 @@ export function ApiKeysList({ initialKeys }: ApiKeysListProps) {
       }
 
       router.refresh();
-    } catch (error) {
-      console.error('Error deleting API key:', error);
+    } catch {
+      // Deletion errors are handled silently - UI state remains unchanged
     } finally {
       setIsDeleting(false);
       setDeleteId(null);
@@ -107,6 +107,7 @@ export function ApiKeysList({ initialKeys }: ApiKeysListProps) {
               className="shrink-0"
               onClick={() => setDeleteId(key.id)}
               disabled={isDeleting && deleteId === key.id}
+              aria-label={`Delete API key ${key.name}`}
             >
               {isDeleting && deleteId === key.id ? (
                 <Spinner size="sm" />

@@ -74,8 +74,8 @@ export default function CreateApiKeyDialog() {
           setSelectedCredentialId(data.credentials[0].id);
         }
       }
-    } catch (e) {
-      console.error('Error fetching credentials:', e);
+    } catch {
+      // Fetch errors are handled silently - empty state will be shown
     } finally {
       setIsLoadingCredentials(false);
     }

@@ -235,8 +235,8 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
                 <p className="py-6 text-center text-sm text-muted-foreground">No paradigm results yet</p>
               ) : (
                 <div className="space-y-3">
-                  {verification.paradigmResults.map((pr, index) => (
-                    <div key={index} className="rounded-md border p-3">
+                  {verification.paradigmResults.map((pr) => (
+                    <div key={pr.paradigm} className="rounded-md border p-3">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <VerdictIcon verdict={pr.verdict} />

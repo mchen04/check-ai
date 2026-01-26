@@ -109,12 +109,6 @@ export function AdvancedAnalyticsSection() {
     }
   }, [fetchAdvancedAnalytics, isExpanded]);
 
-  const hasData =
-    data &&
-    (data.paradigmFPR.length > 0 ||
-      data.costEfficiency.length > 0 ||
-      data.calibration.length > 0);
-
   const summary = data?.advancedSummary;
 
   return (
@@ -157,6 +151,7 @@ export function AdvancedAnalyticsSection() {
                     size="icon"
                     onClick={fetchAdvancedAnalytics}
                     disabled={isLoading}
+                    aria-label="Refresh advanced analytics"
                   >
                     <RefreshCw
                       className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}

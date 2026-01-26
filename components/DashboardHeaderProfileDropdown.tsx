@@ -27,10 +27,9 @@ export default async function DashboardHeaderProfileDropdown() {
   let billingPortalURL = '/subscribe';
   try {
     billingPortalURL = await generateStripeBillingPortalLink(user.id);
-  } catch (error) {
+  } catch {
     // If billing portal link generation fails (e.g., no Stripe customer yet),
-    // fall back to the subscribe/pricing page
-    console.error('Failed to generate billing portal link:', error);
+    // fall back to the subscribe/pricing page - billingPortalURL already set
   }
 
   return (

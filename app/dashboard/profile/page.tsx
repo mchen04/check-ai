@@ -3,13 +3,13 @@ import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
 import { getUserOrgContext } from '@/lib/rbac';
 import { db } from '@/utils/db/db';
-import { orgMembersTable, organizationsTable } from '@/utils/db/schema';
+import { organizationsTable } from '@/utils/db/schema';
 import { eq } from 'drizzle-orm';
 import { generateStripeBillingPortalLink } from '@/utils/stripe/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, Building2, CreditCard, Settings, ExternalLink } from 'lucide-react';
+import { Building2, CreditCard, Settings, ExternalLink } from 'lucide-react';
 import { ProfileSettingsCard } from '../settings/ProfileSettingsCard';
 
 export default async function ProfilePage() {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -265,8 +265,15 @@ export default function BatchUploadPage() {
           <div className="p-4">
             {!file ? (
               <div className="relative">
-                <input type="file" accept=".csv,.json" onChange={handleFileChange} className="absolute inset-0 cursor-pointer opacity-0" />
-                <div className="flex flex-col items-center justify-center rounded-md border-2 border-dashed border-muted-foreground/25 p-8 text-center hover:border-muted-foreground/50">
+                <input
+                  type="file"
+                  accept=".csv,.json"
+                  onChange={handleFileChange}
+                  className="absolute inset-0 cursor-pointer opacity-0"
+                  aria-label="Upload CSV or JSON file for batch processing"
+                  id="batch-file-input"
+                />
+                <div className="flex flex-col items-center justify-center rounded-md border-2 border-dashed border-muted-foreground/25 p-8 text-center hover:border-muted-foreground/50" aria-hidden="true">
                   <Upload className="mb-3 h-8 w-8 text-muted-foreground" />
                   <p className="text-sm font-medium">Drop file or click to browse</p>
                   <p className="text-xs text-muted-foreground">CSV and JSON supported</p>
@@ -328,10 +335,10 @@ export default function BatchUploadPage() {
               {Object.entries(methods).map(([method, weight]) => (
                 <div key={method} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm capitalize">{method}</Label>
+                    <Label id={`${method}-label`} className="text-sm capitalize">{method}</Label>
                     <span className="text-xs text-muted-foreground">{(weight * 100).toFixed(0)}%</span>
                   </div>
-                  <Slider value={[weight]} onValueChange={(value) => handleMethodChange(method as keyof MethodConfig, value)} min={0} max={1} step={0.1} className="w-full" />
+                  <Slider aria-labelledby={`${method}-label`} value={[weight]} onValueChange={(value) => handleMethodChange(method as keyof MethodConfig, value)} min={0} max={1} step={0.1} className="w-full" />
                 </div>
               ))}
               {!isWeightValid && <p className="text-xs text-destructive">Must sum to 100%</p>}
@@ -351,37 +358,37 @@ export default function BatchUploadPage() {
             <div className="p-4 space-y-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Accept Threshold</Label>
+                  <Label id="accept-threshold-label" className="text-sm">Accept Threshold</Label>
                   <span className="font-mono text-sm">{(options.acceptThreshold * 100).toFixed(0)}%</span>
                 </div>
-                <Slider value={[options.acceptThreshold]} onValueChange={([value]) => setOptions(prev => ({ ...prev, acceptThreshold: value }))} min={0.5} max={1} step={0.05} />
+                <Slider aria-labelledby="accept-threshold-label" value={[options.acceptThreshold]} onValueChange={([value]) => setOptions(prev => ({ ...prev, acceptThreshold: value }))} min={0.5} max={1} step={0.05} />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Escalate Threshold</Label>
+                  <Label id="escalate-threshold-label" className="text-sm">Escalate Threshold</Label>
                   <span className="font-mono text-sm">{(options.escalateThreshold * 100).toFixed(0)}%</span>
                 </div>
-                <Slider value={[options.escalateThreshold]} onValueChange={([value]) => setOptions(prev => ({ ...prev, escalateThreshold: value }))} min={0.1} max={0.9} step={0.05} />
+                <Slider aria-labelledby="escalate-threshold-label" value={[options.escalateThreshold]} onValueChange={([value]) => setOptions(prev => ({ ...prev, escalateThreshold: value }))} min={0.1} max={0.9} step={0.05} />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Max Retries</Label>
+                  <Label id="max-retries-label" className="text-sm">Max Retries</Label>
                   <span className="font-mono text-sm">{options.maxRetries}</span>
                 </div>
-                <Slider value={[options.maxRetries]} onValueChange={([value]) => setOptions(prev => ({ ...prev, maxRetries: value }))} min={0} max={5} step={1} />
+                <Slider aria-labelledby="max-retries-label" value={[options.maxRetries]} onValueChange={([value]) => setOptions(prev => ({ ...prev, maxRetries: value }))} min={0} max={5} step={1} />
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Retry on Low Confidence</Label>
-                  <Switch checked={options.retryOnLowConfidence} onCheckedChange={(checked) => setOptions(prev => ({ ...prev, retryOnLowConfidence: checked }))} />
+                  <Label id="retry-low-confidence-label" className="text-sm">Retry on Low Confidence</Label>
+                  <Switch aria-labelledby="retry-low-confidence-label" checked={options.retryOnLowConfidence} onCheckedChange={(checked) => setOptions(prev => ({ ...prev, retryOnLowConfidence: checked }))} />
                 </div>
                 {options.retryOnLowConfidence && (
                   <div className="space-y-2 pl-4 border-l-2 border-muted">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm">Min Confidence Target</Label>
+                      <Label id="min-confidence-label" className="text-sm">Min Confidence Target</Label>
                       <span className="font-mono text-sm">{(options.minConfidence * 100).toFixed(0)}%</span>
                     </div>
-                    <Slider value={[options.minConfidence]} onValueChange={([value]) => setOptions(prev => ({ ...prev, minConfidence: value }))} min={0.5} max={0.99} step={0.01} />
+                    <Slider aria-labelledby="min-confidence-label" value={[options.minConfidence]} onValueChange={([value]) => setOptions(prev => ({ ...prev, minConfidence: value }))} min={0.5} max={0.99} step={0.01} />
                   </div>
                 )}
               </div>

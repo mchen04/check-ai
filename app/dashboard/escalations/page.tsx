@@ -6,7 +6,7 @@ import {
   verificationsTable,
   orgMembersTable,
 } from '@/utils/db/schema';
-import { eq, desc, isNull, isNotNull, sql } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

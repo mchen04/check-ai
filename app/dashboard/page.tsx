@@ -11,7 +11,6 @@ import {
 import { eq, and, gte, desc, count, sql } from 'drizzle-orm';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
 import {
@@ -42,7 +41,7 @@ export default async function Dashboard() {
     redirect('/login');
   }
 
-  const { orgId, userEmail, organization } = context;
+  const { orgId, organization } = context;
   const monthStart = getMonthStart();
 
   // Initialize with defaults
@@ -185,8 +184,8 @@ export default async function Dashboard() {
       hasVisitedPlayground: preferencesResult[0]?.hasVisitedPlayground ?? false,
       hasRunVerification,
     };
-  } catch (error) {
-    console.error('Error fetching dashboard data:', error);
+  } catch {
+    // Database errors are handled silently - default values will be shown
   }
 
   const usagePercentage = stats.verificationsLimit > 0

@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { BatchStatusBadge, type BatchDisplayStatus } from '@/components/ui/status-badge';
+import { BatchStatusBadge } from '@/components/ui/status-badge';
 import type { BatchStatus } from '@/lib/api/types';
 import { Progress } from '@/components/ui/progress';
 import {

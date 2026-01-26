@@ -119,8 +119,8 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
         const data = await response.json();
         setCredentials(data.credentials);
       }
-    } catch (error) {
-      console.error('Error fetching credentials:', error);
+    } catch {
+      // Network errors are handled silently - empty state will be shown
     } finally {
       setIsLoading(false);
     }
@@ -161,7 +161,7 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
       setFormData({ name: '', provider: '', apiKey: '' });
       setIsDialogOpen(false);
       fetchCredentials();
-    } catch (error) {
+    } catch {
       setFormError('Failed to add credential');
     } finally {
       setIsSubmitting(false);
@@ -184,7 +184,7 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
       fetchCredentials();
 
       setTimeout(() => setTestResult(null), 3000);
-    } catch (error) {
+    } catch {
       setTestResult({ id: credentialId, valid: false });
       setTimeout(() => setTestResult(null), 3000);
     } finally {
@@ -204,8 +204,8 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
       if (response.ok) {
         setCredentials((prev) => prev.filter((c) => c.id !== deleteId));
       }
-    } catch (error) {
-      console.error('Error deleting credential:', error);
+    } catch {
+      // Deletion errors are handled silently - UI state remains unchanged
     } finally {
       setActionLoading(null);
       setDeleteId(null);
@@ -250,7 +250,7 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
 
       setEditCredential(null);
       fetchCredentials();
-    } catch (error) {
+    } catch {
       setEditError('Failed to update credential');
     } finally {
       setIsEditSubmitting(false);
@@ -431,6 +431,7 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
                               variant="ghost"
                               size="icon"
                               disabled={actionLoading === credential.id}
+                              aria-label={`Actions for ${credential.name}`}
                             >
                               {actionLoading === credential.id ? (
                                 <LoadingSpinner size="sm" />

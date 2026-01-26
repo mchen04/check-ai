@@ -15,7 +15,6 @@ import {
   TrendingUp,
   Zap,
   CreditCard,
-  Calendar,
   BarChart3,
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
@@ -181,8 +180,8 @@ export default async function UsagePage() {
     // Calculate totals from provider usage
     stats.monthlyTokens = usageByProvider.reduce((sum, p) => sum + p.totalTokens, 0);
     stats.monthlyCost = usageByProvider.reduce((sum, p) => sum + p.totalCost, 0);
-  } catch (e) {
-    console.error('Error fetching usage:', e);
+  } catch {
+    // Database errors are handled silently - empty state will be shown
   }
 
   const usagePercentage =

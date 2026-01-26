@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Play, Copy, Code, Info, ChevronDown } from 'lucide-react';
+import { Play, Copy, Code, Info } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -444,7 +444,15 @@ console.log(result);`;
 
           {/* Advanced Options */}
           <Card>
-            <CardHeader className="cursor-pointer py-3 px-4" onClick={() => setOptions(prev => ({ ...prev, showAdvanced: !prev.showAdvanced }))}>
+            <CardHeader
+              className="cursor-pointer py-3 px-4"
+              onClick={() => setOptions(prev => ({ ...prev, showAdvanced: !prev.showAdvanced }))}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOptions(prev => ({ ...prev, showAdvanced: !prev.showAdvanced })); }}}
+              role="button"
+              tabIndex={0}
+              aria-expanded={options.showAdvanced}
+              aria-label="Toggle advanced options"
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-sm">Advanced Options</CardTitle>
@@ -659,9 +667,9 @@ console.log(result);`;
                   <CardTitle className="text-sm">Method Results</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 pt-0 space-y-3">
-                  {result.paradigmResults.map((pr, index) => (
+                  {result.paradigmResults.map((pr) => (
                     <div
-                      key={index}
+                      key={pr.paradigm}
                       className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2.5"
                     >
                       <div className="flex items-center gap-3">

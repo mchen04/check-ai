@@ -112,8 +112,8 @@ export function WeeklyReportEmail({
         <>
           <Text style={emailStyles.sectionTitle}>Highlights</Text>
           <Section style={emailStyles.highlightsBox}>
-            {highlights.map((highlight, index) => (
-              <Text key={index} style={emailStyles.highlightItem}>
+            {highlights.map((highlight) => (
+              <Text key={highlight} style={emailStyles.highlightItem}>
                 • {highlight}
               </Text>
             ))}

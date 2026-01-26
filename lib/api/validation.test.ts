@@ -154,10 +154,12 @@ describe('parseAndValidateOrThrow', () => {
     try {
       await parseAndValidateOrThrow(request, TestSchema);
       expect.fail('Should have thrown');
-    } catch (error: any) {
-      expect(error.name).toBe('ValidationError');
-      expect(error.details?.errors).toBeDefined();
-      expect(error.details.errors.length).toBeGreaterThan(0);
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error);
+      const validationError = error as Error & { details?: { errors: unknown[] } };
+      expect(validationError.name).toBe('ValidationError');
+      expect(validationError.details?.errors).toBeDefined();
+      expect(validationError.details!.errors.length).toBeGreaterThan(0);
     }
   });
 

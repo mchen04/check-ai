@@ -95,8 +95,8 @@ export function DataRetentionCard({ initialSettings, canEdit }: DataRetentionCar
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
       }
-    } catch (error) {
-      console.error('Error saving retention settings:', error);
+    } catch {
+      // Save errors are handled silently - button will re-enable
     } finally {
       setIsLoading(false);
     }

@@ -85,8 +85,8 @@ export function OnboardingChecklist({
     try {
       await dismissOnboarding();
       setIsDismissed(true);
-    } catch (error) {
-      console.error('Failed to dismiss onboarding:', error);
+    } catch {
+      // Dismiss errors are handled silently - UI state remains unchanged
     } finally {
       setIsDismissing(false);
     }

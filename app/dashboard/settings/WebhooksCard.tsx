@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -55,12 +54,10 @@ interface WebhookData {
 }
 
 interface WebhooksCardProps {
-  orgId: string;
   canEdit: boolean;
 }
 
-export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
-  const router = useRouter();
+export function WebhooksCard({ canEdit }: WebhooksCardProps) {
   const [webhooks, setWebhooks] = useState<WebhookData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -79,8 +76,8 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
         const data = await response.json();
         setWebhooks(data.webhooks);
       }
-    } catch (error) {
-      console.error('Error fetching webhooks:', error);
+    } catch {
+      // Network errors are handled silently - empty state will be shown
     } finally {
       setIsLoading(false);
     }
@@ -100,8 +97,8 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
           prev.map((w) => (w.id === webhookId ? { ...w, isActive: !isActive, failureCount: 0 } : w))
         );
       }
-    } catch (error) {
-      console.error('Error toggling webhook:', error);
+    } catch {
+      // Toggle errors are handled silently - UI state remains unchanged
     } finally {
       setActionLoading(null);
     }
@@ -118,8 +115,7 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
       const data = await response.json();
       setTestResult({ id: webhookId, success: data.success });
       setTimeout(() => setTestResult(null), 3000);
-    } catch (error) {
-      console.error('Error testing webhook:', error);
+    } catch {
       setTestResult({ id: webhookId, success: false });
       setTimeout(() => setTestResult(null), 3000);
     } finally {
@@ -139,8 +135,8 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
       if (response.ok) {
         setWebhooks((prev) => prev.filter((w) => w.id !== deleteId));
       }
-    } catch (error) {
-      console.error('Error deleting webhook:', error);
+    } catch {
+      // Deletion errors are handled silently - UI state remains unchanged
     } finally {
       setActionLoading(null);
       setDeleteId(null);
@@ -161,7 +157,15 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
     // Active with failures - keep inline for onClick handler
     if (webhook.failureCount > 0) {
       return (
-        <Badge variant="destructive" className="cursor-pointer" onClick={() => setDeliveriesWebhook(webhook)}>
+        <Badge
+          variant="destructive"
+          className="cursor-pointer"
+          onClick={() => setDeliveriesWebhook(webhook)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDeliveriesWebhook(webhook); }}}
+          role="button"
+          tabIndex={0}
+          aria-label={`View ${webhook.failureCount} delivery failure${webhook.failureCount > 1 ? 's' : ''}`}
+        >
           {webhook.failureCount} failure{webhook.failureCount > 1 ? 's' : ''}
         </Badge>
       );
@@ -249,6 +253,7 @@ export function WebhooksCard({ orgId, canEdit }: WebhooksCardProps) {
                               variant="ghost"
                               size="icon"
                               disabled={actionLoading === webhook.id}
+                              aria-label="Webhook actions"
                             >
                               {actionLoading === webhook.id ? (
                                 <LoadingSpinner size="sm" />

@@ -30,7 +30,7 @@ export default async function ProvidersPage() {
 
       <div className="space-y-4">
         <ProviderCredentialsCard canEdit={canEdit} />
-        <WebhooksCard orgId={orgContext.orgId} canEdit={canEdit} />
+        <WebhooksCard canEdit={canEdit} />
       </div>
     </div>
   );

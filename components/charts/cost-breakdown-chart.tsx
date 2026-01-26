@@ -103,8 +103,8 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
           strokeWidth={2}
           stroke="hsl(var(--background))"
         >
-          {chartData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.fill} />
+          {chartData.map((entry) => (
+            <Cell key={entry.name} fill={entry.fill} />
           ))}
         </Pie>
         <ChartLegend

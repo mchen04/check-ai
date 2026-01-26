@@ -38,8 +38,8 @@ export function PendingInviteActions({ inviteId, email }: PendingInviteActionsPr
       }
 
       router.refresh();
-    } catch (e) {
-      console.error('Failed to revoke invite:', e);
+    } catch {
+      // Revoke errors are handled silently - UI state remains unchanged
     } finally {
       setIsRevoking(false);
       setShowRevokeDialog(false);

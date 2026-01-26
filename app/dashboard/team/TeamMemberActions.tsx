@@ -48,8 +48,8 @@ export function TeamMemberActions({ userId, currentRole, memberName }: TeamMembe
       }
 
       router.refresh();
-    } catch (e) {
-      console.error('Failed to update role:', e);
+    } catch {
+      // Role update errors are handled silently - UI state remains unchanged
     } finally {
       setIsUpdating(false);
     }
@@ -68,8 +68,8 @@ export function TeamMemberActions({ userId, currentRole, memberName }: TeamMembe
       }
 
       router.refresh();
-    } catch (e) {
-      console.error('Failed to remove member:', e);
+    } catch {
+      // Remove member errors are handled silently - UI state remains unchanged
     } finally {
       setIsUpdating(false);
       setShowRemoveDialog(false);

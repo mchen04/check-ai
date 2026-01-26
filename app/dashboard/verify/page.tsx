@@ -126,8 +126,7 @@ export default function VerificationHistoryPage() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err) {
-      console.error('Export failed:', err);
+    } catch {
       setError('Failed to export data. Please try again.');
     } finally {
       setIsExporting(false);

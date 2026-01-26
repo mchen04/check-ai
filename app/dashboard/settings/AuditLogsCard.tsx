@@ -96,7 +96,7 @@ function getEventBadgeVariant(
   return 'secondary';
 }
 
-// Build query params from filters
+// Build query params from filters (search parameter unused for audit logs)
 const buildAuditLogQueryParams = (
   filters: AuditLogsFilters,
   _search: string
@@ -192,8 +192,8 @@ export function AuditLogsCard() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error exporting audit logs:', error);
+    } catch {
+      // Export errors are handled silently - button will re-enable
     } finally {
       setExporting(false);
     }

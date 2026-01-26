@@ -61,14 +61,6 @@ export function AnalyticsSection() {
     fetchAnalytics();
   }, [fetchAnalytics]);
 
-  const hasData = data && (
-    data.trends.length > 0 ||
-    data.verdicts.length > 0 ||
-    data.paradigms.length > 0 ||
-    data.costByProvider.length > 0 ||
-    data.processingTime.length > 0
-  );
-
   return (
     <div className="mb-6 space-y-4">
       {/* Header with time selector */}
@@ -85,6 +77,7 @@ export function AnalyticsSection() {
             size="icon"
             onClick={fetchAnalytics}
             disabled={isLoading}
+            aria-label="Refresh analytics"
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
