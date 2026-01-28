@@ -321,15 +321,14 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
                         <SelectTrigger>
                           <SelectValue placeholder="Select provider" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-[240px]">
                           {PROVIDER_OPTIONS.map((provider) => (
-                            <SelectItem key={provider.value} value={provider.value}>
-                              <div>
-                                <div className="font-medium">{provider.label}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {provider.description}
-                                </div>
-                              </div>
+                            <SelectItem
+                              key={provider.value}
+                              value={provider.value}
+                              description={provider.description}
+                            >
+                              {provider.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
