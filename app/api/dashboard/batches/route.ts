@@ -3,9 +3,9 @@
  */
 
 import { NextResponse } from 'next/server';
+import { eq, desc, count, and, sql } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import { batchJobsTable, type BatchStatus } from '@/utils/db/schema';
-import { eq, desc, count, and, sql } from 'drizzle-orm';
 import {
   withDashboardRead,
   type DashboardRequest,
@@ -40,48 +40,46 @@ async function handler(req: DashboardRequest) {
     whereConditions.push(eq(batchJobsTable.status, validatedStatus));
   }
 
-  // Get batches with pagination
-  const batches = await db
-    .select({
-      id: batchJobsTable.id,
-      name: batchJobsTable.name,
-      status: batchJobsTable.status,
-      totalItems: batchJobsTable.totalItems,
-      processedItems: batchJobsTable.processedItems,
-      successCount: batchJobsTable.successCount,
-      failureCount: batchJobsTable.failureCount,
-      totalCostCents: batchJobsTable.totalCostCents,
-      inputFormat: batchJobsTable.inputFormat,
-      originalFileName: batchJobsTable.originalFileName,
-      createdAt: batchJobsTable.createdAt,
-      startedAt: batchJobsTable.startedAt,
-      completedAt: batchJobsTable.completedAt,
-      errorMessage: batchJobsTable.errorMessage,
-    })
-    .from(batchJobsTable)
-    .where(and(...whereConditions))
-    .orderBy(desc(batchJobsTable.createdAt))
-    .limit(limit)
-    .offset(offset);
-
-  // Get total count
-  const [countResult] = await db
-    .select({ count: count() })
-    .from(batchJobsTable)
-    .where(and(...whereConditions));
+  // Get batches, count, and stats in parallel
+  const [batches, [countResult], [stats]] = await Promise.all([
+    db
+      .select({
+        id: batchJobsTable.id,
+        name: batchJobsTable.name,
+        status: batchJobsTable.status,
+        totalItems: batchJobsTable.totalItems,
+        processedItems: batchJobsTable.processedItems,
+        successCount: batchJobsTable.successCount,
+        failureCount: batchJobsTable.failureCount,
+        totalCostCents: batchJobsTable.totalCostCents,
+        inputFormat: batchJobsTable.inputFormat,
+        originalFileName: batchJobsTable.originalFileName,
+        createdAt: batchJobsTable.createdAt,
+        startedAt: batchJobsTable.startedAt,
+        completedAt: batchJobsTable.completedAt,
+        errorMessage: batchJobsTable.errorMessage,
+      })
+      .from(batchJobsTable)
+      .where(and(...whereConditions))
+      .orderBy(desc(batchJobsTable.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db
+      .select({ count: count() })
+      .from(batchJobsTable)
+      .where(and(...whereConditions)),
+    db
+      .select({
+        totalBatches: count(),
+        processingCount: sql<number>`count(*) filter (where ${batchJobsTable.status} = 'processing')`,
+        completedCount: sql<number>`count(*) filter (where ${batchJobsTable.status} = 'completed')`,
+        failedCount: sql<number>`count(*) filter (where ${batchJobsTable.status} = 'failed')`,
+      })
+      .from(batchJobsTable)
+      .where(eq(batchJobsTable.orgId, orgId)),
+  ]);
 
   const total = countResult?.count || 0;
-
-  // Calculate stats
-  const [stats] = await db
-    .select({
-      totalBatches: count(),
-      processingCount: sql<number>`count(*) filter (where ${batchJobsTable.status} = 'processing')`,
-      completedCount: sql<number>`count(*) filter (where ${batchJobsTable.status} = 'completed')`,
-      failedCount: sql<number>`count(*) filter (where ${batchJobsTable.status} = 'failed')`,
-    })
-    .from(batchJobsTable)
-    .where(eq(batchJobsTable.orgId, orgId));
 
   return NextResponse.json({
     batches: batches.map((batch) => ({
@@ -104,4 +102,4 @@ async function handler(req: DashboardRequest) {
   });
 }
 
-export const GET = withDashboardRead(handler);
+export const GET = withDashboardRead(handler, { permission: 'verifications:view' });

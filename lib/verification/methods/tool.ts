@@ -8,10 +8,10 @@
  */
 
 import { LLMClient, ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm';
+import { createLogger } from '@/lib/logger';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions } from '../types';
 import { TOOL_SYSTEM_PROMPT, TOOL_USER_PROMPT, parseVerificationResponse } from '../prompts';
 import { createParadigmErrorResult } from './shared';
-import { createLogger } from '@/lib/logger';
 
 const log = createLogger('ToolVerification');
 

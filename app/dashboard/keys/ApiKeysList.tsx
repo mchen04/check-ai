@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Key, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -14,7 +15,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Key, Trash2 } from 'lucide-react';
 import { ButtonSpinner, Spinner } from '@/components/ui/loading-spinner';
 import { formatRelativeTime } from '@/lib/utils';
 

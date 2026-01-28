@@ -2,9 +2,9 @@
 
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { Palette, Monitor, Sun, Moon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Palette, Monitor, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function AppearanceSettingsCard() {

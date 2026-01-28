@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createAuditLogger } from '@/lib/audit';
 import {
   withDashboardAuth,
@@ -16,7 +17,6 @@ import {
   removeCredentialFromApiKey,
   setDefaultCredential,
 } from '@/lib/api-keys';
-import { z } from 'zod';
 
 // =============================================================================
 // GET - List credentials for an API key

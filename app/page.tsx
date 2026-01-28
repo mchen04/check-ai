@@ -1,8 +1,8 @@
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Shield, Zap, Code, Activity, BarChart, FileText, Check, CheckCircle, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Stripe from 'stripe';
+import { Button } from '@/components/ui/button';
 
 // Types
 interface StripeProduct {
@@ -134,10 +134,10 @@ export default async function LandingPage() {
                 <div className="relative mx-auto max-w-md lg:max-w-none">
                   <div className="overflow-hidden rounded-xl border border-border/60 bg-[#1a1a1a] shadow-2xl">
                     {/* Window chrome */}
-                    <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
-                      <div className="h-3 w-3 rounded-full bg-[#ff5f57]" />
-                      <div className="h-3 w-3 rounded-full bg-[#febc2e]" />
-                      <div className="h-3 w-3 rounded-full bg-[#28c840]" />
+                    <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3" aria-hidden="true">
+                      <div className="h-3 w-3 rounded-full bg-[#ff5f57]" title="Close" />
+                      <div className="h-3 w-3 rounded-full bg-[#febc2e]" title="Minimize" />
+                      <div className="h-3 w-3 rounded-full bg-[#28c840]" title="Maximize" />
                       <span className="ml-3 text-xs text-white/40">verify.ts</span>
                     </div>
                     {/* Code content */}

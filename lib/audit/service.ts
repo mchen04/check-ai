@@ -1,8 +1,8 @@
+import { eq, and, desc, asc, gte, lte, inArray, sql, or, ilike } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import { auditLogsTable, usersTable } from '@/utils/db/schema';
-import { eq, and, desc, asc, gte, lte, inArray, sql, or, ilike } from 'drizzle-orm';
-import type { AuditLogInput, AuditLogFilter, AuditLogQueryOptions } from './types';
 import { createLogger } from '@/lib/logger';
+import type { AuditLogInput, AuditLogFilter, AuditLogQueryOptions } from './types';
 
 const log = createLogger('Audit');
 

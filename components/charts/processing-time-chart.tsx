@@ -1,6 +1,7 @@
 'use client';
 
 import { Line, LineChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { format, parseISO } from 'date-fns';
 import {
   ChartContainer,
   ChartTooltip,
@@ -8,9 +9,8 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { processingTimeChartConfig } from './chart-config';
 import type { ProcessingTimeData } from '@/lib/analytics';
-import { format, parseISO } from 'date-fns';
+import { processingTimeChartConfig } from './chart-config';
 
 interface ProcessingTimeChartProps {
   data: ProcessingTimeData[];

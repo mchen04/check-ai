@@ -1,34 +1,14 @@
 'use client';
 
+import { memo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { ChevronRight, Book, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { docsNavigation, type NavItem } from '@/lib/docs/navigation';
-import { ChevronRight, Book, PlayCircle } from 'lucide-react';
 
-function NavSection({ item }: { item: NavItem }) {
-  const pathname = usePathname();
-
-  if (item.items) {
-    return (
-      <div className="mb-6">
-        <h4 className="mb-2 px-2 text-sm font-semibold text-foreground">
-          {item.title}
-        </h4>
-        <div className="space-y-1">
-          {item.items.map((subItem) => (
-            <NavLink key={subItem.href} item={subItem} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  return <NavLink item={item} />;
-}
-
-function NavLink({ item }: { item: NavItem }) {
-  const pathname = usePathname();
+// Memoized NavLink to prevent re-renders when parent changes (rerender-memo)
+const NavLink = memo(function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   const isActive = pathname === item.href;
 
   if (!item.href) return null;
@@ -47,9 +27,30 @@ function NavLink({ item }: { item: NavItem }) {
       <span className={cn(!isActive && 'ml-5')}>{item.title}</span>
     </Link>
   );
+});
+
+function NavSection({ item, pathname }: { item: NavItem; pathname: string }) {
+  if (item.items) {
+    return (
+      <div className="mb-6">
+        <h4 className="mb-2 px-2 text-sm font-semibold text-foreground">
+          {item.title}
+        </h4>
+        <div className="space-y-1">
+          {item.items.map((subItem) => (
+            <NavLink key={subItem.href} item={subItem} pathname={pathname} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return <NavLink item={item} pathname={pathname} />;
 }
 
 export function DocsSidebar() {
+  const pathname = usePathname();
+
   return (
     <aside className="hidden w-64 shrink-0 border-r border-border lg:block">
       <div className="sticky top-0 h-screen overflow-y-auto py-6">
@@ -63,8 +64,8 @@ export function DocsSidebar() {
 
         {/* Navigation */}
         <nav className="px-2">
-          {docsNavigation.map((section, i) => (
-            <NavSection key={i} item={section} />
+          {docsNavigation.map((section) => (
+            <NavSection key={section.href || section.title} item={section} pathname={pathname} />
           ))}
         </nav>
 

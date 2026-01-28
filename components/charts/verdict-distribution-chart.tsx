@@ -8,8 +8,8 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { verdictChartConfig } from './chart-config';
 import type { VerdictData } from '@/lib/analytics';
+import { verdictChartConfig } from './chart-config';
 
 interface VerdictDistributionChartProps {
   data: VerdictData[];

@@ -2,6 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
+  ChevronDown,
+  ChevronRight,
+  RotateCcw,
+  History,
+} from 'lucide-react';
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -27,12 +33,6 @@ import {
   DeliveryStatusBadge,
   type DeliveryStatus,
 } from '@/components/ui/delivery-status-badge';
-import {
-  ChevronDown,
-  ChevronRight,
-  RotateCcw,
-  History,
-} from 'lucide-react';
 import { Spinner } from '@/components/ui/loading-spinner';
 import { SimplePagination } from '@/components/ui/pagination';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -209,13 +209,13 @@ export function WebhookDeliveriesDialog({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-8"></TableHead>
+                  <TableHead className="w-8" />
                   <TableHead>Event</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Response</TableHead>
                   <TableHead>Duration</TableHead>
                   <TableHead>Created</TableHead>
-                  {canEdit && <TableHead className="w-20"></TableHead>}
+                  {canEdit && <TableHead className="w-20" />}
                 </TableRow>
               </TableHeader>
               <TableBody>

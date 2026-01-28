@@ -1,6 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  Webhook,
+  MoreHorizontal,
+  Play,
+  Pause,
+  Trash2,
+  TestTube,
+  History,
+} from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -27,15 +36,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DeleteConfirmDialog } from '@/components/ui/confirm-dialog';
-import {
-  Webhook,
-  MoreHorizontal,
-  Play,
-  Pause,
-  Trash2,
-  TestTube,
-  History,
-} from 'lucide-react';
 import { LoadingState, LoadingSpinner } from '@/components/ui/loading-spinner';
 import { formatDate } from '@/lib/utils';
 import { AddWebhookDialog } from './AddWebhookDialog';
@@ -64,12 +64,19 @@ export function WebhooksCard({ canEdit }: WebhooksCardProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<{ id: string; success: boolean } | null>(null);
   const [deliveriesWebhook, setDeliveriesWebhook] = useState<WebhookData | null>(null);
+  const testResultTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Cleanup timeout on unmount
   useEffect(() => {
-    fetchWebhooks();
+    return () => {
+      if (testResultTimeoutRef.current) {
+        clearTimeout(testResultTimeoutRef.current);
+      }
+    };
   }, []);
 
-  const fetchWebhooks = async () => {
+  // Memoized fetch function (rerender-functional-setstate)
+  const fetchWebhooks = useCallback(async () => {
     try {
       const response = await fetch('/api/dashboard/settings/webhooks');
       if (response.ok) {
@@ -81,9 +88,13 @@ export function WebhooksCard({ canEdit }: WebhooksCardProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const toggleWebhook = async (webhookId: string, isActive: boolean) => {
+  useEffect(() => {
+    fetchWebhooks();
+  }, [fetchWebhooks]);
+
+  const toggleWebhook = useCallback(async (webhookId: string, isActive: boolean) => {
     setActionLoading(webhookId);
     try {
       const response = await fetch(`/api/dashboard/settings/webhooks/${webhookId}`, {
@@ -102,9 +113,9 @@ export function WebhooksCard({ canEdit }: WebhooksCardProps) {
     } finally {
       setActionLoading(null);
     }
-  };
+  }, []);
 
-  const testWebhook = async (webhookId: string) => {
+  const testWebhook = useCallback(async (webhookId: string) => {
     setActionLoading(webhookId);
     setTestResult(null);
     try {
@@ -114,16 +125,22 @@ export function WebhooksCard({ canEdit }: WebhooksCardProps) {
 
       const data = await response.json();
       setTestResult({ id: webhookId, success: data.success });
-      setTimeout(() => setTestResult(null), 3000);
+      if (testResultTimeoutRef.current) {
+        clearTimeout(testResultTimeoutRef.current);
+      }
+      testResultTimeoutRef.current = setTimeout(() => setTestResult(null), 3000);
     } catch {
       setTestResult({ id: webhookId, success: false });
-      setTimeout(() => setTestResult(null), 3000);
+      if (testResultTimeoutRef.current) {
+        clearTimeout(testResultTimeoutRef.current);
+      }
+      testResultTimeoutRef.current = setTimeout(() => setTestResult(null), 3000);
     } finally {
       setActionLoading(null);
     }
-  };
+  }, []);
 
-  const deleteWebhook = async () => {
+  const deleteWebhook = useCallback(async () => {
     if (!deleteId) return;
 
     setActionLoading(deleteId);
@@ -141,9 +158,9 @@ export function WebhooksCard({ canEdit }: WebhooksCardProps) {
       setActionLoading(null);
       setDeleteId(null);
     }
-  };
+  }, [deleteId]);
 
-  const getStatusBadge = (webhook: WebhookData) => {
+  const getStatusBadge = useCallback((webhook: WebhookData) => {
     // Show test result if available
     if (testResult?.id === webhook.id) {
       return <TestResultBadge success={testResult.success} />;
@@ -173,7 +190,7 @@ export function WebhooksCard({ canEdit }: WebhooksCardProps) {
 
     // Active and healthy
     return <ActiveStatusBadge isActive={true} />;
-  };
+  }, [testResult]);
 
   return (
     <>
@@ -216,7 +233,7 @@ export function WebhooksCard({ canEdit }: WebhooksCardProps) {
                   <TableHead>Events</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Last Triggered</TableHead>
-                  {canEdit && <TableHead className="w-[70px]"></TableHead>}
+                  {canEdit && <TableHead className="w-[70px]" />}
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -1,13 +1,13 @@
 import { createHmac, randomBytes } from 'crypto';
+import { eq, and } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import { webhooksTable, webhookDeliveriesTable } from '@/utils/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { createLogger } from '@/lib/logger';
 import {
   isTriggerConfigured,
   queueWebhookWithTrigger,
   WEBHOOK_CONFIG,
 } from './trigger';
-import { createLogger } from '@/lib/logger';
 
 const log = createLogger('Webhook');
 

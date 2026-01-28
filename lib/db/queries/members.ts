@@ -3,9 +3,9 @@
  * Centralized queries for fetching organization members with preferences
  */
 
+import { eq } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import { orgMembersTable, usersTable, userPreferencesTable } from '@/utils/db/schema';
-import { eq } from 'drizzle-orm';
 import type { OrgRole } from '@/lib/rbac';
 
 // =============================================================================

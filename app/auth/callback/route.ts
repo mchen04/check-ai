@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 // The client you created from the Server-Side Auth instructions
+import { eq } from 'drizzle-orm';
 import { createClient } from '@/utils/supabase/server';
 import { createStripeCustomer } from '@/utils/stripe/api';
 import { db } from '@/utils/db/db';
 import { usersTable } from '@/utils/db/schema';
-import { eq } from 'drizzle-orm';
 import { createDefaultOrganization } from '@/lib/org/create-org';
 
 /**

@@ -4,8 +4,8 @@
  */
 
 import { Redis } from '@upstash/redis';
-import type { ParsedBatchItem, FileUploadResult, BatchValidationError } from './types';
 import { createLogger } from '@/lib/logger';
+import type { ParsedBatchItem, FileUploadResult, BatchValidationError } from './types';
 
 const log = createLogger('BatchStorage');
 

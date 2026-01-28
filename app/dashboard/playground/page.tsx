@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Play, Copy, Code, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,7 +13,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Play, Copy, Code, Info } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -404,8 +404,8 @@ console.log(result);`;
                           />
                           <Label className="text-sm font-medium">{info.name}</Label>
                           <Tooltip>
-                            <TooltipTrigger>
-                              <Info className="h-4 w-4 text-muted-foreground" />
+                            <TooltipTrigger aria-label={`${info.name} info`}>
+                              <Info aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
                             </TooltipTrigger>
                             <TooltipContent>
                               <p className="text-sm">{info.description}</p>

@@ -1,9 +1,9 @@
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import DashboardHeader from '@/components/DashboardHeader';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import { BodyClassManager } from '@/components/BodyClassManager';
-import type { Metadata } from 'next';
 import { createClient } from '@/utils/supabase/server';
-import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'Dashboard | Check',

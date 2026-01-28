@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback, useTransition, Suspense, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ChevronRight, RefreshCw, Download, Search, X } from 'lucide-react';
 import { formatRelativeTime, getErrorMessage } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -13,8 +15,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { VerificationStatusBadge } from '@/components/ui/status-badge';
-import { ChevronRight, RefreshCw, Download } from 'lucide-react';
 import { Spinner } from '@/components/ui/loading-spinner';
 import {
   DropdownMenu,
@@ -25,6 +33,7 @@ import {
 import { VerdictIcon, VerdictBadge, type VerdictDisplay } from '@/components/ui/verdict-display';
 import type { VerificationStatus } from '@/lib/api/types';
 import { truncateString } from '@/lib/api/formatters';
+import { Pagination } from '@/components/ui/pagination';
 import { PAGINATION_LIMITS } from '@/lib/constants';
 
 // =============================================================================
@@ -43,56 +52,164 @@ interface Verification {
   completedAt: string | null;
 }
 
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
 // =============================================================================
-// COMPONENT
+// LOADING SKELETON
+// =============================================================================
+
+function VerificationListSkeleton() {
+  return (
+    <div className="p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="h-6 w-40 animate-pulse rounded bg-muted" />
+        <div className="h-9 w-24 animate-pulse rounded bg-muted" />
+      </div>
+      <Card className="mb-4">
+        <div className="flex items-center gap-4 p-4">
+          <div className="h-10 w-64 animate-pulse rounded bg-muted" />
+          <div className="h-10 w-40 animate-pulse rounded bg-muted" />
+        </div>
+      </Card>
+      <Card>
+        <div className="p-4">
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-12 animate-pulse rounded bg-muted" />
+            ))}
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+// =============================================================================
+// MAIN COMPONENT (wrapped with Suspense for useSearchParams)
 // =============================================================================
 
 export default function VerificationHistoryPage() {
+  return (
+    <Suspense fallback={<VerificationListSkeleton />}>
+      <VerificationHistoryContent />
+    </Suspense>
+  );
+}
+
+function VerificationHistoryContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Data state
   const [verifications, setVerifications] = useState<Verification[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
 
-  const fetchVerifications = useCallback(async (pageNum: number = 1) => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`/api/dashboard/verifications?page=${pageNum}&limit=${PAGINATION_LIMITS.defaultLimit}`);
+  // useTransition for loading state (rendering-usetransition-loading)
+  const [isPending, startTransition] = useTransition();
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch verifications');
-      }
+  // Filter state with lazy initialization (rerender-lazy-state-init)
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
+  const [verdictFilter, setVerdictFilter] = useState(() => searchParams.get('verdict') || 'all');
+  const [page, setPage] = useState(() => {
+    const pageParam = searchParams.get('page');
+    return pageParam ? parseInt(pageParam, 10) : 1;
+  });
 
-      const data = await response.json();
-      setVerifications((prevVerifications) =>
-        pageNum === 1 ? data.verifications : [...prevVerifications, ...data.verifications]
-      );
-      setHasMore(data.hasMore);
-      setPage(pageNum);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  // Debounced search
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
 
   useEffect(() => {
-    fetchVerifications();
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1); // Reset to page 1 when search changes
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const fetchVerifications = useCallback(async () => {
+    setError(null);
+
+    const params = new URLSearchParams();
+    params.set('page', page.toString());
+    params.set('limit', PAGINATION_LIMITS.defaultLimit.toString());
+
+    if (debouncedSearch) {
+      params.set('search', debouncedSearch);
+    }
+    if (verdictFilter && verdictFilter !== 'all') {
+      params.set('verdict', verdictFilter);
+    }
+
+    const response = await fetch(`/api/dashboard/verifications?${params.toString()}`);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch verifications');
+    }
+
+    const data = await response.json();
+    setVerifications(data.verifications);
+    setPagination(data.pagination);
+  }, [page, debouncedSearch, verdictFilter]);
+
+  useEffect(() => {
+    startTransition(async () => {
+      try {
+        await fetchVerifications();
+      } catch (err) {
+        setError(getErrorMessage(err));
+      }
+    });
   }, [fetchVerifications]);
 
-  const handleRefresh = () => {
-    fetchVerifications(1);
-  };
+  // Update URL when filters change using Next.js router (not window.history)
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (page > 1) params.set('page', page.toString());
+    if (debouncedSearch) params.set('search', debouncedSearch);
+    if (verdictFilter && verdictFilter !== 'all') params.set('verdict', verdictFilter);
 
-  const handleLoadMore = () => {
-    fetchVerifications(page + 1);
-  };
+    const queryString = params.toString();
+    const newUrl = queryString ? `?${queryString}` : '/dashboard/verify';
+    router.replace(newUrl, { scroll: false });
+  }, [page, debouncedSearch, verdictFilter, router]);
 
-  const handleRowClick = (id: string) => {
+  // Memoized event handlers to prevent child re-renders (rerender-functional-setstate)
+  const handleRefresh = useCallback(() => {
+    startTransition(async () => {
+      try {
+        await fetchVerifications();
+      } catch (err) {
+        setError(getErrorMessage(err));
+      }
+    });
+  }, [fetchVerifications]);
+
+  const handlePageChange = useCallback((newPage: number) => {
+    setPage(newPage);
+  }, []);
+
+  const handleVerdictFilterChange = useCallback((value: string) => {
+    setVerdictFilter(value);
+    setPage(1); // Reset to page 1 when filter changes
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSearch('');
+    setVerdictFilter('all');
+    setPage(1);
+  }, []);
+
+  const handleRowClick = useCallback((id: string) => {
     router.push(`/dashboard/verify/${id}`);
-  };
+  }, [router]);
 
   const handleExport = async (format: 'csv' | 'json') => {
     try {
@@ -111,12 +228,10 @@ export default function VerificationHistoryPage() {
         throw new Error('Failed to export data');
       }
 
-      // Get the filename from the Content-Disposition header
       const contentDisposition = response.headers.get('Content-Disposition');
       const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
       const filename = filenameMatch?.[1] || `verifications-export.${format}`;
 
-      // Create blob and download
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -126,34 +241,32 @@ export default function VerificationHistoryPage() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch {
+    } catch (err) {
+      console.error('[Verifications] Export failed:', err);
       setError('Failed to export data. Please try again.');
     } finally {
       setIsExporting(false);
     }
   };
 
-  // Calculate stats
-  const stats = {
-    total: verifications.length,
-    verified: verifications.filter((v) => v.verdict === 'true').length,
-    false: verifications.filter((v) => v.verdict === 'false').length,
-    uncertain: verifications.filter((v) => v.verdict === 'uncertain').length,
-    avgConfidence:
-      verifications.filter((v) => v.confidence !== null).length > 0
-        ? (
-            verifications
-              .filter((v) => v.confidence !== null)
-              .reduce((sum, v) => sum + (v.confidence || 0), 0) /
-            verifications.filter((v) => v.confidence !== null).length
-          ).toFixed(1)
-        : 'N/A',
-  };
+  // Memoize derived state to prevent recalculation on every render (rerender-derived-state)
+  const hasActiveFilters = useMemo(
+    () => Boolean(debouncedSearch || (verdictFilter && verdictFilter !== 'all')),
+    [debouncedSearch, verdictFilter]
+  );
 
   return (
     <div className="p-6">
+      {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Verification History</h1>
+        <div>
+          <h1 className="text-lg font-semibold">Verification History</h1>
+          {pagination && (
+            <p className="text-sm text-muted-foreground">
+              {pagination.total.toLocaleString()} verification{pagination.total !== 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
         <div className="flex gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -175,43 +288,48 @@ export default function VerificationHistoryPage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isPending}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${isPending ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Button size="sm" onClick={() => router.push('/dashboard/playground')}>New</Button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="mb-6 grid grid-cols-5 gap-4">
-        <Card className="p-4">
-          <span className="text-xs text-muted-foreground">Total</span>
-          <p className="text-2xl font-semibold">{stats.total}</p>
-        </Card>
-        <Card className="p-4">
-          <span className="text-xs text-muted-foreground">Verified</span>
-          <p className="text-2xl font-semibold text-success">{stats.verified}</p>
-        </Card>
-        <Card className="p-4">
-          <span className="text-xs text-muted-foreground">False</span>
-          <p className="text-2xl font-semibold text-destructive">{stats.false}</p>
-        </Card>
-        <Card className="p-4">
-          <span className="text-xs text-muted-foreground">Uncertain</span>
-          <p className="text-2xl font-semibold text-warning">{stats.uncertain}</p>
-        </Card>
-        <Card className="p-4">
-          <span className="text-xs text-muted-foreground">Avg Confidence</span>
-          <p className="text-2xl font-semibold">{stats.avgConfidence}%</p>
-        </Card>
-      </div>
+      {/* Filters */}
+      <Card className="mb-4">
+        <div className="flex items-center gap-4 p-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search content..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select value={verdictFilter} onValueChange={handleVerdictFilterChange}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="All verdicts" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All verdicts</SelectItem>
+              <SelectItem value="true">Verified (True)</SelectItem>
+              <SelectItem value="false">False</SelectItem>
+              <SelectItem value="uncertain">Uncertain</SelectItem>
+            </SelectContent>
+          </Select>
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" onClick={handleClearFilters}>
+              <X className="mr-1 h-4 w-4" />
+              Clear
+            </Button>
+          )}
+        </div>
+      </Card>
 
       {/* Verifications Table */}
       <Card>
-        <div className="border-b px-4 py-3">
-          <h3 className="text-sm font-semibold">Recent Verifications</h3>
-        </div>
         <div className="p-4">
           {error ? (
             <div className="py-8 text-center text-destructive">
@@ -220,78 +338,96 @@ export default function VerificationHistoryPage() {
                 Try Again
               </Button>
             </div>
-          ) : verifications.length === 0 && !isLoading ? (
+          ) : verifications.length === 0 && !isPending ? (
             <div className="py-8 text-center text-muted-foreground">
-              <p className="text-sm">No verifications yet</p>
-              <Button variant="outline" size="sm" className="mt-4" onClick={() => router.push('/dashboard/playground')}>
-                Create your first verification
-              </Button>
+              <p className="text-sm">
+                {hasActiveFilters ? 'No verifications match your filters' : 'No verifications yet'}
+              </p>
+              {hasActiveFilters ? (
+                <Button variant="outline" size="sm" className="mt-4" onClick={handleClearFilters}>
+                  Clear filters
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" className="mt-4" onClick={() => router.push('/dashboard/playground')}>
+                  Create your first verification
+                </Button>
+              )}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Content</TableHead>
-                  <TableHead>Verdict</TableHead>
-                  <TableHead>Confidence</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Cost</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {verifications.map((v) => (
-                  <TableRow
-                    key={v.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => handleRowClick(v.id)}
-                  >
-                    <TableCell><VerificationStatusBadge status={v.status} /></TableCell>
-                    <TableCell className="max-w-xs">
-                      <span className="font-mono text-sm">{truncateString(v.content, 60, true)}</span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <VerdictIcon verdict={v.verdict} />
-                        <VerdictBadge verdict={v.verdict} />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {v.confidence !== null ? `${(v.confidence * 100).toFixed(1)}%` : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {v.processingTimeMs !== null ? `${v.processingTimeMs}ms` : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {v.costCents !== null ? `$${(v.costCents / 100).toFixed(4)}` : '-'}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatRelativeTime(v.createdAt)}
-                    </TableCell>
-                    <TableCell>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Content</TableHead>
+                    <TableHead>Verdict</TableHead>
+                    <TableHead>Confidence</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Cost</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead />
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                </TableHeader>
+                <TableBody>
+                  {isPending && verifications.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="h-24 text-center">
+                        <RefreshCw className="mx-auto h-4 w-4 animate-spin text-muted-foreground" />
+                        <p className="mt-1 text-xs text-muted-foreground">Loading...</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    verifications.map((v) => (
+                      <TableRow
+                        key={v.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleRowClick(v.id)}
+                      >
+                        <TableCell><VerificationStatusBadge status={v.status} /></TableCell>
+                        <TableCell className="max-w-xs">
+                          <span className="font-mono text-sm">{truncateString(v.content, 60, true)}</span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <VerdictIcon verdict={v.verdict} />
+                            <VerdictBadge verdict={v.verdict} />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {v.confidence !== null ? `${(v.confidence * 100).toFixed(1)}%` : '-'}
+                        </TableCell>
+                        <TableCell>
+                          {v.processingTimeMs !== null ? `${v.processingTimeMs}ms` : '-'}
+                        </TableCell>
+                        <TableCell>
+                          {v.costCents !== null ? `$${(v.costCents / 100).toFixed(4)}` : '-'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {formatRelativeTime(v.createdAt)}
+                        </TableCell>
+                        <TableCell>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
 
-          {hasMore && !isLoading && verifications.length > 0 && (
-            <div className="mt-3 text-center">
-              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleLoadMore}>
-                Load More
-              </Button>
-            </div>
-          )}
-
-          {isLoading && (
-            <div className="py-6 text-center">
-              <RefreshCw className="mx-auto h-4 w-4 animate-spin text-muted-foreground" />
-              <p className="mt-1 text-xs text-muted-foreground">Loading...</p>
-            </div>
+              {/* Pagination */}
+              {pagination && pagination.totalPages > 1 && (
+                <div className="mt-4 border-t pt-4">
+                  <Pagination
+                    page={pagination.page}
+                    totalPages={pagination.totalPages}
+                    total={pagination.total}
+                    onPageChange={handlePageChange}
+                    disabled={isPending}
+                    showFirstLast
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       </Card>

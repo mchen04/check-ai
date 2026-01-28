@@ -1,7 +1,5 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import {
   Clock,
   Send,
@@ -9,6 +7,8 @@ import {
   RefreshCw,
   XCircle,
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 export type DeliveryStatus = 'pending' | 'processing' | 'delivered' | 'retrying' | 'failed';
 

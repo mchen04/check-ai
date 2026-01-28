@@ -1,10 +1,10 @@
 'use server';
 
+import { eq } from 'drizzle-orm';
+import { revalidatePath } from 'next/cache';
 import { db } from '@/utils/db/db';
 import { userPreferencesTable } from '@/utils/db/schema';
-import { eq } from 'drizzle-orm';
 import { getUserOrgContext } from '@/lib/rbac';
-import { revalidatePath } from 'next/cache';
 
 export async function dismissOnboarding() {
   const context = await getUserOrgContext();

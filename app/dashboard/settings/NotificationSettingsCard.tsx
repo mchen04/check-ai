@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Bell } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -11,7 +12,6 @@ import {
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Bell } from 'lucide-react';
 import { Spinner } from '@/components/ui/loading-spinner';
 
 type PreferenceKey = 'emailNotifications' | 'weeklyReport' | 'escalationAlerts';

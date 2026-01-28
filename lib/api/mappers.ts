@@ -7,6 +7,7 @@
  * - Internal types to API response types serialization
  */
 
+import type { VerifyServiceError, ParadigmResult as InternalParadigmResult } from '@/lib/verification';
 import {
   ApiError,
   ValidationError,
@@ -16,7 +17,6 @@ import {
   ServiceUnavailableError,
   InternalServerError,
 } from './errors';
-import type { VerifyServiceError, ParadigmResult as InternalParadigmResult } from '@/lib/verification';
 import type { ParadigmResult as ApiParadigmResult, VerifyResponse } from './types';
 
 // =============================================================================

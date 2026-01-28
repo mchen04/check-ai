@@ -3,13 +3,13 @@
  * Track and update batch job progress
  */
 
+import { eq, sql, and } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import { batchJobsTable, batchItemsTable } from '@/utils/db/schema';
-import { eq, sql, and } from 'drizzle-orm';
 import { fireWebhooks } from '@/lib/webhooks';
-import type { BatchRealtimeEvent, BatchItemProcessResult } from './types';
 import type { BatchStatus } from '@/utils/db/schema';
 import { createLogger } from '@/lib/logger';
+import type { BatchRealtimeEvent, BatchItemProcessResult } from './types';
 
 const log = createLogger('Batch');
 

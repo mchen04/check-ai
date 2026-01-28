@@ -10,8 +10,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { runDailyAggregation, backfillAggregations } from '@/lib/analytics';
 import { subDays, parseISO, isValid } from 'date-fns';
+import { runDailyAggregation, backfillAggregations } from '@/lib/analytics';
 import { createCronHandlers, cronLog as log, errorResponse } from '@/lib/api';
 
 // Vercel Cron config

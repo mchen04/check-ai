@@ -1,5 +1,4 @@
-import { sendEmail, isEmailConfigured, type BulkEmailResult } from './sender';
-import { WeeklyReportEmail } from './templates/weekly-report';
+import { eq, and, gte, lte, sql, count } from 'drizzle-orm';
 import { getMembersWithNotification } from '@/lib/db/queries/members';
 import { db } from '@/utils/db/db';
 import {
@@ -8,8 +7,9 @@ import {
   paradigmResultsTable,
   organizationsTable,
 } from '@/utils/db/schema';
-import { eq, and, gte, lte, sql, count } from 'drizzle-orm';
 import { createLogger } from '@/lib/logger';
+import { WeeklyReportEmail } from './templates/weekly-report';
+import { sendEmail, isEmailConfigured, type BulkEmailResult } from './sender';
 
 const log = createLogger('Email');
 

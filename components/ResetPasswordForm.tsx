@@ -1,11 +1,11 @@
 'use client';
+import { useFormState } from 'react-dom';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useFormState } from 'react-dom';
 import { resetPassword } from '@/app/auth/actions';
-import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
 
 function GetCodeHiddenInput() {
   const searchParams = useSearchParams();

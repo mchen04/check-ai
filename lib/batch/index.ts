@@ -3,8 +3,25 @@
  * Exports for batch verification functionality
  */
 
-// Types
-export * from './types';
+// Types - Named exports for tree-shaking
+export type {
+  MethodsConfig,
+  BatchJob,
+  BatchItem,
+  BatchValidationError,
+  BatchItemInput,
+  CreateBatchRequest,
+  BatchJobResponse,
+  BatchItemResponse,
+  BatchResultsResponse,
+  BatchItemQueuePayload,
+  BatchItemProcessResult,
+  FileUploadResult,
+  ParsedBatchItem,
+  ParseResult,
+  BatchRealtimeEvent,
+} from './types';
+export { createBatchSchema, BATCH_CONSTANTS } from './types';
 
 // Service functions
 export {

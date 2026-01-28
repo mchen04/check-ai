@@ -1,5 +1,5 @@
-import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import type { BatchStatus, BatchItemStatus, VerificationStatus } from '@/lib/api/types';
 
 /**

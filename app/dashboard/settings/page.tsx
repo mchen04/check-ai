@@ -1,10 +1,9 @@
 import { redirect } from 'next/navigation';
+import { eq, sql } from 'drizzle-orm';
 import { createClient } from '@/utils/supabase/server';
 import { getUserOrgContext } from '@/lib/rbac';
 import { db } from '@/utils/db/db';
 import { orgMembersTable, organizationsTable, userPreferencesTable } from '@/utils/db/schema';
-import { eq, sql } from 'drizzle-orm';
-
 import { ProfileSettingsCard } from './ProfileSettingsCard';
 import { OrganizationSettingsCard } from './OrganizationSettingsCard';
 import { NotificationSettingsCard } from './NotificationSettingsCard';
@@ -29,38 +28,39 @@ export default async function SettingsPage() {
     redirect('/login');
   }
 
-  const [org] = await db
-    .select({
-      id: organizationsTable.id,
-      name: organizationsTable.name,
-      slug: organizationsTable.slug,
-      planType: organizationsTable.planType,
-      defaultVerificationMethod: organizationsTable.defaultVerificationMethod,
-      autoEscalateThreshold: organizationsTable.autoEscalateThreshold,
-      cacheEnabled: organizationsTable.cacheEnabled,
-      storeVerificationContent: organizationsTable.storeVerificationContent,
-      verificationRetentionDays: organizationsTable.verificationRetentionDays,
-      batchRetentionDays: organizationsTable.batchRetentionDays,
-      dataRetentionEnabled: organizationsTable.dataRetentionEnabled,
-    })
-    .from(organizationsTable)
-    .where(eq(organizationsTable.id, orgContext.orgId))
-    .limit(1);
-
-  const [{ count }] = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(orgMembersTable)
-    .where(eq(orgMembersTable.orgId, orgContext.orgId));
-
-  const [preferences] = await db
-    .select({
-      emailNotifications: userPreferencesTable.emailNotifications,
-      weeklyReport: userPreferencesTable.weeklyReport,
-      escalationAlerts: userPreferencesTable.escalationAlerts,
-    })
-    .from(userPreferencesTable)
-    .where(eq(userPreferencesTable.userId, orgContext.userId))
-    .limit(1);
+  // Fetch organization, member count, and preferences in parallel
+  const [[org], [{ count }], [preferences]] = await Promise.all([
+    db
+      .select({
+        id: organizationsTable.id,
+        name: organizationsTable.name,
+        slug: organizationsTable.slug,
+        planType: organizationsTable.planType,
+        defaultVerificationMethod: organizationsTable.defaultVerificationMethod,
+        autoEscalateThreshold: organizationsTable.autoEscalateThreshold,
+        cacheEnabled: organizationsTable.cacheEnabled,
+        storeVerificationContent: organizationsTable.storeVerificationContent,
+        verificationRetentionDays: organizationsTable.verificationRetentionDays,
+        batchRetentionDays: organizationsTable.batchRetentionDays,
+        dataRetentionEnabled: organizationsTable.dataRetentionEnabled,
+      })
+      .from(organizationsTable)
+      .where(eq(organizationsTable.id, orgContext.orgId))
+      .limit(1),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(orgMembersTable)
+      .where(eq(orgMembersTable.orgId, orgContext.orgId)),
+    db
+      .select({
+        emailNotifications: userPreferencesTable.emailNotifications,
+        weeklyReport: userPreferencesTable.weeklyReport,
+        escalationAlerts: userPreferencesTable.escalationAlerts,
+      })
+      .from(userPreferencesTable)
+      .where(eq(userPreferencesTable.userId, orgContext.userId))
+      .limit(1),
+  ]);
 
   const canEdit = orgContext.role === 'owner' || orgContext.role === 'admin';
 

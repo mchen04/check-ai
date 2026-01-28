@@ -5,9 +5,9 @@
 
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import { escalationsTable, verificationsTable } from '@/utils/db/schema';
-import { eq } from 'drizzle-orm';
 import {
   withDashboardAuth,
   DashboardRequest,

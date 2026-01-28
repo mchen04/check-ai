@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { User } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -12,7 +13,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User } from 'lucide-react';
 import { getErrorMessage } from '@/lib/utils';
 import { InlineError } from '@/components/ui/empty-state';
 import { ButtonSpinner } from '@/components/ui/loading-spinner';
@@ -28,10 +28,21 @@ export function ProfileSettingsCard({ initialName, email }: ProfileSettingsCardP
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const hasChanges = name !== initialName;
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+    };
+  }, []);
 
-  const handleSave = async () => {
+  // Memoize derived state (rerender-derived-state)
+  const hasChanges = useMemo(() => name !== initialName, [name, initialName]);
+
+  const handleSave = useCallback(async () => {
     if (!name.trim()) {
       setError('Name is required');
       return;
@@ -56,13 +67,16 @@ export function ProfileSettingsCard({ initialName, email }: ProfileSettingsCardP
 
       setSuccess(true);
       router.refresh();
-      setTimeout(() => setSuccess(false), 3000);
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+      successTimeoutRef.current = setTimeout(() => setSuccess(false), 3000);
     } catch (e) {
       setError(getErrorMessage(e, 'Failed to update profile'));
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [name, router]);
 
   return (
     <Card>

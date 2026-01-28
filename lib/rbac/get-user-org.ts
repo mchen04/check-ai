@@ -3,10 +3,11 @@
  * Provides utilities to get the current user's organization context
  */
 
+import { cache } from 'react';
+import { eq } from 'drizzle-orm';
 import { createClient } from '@/utils/supabase/server';
 import { db } from '@/utils/db/db';
 import { orgMembersTable, organizationsTable } from '@/utils/db/schema';
-import { eq } from 'drizzle-orm';
 import { OrgRole, hasPermission, Permission } from './permissions';
 
 export interface UserOrgContext {
@@ -27,8 +28,9 @@ export interface UserOrgContext {
 /**
  * Get authenticated user's organization context
  * Returns null if not authenticated or no org found
+ * Wrapped with React.cache() for per-request deduplication
  */
-export async function getUserOrgContext(): Promise<UserOrgContext | null> {
+export const getUserOrgContext = cache(async (): Promise<UserOrgContext | null> => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -60,7 +62,7 @@ export async function getUserOrgContext(): Promise<UserOrgContext | null> {
       verificationsLimit: orgMember.organization.verificationsLimit,
     },
   };
-}
+});
 
 export interface PermissionCheckResult {
   allowed: boolean;

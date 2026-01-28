@@ -8,8 +8,8 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { costChartConfig } from './chart-config';
 import type { ProviderCost } from '@/lib/analytics';
+import { costChartConfig } from './chart-config';
 
 interface CostBreakdownChartProps {
   data: ProviderCost[];

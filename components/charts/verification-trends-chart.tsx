@@ -7,6 +7,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { format, parseISO } from 'date-fns';
 import {
   ChartContainer,
   ChartTooltip,
@@ -14,9 +15,8 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { trendsChartConfig } from './chart-config';
 import type { TrendDataPoint } from '@/lib/analytics';
-import { format, parseISO } from 'date-fns';
+import { trendsChartConfig } from './chart-config';
 
 interface VerificationTrendsChartProps {
   data: TrendDataPoint[];

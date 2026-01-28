@@ -2,13 +2,13 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
+import { ArrowLeft, Copy, ExternalLink } from 'lucide-react';
 import { formatDateLong, getErrorMessage } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Copy, ExternalLink } from 'lucide-react';
 import { Spinner } from '@/components/ui/loading-spinner';
 import { useVerificationStatus, useCopyToClipboard } from '@/hooks';
 import { VerdictIcon, getVerdictColor, type VerdictDisplay } from '@/components/ui/verdict-display';

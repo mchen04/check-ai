@@ -4,8 +4,8 @@
  */
 
 import { NextResponse } from 'next/server';
-import { ApiErrorResponse } from './types';
 import { createLogger } from '@/lib/logger';
+import { ApiErrorResponse } from './types';
 
 const log = createLogger('API');
 

@@ -3,9 +3,9 @@
  * Handles expiration of old batch jobs, verifications, and their associated data
  */
 
+import { lt, and, inArray } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import { batchJobsTable, batchItemsTable, verificationsTable, paradigmResultsTable } from '@/utils/db/schema';
-import { lt, and, inArray } from 'drizzle-orm';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('Cleanup');

@@ -5,9 +5,11 @@
  * Escalations are created when verifications require human review.
  */
 
+import { eq } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import { escalationsTable, type InsertEscalation } from '@/utils/db/schema';
-import { eq } from 'drizzle-orm';
+import { sendEscalationAlert } from '@/lib/email';
+import { createLogger } from '@/lib/logger';
 import type {
   EscalationContext,
   EscalationDetails,
@@ -15,8 +17,6 @@ import type {
   EscalationStatus,
   HumanVerdict,
 } from './types';
-import { sendEscalationAlert } from '@/lib/email';
-import { createLogger } from '@/lib/logger';
 
 const log = createLogger('Escalation');
 

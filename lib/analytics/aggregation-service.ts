@@ -3,6 +3,8 @@
  * Background job to pre-aggregate daily analytics metrics
  */
 
+import { eq, and, gte, lt, sql, isNotNull } from 'drizzle-orm';
+import { startOfDay, subDays, format } from 'date-fns';
 import { db } from '@/utils/db/db';
 import {
   verificationsTable,
@@ -11,13 +13,10 @@ import {
   analyticsDailySnapshotsTable,
   organizationsTable,
 } from '@/utils/db/schema';
-import { eq, and, gte, lt, sql, isNotNull } from 'drizzle-orm';
-import { startOfDay, subDays, format } from 'date-fns';
 import { createLogger } from '@/lib/logger';
+import type { ConfidenceCalibrationBuckets, ConfidenceCalibrationBucket, ParadigmType } from '@/utils/db/schema';
 
 const log = createLogger('Analytics');
-
-import type { ConfidenceCalibrationBuckets, ConfidenceCalibrationBucket, ParadigmType } from '@/utils/db/schema';
 
 interface DailySnapshot {
   orgId: string;

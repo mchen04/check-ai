@@ -1,17 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getUserOrgContext } from '@/lib/rbac';
-import { db } from '@/utils/db/db';
-import {
-  verificationsTable,
-  apiKeysTable,
-  usageTable,
-  userPreferencesTable,
-  providerCredentialsTable,
-} from '@/utils/db/schema';
 import { eq, and, gte, desc, count, sql } from 'drizzle-orm';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
 import {
   Shield,
@@ -21,6 +9,18 @@ import {
   ArrowUpRight,
   PlayCircle,
 } from 'lucide-react';
+import { getUserOrgContext } from '@/lib/rbac';
+import { db } from '@/utils/db/db';
+import {
+  verificationsTable,
+  apiKeysTable,
+  usageTable,
+  userPreferencesTable,
+  providerCredentialsTable,
+} from '@/utils/db/schema';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { formatRelativeTime } from '@/lib/utils';
 import { truncateString } from '@/lib/api/formatters';
 import type { VerificationStatus } from '@/lib/api/types';
@@ -124,7 +124,7 @@ export default async function Dashboard() {
           )
         ),
 
-      // Recent verifications (last 5, org-scoped)
+      // Recent verifications (last 10, org-scoped)
       db
         .select({
           id: verificationsTable.id,
@@ -137,7 +137,7 @@ export default async function Dashboard() {
         .from(verificationsTable)
         .where(eq(verificationsTable.orgId, orgId))
         .orderBy(desc(verificationsTable.createdAt))
-        .limit(5),
+        .limit(10),
 
       // User preferences (onboarding state)
       db
@@ -184,8 +184,9 @@ export default async function Dashboard() {
       hasVisitedPlayground: preferencesResult[0]?.hasVisitedPlayground ?? false,
       hasRunVerification,
     };
-  } catch {
-    // Database errors are handled silently - default values will be shown
+  } catch (error) {
+    // Log database errors for monitoring while showing default values to user
+    console.error('[Dashboard] Failed to load stats:', error);
   }
 
   const usagePercentage = stats.verificationsLimit > 0

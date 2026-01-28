@@ -18,10 +18,8 @@ import {
   ExtendedProviderKeys,
   DEFAULT_MODELS,
 } from './types';
-
 // Import providers - this triggers registration
 import './providers';
-
 import { providerRegistry, ILLMProvider, LLMError, getProvidersByTier } from './providers';
 
 // Re-export LLMError for backwards compatibility

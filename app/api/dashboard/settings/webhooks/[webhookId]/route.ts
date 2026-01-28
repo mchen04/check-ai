@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
+import { eq } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import { webhooksTable } from '@/utils/db/schema';
-import { eq } from 'drizzle-orm';
 import {
   withDashboardAuth,
   extractRouteParam,

@@ -1,13 +1,13 @@
+import { eq, and } from 'drizzle-orm';
+import { Users, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
 import { db } from '@/utils/db/db';
 import { orgInvitesTable } from '@/utils/db/schema';
-import { eq, and } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, AlertCircle } from 'lucide-react';
 import { AlertBanner } from '@/components/ui/alert-banner';
-import Link from 'next/link';
 import { AcceptInviteButton } from './AcceptInviteButton';
 
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {

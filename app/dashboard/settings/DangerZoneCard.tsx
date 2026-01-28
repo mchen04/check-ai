@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Trash2 } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -21,7 +22,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Trash2 } from 'lucide-react';
 import { getErrorMessage } from '@/lib/utils';
 import { ButtonSpinner } from '@/components/ui/loading-spinner';
 import { InlineError } from '@/components/ui/empty-state';

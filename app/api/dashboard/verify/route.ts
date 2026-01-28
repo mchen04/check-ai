@@ -4,11 +4,11 @@
  */
 
 import { NextResponse } from 'next/server';
+import { eq } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api';
 import { verify, validateVerifyRequest, OrganizationContext } from '@/lib/verification';
 import { db } from '@/utils/db/db';
 import { organizationsTable } from '@/utils/db/schema';
-import { eq } from 'drizzle-orm';
 
 // =============================================================================
 // HANDLER

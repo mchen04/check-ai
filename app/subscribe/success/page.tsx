@@ -1,9 +1,9 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
-import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from '@/components/ui/card';
 
 export const metadata: Metadata = {
   title: 'Subscription Successful | Check',

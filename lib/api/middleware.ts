@@ -4,9 +4,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/utils/db/db';
-import { apiKeysTable, organizationsTable } from '@/utils/db/schema';
 import { eq, and, isNull } from 'drizzle-orm';
+import { apiKeysTable, organizationsTable } from '@/utils/db/schema';
+import { db } from '@/utils/db/db';
+import { hashApiKey } from '@/lib/llm';
+import { PLAN_LIMITS, type PlanType } from '@/utils/db/schema';
+import { checkRateLimit, cleanupInMemoryRateLimits } from '@/lib/cache';
+import { createLogger, createRequestLogger, generateRequestId } from '@/lib/logger';
+import type { ApiKeyParadigmConfig, ApiKeyThresholds } from '@/lib/api-keys';
+import { isDateExpired } from './formatters';
 import { ApiHandler, AuthenticatedRequest, PublicApiHandler } from './types';
 import {
   AuthenticationError,
@@ -14,12 +20,6 @@ import {
   QuotaExceededError,
   createErrorResponse,
 } from './errors';
-import { isDateExpired } from './formatters';
-import { hashApiKey } from '@/lib/llm';
-import { PLAN_LIMITS, type PlanType } from '@/utils/db/schema';
-import { checkRateLimit, cleanupInMemoryRateLimits } from '@/lib/cache';
-import { createLogger, createRequestLogger, generateRequestId } from '@/lib/logger';
-import type { ApiKeyParadigmConfig, ApiKeyThresholds } from '@/lib/api-keys';
 
 const log = createLogger('API');
 

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Building2, Users, ExternalLink } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -23,7 +24,6 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
-import { Building2, Users, ExternalLink } from 'lucide-react';
 import { ButtonSpinner } from '@/components/ui/loading-spinner';
 import { InlineError } from '@/components/ui/empty-state';
 import { getErrorMessage } from '@/lib/utils';
@@ -66,13 +66,27 @@ export function OrganizationSettingsCard({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const hasChanges =
-    name !== organization.name ||
-    defaultMethod !== organization.defaultVerificationMethod ||
-    threshold !== organization.autoEscalateThreshold ||
-    cacheEnabled !== organization.cacheEnabled ||
-    storeContent !== organization.storeVerificationContent;
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Memoize derived state to prevent recalculation on every render (rerender-derived-state)
+  const hasChanges = useMemo(
+    () =>
+      name !== organization.name ||
+      defaultMethod !== organization.defaultVerificationMethod ||
+      threshold !== organization.autoEscalateThreshold ||
+      cacheEnabled !== organization.cacheEnabled ||
+      storeContent !== organization.storeVerificationContent,
+    [name, defaultMethod, threshold, cacheEnabled, storeContent, organization]
+  );
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -104,7 +118,10 @@ export function OrganizationSettingsCard({
 
       setSuccess(true);
       router.refresh();
-      setTimeout(() => setSuccess(false), 3000);
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+      successTimeoutRef.current = setTimeout(() => setSuccess(false), 3000);
     } catch (e) {
       setError(getErrorMessage(e, 'Failed to update organization'));
     } finally {

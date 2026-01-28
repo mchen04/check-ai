@@ -3,20 +3,6 @@
  * Main coordination layer for verification operations
  */
 
-import { MethodsConfig, ParadigmResult, Verdict, Decision, VerifyOptions } from './types';
-import { ValidatedVerifyRequest, getMethodsCount } from './validator';
-import {
-  checkMethodsAllowed,
-  checkMonthlyQuota,
-  PlanType,
-} from './quota';
-import {
-  createVerification,
-  findByIdempotencyKey,
-  markVerificationFailed,
-  saveVerificationResult,
-  CachedVerificationResult,
-} from './repository';
 import {
   getCachedVerification,
   cacheVerification,
@@ -24,7 +10,6 @@ import {
   recordCacheMiss,
 } from '@/lib/cache';
 import { getDecryptedApiKeys, type ProviderKeys } from '@/lib/llm';
-import { StreamingVerificationOrchestrator, VerificationUpdate } from './orchestrator';
 import { createEscalation } from '@/lib/escalation';
 import { fireWebhooks } from '@/lib/webhooks';
 import {
@@ -33,6 +18,21 @@ import {
   broadcastFinalResult,
 } from '@/utils/supabase/realtime';
 import type { ApiKeyConfiguration } from '@/lib/api';
+import { StreamingVerificationOrchestrator, VerificationUpdate } from './orchestrator';
+import {
+  createVerification,
+  findByIdempotencyKey,
+  markVerificationFailed,
+  saveVerificationResult,
+  CachedVerificationResult,
+} from './repository';
+import {
+  checkMethodsAllowed,
+  checkMonthlyQuota,
+  PlanType,
+} from './quota';
+import { ValidatedVerifyRequest, getMethodsCount } from './validator';
+import { MethodsConfig, ParadigmResult, Verdict, Decision, VerifyOptions } from './types';
 
 // =============================================================================
 // TYPES

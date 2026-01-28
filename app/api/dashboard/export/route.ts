@@ -8,9 +8,9 @@
  */
 
 import { NextResponse } from 'next/server';
+import { eq, and, gte, lte, desc, inArray } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import { verificationsTable, paradigmResultsTable } from '@/utils/db/schema';
-import { eq, and, gte, lte, desc, inArray } from 'drizzle-orm';
 import {
   withDashboardAuth,
   type DashboardRequest,

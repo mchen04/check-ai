@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -28,7 +29,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { ButtonSpinner } from '@/components/ui/loading-spinner';
 
 // Retention period options
@@ -59,15 +59,32 @@ export function DataRetentionCard({ initialSettings, canEdit }: DataRetentionCar
     open: boolean;
     pendingSettings: typeof settings | null;
   }>({ open: false, pendingSettings: null });
+  const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const hasChanges =
-    settings.dataRetentionEnabled !== initialSettings.dataRetentionEnabled ||
-    settings.verificationRetentionDays !== initialSettings.verificationRetentionDays ||
-    settings.batchRetentionDays !== initialSettings.batchRetentionDays;
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (savedTimeoutRef.current) {
+        clearTimeout(savedTimeoutRef.current);
+      }
+    };
+  }, []);
 
-  const isReducingRetention =
-    settings.verificationRetentionDays < initialSettings.verificationRetentionDays ||
-    settings.batchRetentionDays < initialSettings.batchRetentionDays;
+  // Memoize derived state to prevent recalculation on every render (rerender-derived-state)
+  const hasChanges = useMemo(
+    () =>
+      settings.dataRetentionEnabled !== initialSettings.dataRetentionEnabled ||
+      settings.verificationRetentionDays !== initialSettings.verificationRetentionDays ||
+      settings.batchRetentionDays !== initialSettings.batchRetentionDays,
+    [settings, initialSettings]
+  );
+
+  const isReducingRetention = useMemo(
+    () =>
+      settings.verificationRetentionDays < initialSettings.verificationRetentionDays ||
+      settings.batchRetentionDays < initialSettings.batchRetentionDays,
+    [settings.verificationRetentionDays, settings.batchRetentionDays, initialSettings]
+  );
 
   const handleSave = async (confirmedSettings?: typeof settings) => {
     const settingsToSave = confirmedSettings || settings;
@@ -93,7 +110,10 @@ export function DataRetentionCard({ initialSettings, canEdit }: DataRetentionCar
 
       if (response.ok) {
         setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+        if (savedTimeoutRef.current) {
+          clearTimeout(savedTimeoutRef.current);
+        }
+        savedTimeoutRef.current = setTimeout(() => setSaved(false), 2000);
       }
     } catch {
       // Save errors are handled silently - button will re-enable

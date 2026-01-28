@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Key, PlayCircle, Shield, X, CheckCircle2, Circle, ArrowRight, Plug } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import Link from 'next/link';
-import { Key, PlayCircle, Shield, X, CheckCircle2, Circle, ArrowRight, Plug } from 'lucide-react';
 import { dismissOnboarding } from '@/app/dashboard/actions';
 
 interface OnboardingStep {
@@ -39,7 +39,7 @@ export function OnboardingChecklist({
       title: 'Add providers',
       description: 'Configure AI provider credentials to enable verification',
       href: '/dashboard/providers',
-      icon: <Plug className="h-4 w-4" />,
+      icon: <Plug aria-hidden="true" className="h-4 w-4" />,
       completed: hasAddedProvider,
     },
     {
@@ -47,7 +47,7 @@ export function OnboardingChecklist({
       title: 'Create an API key',
       description: 'Generate your first API key to authenticate requests',
       href: '/dashboard/keys',
-      icon: <Key className="h-4 w-4" />,
+      icon: <Key aria-hidden="true" className="h-4 w-4" />,
       completed: hasCreatedApiKey,
     },
     {
@@ -55,7 +55,7 @@ export function OnboardingChecklist({
       title: 'Try the Playground',
       description: 'Test verification without writing any code',
       href: '/dashboard/playground',
-      icon: <PlayCircle className="h-4 w-4" />,
+      icon: <PlayCircle aria-hidden="true" className="h-4 w-4" />,
       completed: hasVisitedPlayground,
     },
     {
@@ -63,7 +63,7 @@ export function OnboardingChecklist({
       title: 'Run your first verification',
       description: 'Verify content via API or playground',
       href: '/dashboard/playground',
-      icon: <Shield className="h-4 w-4" />,
+      icon: <Shield aria-hidden="true" className="h-4 w-4" />,
       completed: hasRunVerification,
     },
   ];
@@ -85,8 +85,9 @@ export function OnboardingChecklist({
     try {
       await dismissOnboarding();
       setIsDismissed(true);
-    } catch {
-      // Dismiss errors are handled silently - UI state remains unchanged
+    } catch (error) {
+      // Log dismiss errors for monitoring, UI state remains unchanged
+      console.error('[OnboardingChecklist] Failed to dismiss:', error);
     } finally {
       setIsDismissing(false);
     }

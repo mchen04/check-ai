@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import { organizationsTable } from '@/utils/db/schema';
-import { eq } from 'drizzle-orm';
 import { createClient } from '@/utils/supabase/server';
 import { withDashboardAuth, DashboardRequest, parseAndValidate } from '@/lib/api';
 

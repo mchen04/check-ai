@@ -1,3 +1,5 @@
+import { Bell, ReceiptText, User, Settings, HelpCircle } from 'lucide-react';
+import Link from 'next/link';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -6,9 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Bell, ReceiptText, User, Settings, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
 import { generateStripeBillingPortalLink } from '@/utils/stripe/api';
 import { LogoutButton } from '@/components/LogoutButton';

@@ -1,4 +1,5 @@
 import { Stripe } from 'stripe';
+import { eq, and, gte, sql } from 'drizzle-orm';
 import { db } from '../db/db';
 import {
   organizationsTable,
@@ -7,7 +8,6 @@ import {
   PLAN_LIMITS,
   type PlanType,
 } from '../db/schema';
-import { eq, and, gte, sql } from 'drizzle-orm';
 
 // Stripe SDK configuration following best practices:
 // - Pin API version for stability and predictable behavior (matches SDK v16.9.0)

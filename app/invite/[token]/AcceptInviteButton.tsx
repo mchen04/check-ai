@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ButtonSpinner } from '@/components/ui/loading-spinner';
 import { InlineError } from '@/components/ui/empty-state';
 import { getErrorMessage } from '@/lib/utils';

@@ -1,14 +1,6 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
-import { getUserOrgContext } from '@/lib/rbac';
-import { db } from '@/utils/db/db';
-import { usageTable, verificationsTable } from '@/utils/db/schema';
 import { eq, and, desc, gte, sql, count } from 'drizzle-orm';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import {
   Activity,
@@ -18,6 +10,14 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { getUserOrgContext } from '@/lib/rbac';
+import { db } from '@/utils/db/db';
+import { usageTable, verificationsTable } from '@/utils/db/schema';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatRelativeTime } from '@/lib/utils';
 import { AnalyticsSection } from './analytics-section';
 import { AdvancedAnalyticsSection } from './advanced-analytics-section';
@@ -49,7 +49,7 @@ export default async function UsagePage() {
   const monthEnd = getMonthEnd();
 
   // Initialize stats with org data
-  let stats = {
+  const stats = {
     totalVerifications: 0,
     monthlyVerifications: 0,
     verificationsLimit: organization.verificationsLimit,

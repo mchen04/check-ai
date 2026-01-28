@@ -1,8 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import {
   Book,
   MessageCircle,
@@ -13,6 +11,8 @@ import {
   PlayCircle,
   Shield,
 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
   title: 'Help & Support | Check',

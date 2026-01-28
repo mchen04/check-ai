@@ -1,7 +1,7 @@
-import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
+import { Card, CardContent } from '@/components/ui/card';
 import ProviderSigninBlock from '@/components/ProviderSigninBlock';
 import LoginForm from '@/components/LoginForm';
 

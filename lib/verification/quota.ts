@@ -3,9 +3,9 @@
  * Handles quota checking and method restrictions
  */
 
+import { eq, and, gte, sql } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import { verificationsTable, PLAN_LIMITS, type PlanType } from '@/utils/db/schema';
-import { eq, and, gte, sql } from 'drizzle-orm';
 import { MethodsConfig } from './types';
 import { getRequestedMethods } from './validator';
 

@@ -1,10 +1,10 @@
+import { eq, and, gte, sql, count, isNotNull, desc } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import {
   verificationsTable,
   paradigmResultsTable,
   usageTable,
 } from '@/utils/db/schema';
-import { eq, and, gte, sql, count, isNotNull, desc } from 'drizzle-orm';
 import {
   TimeRange,
   TrendDataPoint,

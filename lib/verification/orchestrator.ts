@@ -5,6 +5,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ProviderKeys } from '@/lib/llm';
+import { createLogger } from '@/lib/logger';
 import {
   ParadigmType,
   ParadigmExecutor,
@@ -26,7 +27,6 @@ import {
   createEntropyParadigm,
   createFormalParadigm,
 } from './methods';
-import { createLogger } from '@/lib/logger';
 
 const log = createLogger('Verification');
 

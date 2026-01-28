@@ -6,11 +6,13 @@
  */
 
 import crypto from 'crypto';
+import { eq, and, isNull, inArray, sql } from 'drizzle-orm';
 import { db, withTransaction, DbOrTx } from '@/utils/db/db';
 import { apiKeysTable, providerCredentialsTable, apiKeyCredentialsTable } from '@/utils/db/schema';
-import { eq, and, isNull, inArray, sql } from 'drizzle-orm';
 import { decrypt } from '@/lib/llm';
 import { isDateExpired } from '@/lib/api';
+import { createLogger } from '@/lib/logger';
+import { withQueryTiming } from '@/lib/apm/query-monitor';
 import {
   ApiKeyWithConfig,
   ApiKeyParadigmConfig,
@@ -32,8 +34,6 @@ import {
   findCredentialForModel,
   DecryptedCredentialInfo,
 } from './credential-validator';
-import { createLogger } from '@/lib/logger';
-import { withQueryTiming } from '@/lib/apm/query-monitor';
 
 const log = createLogger('ApiKeyService');
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { UserPlus, Check, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -21,7 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { UserPlus, Check, Copy } from 'lucide-react';
 import { getErrorMessage } from '@/lib/utils';
 import { useCopyToClipboard } from '@/hooks';
 import { InlineError } from '@/components/ui/empty-state';

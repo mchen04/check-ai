@@ -8,8 +8,8 @@ import {
   Section,
   Text,
 } from '@react-email/components';
-import { BaseTemplate, NotificationFooter } from './base-template';
 import { emailStyles } from '../styles';
+import { BaseTemplate, NotificationFooter } from './base-template';
 
 interface WeeklyReportEmailProps {
   userName: string;

@@ -6,8 +6,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { paradigmChartConfig } from './chart-config';
 import type { CostEfficiencyData } from '@/lib/analytics';
+import { paradigmChartConfig } from './chart-config';
 
 interface CostEfficiencyChartProps {
   data: CostEfficiencyData[];

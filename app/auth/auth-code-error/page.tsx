@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
   title: 'Authentication Error | Check',

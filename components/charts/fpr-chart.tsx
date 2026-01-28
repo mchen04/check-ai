@@ -13,8 +13,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { paradigmChartConfig } from './chart-config';
 import type { ParadigmFPRData } from '@/lib/analytics';
+import { paradigmChartConfig } from './chart-config';
 
 interface FPRChartProps {
   data: ParadigmFPRData[];

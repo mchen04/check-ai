@@ -4,8 +4,8 @@
  */
 
 import crypto from 'crypto';
-import { cacheGet, cacheSet, cacheDelete } from './redis';
 import { VerificationResult, MethodsConfig } from '@/lib/verification';
+import { cacheGet, cacheSet, cacheDelete } from './redis';
 
 // =============================================================================
 // CACHE CONFIGURATION
@@ -130,7 +130,7 @@ export async function cacheVerification(
 // =============================================================================
 
 // In-memory stats for cache hit/miss tracking
-let stats = {
+const stats = {
   hits: 0,
   misses: 0,
 };

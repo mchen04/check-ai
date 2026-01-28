@@ -9,9 +9,9 @@ import {
   Section,
   Text,
 } from '@react-email/components';
-import { BaseTemplate, NotificationFooter } from './base-template';
-import { emailStyles } from '../styles';
 import { truncateString } from '@/lib/api';
+import { emailStyles } from '../styles';
+import { BaseTemplate, NotificationFooter } from './base-template';
 
 interface EscalationAlertEmailProps {
   userName: string;

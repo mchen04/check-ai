@@ -1,4 +1,12 @@
 import { redirect } from 'next/navigation';
+import { eq, desc } from 'drizzle-orm';
+import {
+  AlertTriangle,
+  Clock,
+  ArrowRight,
+  CheckCircle2,
+} from 'lucide-react';
+import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
 import { db } from '@/utils/db/db';
 import {
@@ -6,18 +14,9 @@ import {
   verificationsTable,
   orgMembersTable,
 } from '@/utils/db/schema';
-import { eq, desc } from 'drizzle-orm';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  AlertTriangle,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  ArrowRight,
-} from 'lucide-react';
-import Link from 'next/link';
 import { EscalationActions } from '@/components/escalation/EscalationActions';
 import { truncateString } from '@/lib/api/formatters';
 import type { HumanVerdict } from '@/lib/escalation/types';
@@ -48,7 +47,7 @@ function formatReason(reason: string): string {
 function getStatus(
   resolvedAt: Date | null,
   humanVerdict: HumanVerdict | null
-): 'pending' | 'in_review' | 'resolved' | 'dismissed' {
+): 'pending' | 'resolved' | 'dismissed' {
   if (!resolvedAt) return 'pending';
   if (humanVerdict) return 'resolved';
   return 'dismissed';
@@ -57,12 +56,26 @@ function getStatus(
 function getPriorityBadge(priority: number) {
   switch (priority) {
     case 3:
-      return <Badge variant="destructive">High Priority</Badge>;
+      return <Badge variant="destructive">High</Badge>;
     case 2:
-      return <Badge variant="secondary">Medium Priority</Badge>;
+      return <Badge variant="secondary">Medium</Badge>;
     default:
-      return <Badge variant="outline">Low Priority</Badge>;
+      return <Badge variant="outline">Low</Badge>;
   }
+}
+
+function formatRelativeTime(date: Date): string {
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return date.toLocaleDateString();
 }
 
 // =============================================================================
@@ -89,7 +102,7 @@ export default async function EscalationsPage() {
     redirect('/login');
   }
 
-  // Fetch escalations with verification data
+  // Fetch escalations - pending first (ordered by priority), then resolved
   const escalationsData = await db
     .select({
       id: escalationsTable.id,
@@ -112,171 +125,114 @@ export default async function EscalationsPage() {
     )
     .where(eq(verificationsTable.orgId, orgMember.orgId))
     .orderBy(desc(escalationsTable.priority), desc(escalationsTable.createdAt))
-    .limit(50);
+    .limit(100);
 
-  // Transform to expected format
-  const escalations = escalationsData.map((e) => ({
-    id: e.id,
-    verificationId: e.verificationId,
-    reason: formatReason(e.reason),
-    reasonRaw: e.reason,
-    status: getStatus(e.resolvedAt, e.humanVerdict as HumanVerdict | null),
-    priority: e.priority,
-    createdAt: e.createdAt,
-    resolvedAt: e.resolvedAt || undefined,
-    deadline: e.deadline || undefined,
-    humanVerdict: e.humanVerdict,
-    resolution: e.resolution,
-    content: truncateString(e.verificationContent, 150, true),
-    confidence: e.verificationConfidence
-      ? parseFloat(e.verificationConfidence)
-      : null,
-  }));
+  // Transform and sort: pending items first
+  // Using toSorted() for immutability (js-tosorted-immutable)
+  const escalations = escalationsData
+    .map((e) => ({
+      id: e.id,
+      verificationId: e.verificationId,
+      reason: formatReason(e.reason),
+      reasonRaw: e.reason,
+      status: getStatus(e.resolvedAt, e.humanVerdict as HumanVerdict | null),
+      priority: e.priority,
+      createdAt: e.createdAt,
+      resolvedAt: e.resolvedAt || undefined,
+      deadline: e.deadline || undefined,
+      humanVerdict: e.humanVerdict,
+      resolution: e.resolution,
+      content: truncateString(e.verificationContent, 150, true),
+      confidence: e.verificationConfidence
+        ? parseFloat(e.verificationConfidence)
+        : null,
+    }))
+    .toSorted((a, b) => {
+      // Pending items first
+      if (a.status === 'pending' && b.status !== 'pending') return -1;
+      if (a.status !== 'pending' && b.status === 'pending') return 1;
+      // Then by priority (high first)
+      if (a.priority !== b.priority) return b.priority - a.priority;
+      // Then by date
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
-  // Calculate stats
-  const stats = {
-    pending: escalationsData.filter((e) => !e.resolvedAt).length,
-    inReview: 0,
-    resolved: escalationsData.filter((e) => e.resolvedAt && e.humanVerdict).length,
-    dismissed: escalationsData.filter((e) => e.resolvedAt && !e.humanVerdict).length,
-  };
+  // Count pending items
+  const pendingCount = escalations.filter((e) => e.status === 'pending').length;
+  const pendingEscalations = escalations.filter((e) => e.status === 'pending');
+  const resolvedEscalations = escalations.filter((e) => e.status !== 'pending');
 
   return (
     <div className="p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-lg font-semibold">Escalations</h1>
-        <p className="text-sm text-muted-foreground">Review verifications flagged for human review</p>
-      </div>
-
-      {/* Stats */}
-      <div className="mb-6 grid gap-4 grid-cols-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Pending</span>
-            <Clock className="h-4 w-4 text-amber-500" />
+      {/* Header with pending count */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-semibold">Escalations</h1>
+          <p className="text-sm text-muted-foreground">
+            Review verifications flagged for human review
+          </p>
+        </div>
+        {pendingCount > 0 && (
+          <div className="flex items-center gap-2 rounded-full bg-warning/10 px-4 py-2 text-warning">
+            <Clock className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              {pendingCount} pending review{pendingCount !== 1 ? 's' : ''}
+            </span>
           </div>
-          <div className="mt-2 text-2xl font-semibold">{stats.pending}</div>
-          <p className="text-xs text-muted-foreground">Awaiting review</p>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">In Review</span>
-            <AlertTriangle className="h-4 w-4 text-info" />
-          </div>
-          <div className="mt-2 text-2xl font-semibold">{stats.inReview}</div>
-          <p className="text-xs text-muted-foreground">Active</p>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Resolved</span>
-            <CheckCircle2 className="h-4 w-4 text-success" />
-          </div>
-          <div className="mt-2 text-2xl font-semibold">{stats.resolved}</div>
-          <p className="text-xs text-muted-foreground">Completed</p>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Dismissed</span>
-            <XCircle className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="mt-2 text-2xl font-semibold">{stats.dismissed}</div>
-          <p className="text-xs text-muted-foreground">False positives</p>
-        </Card>
+        )}
       </div>
 
       {/* Escalations List */}
-      <Card className="mb-6">
-        <div className="border-b px-4 py-3">
-          <h3 className="text-sm font-semibold">Recent Escalations</h3>
-        </div>
+      <Card>
         <div className="p-4">
           {escalations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <AlertTriangle className="mb-3 h-10 w-10 text-muted-foreground/30" />
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <CheckCircle2 className="mb-3 h-10 w-10 text-success/50" />
               <p className="mb-1 text-sm font-medium">No escalations</p>
               <p className="max-w-sm text-xs text-muted-foreground">
-                When verifications are flagged for human review, they&apos;ll appear here.
+                When verifications need human review, they&apos;ll appear here.
               </p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {escalations.map((escalation) => (
-                <div
-                  key={escalation.id}
-                  className="flex items-start justify-between gap-4 rounded-md px-3 py-3 hover:bg-muted/50"
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded ${
-                        escalation.status === 'pending'
-                          ? 'bg-warning/10'
-                          : escalation.status === 'in_review'
-                            ? 'bg-info/10'
-                            : escalation.status === 'resolved'
-                              ? 'bg-success/10'
-                              : 'bg-muted'
-                      }`}
-                    >
-                      <AlertTriangle
-                        className={`h-4 w-4 ${
-                          escalation.status === 'pending'
-                            ? 'text-warning'
-                            : escalation.status === 'in_review'
-                              ? 'text-info'
-                              : escalation.status === 'resolved'
-                                ? 'text-success'
-                                : 'text-muted-foreground'
-                        }`}
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium">{escalation.reason}</p>
-                        {getPriorityBadge(escalation.priority)}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {escalation.verificationId.slice(0, 8)}...
-                        {escalation.confidence !== null && (
-                          <span className="ml-1">({(escalation.confidence * 100).toFixed(0)}% confidence)</span>
-                        )}
-                      </p>
-                      {escalation.status === 'resolved' && escalation.humanVerdict && (
-                        <Badge
-                          variant={escalation.humanVerdict === 'true' ? 'default' : escalation.humanVerdict === 'false' ? 'destructive' : 'secondary'}
-                          className="mt-1"
-                        >
-                          {escalation.humanVerdict}
-                        </Badge>
-                      )}
-                    </div>
+            <div className="space-y-1">
+              {/* Pending Section */}
+              {pendingEscalations.length > 0 && (
+                <>
+                  <div className="mb-2 px-3 py-2">
+                    <span className="text-xs font-medium uppercase tracking-wider text-warning">
+                      Needs Review ({pendingEscalations.length})
+                    </span>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <Badge variant={escalation.status === 'pending' ? 'outline' : escalation.status === 'resolved' ? 'default' : 'secondary'}>
-                      {escalation.status}
-                    </Badge>
-                    {escalation.status === 'pending' && (
-                      <EscalationActions escalationId={escalation.id} verificationId={escalation.verificationId} />
-                    )}
-                    <Button variant="ghost" size="icon" asChild aria-label="View verification details">
-                      <Link href={`/dashboard/verify/${escalation.verificationId}`}>
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                    </Button>
+                  {pendingEscalations.map((escalation) => (
+                    <EscalationRow key={escalation.id} escalation={escalation} />
+                  ))}
+                </>
+              )}
+
+              {/* Resolved Section */}
+              {resolvedEscalations.length > 0 && (
+                <>
+                  {pendingEscalations.length > 0 && (
+                    <div className="my-4 border-t" />
+                  )}
+                  <div className="mb-2 px-3 py-2">
+                    <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Resolved ({resolvedEscalations.length})
+                    </span>
                   </div>
-                </div>
-              ))}
+                  {resolvedEscalations.map((escalation) => (
+                    <EscalationRow key={escalation.id} escalation={escalation} />
+                  ))}
+                </>
+              )}
             </div>
           )}
         </div>
       </Card>
 
-      {/* Info Card */}
-      <details className="group">
-        <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-3 text-sm font-semibold hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
+      {/* Info Card - Collapsed by default */}
+      <details className="group mt-6">
+        <summary className="flex cursor-pointer items-center justify-between rounded-lg border bg-card px-4 py-3 text-sm font-medium hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
           <span>About Escalations</span>
           <svg className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -287,21 +243,112 @@ export default async function EscalationsPage() {
             <p>Escalations are triggered when:</p>
             <ul className="ml-4 list-disc space-y-1">
               <li><strong>Low confidence</strong> - Below 70%</li>
-              <li><strong>Conflicting results</strong> - {">"}30% disagreement</li>
-              <li><strong>Model failures</strong> - Paradigm errors</li>
-              <li><strong>Timeouts</strong> - Processing too long</li>
+              <li><strong>Conflicting results</strong> - {">"}30% disagreement between paradigms</li>
+              <li><strong>Model failures</strong> - Paradigm errors or exceptions</li>
+              <li><strong>Timeouts</strong> - Processing exceeded time limit</li>
             </ul>
-            <div className="flex items-center gap-3 pt-2">
-              <Badge variant="destructive">High</Badge>
-              <span>&lt;30%</span>
-              <Badge variant="secondary">Med</Badge>
-              <span>30-50%</span>
-              <Badge variant="outline">Low</Badge>
-              <span>50-70%</span>
+            <div className="flex items-center gap-4 pt-2 text-xs">
+              <div className="flex items-center gap-1.5">
+                <Badge variant="destructive">High</Badge>
+                <span>&lt;30% confidence</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Badge variant="secondary">Medium</Badge>
+                <span>30-50%</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Badge variant="outline">Low</Badge>
+                <span>50-70%</span>
+              </div>
             </div>
           </div>
         </Card>
       </details>
+    </div>
+  );
+}
+
+// =============================================================================
+// ESCALATION ROW COMPONENT
+// =============================================================================
+
+interface EscalationRowProps {
+  escalation: {
+    id: string;
+    verificationId: string;
+    reason: string;
+    status: 'pending' | 'resolved' | 'dismissed';
+    priority: number;
+    createdAt: Date;
+    humanVerdict: string | null;
+    confidence: number | null;
+    content: string;
+  };
+}
+
+function EscalationRow({ escalation }: EscalationRowProps) {
+  const isPending = escalation.status === 'pending';
+
+  return (
+    <div
+      className={`flex items-center justify-between gap-4 rounded-md px-3 py-3 transition-colors hover:bg-muted/50 ${
+        isPending ? 'bg-warning/5' : ''
+      }`}
+    >
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded ${
+            isPending ? 'bg-warning/10' : 'bg-muted'
+          }`}
+        >
+          <AlertTriangle
+            className={`h-4 w-4 ${isPending ? 'text-warning' : 'text-muted-foreground'}`}
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium truncate">{escalation.reason}</p>
+            {getPriorityBadge(escalation.priority)}
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="font-mono">{escalation.verificationId.slice(0, 8)}</span>
+            {escalation.confidence !== null && (
+              <span>• {(escalation.confidence * 100).toFixed(0)}% confidence</span>
+            )}
+            <span>• {formatRelativeTime(escalation.createdAt)}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2">
+        {escalation.status === 'resolved' && escalation.humanVerdict && (
+          <Badge
+            variant={
+              escalation.humanVerdict === 'true'
+                ? 'default'
+                : escalation.humanVerdict === 'false'
+                  ? 'destructive'
+                  : 'secondary'
+            }
+          >
+            {escalation.humanVerdict}
+          </Badge>
+        )}
+        {escalation.status === 'dismissed' && (
+          <Badge variant="outline">dismissed</Badge>
+        )}
+        {isPending && (
+          <EscalationActions
+            escalationId={escalation.id}
+            verificationId={escalation.verificationId}
+          />
+        )}
+        <Button variant="ghost" size="icon" asChild aria-label="View verification details">
+          <Link href={`/dashboard/verify/${escalation.verificationId}`}>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 }

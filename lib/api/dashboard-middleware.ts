@@ -125,12 +125,13 @@ export function withDashboardAuth<TParams = Record<string, string>>(
 
 /**
  * Convenience wrapper for read-only endpoints
- * Requires user to be authenticated but no specific permission
+ * Requires user to be authenticated, optionally with a specific permission
  */
 export function withDashboardRead<TParams = Record<string, string>>(
-  handler: DashboardHandler<TParams>
+  handler: DashboardHandler<TParams>,
+  options: DashboardMiddlewareOptions = {}
 ): PublicDashboardHandler<TParams> {
-  return withDashboardAuth(handler);
+  return withDashboardAuth(handler, options);
 }
 
 /**

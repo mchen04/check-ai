@@ -4,13 +4,13 @@
  */
 
 import { tasks } from "@trigger.dev/sdk/v3";
+import { eq, inArray, and } from "drizzle-orm";
 import type { batchItemProcessingTask } from "@/trigger/batch-processing";
 import { db } from "@/utils/db/db";
 import { batchJobsTable, batchItemsTable } from "@/utils/db/schema";
-import { eq, inArray, and } from "drizzle-orm";
 import { createLogger } from "@/lib/logger";
-import type { MethodsConfig } from "./types";
 import type { VerifyOptions } from "@/lib/verification/types";
+import type { MethodsConfig } from "./types";
 
 const log = createLogger("Batch Trigger");
 

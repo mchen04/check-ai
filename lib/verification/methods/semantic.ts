@@ -8,8 +8,8 @@
  */
 
 import OpenAI from 'openai';
-import { ParadigmExecutor, ParadigmResult, ParadigmOptions, Verdict } from '../types';
 import { calculateCostCents } from '@/lib/llm';
+import { ParadigmExecutor, ParadigmResult, ParadigmOptions, Verdict } from '../types';
 import { createParadigmErrorResult } from './shared';
 
 // =============================================================================

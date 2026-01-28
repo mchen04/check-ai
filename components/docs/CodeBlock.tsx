@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, useCallback } from 'react';
 import { Check, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCopyToClipboard } from '@/hooks';
@@ -21,7 +22,11 @@ export function CodeBlock({
 }: CodeBlockProps) {
   const { copied, copy } = useCopyToClipboard();
 
-  const lines = code.trim().split('\n');
+  // Memoize lines computation to prevent recalculation on every render (rerender-derived-state)
+  const lines = useMemo(() => code.trim().split('\n'), [code]);
+
+  // Memoize copy handler
+  const handleCopy = useCallback(() => copy(code), [copy, code]);
 
   return (
     <div className={cn('group relative my-4 overflow-hidden rounded-lg border border-border bg-muted/50', className)}>
@@ -35,7 +40,7 @@ export function CodeBlock({
 
       {/* Copy button */}
       <button
-        onClick={() => copy(code)}
+        onClick={handleCopy}
         className="absolute right-2 top-2 z-10 rounded-md border border-border bg-background p-1.5 opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
         aria-label="Copy code"
       >
@@ -52,7 +57,7 @@ export function CodeBlock({
           <code className={`language-${language}`}>
             {showLineNumbers ? (
               lines.map((line, i) => (
-                <div key={i} className="table-row">
+                <div key={`line-${i + 1}-${line.slice(0, 20)}`} className="table-row">
                   <span className="table-cell select-none pr-4 text-right text-muted-foreground">
                     {i + 1}
                   </span>

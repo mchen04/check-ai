@@ -1,14 +1,13 @@
 import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-
+import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/utils/supabase/server';
-import DashboardHeaderProfileDropdown from './DashboardHeaderProfileDropdown';
 import { Badge } from '@/components/ui/badge';
-import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getUserOrgContext } from '@/lib/rbac';
+import DashboardHeaderProfileDropdown from './DashboardHeaderProfileDropdown';
 
 async function UserPlanBadge() {
   const context = await getUserOrgContext();
@@ -69,8 +68,8 @@ export default async function DashboardHeader() {
         <div className="flex-1" />
 
         {/* Mobile menu button */}
-        <Button variant="ghost" size="icon" className="h-8 w-8 lg:hidden">
-          <Menu className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="h-8 w-8 lg:hidden" aria-label="Toggle Menu">
+          <Menu aria-hidden="true" className="h-4 w-4" />
           <span className="sr-only">Toggle Menu</span>
         </Button>
 

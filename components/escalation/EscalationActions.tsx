@@ -2,6 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  MoreHorizontal,
+  CheckCircle,
+  XCircle,
+  ExternalLink,
+} from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -21,15 +28,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  MoreHorizontal,
-  CheckCircle,
-  XCircle,
-  ExternalLink,
-} from 'lucide-react';
 import { getErrorMessage } from '@/lib/utils';
 import { ButtonSpinner } from '@/components/ui/loading-spinner';
-import Link from 'next/link';
 
 interface EscalationActionsProps {
   escalationId: string;

@@ -38,17 +38,17 @@ async function handler(req: DashboardRequest) {
     }
   }
 
-  // Fetch escalations using repository
-  const { escalations: results, hasMore } = await listEscalations({
-    orgId: context.organization.id,
-    status: statusFilter || undefined,
-    priority,
-    limit,
-    offset,
-  });
-
-  // Get stats using repository
-  const stats = await getEscalationStats(context.organization.id);
+  // Fetch escalations and stats in parallel
+  const [{ escalations: results, hasMore }, stats] = await Promise.all([
+    listEscalations({
+      orgId: context.organization.id,
+      status: statusFilter || undefined,
+      priority,
+      limit,
+      offset,
+    }),
+    getEscalationStats(context.organization.id),
+  ]);
 
   // Format response using shared formatters
   const formattedResults = results.map((e) => ({
@@ -89,4 +89,4 @@ async function handler(req: DashboardRequest) {
   });
 }
 
-export const GET = withDashboardRead(handler);
+export const GET = withDashboardRead(handler, { permission: 'escalations:view' });

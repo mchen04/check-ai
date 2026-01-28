@@ -9,8 +9,8 @@ import {
   Section,
   Text,
 } from '@react-email/components';
-import { BaseTemplate, StandardFooter } from './base-template';
 import { emailStyles } from '../styles';
+import { BaseTemplate, StandardFooter } from './base-template';
 
 interface TeamInviteEmailProps {
   inviteUrl: string;

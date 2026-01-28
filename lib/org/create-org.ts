@@ -3,9 +3,9 @@
  * Handles auto-creating organizations for new users
  */
 
+import { v4 as uuidv4 } from 'uuid';
 import { db } from '@/utils/db/db';
 import { organizationsTable, orgMembersTable } from '@/utils/db/schema';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Generate a unique slug from user name or email

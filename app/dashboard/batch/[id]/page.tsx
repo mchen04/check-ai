@@ -2,6 +2,14 @@
 
 import { useState, useEffect, use, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  ArrowLeft,
+  Clock,
+  Copy,
+  RefreshCw,
+  StopCircle,
+  Download,
+} from 'lucide-react';
 import { formatDate, getErrorMessage } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -28,14 +36,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import {
-  ArrowLeft,
-  Clock,
-  Copy,
-  RefreshCw,
-  StopCircle,
-  Download,
-} from 'lucide-react';
 import { Spinner } from '@/components/ui/loading-spinner';
 import { useBatchStatus, useCopyToClipboard } from '@/hooks';
 import { VerdictIcon, type VerdictDisplay } from '@/components/ui/verdict-display';

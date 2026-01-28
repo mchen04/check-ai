@@ -4,6 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
 import {
   createBatch,
   createBatchSchema,
@@ -14,7 +15,6 @@ import { withDashboardAuth, DashboardRequest } from '@/lib/api';
 import { PLAN_LIMITS } from '@/utils/db/schema';
 import { db } from '@/utils/db/db';
 import { organizationsTable } from '@/utils/db/schema';
-import { eq } from 'drizzle-orm';
 
 // =============================================================================
 // POST - Create Batch

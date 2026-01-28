@@ -3,9 +3,9 @@
  * Centralized email sending with consistent error handling and logging
  */
 
-import { resend } from './resend';
-import { createLogger } from '@/lib/logger';
 import type { CreateEmailOptions } from 'resend';
+import { createLogger } from '@/lib/logger';
+import { resend } from './resend';
 
 const log = createLogger('Email');
 

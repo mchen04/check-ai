@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation';
+import { desc, eq } from 'drizzle-orm';
+import { Key } from 'lucide-react';
 import { getUserOrgContext } from '@/lib/rbac';
 import { db } from '@/utils/db/db';
 import { apiKeysTable } from '@/utils/db/schema';
-import { desc, eq } from 'drizzle-orm';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertBanner } from '@/components/ui/alert-banner';
-import { Key } from 'lucide-react';
 import CreateApiKeyDialog from './CreateApiKeyDialog';
 import { ApiKeysList } from './ApiKeysList';
 

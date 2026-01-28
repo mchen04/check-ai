@@ -1,7 +1,7 @@
-import { sendEmail, isEmailConfigured, type BulkEmailResult } from './sender';
-import { EscalationAlertEmail } from './templates/escalation-alert';
 import { getMembersWithNotification } from '@/lib/db/queries/members';
 import { createLogger } from '@/lib/logger';
+import { sendEmail, isEmailConfigured, type BulkEmailResult } from './sender';
+import { EscalationAlertEmail } from './templates/escalation-alert';
 
 const log = createLogger('Email');
 

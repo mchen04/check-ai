@@ -16,8 +16,8 @@
  * Use mappers from @/lib/api/mappers.ts to convert between internal and API types.
  */
 
-import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import {
   MethodsConfig,
   methodsConfigSchema,

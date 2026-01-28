@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Shield } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -12,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Shield } from 'lucide-react';
 
 export function SecuritySettingsCard() {
   return (

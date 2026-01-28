@@ -1,6 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import {
+  Key,
+  MoreHorizontal,
+  Trash2,
+  TestTube,
+  CheckCircle,
+  Plus,
+  Pencil,
+} from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -47,15 +56,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DeleteConfirmDialog } from '@/components/ui/confirm-dialog';
-import {
-  Key,
-  MoreHorizontal,
-  Trash2,
-  TestTube,
-  CheckCircle,
-  Plus,
-  Pencil,
-} from 'lucide-react';
 import { LoadingState, LoadingSpinner, ButtonSpinner } from '@/components/ui/loading-spinner';
 import { InlineError } from '@/components/ui/empty-state';
 import { formatDate } from '@/lib/utils';
@@ -89,6 +89,16 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [testResult, setTestResult] = useState<{ id: string; valid: boolean } | null>(null);
+  const testResultTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (testResultTimeoutRef.current) {
+        clearTimeout(testResultTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Form state for create
   const [formData, setFormData] = useState({
@@ -183,10 +193,16 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
       // Refresh to get updated validation status
       fetchCredentials();
 
-      setTimeout(() => setTestResult(null), 3000);
+      if (testResultTimeoutRef.current) {
+        clearTimeout(testResultTimeoutRef.current);
+      }
+      testResultTimeoutRef.current = setTimeout(() => setTestResult(null), 3000);
     } catch {
       setTestResult({ id: credentialId, valid: false });
-      setTimeout(() => setTestResult(null), 3000);
+      if (testResultTimeoutRef.current) {
+        clearTimeout(testResultTimeoutRef.current);
+      }
+      testResultTimeoutRef.current = setTimeout(() => setTestResult(null), 3000);
     } finally {
       setActionLoading(null);
     }
@@ -396,7 +412,7 @@ export function ProviderCredentialsCard({ canEdit }: ProviderCredentialsCardProp
                   <TableHead>Status</TableHead>
                   <TableHead>Used By</TableHead>
                   <TableHead>Last Used</TableHead>
-                  {canEdit && <TableHead className="w-[70px]"></TableHead>}
+                  {canEdit && <TableHead className="w-[70px]" />}
                 </TableRow>
               </TableHeader>
               <TableBody>

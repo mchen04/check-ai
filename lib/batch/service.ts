@@ -3,6 +3,7 @@
  * Core service for managing batch verification jobs
  */
 
+import { eq, desc, and, sql, count } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import {
   batchJobsTable,
@@ -10,9 +11,9 @@ import {
   verificationsTable,
   paradigmResultsTable,
 } from '@/utils/db/schema';
-import { eq, desc, and, sql, count } from 'drizzle-orm';
-import { queueBatchItems, cancelBatchItems } from './trigger';
 import { createAuditLog } from '@/lib/audit';
+import type { VerifyOptions } from '@/lib/verification';
+import { queueBatchItems, cancelBatchItems } from './trigger';
 import {
   BATCH_CONSTANTS,
   type BatchJob,
@@ -24,7 +25,6 @@ import {
   type BatchValidationError,
   type MethodsConfig,
 } from './types';
-import type { VerifyOptions } from '@/lib/verification';
 
 // =============================================================================
 // Batch Creation

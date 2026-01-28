@@ -1,15 +1,14 @@
 'use client';
 
 import { useTransition } from 'react';
+import { LogOut } from 'lucide-react';
 import { logout } from '@/app/auth/actions';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { LogOut } from 'lucide-react';
 
 export function LogoutButton() {
   const [isPending, startTransition] = useTransition();
 
-  const handleLogout = (e: Event) => {
-    e.preventDefault();
+  const handleLogout = () => {
     startTransition(async () => {
       await logout();
     });
@@ -17,7 +16,10 @@ export function LogoutButton() {
 
   return (
     <DropdownMenuItem
-      onSelect={handleLogout}
+      onSelect={(e) => {
+        e.preventDefault();
+        handleLogout();
+      }}
       disabled={isPending}
       className="cursor-pointer text-destructive focus:text-destructive"
     >

@@ -4,7 +4,19 @@
  * Exports for the escalation system.
  */
 
-export * from './types';
+// Types - Named exports for tree-shaking
+export type {
+  EscalationReason,
+  EscalationStatus,
+  HumanVerdict,
+  EscalationDetails,
+  EscalationContext,
+  EscalationWithVerification,
+  ListEscalationsResponse,
+  ResolveEscalationRequest,
+  ResolveEscalationResponse,
+} from './types';
+export { REASON_DISPLAY_MAP } from './types';
 export {
   createEscalation,
   resolveEscalation,

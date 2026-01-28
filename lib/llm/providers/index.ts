@@ -14,8 +14,25 @@ export { providerRegistry, PROVIDER_TIERS, getProvidersByTier } from './registry
 export { BaseLLMProvider, LLMError } from './interfaces';
 export type { ILLMProvider, ProviderFactory, ProviderFactoryConfig } from './interfaces';
 
-// Export individual provider classes
-export * from './tier1-firstparty';
-export * from './tier2-cloud';
-export * from './tier3-inference';
-export * from './tier4-gateways';
+// Export individual provider classes - Named exports for tree-shaking
+export {
+  OpenAIProvider,
+  AnthropicProvider,
+  GoogleProvider,
+  XAIProvider,
+  MistralProvider,
+  CohereProvider,
+  DeepSeekProvider,
+} from './tier1-firstparty';
+
+export { AzureProvider, BedrockProvider } from './tier2-cloud';
+
+export {
+  GroqProvider,
+  TogetherProvider,
+  FireworksProvider,
+  CerebrasProvider,
+  PerplexityProvider,
+} from './tier3-inference';
+
+export { OpenRouterProvider } from './tier4-gateways';

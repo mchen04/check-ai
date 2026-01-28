@@ -1,8 +1,8 @@
 'use client';
 
+import { useCallback, memo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   Shield,
@@ -15,33 +15,37 @@ import {
   Layers,
   Plug,
   ExternalLink,
+  ScrollText,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-// Organized by user workflow:
-// 1. Core Actions - what users do daily (verifications, batches, testing)
-// 2. Monitoring - checking status/metrics (usage, escalations)
-// 3. Configuration - setup and management (keys, integrations, team)
-// 4. Account - personal settings (least frequent)
-
+// Navigation config moved outside component to avoid recreation (rerender-memo-with-default-value)
 const coreNavigation = [
   { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Verifications', href: '/dashboard/verify', icon: Shield },
   { name: 'Batch Jobs', href: '/dashboard/batch', icon: Layers },
   { name: 'Playground', href: '/dashboard/playground', icon: PlayCircle },
-];
+] as const;
 
 const monitoringNavigation = [
   { name: 'Usage', href: '/dashboard/usage', icon: BarChart3 },
+  { name: 'Logs', href: '/dashboard/logs', icon: ScrollText },
   { name: 'Escalations', href: '/dashboard/escalations', icon: AlertCircle },
-];
+] as const;
 
 const configNavigation = [
   { name: 'API Keys', href: '/dashboard/keys', icon: Key },
   { name: 'Providers', href: '/dashboard/providers', icon: Plug },
   { name: 'Team', href: '/dashboard/team', icon: Users },
-];
+] as const;
 
-const accountNavigation = [{ name: 'Settings', href: '/dashboard/settings', icon: Settings }];
+const accountNavigation = [{ name: 'Settings', href: '/dashboard/settings', icon: Settings }] as const;
+
+type NavItemType = {
+  readonly name: string;
+  readonly href: string;
+  readonly icon: React.ComponentType<{ className?: string }>;
+};
 
 function NavSection({ label, children }: { label?: string; children: React.ReactNode }) {
   return (
@@ -58,45 +62,59 @@ function NavSection({ label, children }: { label?: string; children: React.React
   );
 }
 
+// Memoized NavItem component to prevent unnecessary re-renders (rerender-memo)
+const NavItem = memo(function NavItem({
+  item,
+  isActive,
+}: {
+  item: NavItemType;
+  isActive: boolean;
+}) {
+  const Icon = item.icon;
+
+  return (
+    <Link
+      href={item.href}
+      className={cn(
+        'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150',
+        isActive
+          ? 'bg-primary/10 font-medium text-foreground'
+          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+      )}
+    >
+      <Icon
+        aria-hidden="true"
+        className={cn(
+          'h-4 w-4 transition-colors',
+          isActive ? 'text-primary' : 'text-muted-foreground/70 group-hover:text-muted-foreground'
+        )}
+      />
+      {item.name}
+    </Link>
+  );
+});
+
 export default function DashboardSidebar() {
   const pathname = usePathname();
 
-  const isActive = (href: string) => {
-    if (href === '/dashboard') {
-      return pathname === '/dashboard';
-    }
-    return pathname.startsWith(href);
-  };
+  // Memoize isActive check (rerender-functional-setstate pattern for callbacks)
+  const checkIsActive = useCallback(
+    (href: string) => {
+      if (href === '/dashboard') {
+        return pathname === '/dashboard';
+      }
+      return pathname.startsWith(href);
+    },
+    [pathname]
+  );
 
-  const renderNavItem = (item: {
-    name: string;
-    href: string;
-    icon: React.ComponentType<{ className?: string }>;
-  }) => {
-    const Icon = item.icon;
-    const active = isActive(item.href);
-
-    return (
-      <Link
-        key={item.name}
-        href={item.href}
-        className={cn(
-          'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150',
-          active
-            ? 'bg-primary/10 font-medium text-foreground'
-            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-        )}
-      >
-        <Icon
-          className={cn(
-            'h-4 w-4 transition-colors',
-            active ? 'text-primary' : 'text-muted-foreground/70 group-hover:text-muted-foreground'
-          )}
-        />
-        {item.name}
-      </Link>
-    );
-  };
+  // Memoize render function with useCallback
+  const renderNavItem = useCallback(
+    (item: NavItemType) => (
+      <NavItem key={item.name} item={item} isActive={checkIsActive(item.href)} />
+    ),
+    [checkIsActive]
+  );
 
   return (
     <aside className="hidden w-56 shrink-0 border-r border-border/40 bg-background lg:block">
@@ -141,7 +159,7 @@ export default function DashboardSidebar() {
             className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-primary/80"
           >
             View Docs
-            <ExternalLink className="h-3 w-3" />
+            <ExternalLink aria-hidden="true" className="h-3 w-3" />
           </Link>
         </div>
       </nav>

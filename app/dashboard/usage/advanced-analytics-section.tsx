@@ -1,6 +1,17 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import dynamic from 'next/dynamic';
+import {
+  BarChart3,
+  RefreshCw,
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  Target,
+  DollarSign,
+  Activity,
+} from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -17,34 +28,42 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { EmptyState, ErrorState } from '@/components/ui/empty-state';
-import {
-  BarChart3,
-  RefreshCw,
-  AlertCircle,
-  ChevronDown,
-  ChevronUp,
-  Target,
-  DollarSign,
-  Activity,
-} from 'lucide-react';
 import { getErrorMessage } from '@/lib/utils';
 import { TimeRangeSelector } from '@/components/charts/time-range-selector';
-import { FPRChart } from '@/components/charts/fpr-chart';
-import { CostEfficiencyChart } from '@/components/charts/cost-efficiency-chart';
-import { CalibrationChart } from '@/components/charts/calibration-chart';
 import type { TimeRange, AdvancedAnalyticsData } from '@/lib/analytics';
 
-function ChartSkeleton({ height = 'h-[160px]' }: { height?: string }) {
+// Dynamic imports for heavy chart components (uses Recharts ~200KB)
+const FPRChart = dynamic(
+  () => import('@/components/charts/fpr-chart').then((mod) => mod.FPRChart),
+  { loading: () => <Skeleton className="h-[160px] w-full" />, ssr: false }
+);
+const CostEfficiencyChart = dynamic(
+  () => import('@/components/charts/cost-efficiency-chart').then((mod) => mod.CostEfficiencyChart),
+  { loading: () => <Skeleton className="h-[160px] w-full" />, ssr: false }
+);
+const CalibrationChart = dynamic(
+  () => import('@/components/charts/calibration-chart').then((mod) => mod.CalibrationChart),
+  { loading: () => <Skeleton className="h-[160px] w-full" />, ssr: false }
+);
+
+// Memoized skeleton component to prevent re-renders (rerender-memo)
+const ChartSkeleton = memo(function ChartSkeleton({ height = 'h-[160px]' }: { height?: string }) {
   return <Skeleton className={`${height} w-full`} />;
-}
+});
 
-function ChartEmptyState({ message = 'No data available' }: { message?: string }) {
+// Memoized empty state component
+const ChartEmptyState = memo(function ChartEmptyState({ message = 'No data available' }: { message?: string }) {
   return <EmptyState icon={BarChart3} message={message} size="sm" />;
-}
+});
 
-function ChartErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+// Memoized error state component
+const ChartErrorState = memo(function ChartErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return <ErrorState icon={AlertCircle} message={message} onRetry={onRetry} />;
-}
+});
+
+// Badge configs moved outside to avoid recreation (rerender-memo-with-default-value)
+const BADGE_HIGH = { label: 'High', variant: 'destructive' } as const;
+const BADGE_GOOD = { label: 'Good', variant: 'secondary' } as const;
 
 interface SummaryCardProps {
   title: string;
@@ -54,7 +73,8 @@ interface SummaryCardProps {
   badge?: { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' };
 }
 
-function SummaryCard({ title, value, icon, description, badge }: SummaryCardProps) {
+// Memoized SummaryCard to prevent re-renders (rerender-memo)
+const SummaryCard = memo(function SummaryCard({ title, value, icon, description, badge }: SummaryCardProps) {
   return (
     <Card>
       <CardContent className="p-4">
@@ -74,7 +94,7 @@ function SummaryCard({ title, value, icon, description, badge }: SummaryCardProp
       </CardContent>
     </Card>
   );
-}
+});
 
 export function AdvancedAnalyticsSection() {
   const [range, setRange] = useState<TimeRange>('7d');
@@ -172,11 +192,7 @@ export function AdvancedAnalyticsSection() {
                         title="Overall FPR"
                         value={`${(summary.overallFPR * 100).toFixed(1)}%`}
                         icon={<Target className="h-4 w-4" />}
-                        badge={
-                          summary.overallFPR > 0.1
-                            ? { label: 'High', variant: 'destructive' }
-                            : { label: 'Good', variant: 'secondary' }
-                        }
+                        badge={summary.overallFPR > 0.1 ? BADGE_HIGH : BADGE_GOOD}
                       />
                       <SummaryCard
                         title="Best Paradigm"
@@ -194,11 +210,7 @@ export function AdvancedAnalyticsSection() {
                         title="Calibration Error"
                         value={`${(summary.avgCalibrationError * 100).toFixed(1)}%`}
                         icon={<BarChart3 className="h-4 w-4" />}
-                        badge={
-                          summary.avgCalibrationError > 0.1
-                            ? { label: 'High', variant: 'destructive' }
-                            : { label: 'Good', variant: 'secondary' }
-                        }
+                        badge={summary.avgCalibrationError > 0.1 ? BADGE_HIGH : BADGE_GOOD}
                       />
                     </div>
                   )}

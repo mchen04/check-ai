@@ -2,6 +2,17 @@
 
 import { useState, useCallback } from 'react';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import {
+  History,
+  Key,
+  Users,
+  Webhook,
+  Settings,
+  AlertTriangle,
+  Search,
+  Download,
+  X,
+} from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,17 +42,6 @@ import {
 import { SimplePagination } from '@/components/ui/pagination';
 import { FilteredEmptyState } from '@/components/ui/empty-state';
 import { LoadingState, ButtonSpinner } from '@/components/ui/loading-spinner';
-import {
-  History,
-  Key,
-  Users,
-  Webhook,
-  Settings,
-  AlertTriangle,
-  Search,
-  Download,
-  X,
-} from 'lucide-react';
 import {
   AUDIT_EVENT_DESCRIPTIONS,
   RESOURCE_TYPE_LABELS,

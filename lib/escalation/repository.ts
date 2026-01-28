@@ -3,9 +3,9 @@
  * Database operations for escalation management
  */
 
+import { eq, desc, and, isNull, isNotNull, sql } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import { escalationsTable, verificationsTable } from '@/utils/db/schema';
-import { eq, desc, and, isNull, isNotNull, sql } from 'drizzle-orm';
 import type {
   EscalationReason,
   EscalationStatus,

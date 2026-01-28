@@ -5,6 +5,7 @@
  * - Confidence calibration
  */
 
+import { eq, and, gte, sql, count, isNotNull, desc, ne } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import {
   verificationsTable,
@@ -12,9 +13,8 @@ import {
   escalationsTable,
   usageTable,
 } from '@/utils/db/schema';
-import { eq, and, gte, sql, count, isNotNull, desc, ne } from 'drizzle-orm';
-import { TimeRange, PARADIGM_DISPLAY_NAMES, getDateRangeStart } from './types';
 import { clampRatio } from '@/lib/utils';
+import { TimeRange, PARADIGM_DISPLAY_NAMES, getDateRangeStart } from './types';
 
 // =============================================================================
 // TYPES

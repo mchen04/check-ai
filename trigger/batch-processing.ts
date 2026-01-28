@@ -6,7 +6,7 @@
 // Load environment variables from .env.local for local development
 import { config } from "dotenv";
 config({ path: ".env.local" });
-
+import { eq } from "drizzle-orm";
 import { task, logger, AbortTaskRunError } from "@trigger.dev/sdk/v3";
 import { db } from "@/utils/db/db";
 import {
@@ -17,7 +17,6 @@ import {
   usageTable,
   organizationsTable,
 } from "@/utils/db/schema";
-import { eq } from "drizzle-orm";
 import {
   updateBatchItemResult,
   updateBatchProgress,
