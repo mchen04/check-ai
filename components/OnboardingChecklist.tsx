@@ -1,51 +1,19 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, type ComponentType } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Key, PlayCircle, Shield, X, CheckCircle2, Circle, ArrowRight, Plug, type LucideProps } from 'lucide-react';
+import { Key, PlayCircle, Shield, X, CheckCircle2, Circle, ArrowRight, Plug } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { dismissOnboarding } from '@/app/dashboard/actions';
-
-// Hoisted step config to avoid recreating objects on every render (rendering-hoist-jsx)
-const STEP_CONFIGS = [
-  {
-    id: 'providers',
-    title: 'Add providers',
-    description: 'Configure AI provider credentials to enable verification',
-    href: '/dashboard/providers',
-    IconComponent: Plug,
-  },
-  {
-    id: 'api-key',
-    title: 'Create an API key',
-    description: 'Generate your first API key to authenticate requests',
-    href: '/dashboard/keys',
-    IconComponent: Key,
-  },
-  {
-    id: 'playground',
-    title: 'Try the Playground',
-    description: 'Test verification without writing any code',
-    href: '/dashboard/playground',
-    IconComponent: PlayCircle,
-  },
-  {
-    id: 'verification',
-    title: 'Run your first verification',
-    description: 'Verify content via API or playground',
-    href: '/dashboard/playground',
-    IconComponent: Shield,
-  },
-] as const;
 
 interface OnboardingStep {
   id: string;
   title: string;
   description: string;
   href: string;
-  IconComponent: ComponentType<LucideProps>;
+  icon: React.ReactNode;
   completed: boolean;
 }
 
@@ -64,44 +32,62 @@ export function OnboardingChecklist({
 }: OnboardingChecklistProps) {
   const [isDismissing, setIsDismissing] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
-  // Init-once guard to prevent double dismissal in StrictMode (advanced-init-once)
-  const hasAutoDismissedRef = useRef(false);
 
-  // Memoize steps to avoid recreating array on every render (rerender-memo)
-  const steps: OnboardingStep[] = useMemo(() => {
-    const completionMap: Record<string, boolean> = {
-      providers: hasAddedProvider,
-      'api-key': hasCreatedApiKey,
-      playground: hasVisitedPlayground,
-      verification: hasRunVerification,
-    };
-    return STEP_CONFIGS.map((config) => ({
-      ...config,
-      completed: completionMap[config.id] ?? false,
-    }));
-  }, [hasAddedProvider, hasCreatedApiKey, hasVisitedPlayground, hasRunVerification]);
+  const steps: OnboardingStep[] = [
+    {
+      id: 'providers',
+      title: 'Add providers',
+      description: 'Configure AI provider credentials to enable verification',
+      href: '/dashboard/providers',
+      icon: <Plug aria-hidden="true" className="h-4 w-4" />,
+      completed: hasAddedProvider,
+    },
+    {
+      id: 'api-key',
+      title: 'Create an API key',
+      description: 'Generate your first API key to authenticate requests',
+      href: '/dashboard/keys',
+      icon: <Key aria-hidden="true" className="h-4 w-4" />,
+      completed: hasCreatedApiKey,
+    },
+    {
+      id: 'playground',
+      title: 'Try the Playground',
+      description: 'Test verification without writing any code',
+      href: '/dashboard/playground',
+      icon: <PlayCircle aria-hidden="true" className="h-4 w-4" />,
+      completed: hasVisitedPlayground,
+    },
+    {
+      id: 'verification',
+      title: 'Run your first verification',
+      description: 'Verify content via API or playground',
+      href: '/dashboard/playground',
+      icon: <Shield aria-hidden="true" className="h-4 w-4" />,
+      completed: hasRunVerification,
+    },
+  ];
 
   const completedCount = steps.filter((s) => s.completed).length;
   const progressPercent = (completedCount / steps.length) * 100;
   const allCompleted = completedCount === steps.length;
 
-  // Auto-dismiss when all steps are completed (advanced-init-once)
+  // Auto-dismiss when all steps are completed
   useEffect(() => {
-    if (allCompleted && !hasAutoDismissedRef.current) {
-      hasAutoDismissedRef.current = true;
+    if (allCompleted && !isDismissed) {
       dismissOnboarding();
       setIsDismissed(true);
     }
-  }, [allCompleted]);
+  }, [allCompleted, isDismissed]);
 
   const handleDismiss = async () => {
     setIsDismissing(true);
     try {
       await dismissOnboarding();
       setIsDismissed(true);
-    } catch {
-      // Dismiss errors are non-critical - UI state remains unchanged
-      // Error monitoring should be handled via APM at a higher level
+    } catch (error) {
+      // Log dismiss errors for monitoring, UI state remains unchanged
+      console.error('[OnboardingChecklist] Failed to dismiss:', error);
     } finally {
       setIsDismissing(false);
     }

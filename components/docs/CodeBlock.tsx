@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback, memo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Check, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCopyToClipboard } from '@/hooks';
@@ -13,8 +13,7 @@ interface CodeBlockProps {
   className?: string;
 }
 
-// Wrap in memo to prevent unnecessary re-renders when parent components update (rerender-memo)
-export const CodeBlock = memo(function CodeBlock({
+export function CodeBlock({
   code,
   language = 'text',
   filename,
@@ -32,12 +31,12 @@ export const CodeBlock = memo(function CodeBlock({
   return (
     <div className={cn('group relative my-4 overflow-hidden rounded-lg border border-border bg-muted/50', className)}>
       {/* Header */}
-      {filename ? (
+      {filename && (
         <div className="flex items-center justify-between border-b border-border bg-muted px-4 py-2">
           <span className="text-xs font-medium text-muted-foreground">{filename}</span>
           <span className="text-xs text-muted-foreground">{language}</span>
         </div>
-      ) : null}
+      )}
 
       {/* Copy button */}
       <button
@@ -73,4 +72,4 @@ export const CodeBlock = memo(function CodeBlock({
       </div>
     </div>
   );
-});
+}

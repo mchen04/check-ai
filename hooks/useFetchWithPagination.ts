@@ -12,7 +12,7 @@
  * - Optional data transformation
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
 // =============================================================================
 // TYPES
@@ -126,26 +126,26 @@ export function useFetchWithPagination<
     buildQueryParamsRef.current = buildQueryParams;
   }, [buildQueryParams]);
 
-  // Computed values - simple expressions, no memo needed
-  const totalPages = Math.ceil(total / pageSize);
+  // Computed values
+  const totalPages = useMemo(() => Math.ceil(total / pageSize), [total, pageSize]);
 
-  const pagination: PaginationState = {
-    page,
-    pageSize,
-    total,
-    totalPages,
-  };
+  const pagination: PaginationState = useMemo(
+    () => ({
+      page,
+      pageSize,
+      total,
+      totalPages,
+    }),
+    [page, pageSize, total, totalPages]
+  );
 
-  const hasActiveFilters = (() => {
+  const hasActiveFilters = useMemo(() => {
     const initial = initialFiltersRef.current;
     const hasFilterChanges = Object.keys(filters).some(
       (key) => filters[key as keyof Filters] !== initial[key as keyof Filters]
     );
     return hasFilterChanges || searchQuery !== '';
-  })();
-
-  // Serialize filters to stable string for useCallback dependency (rerender-dependencies)
-  const filtersKey = JSON.stringify(filters);
+  }, [filters, searchQuery]);
 
   // Debounce search
   useEffect(() => {
@@ -156,7 +156,7 @@ export function useFetchWithPagination<
     return () => clearTimeout(timer);
   }, [searchQuery, debounceMs]);
 
-  // Fetch function (uses filtersKey for stable dependency instead of filters object)
+  // Fetch function
   const fetchData = useCallback(async () => {
     // Cancel any in-flight request
     if (abortControllerRef.current) {
@@ -168,9 +168,6 @@ export function useFetchWithPagination<
     setError(null);
 
     try {
-      // Parse filters from serialized key for use in query
-      const parsedFilters = JSON.parse(filtersKey) as Filters;
-
       // Build query params
       const params = new URLSearchParams({
         limit: pageSize.toString(),
@@ -184,7 +181,7 @@ export function useFetchWithPagination<
 
       // Add custom filter params
       if (buildQueryParamsRef.current) {
-        const customParams = buildQueryParamsRef.current(parsedFilters, debouncedSearch);
+        const customParams = buildQueryParamsRef.current(filters, debouncedSearch);
         Object.entries(customParams).forEach(([key, value]) => {
           if (value) {
             params.set(key, value);
@@ -210,13 +207,12 @@ export function useFetchWithPagination<
       if (err instanceof Error && err.name === 'AbortError') {
         return;
       }
-      // Error is captured in state and displayed to user via error UI
-      // APM/error monitoring should be handled at a higher level
+      console.error(`Error fetching from ${endpoint}:`, err);
       setError(err instanceof Error ? err : new Error('Unknown error'));
     } finally {
       setIsLoading(false);
     }
-  }, [endpoint, page, pageSize, debouncedSearch, filtersKey]);
+  }, [endpoint, page, pageSize, debouncedSearch, filters]);
 
   // Fetch on mount and when dependencies change
   useEffect(() => {

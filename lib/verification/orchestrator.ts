@@ -333,10 +333,7 @@ export class VerificationOrchestrator {
       available.push('reasoning', 'tool', 'biprm', 'entropy', 'formal');
 
       // Ensemble requires at least 2 providers ideally
-      let providerCount = 0;
-      for (const key of Object.values(this.keys)) {
-        if (key) providerCount++;
-      }
+      const providerCount = Object.values(this.keys).filter(Boolean).length;
       if (providerCount >= 2) {
         available.push('ensemble');
       } else if (this.keys.openai) {

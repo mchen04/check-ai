@@ -1,14 +1,14 @@
-import { Chrome, Github } from 'lucide-react';
+import { FaGoogle, FaGithub } from 'react-icons/fa';
 import { signInWithGithub, signInWithGoogle } from '@/app/auth/actions';
 import { Button } from '@/components/ui/button';
 
 export default function ProviderSigninBlock() {
-  const isGoogleEnabled = Boolean(process.env.GOOGLE_OAUTH_CLIENT_ID);
-  const isGithubEnabled = Boolean(process.env.GITHUB_OAUTH_CLIENT_ID);
+  const isGoogleEnabled = !!process.env.GOOGLE_OAUTH_CLIENT_ID;
+  const isGithubEnabled = !!process.env.GITHUB_OAUTH_CLIENT_ID;
 
   return (
     <div className="flex flex-row gap-4">
-      {isGoogleEnabled ? (
+      {isGoogleEnabled && (
         <form action={signInWithGoogle} className="flex-1">
           <Button
             variant="outline"
@@ -16,11 +16,11 @@ export default function ProviderSigninBlock() {
             type="submit"
             className="w-full"
           >
-            <Chrome className="h-4 w-4" />
+            <FaGoogle className="h-4 w-4" />
           </Button>
         </form>
-      ) : null}
-      {isGithubEnabled ? (
+      )}
+      {isGithubEnabled && (
         <form action={signInWithGithub} className="flex-1">
           <Button
             variant="outline"
@@ -28,10 +28,10 @@ export default function ProviderSigninBlock() {
             type="submit"
             className="w-full"
           >
-            <Github className="h-4 w-4" />
+            <FaGithub className="h-4 w-4" />
           </Button>
         </form>
-      ) : null}
+      )}
     </div>
   );
 }

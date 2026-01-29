@@ -15,40 +15,37 @@ import { withDashboardAuth, type DashboardRequest, parseAndValidate, errorRespon
 async function getHandler(req: DashboardRequest) {
   const { context } = req;
 
-  // Fetch members and pending invites in parallel (server-parallel-fetching)
-  const [members, pendingInvites] = await Promise.all([
-    // Get all members with user details
-    db
-      .select({
-        id: usersTable.id,
-        name: usersTable.name,
-        email: usersTable.email,
-        role: orgMembersTable.role,
-        joinedAt: orgMembersTable.createdAt,
-      })
-      .from(orgMembersTable)
-      .innerJoin(usersTable, eq(orgMembersTable.userId, usersTable.id))
-      .where(eq(orgMembersTable.orgId, context.orgId))
-      .orderBy(desc(orgMembersTable.createdAt)),
+  // Get all members with user details
+  const members = await db
+    .select({
+      id: usersTable.id,
+      name: usersTable.name,
+      email: usersTable.email,
+      role: orgMembersTable.role,
+      joinedAt: orgMembersTable.createdAt,
+    })
+    .from(orgMembersTable)
+    .innerJoin(usersTable, eq(orgMembersTable.userId, usersTable.id))
+    .where(eq(orgMembersTable.orgId, context.orgId))
+    .orderBy(desc(orgMembersTable.createdAt));
 
-    // Get pending invites
-    db
-      .select({
-        id: orgInvitesTable.id,
-        email: orgInvitesTable.email,
-        role: orgInvitesTable.role,
-        invitedAt: orgInvitesTable.createdAt,
-        expiresAt: orgInvitesTable.expiresAt,
-      })
-      .from(orgInvitesTable)
-      .where(
-        and(
-          eq(orgInvitesTable.orgId, context.orgId),
-          eq(orgInvitesTable.status, 'pending')
-        )
+  // Get pending invites
+  const pendingInvites = await db
+    .select({
+      id: orgInvitesTable.id,
+      email: orgInvitesTable.email,
+      role: orgInvitesTable.role,
+      invitedAt: orgInvitesTable.createdAt,
+      expiresAt: orgInvitesTable.expiresAt,
+    })
+    .from(orgInvitesTable)
+    .where(
+      and(
+        eq(orgInvitesTable.orgId, context.orgId),
+        eq(orgInvitesTable.status, 'pending')
       )
-      .orderBy(desc(orgInvitesTable.createdAt)),
-  ]);
+    )
+    .orderBy(desc(orgInvitesTable.createdAt));
 
   return NextResponse.json({
     members,
@@ -81,35 +78,16 @@ async function postHandler(req: DashboardRequest) {
 
   const { email, role } = result.data;
 
-  // Check for existing user and pending invite in parallel (async-parallel)
-  // The member check has a true dependency on userId, so it must be sequential
-  const [existingUser, existingInvite] = await Promise.all([
-    db
-      .select({ id: usersTable.id })
-      .from(usersTable)
-      .where(eq(usersTable.email, email.toLowerCase()))
-      .limit(1),
-    db
-      .select({ id: orgInvitesTable.id })
-      .from(orgInvitesTable)
-      .where(
-        and(
-          eq(orgInvitesTable.orgId, context.orgId),
-          eq(orgInvitesTable.email, email.toLowerCase()),
-          eq(orgInvitesTable.status, 'pending')
-        )
-      )
-      .limit(1),
-  ]);
+  // Check if user is already a member
+  const existingUser = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(eq(usersTable.email, email.toLowerCase()))
+    .limit(1);
 
-  if (existingInvite.length > 0) {
-    return errorResponse.conflict('An invite is already pending for this email');
-  }
-
-  // Check if existing user is already a member (sequential - true dependency on userId)
   if (existingUser.length > 0) {
-    const [existingMember] = await db
-      .select({ usrId: orgMembersTable.userId })
+    const existingMember = await db
+      .select()
       .from(orgMembersTable)
       .where(
         and(
@@ -119,9 +97,26 @@ async function postHandler(req: DashboardRequest) {
       )
       .limit(1);
 
-    if (existingMember) {
+    if (existingMember.length > 0) {
       return errorResponse.conflict('User is already a member of this organization');
     }
+  }
+
+  // Check for existing pending invite
+  const existingInvite = await db
+    .select()
+    .from(orgInvitesTable)
+    .where(
+      and(
+        eq(orgInvitesTable.orgId, context.orgId),
+        eq(orgInvitesTable.email, email.toLowerCase()),
+        eq(orgInvitesTable.status, 'pending')
+      )
+    )
+    .limit(1);
+
+  if (existingInvite.length > 0) {
+    return errorResponse.conflict('An invite is already pending for this email');
   }
 
   // Generate secure token
@@ -153,29 +148,21 @@ async function postHandler(req: DashboardRequest) {
     changes: { after: { email, role } },
   });
 
-  // Send invite email (fire-and-forget, don't block response)
-  sendInviteEmail({
+  // Send invite email (non-blocking - invite is still created if email fails)
+  await sendInviteEmail({
     to: email,
     inviteUrl,
     organizationName: context.organization.name,
     role,
-  }).catch(() => {
-    // Email failure is logged by the email service, don't block invite creation
   });
 
-  // Only include inviteUrl in development for testing
-  const response: Record<string, unknown> = {
+  return NextResponse.json({
     id: invite.id,
     email: invite.email,
     role: invite.role,
     expiresAt: invite.expiresAt.toISOString(),
-  };
-
-  if (process.env.NODE_ENV === 'development') {
-    response.inviteUrl = inviteUrl;
-  }
-
-  return NextResponse.json(response);
+    inviteUrl, // Include for testing/development
+  });
 }
 
 export const POST = withDashboardAuth(postHandler, { permission: 'team:invite', requireProPlan: true });

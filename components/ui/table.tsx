@@ -39,19 +39,13 @@ const TableFooter = React.forwardRef<
 TableFooter.displayName = 'TableFooter';
 
 const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(
-  ({ className, style, ...props }, ref) => (
+  ({ className, ...props }, ref) => (
     <tr
       ref={ref}
       className={cn(
         'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
         className
       )}
-      // Add content-visibility for better scroll performance on long lists (rendering-content-visibility)
-      style={{
-        contentVisibility: 'auto',
-        containIntrinsicBlockSize: '53px', // Approximate row height
-        ...style,
-      }}
       {...props}
     />
   )

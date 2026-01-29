@@ -15,40 +15,25 @@ interface CodeTabsProps {
   className?: string;
 }
 
-// Versioned storage key - increment version when schema changes
-const STORAGE_VERSION = 'v1';
-const STORAGE_KEY = `docs-preferred-language:${STORAGE_VERSION}`;
+const STORAGE_KEY = 'docs-preferred-language';
 
 export function CodeTabs({ examples, className }: CodeTabsProps) {
-  // Use lazy initialization to read localStorage once on mount (rerender-lazy-state-init)
-  // This avoids unnecessary useEffect and prevents hydration issues
-  const [activeTab, setActiveTab] = useState(() => {
-    // Only run on client side
-    if (typeof window === 'undefined') return 0;
+  const [activeTab, setActiveTab] = useState(0);
 
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        // Build Map for O(1) lookup instead of findIndex (js-index-maps)
-        const languageToIndex = new Map(examples.map((e, i) => [e.language, i]));
-        const index = languageToIndex.get(saved);
-        if (index !== undefined) {
-          return index;
-        }
+  // Load preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const index = examples.findIndex((e) => e.language === saved);
+      if (index >= 0) {
+        setActiveTab(index);
       }
-    } catch {
-      // localStorage not available (incognito mode, storage disabled, etc.)
     }
-    return 0;
-  });
+  }, [examples]);
 
   function handleTabChange(index: number) {
     setActiveTab(index);
-    try {
-      localStorage.setItem(STORAGE_KEY, examples[index].language);
-    } catch {
-      // localStorage not available (incognito mode, storage disabled, quota exceeded, etc.)
-    }
+    localStorage.setItem(STORAGE_KEY, examples[index].language);
   }
 
   return (

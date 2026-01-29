@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import dynamic from 'next/dynamic';
 import {
   BarChart3,
@@ -30,7 +30,6 @@ import {
 import { EmptyState, ErrorState } from '@/components/ui/empty-state';
 import { getErrorMessage } from '@/lib/utils';
 import { TimeRangeSelector } from '@/components/charts/time-range-selector';
-import { useAnalytics } from '@/lib/swr';
 import type { TimeRange, AdvancedAnalyticsData } from '@/lib/analytics';
 
 // Dynamic imports for heavy chart components (uses Recharts ~200KB)
@@ -99,22 +98,38 @@ const SummaryCard = memo(function SummaryCard({ title, value, icon, description,
 
 export function AdvancedAnalyticsSection() {
   const [range, setRange] = useState<TimeRange>('7d');
+  const [data, setData] = useState<AdvancedAnalyticsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Use SWR for automatic request deduplication and caching (client-swr-dedup)
-  // Only fetch when expanded
-  const { advanced: data, isLoading, error, mutate } = useAnalytics(
-    range,
-    isExpanded // Only include advanced data when expanded
-  );
+  const fetchAdvancedAnalytics = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `/api/dashboard/analytics?range=${range}&advanced=true`
+      );
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to load advanced analytics');
+      }
+      const result = await response.json();
+      setData(result.advanced);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [range]);
 
-  const handleRefresh = useCallback(() => {
-    mutate();
-  }, [mutate]);
+  useEffect(() => {
+    if (isExpanded) {
+      fetchAdvancedAnalytics();
+    }
+  }, [fetchAdvancedAnalytics, isExpanded]);
 
-  // Cast to proper type
-  const typedData = data as AdvancedAnalyticsData | null;
-  const summary = typedData?.advancedSummary;
+  const summary = data?.advancedSummary;
 
   return (
     <div className="mb-6">
@@ -154,7 +169,7 @@ export function AdvancedAnalyticsSection() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={handleRefresh}
+                    onClick={fetchAdvancedAnalytics}
                     disabled={isLoading}
                     aria-label="Refresh advanced analytics"
                   >
@@ -167,7 +182,7 @@ export function AdvancedAnalyticsSection() {
               </div>
 
               {error ? (
-                <ChartErrorState message={error} onRetry={handleRefresh} />
+                <ChartErrorState message={error} onRetry={fetchAdvancedAnalytics} />
               ) : (
                 <>
                   {/* Summary Cards */}
@@ -213,10 +228,10 @@ export function AdvancedAnalyticsSection() {
                       <CardContent className="p-4 pt-0">
                         {isLoading ? (
                           <ChartSkeleton />
-                        ) : !typedData?.paradigmFPR.length ? (
+                        ) : !data?.paradigmFPR.length ? (
                           <ChartEmptyState message="No resolved escalations yet" />
                         ) : (
-                          <FPRChart data={typedData.paradigmFPR} threshold={0.1} />
+                          <FPRChart data={data.paradigmFPR} threshold={0.1} />
                         )}
                       </CardContent>
                     </Card>
@@ -232,10 +247,10 @@ export function AdvancedAnalyticsSection() {
                       <CardContent className="p-4 pt-0">
                         {isLoading ? (
                           <ChartSkeleton />
-                        ) : !typedData?.costEfficiency.length ? (
+                        ) : !data?.costEfficiency.length ? (
                           <ChartEmptyState />
                         ) : (
-                          <CostEfficiencyChart data={typedData.costEfficiency} />
+                          <CostEfficiencyChart data={data.costEfficiency} />
                         )}
                       </CardContent>
                     </Card>
@@ -251,17 +266,17 @@ export function AdvancedAnalyticsSection() {
                       <CardContent className="p-4 pt-0">
                         {isLoading ? (
                           <ChartSkeleton height="h-[180px]" />
-                        ) : !typedData?.calibration.length ? (
+                        ) : !data?.calibration.length ? (
                           <ChartEmptyState message="Not enough data for calibration" />
                         ) : (
-                          <CalibrationChart data={typedData.calibration} />
+                          <CalibrationChart data={data.calibration} />
                         )}
                       </CardContent>
                     </Card>
                   </div>
 
                   {/* Calibration Details */}
-                  {typedData?.calibration && typedData.calibration.length > 0 && !isLoading && (
+                  {data?.calibration && data.calibration.length > 0 && !isLoading && (
                     <Card>
                       <CardHeader className="py-3 px-4">
                         <CardTitle className="text-sm">Calibration Status</CardTitle>
@@ -271,7 +286,7 @@ export function AdvancedAnalyticsSection() {
                       </CardHeader>
                       <CardContent className="p-4 pt-0">
                         <div className="space-y-2">
-                          {typedData.calibration.map((paradigm) => (
+                          {data.calibration.map((paradigm) => (
                             <div
                               key={paradigm.paradigmType}
                               className="flex items-center justify-between rounded-md border px-3 py-2.5"

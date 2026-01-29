@@ -54,17 +54,9 @@ export const VerifyOptionsSchema = z
   )
   .optional();
 
-// Context value schema - restrict to safe primitive types
-const ContextValueSchema = z.union([
-  z.string().max(10000),
-  z.number(),
-  z.boolean(),
-  z.null(),
-]);
-
 export const VerifyRequestSchema = z.object({
-  content: z.string().min(1).max(50000), // Reduced from 100KB to 50KB for DoS protection
-  context: z.record(z.string().max(100), ContextValueSchema).optional(),
+  content: z.string().min(1).max(100000),
+  context: z.record(z.string(), z.unknown()).optional(),
   methods: MethodsConfigSchema,
   options: VerifyOptionsSchema,
   idempotencyKey: z.string().max(255).optional(),
@@ -135,9 +127,5 @@ export function getRequestedMethods(methods: MethodsConfig): string[] {
  * Count the number of methods with weight > 0
  */
 export function getMethodsCount(methods: MethodsConfig): number {
-  let count = 0;
-  for (const w of Object.values(methods)) {
-    if (w !== undefined && w > 0) count++;
-  }
-  return count;
+  return Object.values(methods).filter((w) => w !== undefined && w > 0).length;
 }

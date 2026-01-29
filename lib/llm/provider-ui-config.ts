@@ -160,11 +160,10 @@ export const PROVIDER_UI_CONFIG: Record<LLMProvider, ProviderUIConfig> = Object.
 /**
  * Provider options for select/dropdown components
  * Sorted by: recommended first, then by tier, then alphabetically
- * Uses toSorted() for immutability (js-tosorted-immutable)
  */
 export const PROVIDER_OPTIONS: ProviderSelectOption[] = Object.values(PROVIDER_UI_CONFIG)
   .filter((p) => !p.enterprise) // Exclude enterprise providers from default list
-  .toSorted((a, b) => {
+  .sort((a, b) => {
     // Recommended first
     if (a.recommended && !b.recommended) return -1;
     if (!a.recommended && b.recommended) return 1;
@@ -181,10 +180,9 @@ export const PROVIDER_OPTIONS: ProviderSelectOption[] = Object.values(PROVIDER_U
 
 /**
  * All provider options including enterprise providers
- * Uses toSorted() for immutability (js-tosorted-immutable)
  */
 export const ALL_PROVIDER_OPTIONS: ProviderSelectOption[] = Object.values(PROVIDER_UI_CONFIG)
-  .toSorted((a, b) => {
+  .sort((a, b) => {
     if (a.recommended && !b.recommended) return -1;
     if (!a.recommended && b.recommended) return 1;
     if (a.tier !== b.tier) return a.tier - b.tier;

@@ -181,36 +181,13 @@ export async function getEscalationStats(orgId: string): Promise<EscalationStats
 }
 
 /**
- * Get escalation by ID with org validation
- * @deprecated Use getEscalationByIdAndOrg for secure access with org validation
+ * Get escalation by ID
  */
-export async function getEscalation(
-  id: string,
-  orgId: string
-): Promise<EscalationRecord | null> {
-  // Always require org validation to prevent unauthorized access
+export async function getEscalation(id: string): Promise<EscalationRecord | null> {
   const [escalation] = await db
-    .select({
-      id: escalationsTable.id,
-      verificationId: escalationsTable.verificationId,
-      reason: escalationsTable.reason,
-      details: escalationsTable.details,
-      priority: escalationsTable.priority,
-      deadline: escalationsTable.deadline,
-      resolvedAt: escalationsTable.resolvedAt,
-      resolvedBy: escalationsTable.resolvedBy,
-      resolution: escalationsTable.resolution,
-      humanVerdict: escalationsTable.humanVerdict,
-      createdAt: escalationsTable.createdAt,
-    })
+    .select()
     .from(escalationsTable)
-    .innerJoin(
-      verificationsTable,
-      eq(escalationsTable.verificationId, verificationsTable.id)
-    )
-    .where(
-      and(eq(escalationsTable.id, id), eq(verificationsTable.orgId, orgId))
-    )
+    .where(eq(escalationsTable.id, id))
     .limit(1);
 
   return escalation as EscalationRecord | null;

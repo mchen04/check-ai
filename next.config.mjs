@@ -1,9 +1,3 @@
-import withBundleAnalyzer from '@next/bundle-analyzer';
-
-const bundleAnalyzer = withBundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
-});
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Image optimization configuration
@@ -27,23 +21,7 @@ const nextConfig = {
 
   // Experimental features for better performance
   experimental: {
-    optimizePackageImports: [
-      'lucide-react',
-      '@radix-ui/react-icons',
-      '@radix-ui/react-dropdown-menu',
-      '@radix-ui/react-dialog',
-      '@radix-ui/react-tooltip',
-      '@radix-ui/react-select',
-      '@radix-ui/react-tabs',
-      '@radix-ui/react-collapsible',
-      '@radix-ui/react-checkbox',
-      '@radix-ui/react-switch',
-      '@radix-ui/react-slider',
-      '@radix-ui/react-radio-group',
-      '@radix-ui/react-alert-dialog',
-      'recharts',
-      'date-fns',
-    ],
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
 
   async headers() {

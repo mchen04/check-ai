@@ -127,54 +127,40 @@ export default async function EscalationsPage() {
     .orderBy(desc(escalationsTable.priority), desc(escalationsTable.createdAt))
     .limit(100);
 
-  // Transform escalations - minimize data for client (server-serialization)
-  // Pre-filter into pending/resolved to avoid client-side filtering (server-dedup-props)
-  const pendingEscalations: Array<{
-    id: string;
-    verificationId: string;
-    reason: string;
-    status: 'pending' | 'resolved' | 'dismissed';
-    priority: number;
-    createdAt: Date;
-    humanVerdict: string | null;
-    confidence: number | null;
-    content: string;
-  }> = [];
-  const resolvedEscalations: typeof pendingEscalations = [];
-
-  // Single pass: transform and partition (js-combine-iterations)
-  for (const e of escalationsData) {
-    const status = getStatus(e.resolvedAt, e.humanVerdict as HumanVerdict | null);
-    const transformed = {
+  // Transform and sort: pending items first
+  // Using toSorted() for immutability (js-tosorted-immutable)
+  const escalations = escalationsData
+    .map((e) => ({
       id: e.id,
       verificationId: e.verificationId,
       reason: formatReason(e.reason),
-      status,
+      reasonRaw: e.reason,
+      status: getStatus(e.resolvedAt, e.humanVerdict as HumanVerdict | null),
       priority: e.priority,
       createdAt: e.createdAt,
+      resolvedAt: e.resolvedAt || undefined,
+      deadline: e.deadline || undefined,
       humanVerdict: e.humanVerdict,
-      confidence: e.verificationConfidence ? parseFloat(e.verificationConfidence) : null,
+      resolution: e.resolution,
       content: truncateString(e.verificationContent, 150, true),
-    };
+      confidence: e.verificationConfidence
+        ? parseFloat(e.verificationConfidence)
+        : null,
+    }))
+    .toSorted((a, b) => {
+      // Pending items first
+      if (a.status === 'pending' && b.status !== 'pending') return -1;
+      if (a.status !== 'pending' && b.status === 'pending') return 1;
+      // Then by priority (high first)
+      if (a.priority !== b.priority) return b.priority - a.priority;
+      // Then by date
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
-    if (status === 'pending') {
-      pendingEscalations.push(transformed);
-    } else {
-      resolvedEscalations.push(transformed);
-    }
-  }
-
-  // Sort each array (already pre-sorted by DB, but ensure priority ordering)
-  pendingEscalations.sort((a, b) => {
-    if (a.priority !== b.priority) return b.priority - a.priority;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
-  resolvedEscalations.sort((a, b) => {
-    if (a.priority !== b.priority) return b.priority - a.priority;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
-
-  const pendingCount = pendingEscalations.length;
+  // Count pending items
+  const pendingCount = escalations.filter((e) => e.status === 'pending').length;
+  const pendingEscalations = escalations.filter((e) => e.status === 'pending');
+  const resolvedEscalations = escalations.filter((e) => e.status !== 'pending');
 
   return (
     <div className="p-6">
@@ -199,7 +185,7 @@ export default async function EscalationsPage() {
       {/* Escalations List */}
       <Card>
         <div className="p-4">
-          {pendingEscalations.length === 0 && resolvedEscalations.length === 0 ? (
+          {escalations.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <CheckCircle2 className="mb-3 h-10 w-10 text-success/50" />
               <p className="mb-1 text-sm font-medium">No escalations</p>

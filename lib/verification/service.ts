@@ -107,9 +107,8 @@ export async function verify(input: VerifyServiceRequest): Promise<VerifyService
     }
   }
 
-  // Ensure at least one method is configured (single-pass check)
-  const hasEnabledMethod = effectiveMethods && Object.values(effectiveMethods).some((w) => w !== undefined && w > 0);
-  if (!hasEnabledMethod) {
+  // Ensure at least one method is configured
+  if (!effectiveMethods || Object.values(effectiveMethods).filter((w) => w !== undefined && w > 0).length === 0) {
     return {
       success: false,
       error: {
@@ -133,47 +132,42 @@ export async function verify(input: VerifyServiceRequest): Promise<VerifyService
     };
   }
 
-  // Start quota check in parallel with cache lookups (defer await until needed)
-  const quotaCheckPromise = checkMonthlyQuota(organization.id, organization.planType);
-
-  // Check caches in parallel - faster path for cache hits
-  const [cachedByKey, cachedByContent] = await Promise.all([
-    idempotencyKey ? findByIdempotencyKey(organization.id, idempotencyKey) : Promise.resolve(null),
-    getCachedVerification(content, effectiveMethods),
-  ]);
-
-  // Return cached result if idempotency key matches (highest priority)
-  if (cachedByKey) {
-    recordCacheHit();
-    return {
-      success: true,
-      data: formatCachedResponse(cachedByKey),
-    };
-  }
-
-  // Return cached result if content+methods matches
-  if (cachedByContent) {
-    recordCacheHit();
-    return {
-      success: true,
-      data: formatRedisCachedResponse(cachedByContent),
-    };
-  }
-
-  recordCacheMiss();
-
-  // Only check quota on cache miss (after cache checks complete)
-  const quotaCheck = await quotaCheckPromise;
+  // Check monthly quota
+  const quotaCheck = await checkMonthlyQuota(organization.id, organization.planType);
   if (!quotaCheck.allowed) {
     return {
       success: false,
       error: {
         type: 'quota_exceeded',
-        message: quotaCheck.error || 'Monthly quota exceeded',
+        message: quotaCheck.error!,
         details: { currentCount: quotaCheck.currentCount, limit: quotaCheck.limit },
       },
     };
   }
+
+  // Check idempotency - return cached result if exists
+  if (idempotencyKey) {
+    const cached = await findByIdempotencyKey(organization.id, idempotencyKey);
+    if (cached) {
+      recordCacheHit();
+      return {
+        success: true,
+        data: formatCachedResponse(cached),
+      };
+    }
+  }
+
+  // Check Redis cache for identical content + methods
+  const cachedResult = await getCachedVerification(content, effectiveMethods);
+  if (cachedResult) {
+    recordCacheHit();
+    return {
+      success: true,
+      data: formatRedisCachedResponse(cachedResult),
+    };
+  }
+
+  recordCacheMiss();
 
   // Get decrypted API keys for the organization
   const keys = await getDecryptedApiKeys(organization.id);
@@ -372,8 +366,8 @@ async function executeVerification(input: ExecuteVerificationInput): Promise<Exe
     0
   );
 
-  // Save verification result and broadcast in parallel (independent operations)
-  const savePromise = saveVerificationResult(verificationId, orgId, {
+  // Save verification result to database
+  await saveVerificationResult(verificationId, orgId, {
     status: shouldEscalate ? 'escalated' : 'completed',
     verdict: result.verdict,
     confidence: result.confidence,
@@ -386,7 +380,7 @@ async function executeVerification(input: ExecuteVerificationInput): Promise<Exe
     totalOutputTokens,
   });
 
-  // Broadcast is fire-and-forget (non-blocking)
+  // Broadcast final result to real-time subscribers
   broadcastFinalResult(verificationId, {
     verdict: result.verdict,
     confidence: result.confidence,
@@ -395,23 +389,17 @@ async function executeVerification(input: ExecuteVerificationInput): Promise<Exe
     costCents: Math.round(result.costCents),
   });
 
-  // Create escalation in parallel with save if needed (fire-and-forget)
-  const escalationPromise = shouldEscalate
-    ? createEscalation({
-        verificationId,
-        confidence: result.confidence,
-        paradigmResults: result.paradigmResults,
-        orgId,
-        organizationName,
-        content,
-      }).catch((err) => {
-        // Log but don't fail verification if escalation creation fails
-        console.error('Failed to create escalation:', err);
-      })
-    : Promise.resolve();
-
-  // Wait for save to complete (required), escalation is best-effort
-  await Promise.all([savePromise, escalationPromise]);
+  // Create escalation record if verification needs human review
+  if (shouldEscalate) {
+    await createEscalation({
+      verificationId,
+      confidence: result.confidence,
+      paradigmResults: result.paradigmResults,
+      orgId,
+      organizationName,
+      content,
+    });
+  }
 
   return {
     status: shouldEscalate ? 'escalated' : 'completed',

@@ -151,9 +151,8 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
         setHasMoreItems(data.pagination.hasMore);
         setItemsPage(page);
         currentPageRef.current = page;
-      } catch (err) {
-        // Log fetch errors for debugging, but don't show error UI for items
-        console.error('Failed to fetch batch items:', err);
+      } catch {
+        // Fetch errors are handled silently - empty state will be shown
       }
     },
     [id]
@@ -164,33 +163,27 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
     fetchItems();
   }, [fetchBatch, fetchItems]);
 
-  // Update batch from live status - use primitive dependencies to avoid unnecessary re-runs (rerender-dependencies)
-  const batchId = batch?.id;
-  const progressProcessed = liveStatus.progress?.processed;
-  const progressSuccess = liveStatus.progress?.success;
-  const progressFailed = liveStatus.progress?.failed;
-  const isComplete = liveStatus.isComplete;
-
+  // Update batch from live status
   useEffect(() => {
-    if (progressProcessed !== undefined && batchId) {
+    if (liveStatus.progress && batch) {
       setBatch((prev) =>
         prev
           ? {
               ...prev,
-              processedItems: progressProcessed,
-              successCount: progressSuccess ?? prev.successCount,
-              failureCount: progressFailed ?? prev.failureCount,
+              processedItems: liveStatus.progress.processed,
+              successCount: liveStatus.progress.success,
+              failureCount: liveStatus.progress.failed,
             }
           : null
       );
     }
 
-    if (isComplete && batchId) {
+    if (liveStatus.isComplete && batch) {
       // Refetch to get final state
       fetchBatch();
       fetchItems(1, false);
     }
-  }, [progressProcessed, progressSuccess, progressFailed, isComplete, batchId, fetchBatch, fetchItems]);
+  }, [liveStatus, batch, fetchBatch, fetchItems]);
 
   // Poll for updates when processing or validating (fallback if live updates fail)
   useEffect(() => {
@@ -250,26 +243,15 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
     const a = document.createElement('a');
     a.href = url;
     a.download = `batch-${id}-results.csv`;
-    document.body.appendChild(a);
-    try {
-      a.click();
-    } finally {
-      URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    }
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   if (isLoading) {
     return (
       <div className="p-4">
-        <div
-          className="flex h-32 items-center justify-center"
-          role="status"
-          aria-live="polite"
-          aria-label="Loading batch details"
-        >
-          <Clock className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden="true" suppressHydrationWarning />
-          <span className="sr-only">Loading batch details...</span>
+        <div className="flex h-32 items-center justify-center">
+          <Clock className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       </div>
     );
@@ -289,8 +271,6 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
     );
   }
 
-  // Derived state - simple expressions computed each render
-  // (useMemo would require moving before early returns, not worth the complexity for simple calculations)
   const isProcessing = batch.status === 'processing' || batch.status === 'pending' || batch.status === 'validating';
   const progress = batch.totalItems > 0 ? (batch.processedItems / batch.totalItems) * 100 : 0;
 
@@ -309,7 +289,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopyId} aria-label="Copy batch ID">
                 <Copy className="h-4 w-4" />
               </Button>
-              {copied ? <span className="text-xs text-success">Copied!</span> : null}
+              {copied && <span className="text-xs text-success">Copied!</span>}
             </div>
           </div>
         </div>

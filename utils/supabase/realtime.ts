@@ -330,7 +330,6 @@ export function createVerificationSubscription(
     onParadigmComplete?: (data: VerificationUpdate['data']) => void;
     onFinalResult?: (data: VerificationUpdate['data']) => void;
     onError?: (error: Error) => void;
-    onSubscribed?: () => void;
   }
 ): RealtimeChannel {
   const channel = client.channel(`verification:${verificationId}`);
@@ -346,9 +345,7 @@ export function createVerificationSubscription(
       callbacks.onFinalResult?.(payload.data);
     })
     .subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        callbacks.onSubscribed?.();
-      } else if (status === 'CHANNEL_ERROR') {
+      if (status === 'CHANNEL_ERROR') {
         callbacks.onError?.(new Error('Failed to subscribe to verification channel'));
       }
     });

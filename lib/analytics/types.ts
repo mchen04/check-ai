@@ -1,4 +1,4 @@
-import { subDays } from 'date-fns/subDays';
+import { subDays } from 'date-fns';
 
 export type TimeRange = '7d' | '30d' | '90d';
 

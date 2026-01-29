@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { BarChart3, RefreshCw, AlertCircle } from 'lucide-react';
 import {
@@ -15,7 +15,6 @@ import { Button } from '@/components/ui/button';
 import { EmptyState, ErrorState } from '@/components/ui/empty-state';
 import { getErrorMessage } from '@/lib/utils';
 import { TimeRangeSelector } from '@/components/charts/time-range-selector';
-import { useAnalytics } from '@/lib/swr';
 import type { TimeRange, AnalyticsData } from '@/lib/analytics';
 
 // Dynamic imports for heavy chart components (uses Recharts ~200KB)
@@ -57,16 +56,31 @@ const ChartErrorState = memo(function ChartErrorState({ message, onRetry }: { me
 
 export function AnalyticsSection() {
   const [range, setRange] = useState<TimeRange>('7d');
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Use SWR for automatic request deduplication and caching (client-swr-dedup)
-  const { data: rawData, isLoading, error, mutate } = useAnalytics(range);
+  const fetchAnalytics = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/dashboard/analytics?range=${range}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch analytics');
+      }
+      const result = await response.json();
+      setData(result.data);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [range]);
 
-  // Cast to proper type
-  const data = rawData as AnalyticsData | null;
-
-  const handleRefresh = useCallback(() => {
-    mutate();
-  }, [mutate]);
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
 
   return (
     <div className="mb-6 space-y-4">
@@ -82,7 +96,7 @@ export function AnalyticsSection() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleRefresh}
+            onClick={fetchAnalytics}
             disabled={isLoading}
             aria-label="Refresh analytics"
           >
@@ -95,7 +109,7 @@ export function AnalyticsSection() {
       {error ? (
         <Card>
           <CardContent className="p-6">
-            <ChartErrorState message={error} onRetry={handleRefresh} />
+            <ChartErrorState message={error} onRetry={fetchAnalytics} />
           </CardContent>
         </Card>
       ) : (

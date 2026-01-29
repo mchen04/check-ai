@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Play, Copy, Code, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -177,28 +177,24 @@ export default function PlaygroundPage() {
   // Use real-time updates for in-progress verification
   const liveStatus = useVerificationStatus(isSubmitting && verificationId ? verificationId : null);
 
-  // Mark playground as visited for onboarding (with guard to prevent double execution in StrictMode)
-  const hasMarkedPlayground = useRef(false);
+  // Mark playground as visited for onboarding
   useEffect(() => {
-    if (hasMarkedPlayground.current) return;
-    hasMarkedPlayground.current = true;
     markOnboardingStep('hasVisitedPlayground');
   }, []);
 
-  // Memoized handlers to prevent unnecessary re-renders
-  const handleMethodToggle = useCallback((method: keyof MethodsState) => {
+  const handleMethodToggle = (method: keyof MethodsState) => {
     setMethods((prev) => ({
       ...prev,
       [method]: { ...prev[method], enabled: !prev[method].enabled },
     }));
-  }, []);
+  };
 
-  const handleWeightChange = useCallback((method: keyof MethodsState, value: number) => {
+  const handleWeightChange = (method: keyof MethodsState, value: number) => {
     setMethods((prev) => ({
       ...prev,
       [method]: { ...prev[method], weight: value },
     }));
-  }, []);
+  };
 
   const buildMethodsConfig = (): Record<string, number> => {
     const config: Record<string, number> = {};
@@ -311,11 +307,7 @@ console.log(result);`;
     }
   };
 
-  // Count enabled methods with single loop instead of filter
-  let enabledMethodsCount = 0;
-  for (const m of Object.values(methods)) {
-    if (m.enabled) enabledMethodsCount++;
-  }
+  const enabledMethodsCount = Object.values(methods).filter((m) => m.enabled).length;
 
   return (
     <div className="p-6">
@@ -352,7 +344,7 @@ console.log(result);`;
                 </Button>
               </div>
 
-              {showCodeSnippet ? (
+              {showCodeSnippet && (
                 <div className="mt-4">
                   <div className="mb-2 flex items-center justify-between">
                     <span className="text-sm font-medium">API Code Snippet</span>
@@ -365,7 +357,7 @@ console.log(result);`;
                     {generateCodeSnippet()}
                   </pre>
                 </div>
-              ) : null}
+              )}
             </CardContent>
           </Card>
 

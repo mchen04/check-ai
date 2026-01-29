@@ -40,9 +40,6 @@ const FALSEHOOD_INDICATORS = [
 export class SemanticParadigm implements ParadigmExecutor {
   name = 'semantic' as const;
   private openaiClient: OpenAI | null = null;
-  // Cache reference embeddings to avoid redundant API calls
-  private truthEmbeddingsCache: number[][] | null = null;
-  private falsehoodEmbeddingsCache: number[][] | null = null;
 
   constructor(apiKey?: string) {
     if (apiKey) {
@@ -67,24 +64,18 @@ export class SemanticParadigm implements ParadigmExecutor {
         this.openaiClient = new OpenAI({ apiKey });
       }
 
-      // Cache reference embeddings (fetch once, reuse for all verifications)
-      if (!this.truthEmbeddingsCache) {
-        this.truthEmbeddingsCache = await Promise.all(
-          TRUTH_INDICATORS.map((t) => this.getEmbedding(t))
-        );
-      }
-      if (!this.falsehoodEmbeddingsCache) {
-        this.falsehoodEmbeddingsCache = await Promise.all(
-          FALSEHOOD_INDICATORS.map((f) => this.getEmbedding(f))
-        );
-      }
-
-      // Get embedding for the content (only API call needed per verification)
+      // Get embedding for the content
       const contentEmbedding = await this.getEmbedding(content);
 
-      // Calculate average similarity to cached truth and falsehood indicators
-      const truthSimilarity = this.averageSimilarity(contentEmbedding, this.truthEmbeddingsCache);
-      const falsehoodSimilarity = this.averageSimilarity(contentEmbedding, this.falsehoodEmbeddingsCache);
+      // Get embeddings for truth and falsehood indicators
+      const truthEmbeddings = await Promise.all(TRUTH_INDICATORS.map((t) => this.getEmbedding(t)));
+      const falsehoodEmbeddings = await Promise.all(
+        FALSEHOOD_INDICATORS.map((f) => this.getEmbedding(f))
+      );
+
+      // Calculate average similarity to truth and falsehood indicators
+      const truthSimilarity = this.averageSimilarity(contentEmbedding, truthEmbeddings);
+      const falsehoodSimilarity = this.averageSimilarity(contentEmbedding, falsehoodEmbeddings);
 
       // Determine verdict based on similarity scores
       let verdict: Verdict;
@@ -147,8 +138,7 @@ export class SemanticParadigm implements ParadigmExecutor {
   }
 
   private cosineSimilarity(a: number[], b: number[]): number {
-    const len = a.length;
-    if (len !== b.length) {
+    if (a.length !== b.length) {
       throw new Error('Vectors must have the same length');
     }
 
@@ -156,7 +146,7 @@ export class SemanticParadigm implements ParadigmExecutor {
     let normA = 0;
     let normB = 0;
 
-    for (let i = 0; i < len; i++) {
+    for (let i = 0; i < a.length; i++) {
       dotProduct += a[i] * b[i];
       normA += a[i] * a[i];
       normB += b[i] * b[i];
@@ -165,15 +155,9 @@ export class SemanticParadigm implements ParadigmExecutor {
     return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
   }
 
-  // Single-pass calculation of average similarity (js-combine-iterations)
   private averageSimilarity(embedding: number[], references: number[][]): number {
-    if (references.length === 0) return 0;
-
-    let sum = 0;
-    for (const ref of references) {
-      sum += this.cosineSimilarity(embedding, ref);
-    }
-    return sum / references.length;
+    const similarities = references.map((ref) => this.cosineSimilarity(embedding, ref));
+    return similarities.reduce((a, b) => a + b, 0) / similarities.length;
   }
 }
 

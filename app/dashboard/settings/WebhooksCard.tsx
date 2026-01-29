@@ -64,29 +64,15 @@ export function WebhooksCard({ canEdit }: WebhooksCardProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<{ id: string; success: boolean } | null>(null);
   const [deliveriesWebhook, setDeliveriesWebhook] = useState<WebhookData | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
   const testResultTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Cleanup timeouts on unmount
+  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (testResultTimeoutRef.current) {
         clearTimeout(testResultTimeoutRef.current);
       }
-      if (errorTimeoutRef.current) {
-        clearTimeout(errorTimeoutRef.current);
-      }
     };
-  }, []);
-
-  // Helper to show error with auto-dismiss
-  const showError = useCallback((message: string) => {
-    setActionError(message);
-    if (errorTimeoutRef.current) {
-      clearTimeout(errorTimeoutRef.current);
-    }
-    errorTimeoutRef.current = setTimeout(() => setActionError(null), 5000);
   }, []);
 
   // Memoized fetch function (rerender-functional-setstate)
@@ -96,15 +82,13 @@ export function WebhooksCard({ canEdit }: WebhooksCardProps) {
       if (response.ok) {
         const data = await response.json();
         setWebhooks(data.webhooks);
-      } else {
-        showError('Failed to load webhooks');
       }
     } catch {
-      showError('Network error loading webhooks');
+      // Network errors are handled silently - empty state will be shown
     } finally {
       setIsLoading(false);
     }
-  }, [showError]);
+  }, []);
 
   useEffect(() => {
     fetchWebhooks();
@@ -123,15 +107,13 @@ export function WebhooksCard({ canEdit }: WebhooksCardProps) {
         setWebhooks((prev) =>
           prev.map((w) => (w.id === webhookId ? { ...w, isActive: !isActive, failureCount: 0 } : w))
         );
-      } else {
-        showError(`Failed to ${isActive ? 'pause' : 'enable'} webhook`);
       }
     } catch {
-      showError(`Failed to ${isActive ? 'pause' : 'enable'} webhook`);
+      // Toggle errors are handled silently - UI state remains unchanged
     } finally {
       setActionLoading(null);
     }
-  }, [showError]);
+  }, []);
 
   const testWebhook = useCallback(async (webhookId: string) => {
     setActionLoading(webhookId);
@@ -169,16 +151,14 @@ export function WebhooksCard({ canEdit }: WebhooksCardProps) {
 
       if (response.ok) {
         setWebhooks((prev) => prev.filter((w) => w.id !== deleteId));
-      } else {
-        showError('Failed to delete webhook');
       }
     } catch {
-      showError('Failed to delete webhook');
+      // Deletion errors are handled silently - UI state remains unchanged
     } finally {
       setActionLoading(null);
       setDeleteId(null);
     }
-  }, [deleteId, showError]);
+  }, [deleteId]);
 
   const getStatusBadge = useCallback((webhook: WebhookData) => {
     // Show test result if available
@@ -221,20 +201,15 @@ export function WebhooksCard({ canEdit }: WebhooksCardProps) {
               <Webhook className="h-6 w-6 shrink-0 text-muted-foreground" />
               <CardTitle>Webhooks</CardTitle>
             </div>
-            {canEdit ? (
+            {canEdit && (
               <AddWebhookDialog onSuccess={fetchWebhooks} />
-            ) : null}
+            )}
           </div>
           <CardDescription>
             Receive real-time notifications when verification events occur. Webhooks automatically retry on failure.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {actionError && (
-            <div className="mb-4 rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-              {actionError}
-            </div>
-          )}
           {isLoading ? (
             <LoadingState height="sm" />
           ) : webhooks.length === 0 ? (

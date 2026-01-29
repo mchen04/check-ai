@@ -55,17 +55,12 @@ export const PERMISSIONS = {
 
 export type Permission = keyof typeof PERMISSIONS;
 
-// Pre-built Sets for O(1) permission lookups (js-set-map-lookups)
-const PERMISSION_SETS = Object.fromEntries(
-  Object.entries(PERMISSIONS).map(([key, roles]) => [key, new Set(roles)])
-) as Record<Permission, Set<string>>;
-
 /**
  * Check if a role has a specific permission
- * Uses Set for O(1) lookup instead of array.includes()
  */
 export function hasPermission(role: OrgRole, permission: Permission): boolean {
-  return PERMISSION_SETS[permission].has(role);
+  const allowedRoles = PERMISSIONS[permission];
+  return (allowedRoles as readonly string[]).includes(role);
 }
 
 /**

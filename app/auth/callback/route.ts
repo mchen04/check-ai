@@ -47,21 +47,21 @@ export async function GET(request: Request) {
       const isNewUser = !isUserInDB;
 
       if (isNewUser) {
-        // Create Stripe customer and user record in parallel (independent operations)
-        const [stripeCustomerId] = await Promise.all([
-          createStripeCustomer(
-            user!.id,
-            user!.email!,
-            user!.user_metadata.full_name
-          ),
-          db.insert(usersTable).values({
-            id: user!.id,
-            name: user!.user_metadata.full_name,
-            email: user!.email!,
-          }),
-        ]);
+        // Create Stripe customer for billing (stored on organization)
+        const stripeCustomerId = await createStripeCustomer(
+          user!.id,
+          user!.email!,
+          user!.user_metadata.full_name
+        );
 
-        // Create default organization with Stripe customer ID (depends on stripeCustomerId)
+        // Create user record in DB
+        await db.insert(usersTable).values({
+          id: user!.id,
+          name: user!.user_metadata.full_name,
+          email: user!.email!,
+        });
+
+        // Create default organization with Stripe customer ID for billing
         await createDefaultOrganization(
           user!.id,
           user!.user_metadata.full_name,
@@ -75,31 +75,12 @@ export async function GET(request: Request) {
 
       const forwardedHost = request.headers.get('x-forwarded-host'); // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development';
-
-      // Validate forwardedHost against allowed domains to prevent open redirect attacks
-      const allowedHosts = process.env.ALLOWED_HOSTS?.split(',') || [];
-      const websiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
-      if (websiteUrl) {
-        try {
-          const parsedUrl = new URL(websiteUrl);
-          allowedHosts.push(parsedUrl.host);
-        } catch {
-          // Invalid URL, ignore
-        }
-      }
-
-      const isValidForwardedHost = forwardedHost && allowedHosts.some(
-        (allowed) => forwardedHost === allowed || forwardedHost.endsWith(`.${allowed}`)
-      );
-
       if (isLocalEnv) {
         // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
         return NextResponse.redirect(`${origin}${redirectPath}`);
-      } else if (isValidForwardedHost) {
-        // Only use forwardedHost if it's in our allowed list
+      } else if (forwardedHost) {
         return NextResponse.redirect(`https://${forwardedHost}${redirectPath}`);
       } else {
-        // Fall back to origin if forwardedHost is not valid
         return NextResponse.redirect(`${origin}${redirectPath}`);
       }
     }

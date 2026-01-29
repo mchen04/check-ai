@@ -19,7 +19,7 @@ export default function Signup() {
       <div className="relative w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center">
           <Link href="/" className="mb-6 transition-opacity hover:opacity-80">
-            <Image src="/logo.svg" alt="Check" width={40} height={40} priority />
+            <Image src="/logo.svg" alt="Check" width={40} height={40} />
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
           <p className="mt-2 text-sm text-muted-foreground">Get started with Check</p>

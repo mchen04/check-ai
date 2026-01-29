@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useTransition } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from 'lucide-react';
 import {
@@ -25,7 +25,7 @@ interface ProfileSettingsCardProps {
 export function ProfileSettingsCard({ initialName, email }: ProfileSettingsCardProps) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
-  const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -39,42 +39,43 @@ export function ProfileSettingsCard({ initialName, email }: ProfileSettingsCardP
     };
   }, []);
 
-  // Simple primitive comparison - no useMemo needed (rerender-simple-expression-in-memo)
-  const hasChanges = name !== initialName;
+  // Memoize derived state (rerender-derived-state)
+  const hasChanges = useMemo(() => name !== initialName, [name, initialName]);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!name.trim()) {
       setError('Name is required');
       return;
     }
 
+    setIsLoading(true);
     setError(null);
     setSuccess(false);
 
-    startTransition(async () => {
-      try {
-        const response = await fetch('/api/dashboard/settings/profile', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name.trim() }),
-        });
+    try {
+      const response = await fetch('/api/dashboard/settings/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim() }),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to update profile');
-        }
-
-        setSuccess(true);
-        router.refresh();
-        if (successTimeoutRef.current) {
-          clearTimeout(successTimeoutRef.current);
-        }
-        successTimeoutRef.current = setTimeout(() => setSuccess(false), 3000);
-      } catch (e) {
-        setError(getErrorMessage(e, 'Failed to update profile'));
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update profile');
       }
-    });
+
+      setSuccess(true);
+      router.refresh();
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+      successTimeoutRef.current = setTimeout(() => setSuccess(false), 3000);
+    } catch (e) {
+      setError(getErrorMessage(e, 'Failed to update profile'));
+    } finally {
+      setIsLoading(false);
+    }
   }, [name, router]);
 
   return (
@@ -117,9 +118,9 @@ export function ProfileSettingsCard({ initialName, email }: ProfileSettingsCardP
           </div>
         )}
 
-        <Button onClick={handleSave} disabled={isPending || !hasChanges}>
-          {isPending && <ButtonSpinner />}
-          {isPending ? 'Saving...' : 'Save Changes'}
+        <Button onClick={handleSave} disabled={isLoading || !hasChanges}>
+          {isLoading && <ButtonSpinner />}
+          {isLoading ? 'Saving...' : 'Save Changes'}
         </Button>
       </CardContent>
     </Card>

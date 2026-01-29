@@ -3,7 +3,7 @@
  * Authentication, rate limiting, and request processing middleware
  */
 
-import { NextRequest, NextResponse, after } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { eq, and, isNull } from 'drizzle-orm';
 import { apiKeysTable, organizationsTable } from '@/utils/db/schema';
 import { db } from '@/utils/db/db';
@@ -104,17 +104,12 @@ export function withApiAuth(handler: ApiHandler): PublicApiHandler {
         throw new AuthenticationError('Organization not found');
       }
 
-      // Update last used timestamp using after() for non-blocking execution (server-after-nonblocking)
-      after(async () => {
-        try {
-          await db.update(apiKeysTable)
-            .set({ lastUsedAt: new Date() })
-            .where(eq(apiKeysTable.id, keyRecord.id))
-            .execute();
-        } catch (err) {
-          log.error({ err }, 'Failed to update API key last used timestamp');
-        }
-      });
+      // Update last used timestamp (non-blocking)
+      db.update(apiKeysTable)
+        .set({ lastUsedAt: new Date() })
+        .where(eq(apiKeysTable.id, keyRecord.id))
+        .execute()
+        .catch((err) => log.error({ err }, 'Failed to update API key last used timestamp'));
 
       // Attach organization to request
       const authenticatedReq = req as AuthenticatedRequest;
@@ -143,9 +138,6 @@ export function withApiAuth(handler: ApiHandler): PublicApiHandler {
 
       // Add request ID header
       response.headers.set('X-Request-ID', requestId);
-
-      // Add Cache-Control header to prevent caching of authenticated API responses
-      response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
 
       return response;
     } catch (error) {
@@ -250,11 +242,10 @@ export function withMethodCheck(handler: ApiHandler): ApiHandler {
         const body = await req.clone().json();
         const requestedMethods = Object.keys(body.methods || {});
         const planLimits = PLAN_LIMITS[req.organization.planType as PlanType];
-        // Use Set for O(1) lookups instead of Array.includes() (js-set-map-lookups)
-        const allowedMethodsSet = new Set<string>(planLimits.allowedMethods);
+        const allowedMethods = planLimits.allowedMethods as readonly string[];
 
         const disallowedMethods = requestedMethods.filter(
-          (method) => !allowedMethodsSet.has(method)
+          (method) => !allowedMethods.includes(method)
         );
 
         if (disallowedMethods.length > 0) {
@@ -264,7 +255,7 @@ export function withMethodCheck(handler: ApiHandler): ApiHandler {
               code: 'METHODS_NOT_ALLOWED',
               details: {
                 disallowedMethods,
-                allowedMethods: [...allowedMethodsSet],
+                allowedMethods: [...allowedMethods],
                 upgradeTo: req.organization.planType === 'free' ? 'pro' : 'enterprise',
               },
             },

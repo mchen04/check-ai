@@ -61,10 +61,8 @@ async function handleCreateBatch(req: ApiRequest): Promise<NextResponse> {
     .filter(([, weight]) => weight !== undefined && weight > 0)
     .map(([method]) => method);
 
-  // Use Set for O(1) lookups instead of Array.includes() (js-set-map-lookups)
-  const allowedMethodsSet = new Set<string>(planLimits.allowedMethods);
   const disallowedMethods = requestedMethods.filter(
-    (method) => !allowedMethodsSet.has(method)
+    (method) => !(planLimits.allowedMethods as readonly string[]).includes(method)
   );
 
   if (disallowedMethods.length > 0) {
