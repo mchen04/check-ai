@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useTransition, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   CheckCircle2,
@@ -14,7 +14,8 @@ import {
   FileText,
   Loader2,
 } from 'lucide-react';
-import { formatRelativeTime, getErrorMessage } from '@/lib/utils';
+import { formatRelativeTime } from '@/lib/utils';
+import { useBatches } from '@/lib/swr';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -150,16 +151,7 @@ export default function BatchListPage() {
 function BatchListContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  // Data state
-  const [batches, setBatches] = useState<BatchJob[]>([]);
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
-  const [stats, setStats] = useState<BatchStats>({ total: 0, processing: 0, completed: 0, failed: 0 });
-  const [error, setError] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
-  // useTransition for loading state (rendering-usetransition-loading)
-  const [isPending, startTransition] = useTransition();
 
   // Pagination state with lazy initialization (rerender-lazy-state-init)
   const [page, setPage] = useState(() => {
@@ -167,51 +159,15 @@ function BatchListContent() {
     return pageParam ? parseInt(pageParam, 10) : 1;
   });
 
-  const fetchBatches = useCallback(async () => {
-    setError(null);
+  // Use SWR for automatic request deduplication and caching (client-swr-dedup)
+  // Auto-refreshes every 5s when jobs are processing
+  const { batches: rawBatches, pagination, stats, isLoading, error, mutate } = useBatches(
+    page,
+    PAGINATION_LIMITS.defaultLimit
+  );
 
-    const params = new URLSearchParams();
-    params.set('page', page.toString());
-    params.set('limit', PAGINATION_LIMITS.defaultLimit.toString());
-
-    const response = await fetch(`/api/dashboard/batches?${params.toString()}`);
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch batches');
-    }
-
-    const data = await response.json();
-    setBatches(sortBatchesByActivity(data.batches));
-    setPagination(data.pagination);
-    setStats(data.stats);
-  }, [page]);
-
-  useEffect(() => {
-    startTransition(async () => {
-      try {
-        await fetchBatches();
-      } catch (err) {
-        setError(getErrorMessage(err));
-      }
-    });
-  }, [fetchBatches]);
-
-  // Auto-refresh when jobs are processing
-  useEffect(() => {
-    if (stats.processing === 0) return;
-
-    const interval = setInterval(() => {
-      startTransition(async () => {
-        try {
-          await fetchBatches();
-        } catch (err) {
-          setError(getErrorMessage(err));
-        }
-      });
-    }, 5000); // Refresh every 5 seconds when jobs are processing
-
-    return () => clearInterval(interval);
-  }, [stats.processing, fetchBatches]);
+  // Sort batches to pin active ones to top
+  const batches = sortBatchesByActivity(rawBatches);
 
   // Update URL when page changes using Next.js router (not window.history)
   useEffect(() => {
@@ -225,21 +181,17 @@ function BatchListContent() {
 
   // Memoized event handlers to prevent child re-renders (rerender-functional-setstate)
   const handleRefresh = useCallback(() => {
-    startTransition(async () => {
-      try {
-        await fetchBatches();
-      } catch (err) {
-        setError(getErrorMessage(err));
-      }
-    });
-  }, [fetchBatches]);
+    mutate();
+  }, [mutate]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
   }, []);
 
-  const handleRowClick = useCallback((id: string) => {
-    router.push(`/dashboard/batch/${id}`);
+  // Use data attributes for stable event handler (advanced-event-handler-refs)
+  const handleRowClick = useCallback((e: React.MouseEvent<HTMLTableRowElement> | React.KeyboardEvent<HTMLTableRowElement>) => {
+    const id = e.currentTarget.dataset.batchId;
+    if (id) router.push(`/dashboard/batch/${id}`);
   }, [router]);
 
   return (
@@ -255,8 +207,8 @@ function BatchListContent() {
           )}
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isPending}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${isPending ? 'animate-spin' : ''}`} />
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -322,7 +274,7 @@ function BatchListContent() {
                 Try Again
               </Button>
             </div>
-          ) : batches.length === 0 && !isPending ? (
+          ) : batches.length === 0 && !isLoading ? (
             <div className="py-8 text-center text-muted-foreground">
               <Layers className="mx-auto mb-3 h-10 w-10 opacity-50" />
               <p className="mb-1 text-sm">No batch jobs yet</p>
@@ -347,7 +299,7 @@ function BatchListContent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isPending && batches.length === 0 ? (
+                  {isLoading && batches.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="h-24 text-center">
                         <RefreshCw className="mx-auto h-4 w-4 animate-spin text-muted-foreground" />
@@ -360,8 +312,18 @@ function BatchListContent() {
                       return (
                         <TableRow
                           key={batch.id}
+                          data-batch-id={batch.id}
                           className={`cursor-pointer hover:bg-muted/50 ${isActive ? 'bg-primary/5' : ''}`}
-                          onClick={() => handleRowClick(batch.id)}
+                          onClick={handleRowClick}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleRowClick(e);
+                            }
+                          }}
+                          tabIndex={0}
+                          role="button"
+                          aria-label={`View batch ${batch.name || batch.originalFileName || 'Unnamed Batch'}`}
                         >
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -421,7 +383,7 @@ function BatchListContent() {
                     totalPages={pagination.totalPages}
                     total={pagination.total}
                     onPageChange={handlePageChange}
-                    disabled={isPending}
+                    disabled={isLoading}
                     showFirstLast
                   />
                 </div>

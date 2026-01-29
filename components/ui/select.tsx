@@ -139,9 +139,9 @@ const SelectItem = React.forwardRef<
 
     <div>
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-      {description && (
+      {description ? (
         <div className="text-xs text-muted-foreground">{description}</div>
-      )}
+      ) : null}
     </div>
   </SelectPrimitive.Item>
 ));

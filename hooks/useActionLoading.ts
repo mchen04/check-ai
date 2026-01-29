@@ -67,7 +67,8 @@ export function useActionLoading(): UseActionLoadingReturn {
       try {
         return await action();
       } catch (error) {
-        console.error(`Action failed for item ${id}:`, error);
+        // Re-throw error for caller to handle - error UI/toasts should display to user
+        // APM/error monitoring should be handled at a higher level
         throw error;
       } finally {
         setLoadingId(null);

@@ -1,8 +1,10 @@
 import 'server-only';
+import { cache } from 'react';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-export async function createClient() {
+// Wrap in React.cache() for per-request deduplication (server-cache-react)
+export const createClient = cache(async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -27,4 +29,4 @@ export async function createClient() {
       },
     }
   );
-}
+});

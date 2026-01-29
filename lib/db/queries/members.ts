@@ -54,29 +54,36 @@ async function getOrgMembers(orgId: string): Promise<OrgMemberWithUser[]> {
  * Get org members with their notification preferences
  * Defaults to true for preferences if not set
  * Internal helper - use getMembersWithNotification for external access
+ *
+ * Uses a single JOIN query to avoid N+1 query problem
  */
 async function getOrgMembersWithPreferences(
   orgId: string
 ): Promise<OrgMemberWithPreferences[]> {
-  const members = await getOrgMembers(orgId);
-
-  return Promise.all(
-    members.map(async (member) => {
-      const [prefs] = await db
-        .select({
-          escalationAlerts: userPreferencesTable.escalationAlerts,
-          weeklyReport: userPreferencesTable.weeklyReport,
-        })
-        .from(userPreferencesTable)
-        .where(eq(userPreferencesTable.userId, member.userId));
-
-      return {
-        ...member,
-        escalationAlerts: prefs?.escalationAlerts ?? true,
-        weeklyReport: prefs?.weeklyReport ?? true,
-      };
+  // Single query with LEFT JOIN to get members and preferences together
+  const results = await db
+    .select({
+      userId: orgMembersTable.userId,
+      role: orgMembersTable.role,
+      userName: usersTable.name,
+      userEmail: usersTable.email,
+      escalationAlerts: userPreferencesTable.escalationAlerts,
+      weeklyReport: userPreferencesTable.weeklyReport,
     })
-  );
+    .from(orgMembersTable)
+    .innerJoin(usersTable, eq(usersTable.id, orgMembersTable.userId))
+    .leftJoin(userPreferencesTable, eq(userPreferencesTable.userId, orgMembersTable.userId))
+    .where(eq(orgMembersTable.orgId, orgId));
+
+  // Map results with defaults for null preferences
+  return results.map((row) => ({
+    userId: row.userId,
+    role: row.role as OrgRole,
+    userName: row.userName,
+    userEmail: row.userEmail,
+    escalationAlerts: row.escalationAlerts ?? true,
+    weeklyReport: row.weeklyReport ?? true,
+  }));
 }
 
 /**

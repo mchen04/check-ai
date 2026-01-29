@@ -1,4 +1,9 @@
+import type { Metadata } from 'next';
+import { cache } from 'react';
 import { eq, and } from 'drizzle-orm';
+
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
 import { Users, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
@@ -9,6 +14,30 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { AcceptInviteButton } from './AcceptInviteButton';
+
+export async function generateMetadata({ params }: { params: Promise<{ token: string }> }): Promise<Metadata> {
+  const { token } = await params;
+
+  // Fetch invite to get organization name for metadata
+  const invite = await db.query.orgInvitesTable.findFirst({
+    where: and(eq(orgInvitesTable.token, token), eq(orgInvitesTable.status, 'pending')),
+    with: {
+      organization: true,
+    },
+  });
+
+  if (!invite) {
+    return {
+      title: 'Invalid Invitation | Check',
+      description: 'This invitation link is invalid or has expired.',
+    };
+  }
+
+  return {
+    title: `Join ${invite.organization.name} | Check`,
+    description: `You've been invited to join ${invite.organization.name} on Check.`,
+  };
+}
 
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;

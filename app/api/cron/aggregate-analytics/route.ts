@@ -10,7 +10,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { subDays, parseISO, isValid } from 'date-fns';
+import { subDays } from 'date-fns/subDays';
+import { parseISO } from 'date-fns/parseISO';
+import { isValid } from 'date-fns/isValid';
 import { runDailyAggregation, backfillAggregations } from '@/lib/analytics';
 import { createCronHandlers, cronLog as log, errorResponse } from '@/lib/api';
 

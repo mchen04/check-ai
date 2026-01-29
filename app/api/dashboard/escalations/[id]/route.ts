@@ -3,7 +3,7 @@
  * Get escalation details or resolve/dismiss an escalation
  */
 
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
@@ -111,7 +111,7 @@ async function handleGet(
   });
 }
 
-export const GET = withDashboardAuth(handleGet);
+export const GET = withDashboardAuth(handleGet, { permission: 'escalations:view' });
 
 // =============================================================================
 // PATCH - Resolve or dismiss an escalation
@@ -163,75 +163,94 @@ async function handlePatch(
     return errorResponse.conflict('Escalation has already been resolved');
   }
 
-  // Perform the action
+  // Perform the action - run escalation update and verification update in parallel
   let updated;
-  if (action === 'resolve') {
-    updated = await resolveEscalation(
-      id,
-      context.userId,
-      humanVerdict as 'true' | 'false' | 'uncertain',
-      resolution
-    );
-
-    // Also update the verification's final verdict with the human decision
-    if (humanVerdict) {
-      await db
-        .update(verificationsTable)
-        .set({
-          finalVerdict: humanVerdict,
-          status: 'completed',
-        })
-        .where(eq(verificationsTable.id, escalation[0].verificationId));
+  try {
+    if (action === 'resolve') {
+      // Run resolve and verification update in parallel
+      const [resolveResult] = await Promise.all([
+        resolveEscalation(
+          id,
+          context.userId,
+          humanVerdict as 'true' | 'false' | 'uncertain',
+          resolution
+        ),
+        // Also update the verification's final verdict with the human decision
+        humanVerdict
+          ? db
+              .update(verificationsTable)
+              .set({
+                finalVerdict: humanVerdict,
+                status: 'completed',
+              })
+              .where(eq(verificationsTable.id, escalation[0].verificationId))
+          : Promise.resolve(),
+      ]);
+      updated = resolveResult;
+    } else {
+      // Run dismiss and verification update in parallel
+      const [dismissResult] = await Promise.all([
+        dismissEscalation(id, context.userId, resolution),
+        // Update verification status to completed (dismissed means original verdict stands)
+        db
+          .update(verificationsTable)
+          .set({
+            status: 'completed',
+          })
+          .where(eq(verificationsTable.id, escalation[0].verificationId)),
+      ]);
+      updated = dismissResult;
     }
-  } else {
-    updated = await dismissEscalation(id, context.userId, resolution);
-
-    // Update verification status to completed (dismissed means original verdict stands)
-    await db
-      .update(verificationsTable)
-      .set({
-        status: 'completed',
-      })
-      .where(eq(verificationsTable.id, escalation[0].verificationId));
+  } catch (error) {
+    console.error('Failed to update escalation:', error);
+    return errorResponse.internalError('Failed to update escalation');
   }
 
   if (!updated) {
     return errorResponse.internalError('Failed to update escalation');
   }
 
-  // Fire escalation.resolved webhook
-  fireWebhooks(escalation[0].orgId, 'escalation.resolved', {
-    escalationId: id,
-    verificationId: escalation[0].verificationId,
-    action: action,
-    humanVerdict: humanVerdict || null,
-    resolution: resolution || null,
-    resolvedAt: formatDateToISO(updated.resolvedAt),
-  });
-
-  // Log audit event
-  const audit = createAuditLogger(context, req);
-  audit.log({
-    eventType: action === 'resolve' ? 'escalation.resolved' : 'escalation.dismissed',
-    description: `Escalation ${action === 'resolve' ? 'resolved' : 'dismissed'}${humanVerdict ? ` with verdict: ${humanVerdict}` : ''}`,
-    resourceType: 'escalation',
-    resourceId: id,
-    changes: {
-      after: {
-        action,
-        humanVerdict: humanVerdict || null,
-        resolution: resolution || null,
-      },
-    },
-  });
-
-  return NextResponse.json({
+  // Build response first, then fire webhook/audit after (server-after-nonblocking)
+  const responseData = {
     id: updated.id,
     status: action === 'resolve' ? 'resolved' : 'dismissed',
     resolvedAt: formatDateToISO(updated.resolvedAt),
     humanVerdict: updated.humanVerdict,
     resolution: updated.resolution,
+  };
+
+  // Queue webhook and audit to run after response is sent (non-blocking)
+  after(() => {
+    // Fire escalation.resolved webhook
+    fireWebhooks(escalation[0].orgId, 'escalation.resolved', {
+      escalationId: id,
+      verificationId: escalation[0].verificationId,
+      action: action,
+      humanVerdict: humanVerdict || null,
+      resolution: resolution || null,
+      resolvedAt: formatDateToISO(updated.resolvedAt),
+    }).catch(() => {
+      // Webhook failures are logged by the webhook service
+    });
+
+    // Log audit event
+    const audit = createAuditLogger(context, req);
+    audit.log({
+      eventType: action === 'resolve' ? 'escalation.resolved' : 'escalation.dismissed',
+      description: `Escalation ${action === 'resolve' ? 'resolved' : 'dismissed'}${humanVerdict ? ` with verdict: ${humanVerdict}` : ''}`,
+      resourceType: 'escalation',
+      resourceId: id,
+      changes: {
+        after: {
+          action,
+          humanVerdict: humanVerdict || null,
+          resolution: resolution || null,
+        },
+      },
+    });
   });
+
+  return NextResponse.json(responseData);
 }
 
 export const PATCH = withDashboardAuth(handlePatch);

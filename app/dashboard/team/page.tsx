@@ -34,34 +34,36 @@ export default async function TeamPage() {
     redirect('/login');
   }
 
-  // Fetch members
-  const members = await db
-    .select({
-      id: usersTable.id,
-      name: usersTable.name,
-      email: usersTable.email,
-      role: orgMembersTable.role,
-      joinedAt: orgMembersTable.createdAt,
-    })
-    .from(orgMembersTable)
-    .innerJoin(usersTable, eq(orgMembersTable.userId, usersTable.id))
-    .where(eq(orgMembersTable.orgId, context.orgId))
-    .orderBy(desc(orgMembersTable.createdAt));
-
-  // Fetch pending invites
-  const pendingInvites = await db
-    .select({
-      id: orgInvitesTable.id,
-      email: orgInvitesTable.email,
-      role: orgInvitesTable.role,
-      invitedAt: orgInvitesTable.createdAt,
-      expiresAt: orgInvitesTable.expiresAt,
-    })
-    .from(orgInvitesTable)
-    .where(
-      and(eq(orgInvitesTable.orgId, context.orgId), eq(orgInvitesTable.status, 'pending'))
-    )
-    .orderBy(desc(orgInvitesTable.createdAt));
+  // Fetch members and pending invites in parallel (async-parallel)
+  const [members, pendingInvites] = await Promise.all([
+    db
+      .select({
+        id: usersTable.id,
+        name: usersTable.name,
+        email: usersTable.email,
+        role: orgMembersTable.role,
+        joinedAt: orgMembersTable.createdAt,
+      })
+      .from(orgMembersTable)
+      .innerJoin(usersTable, eq(orgMembersTable.userId, usersTable.id))
+      .where(eq(orgMembersTable.orgId, context.orgId))
+      .orderBy(desc(orgMembersTable.createdAt))
+      .limit(100),
+    db
+      .select({
+        id: orgInvitesTable.id,
+        email: orgInvitesTable.email,
+        role: orgInvitesTable.role,
+        invitedAt: orgInvitesTable.createdAt,
+        expiresAt: orgInvitesTable.expiresAt,
+      })
+      .from(orgInvitesTable)
+      .where(
+        and(eq(orgInvitesTable.orgId, context.orgId), eq(orgInvitesTable.status, 'pending'))
+      )
+      .orderBy(desc(orgInvitesTable.createdAt))
+      .limit(50),
+  ]);
 
   const canInvite =
     context.organization.planType !== 'free' &&

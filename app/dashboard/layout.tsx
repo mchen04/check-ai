@@ -1,31 +1,24 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import DashboardHeader from '@/components/DashboardHeader';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import { BodyClassManager } from '@/components/BodyClassManager';
-import { createClient } from '@/utils/supabase/server';
 
 export const metadata: Metadata = {
   title: 'Dashboard | Check',
   description: 'Check Dashboard - Manage your verifications, API keys, and usage',
 };
 
-export default async function DashboardLayout({
+/**
+ * Dashboard layout component.
+ * Authentication is handled by middleware (utils/supabase/middleware.ts) which
+ * redirects unauthenticated users to /login before this layout is rendered.
+ * This eliminates the redundant getUser() call that was adding ~50-100ms latency.
+ */
+export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    return redirect('/login');
-  }
-
   return (
     <>
       {/* Disable landing page grid guides for dashboard */}

@@ -165,7 +165,7 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopyId} aria-label="Copy verification ID">
               <Copy className="h-4 w-4" />
             </Button>
-            {copied && <span className="text-xs text-success">Copied!</span>}
+            {copied ? <span className="text-xs text-success">Copied!</span> : null}
           </div>
         </div>
       </div>
@@ -215,13 +215,13 @@ export default function VerificationDetailPage({ params }: { params: Promise<{ i
             </div>
             <div className="p-4">
               <pre className="whitespace-pre-wrap rounded-md bg-muted p-3 font-mono text-xs leading-relaxed">{verification.content}</pre>
-              {verification.context && Object.keys(verification.context).length > 0 && (
+              {verification.context && Object.keys(verification.context).length > 0 ? (
                 <>
                   <Separator className="my-3" />
                   <p className="mb-2 text-sm font-medium">Context</p>
                   <pre className="whitespace-pre-wrap rounded-md bg-muted p-3 font-mono text-xs">{JSON.stringify(verification.context, null, 2)}</pre>
                 </>
-              )}
+              ) : null}
             </div>
           </Card>
 

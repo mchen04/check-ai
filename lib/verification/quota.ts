@@ -34,6 +34,7 @@ export interface MethodsCheckResult {
 
 /**
  * Check if requested methods are allowed for the plan
+ * Uses Set for O(1) lookups (js-set-map-lookups)
  */
 export function checkMethodsAllowed(
   methods: MethodsConfig,
@@ -41,8 +42,10 @@ export function checkMethodsAllowed(
 ): MethodsCheckResult {
   const limits = PLAN_LIMITS[planType];
   const requestedMethods = getRequestedMethods(methods);
+  // Build Set once for O(1) lookups instead of O(n) array.includes()
+  const allowedMethodsSet = new Set<string>(limits.allowedMethods);
   const disallowedMethods = requestedMethods.filter(
-    (method) => !(limits.allowedMethods as readonly string[]).includes(method)
+    (method) => !allowedMethodsSet.has(method)
   );
 
   if (disallowedMethods.length > 0) {

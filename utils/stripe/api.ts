@@ -100,12 +100,18 @@ export async function getOrgPlanDetails(orgId: string): Promise<PlanDetails> {
   };
 }
 
+// Pre-built Sets for O(1) method lookups per plan (js-set-map-lookups)
+const ALLOWED_METHODS_SETS: Record<PlanType, Set<string>> = {
+  free: new Set(PLAN_LIMITS.free.allowedMethods),
+  pro: new Set(PLAN_LIMITS.pro.allowedMethods),
+  enterprise: new Set(PLAN_LIMITS.enterprise.allowedMethods),
+};
+
 /**
  * Check if a method is allowed for the given plan
  */
 export function isMethodAllowed(planType: PlanType, method: string): boolean {
-  const limits = PLAN_LIMITS[planType];
-  return (limits.allowedMethods as readonly string[]).includes(method);
+  return ALLOWED_METHODS_SETS[planType].has(method);
 }
 
 /**

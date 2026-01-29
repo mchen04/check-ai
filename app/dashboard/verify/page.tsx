@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useTransition, Suspense, useMemo } from 'react';
+import { useState, useEffect, useCallback, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronRight, RefreshCw, Download, Search, X } from 'lucide-react';
 import { formatRelativeTime, getErrorMessage } from '@/lib/utils';
+import { useVerifications } from '@/lib/swr';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -105,15 +106,11 @@ export default function VerificationHistoryPage() {
 function VerificationHistoryContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  // Data state
-  const [verifications, setVerifications] = useState<Verification[]>([]);
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
-  // useTransition for loading state (rendering-usetransition-loading)
-  const [isPending, startTransition] = useTransition();
+  // AbortController ref for cancelling export requests on unmount
+  const exportAbortControllerRef = useRef<AbortController | null>(null);
 
   // Filter state with lazy initialization (rerender-lazy-state-init)
   const [search, setSearch] = useState(() => searchParams.get('search') || '');
@@ -134,40 +131,13 @@ function VerificationHistoryContent() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const fetchVerifications = useCallback(async () => {
-    setError(null);
-
-    const params = new URLSearchParams();
-    params.set('page', page.toString());
-    params.set('limit', PAGINATION_LIMITS.defaultLimit.toString());
-
-    if (debouncedSearch) {
-      params.set('search', debouncedSearch);
-    }
-    if (verdictFilter && verdictFilter !== 'all') {
-      params.set('verdict', verdictFilter);
-    }
-
-    const response = await fetch(`/api/dashboard/verifications?${params.toString()}`);
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch verifications');
-    }
-
-    const data = await response.json();
-    setVerifications(data.verifications);
-    setPagination(data.pagination);
-  }, [page, debouncedSearch, verdictFilter]);
-
-  useEffect(() => {
-    startTransition(async () => {
-      try {
-        await fetchVerifications();
-      } catch (err) {
-        setError(getErrorMessage(err));
-      }
-    });
-  }, [fetchVerifications]);
+  // Use SWR for automatic request deduplication and caching (client-swr-dedup)
+  const { verifications, pagination, isLoading, error, mutate } = useVerifications(
+    page,
+    PAGINATION_LIMITS.defaultLimit,
+    debouncedSearch,
+    verdictFilter
+  );
 
   // Update URL when filters change using Next.js router (not window.history)
   useEffect(() => {
@@ -183,14 +153,8 @@ function VerificationHistoryContent() {
 
   // Memoized event handlers to prevent child re-renders (rerender-functional-setstate)
   const handleRefresh = useCallback(() => {
-    startTransition(async () => {
-      try {
-        await fetchVerifications();
-      } catch (err) {
-        setError(getErrorMessage(err));
-      }
-    });
-  }, [fetchVerifications]);
+    mutate();
+  }, [mutate]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
@@ -207,11 +171,22 @@ function VerificationHistoryContent() {
     setPage(1);
   }, []);
 
-  const handleRowClick = useCallback((id: string) => {
-    router.push(`/dashboard/verify/${id}`);
+  // Use data attributes for stable event handler (advanced-event-handler-refs)
+  const handleRowClick = useCallback((e: React.MouseEvent<HTMLTableRowElement> | React.KeyboardEvent<HTMLTableRowElement>) => {
+    const id = e.currentTarget.dataset.verificationId;
+    if (id) router.push(`/dashboard/verify/${id}`);
   }, [router]);
 
-  const handleExport = async (format: 'csv' | 'json') => {
+  const handleExport = useCallback(async (format: 'csv' | 'json') => {
+    let anchor: HTMLAnchorElement | null = null;
+    let blobUrl: string | null = null;
+
+    // Cancel any in-flight export request
+    if (exportAbortControllerRef.current) {
+      exportAbortControllerRef.current.abort();
+    }
+    exportAbortControllerRef.current = new AbortController();
+
     try {
       setIsExporting(true);
       const response = await fetch('/api/dashboard/export', {
@@ -222,6 +197,7 @@ function VerificationHistoryContent() {
           includeParadigmResults: true,
           limit: 1000,
         }),
+        signal: exportAbortControllerRef.current.signal,
       });
 
       if (!response.ok) {
@@ -233,27 +209,46 @@ function VerificationHistoryContent() {
       const filename = filenameMatch?.[1] || `verifications-export.${format}`;
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      blobUrl = window.URL.createObjectURL(blob);
+      anchor = document.createElement('a');
+      anchor.href = blobUrl;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
     } catch (err) {
+      // Ignore abort errors (user cancelled or navigated away)
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
       console.error('[Verifications] Export failed:', err);
-      setError('Failed to export data. Please try again.');
+      setExportError('Failed to export data. Please try again.');
     } finally {
+      // Proper cleanup to prevent memory leaks
+      if (blobUrl) {
+        window.URL.revokeObjectURL(blobUrl);
+      }
+      if (anchor && document.body.contains(anchor)) {
+        document.body.removeChild(anchor);
+      }
       setIsExporting(false);
     }
-  };
+  }, []);
 
-  // Memoize derived state to prevent recalculation on every render (rerender-derived-state)
-  const hasActiveFilters = useMemo(
-    () => Boolean(debouncedSearch || (verdictFilter && verdictFilter !== 'all')),
-    [debouncedSearch, verdictFilter]
-  );
+  // Cleanup AbortController on unmount
+  useEffect(() => {
+    return () => {
+      if (exportAbortControllerRef.current) {
+        exportAbortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  // Memoized export handlers to prevent re-renders (rerender-functional-setstate)
+  const handleExportCsv = useCallback(() => handleExport('csv'), [handleExport]);
+  const handleExportJson = useCallback(() => handleExport('json'), [handleExport]);
+
+  // Derived state - simple boolean expression, no memo needed
+  const hasActiveFilters = Boolean(debouncedSearch || (verdictFilter && verdictFilter !== 'all'));
 
   return (
     <div className="p-6">
@@ -280,16 +275,16 @@ function VerificationHistoryContent() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExport('csv')}>
+              <DropdownMenuItem onClick={handleExportCsv}>
                 Export as CSV
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('json')}>
+              <DropdownMenuItem onClick={handleExportJson}>
                 Export as JSON
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isPending}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${isPending ? 'animate-spin' : ''}`} />
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Button size="sm" onClick={() => router.push('/dashboard/playground')}>New</Button>
@@ -300,12 +295,20 @@ function VerificationHistoryContent() {
       <Card className="mb-4">
         <div className="flex items-center gap-4 p-4">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <label htmlFor="search-verifications" className="sr-only">
+              Search verifications by content
+            </label>
+            <Search
+              aria-hidden="true"
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none"
+            />
             <Input
+              id="search-verifications"
               placeholder="Search content..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
+              aria-label="Search verifications by content"
             />
           </div>
           <Select value={verdictFilter} onValueChange={handleVerdictFilterChange}>
@@ -338,7 +341,7 @@ function VerificationHistoryContent() {
                 Try Again
               </Button>
             </div>
-          ) : verifications.length === 0 && !isPending ? (
+          ) : verifications.length === 0 && !isLoading ? (
             <div className="py-8 text-center text-muted-foreground">
               <p className="text-sm">
                 {hasActiveFilters ? 'No verifications match your filters' : 'No verifications yet'}
@@ -369,7 +372,7 @@ function VerificationHistoryContent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isPending && verifications.length === 0 ? (
+                  {isLoading && verifications.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={8} className="h-24 text-center">
                         <RefreshCw className="mx-auto h-4 w-4 animate-spin text-muted-foreground" />
@@ -380,8 +383,18 @@ function VerificationHistoryContent() {
                     verifications.map((v) => (
                       <TableRow
                         key={v.id}
+                        data-verification-id={v.id}
                         className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleRowClick(v.id)}
+                        onClick={handleRowClick}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleRowClick(e);
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`View verification: ${truncateString(v.content, 40, true)}`}
                       >
                         <TableCell><VerificationStatusBadge status={v.status} /></TableCell>
                         <TableCell className="max-w-xs">
@@ -422,7 +435,7 @@ function VerificationHistoryContent() {
                     totalPages={pagination.totalPages}
                     total={pagination.total}
                     onPageChange={handlePageChange}
-                    disabled={isPending}
+                    disabled={isLoading}
                     showFirstLast
                   />
                 </div>

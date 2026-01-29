@@ -36,9 +36,9 @@ describe('VerifyRequestSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject content longer than 100000 characters', () => {
+    it('should reject content longer than 50000 characters', () => {
       const result = VerifyRequestSchema.safeParse({
-        content: 'x'.repeat(100001),
+        content: 'x'.repeat(50001),
         methods: { reasoning: 1.0 },
       });
 
@@ -47,7 +47,7 @@ describe('VerifyRequestSchema', () => {
 
     it('should accept content at max length', () => {
       const result = VerifyRequestSchema.safeParse({
-        content: 'x'.repeat(100000),
+        content: 'x'.repeat(50000),
       });
 
       expect(result.success).toBe(true);
@@ -64,16 +64,29 @@ describe('VerifyRequestSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept nested context objects', () => {
+    it('should accept context with primitive values only', () => {
       const result = VerifyRequestSchema.safeParse({
         content: 'Test content',
         context: {
-          metadata: { nested: { deeply: true } },
-          array: [1, 2, 3],
+          source: 'user',
+          timestamp: 123456,
+          enabled: true,
+          nullable: null,
         },
       });
 
       expect(result.success).toBe(true);
+    });
+
+    it('should reject nested context objects for security', () => {
+      const result = VerifyRequestSchema.safeParse({
+        content: 'Test content',
+        context: {
+          metadata: { nested: { deeply: true } },
+        },
+      });
+
+      expect(result.success).toBe(false);
     });
 
     it('should accept empty context object', () => {

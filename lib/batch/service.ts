@@ -246,23 +246,27 @@ export async function getBatchResults(
 ): Promise<BatchResultsResponse | null> {
   const { limit = 50, offset = 0, status } = options;
 
-  // Verify batch belongs to org
-  const [batch] = await db
-    .select()
-    .from(batchJobsTable)
-    .where(and(eq(batchJobsTable.id, batchId), eq(batchJobsTable.orgId, orgId)))
-    .limit(1);
-
-  if (!batch) {
-    return null;
-  }
-
-  // Build item query conditions
+  // Build item query conditions (sync, no await needed)
   const whereConditions = [eq(batchItemsTable.batchId, batchId)];
   if (status) {
     whereConditions.push(eq(batchItemsTable.status, status as never));
   }
 
+  // Start batch verification promise immediately (async-api-routes pattern)
+  const batchPromise = db
+    .select()
+    .from(batchJobsTable)
+    .where(and(eq(batchJobsTable.id, batchId), eq(batchJobsTable.orgId, orgId)))
+    .limit(1);
+
+  // Await batch result to validate ownership before returning data
+  const [batch] = await batchPromise;
+
+  if (!batch) {
+    return null;
+  }
+
+  // Now fetch items and count in parallel (batch now verified)
   const [items, totalResult] = await Promise.all([
     db
       .select()
@@ -354,22 +358,26 @@ export async function getBatchItem(
   batchId: string,
   orgId: string
 ): Promise<BatchItemResponse | null> {
-  // First verify batch belongs to org
-  const [batch] = await db
+  // Start both queries in parallel (async-api-routes pattern)
+  const batchPromise = db
     .select({ id: batchJobsTable.id })
     .from(batchJobsTable)
     .where(and(eq(batchJobsTable.id, batchId), eq(batchJobsTable.orgId, orgId)))
     .limit(1);
 
-  if (!batch) {
-    return null;
-  }
-
-  const [item] = await db
+  const itemPromise = db
     .select()
     .from(batchItemsTable)
     .where(and(eq(batchItemsTable.id, itemId), eq(batchItemsTable.batchId, batchId)))
     .limit(1);
+
+  // Wait for both to complete
+  const [[batch], [item]] = await Promise.all([batchPromise, itemPromise]);
+
+  // Verify batch belongs to org
+  if (!batch) {
+    return null;
+  }
 
   if (!item) {
     return null;

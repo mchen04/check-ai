@@ -344,13 +344,16 @@ export function getLiteLLMModel(provider: LLMProvider, model: string): string {
   return `${prefix}${model}`;
 }
 
+// Cache Object.entries at module level (js-cache-function-results)
+const LITELLM_PREFIX_ENTRIES = Object.entries(LITELLM_PREFIXES) as [LLMProvider, string][];
+
 /**
  * Extract provider from a LiteLLM model string
  */
 export function getProviderFromModel(litellmModel: string): LLMProvider {
-  for (const [provider, prefix] of Object.entries(LITELLM_PREFIXES)) {
+  for (const [provider, prefix] of LITELLM_PREFIX_ENTRIES) {
     if (litellmModel.startsWith(prefix)) {
-      return provider as LLMProvider;
+      return provider;
     }
   }
   return 'openai'; // Default
@@ -377,11 +380,12 @@ export function getProviderTier(provider: LLMProvider): 1 | 2 | 3 | 4 {
   return PROVIDER_TIERS[provider];
 }
 
+// Pre-built Set for O(1) lookups (js-set-map-lookups)
+const NON_OPENAI_COMPATIBLE_PROVIDERS = new Set<LLMProvider>(['anthropic', 'cohere', 'azure', 'bedrock']);
+
 /**
  * Check if a provider uses OpenAI-compatible API
  */
 export function isOpenAICompatible(provider: LLMProvider): boolean {
-  // These providers don't use OpenAI-compatible APIs
-  const nonCompatible: LLMProvider[] = ['anthropic', 'cohere', 'azure', 'bedrock'];
-  return !nonCompatible.includes(provider);
+  return !NON_OPENAI_COMPATIBLE_PROVIDERS.has(provider);
 }

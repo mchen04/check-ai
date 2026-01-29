@@ -25,7 +25,13 @@ export default function LoginForm() {
         Sign In
       </Button>
       {formState?.message && (
-        <p className="text-center text-sm text-destructive">{formState.message}</p>
+        <p
+          role="alert"
+          aria-live="polite"
+          className="text-center text-sm text-destructive"
+        >
+          {formState.message}
+        </p>
       )}
     </form>
   );

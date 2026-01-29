@@ -102,8 +102,9 @@ function calculateSemanticConsistency(responses: string[]): number {
   let totalSimilarity = 0;
   let comparisons = 0;
 
-  for (let i = 0; i < responses.length; i++) {
-    for (let j = i + 1; j < responses.length; j++) {
+  const len = responses.length;
+  for (let i = 0; i < len; i++) {
+    for (let j = i + 1; j < len; j++) {
       totalSimilarity += calculateSimpleSimilarity(responses[i], responses[j]);
       comparisons++;
     }
@@ -192,13 +193,21 @@ export class EntropyParadigm implements ParadigmExecutor {
       // Calculate consistency from actual samples
       const actualConsistency = calculateSemanticConsistency(samples.responses);
 
-      // Extract verdicts from samples
-      const sampleVerdicts = samples.responses.map(extractVerdict);
-      const verdictCounts = {
-        true: sampleVerdicts.filter((v) => v === 'true').length,
-        false: sampleVerdicts.filter((v) => v === 'false').length,
-        uncertain: sampleVerdicts.filter((v) => v === 'uncertain').length,
-      };
+      // Extract verdicts and count in single pass (avoids 4 iterations)
+      const sampleVerdicts: (Verdict | null)[] = [];
+      const verdictCounts = { true: 0, false: 0, uncertain: 0 };
+      let totalValid = 0;
+
+      for (const response of samples.responses) {
+        const verdict = extractVerdict(response);
+        sampleVerdicts.push(verdict);
+        if (verdict !== null) {
+          totalValid++;
+          if (verdict === 'true') verdictCounts.true++;
+          else if (verdict === 'false') verdictCounts.false++;
+          else verdictCounts.uncertain++;
+        }
+      }
 
       // Combine LLM analysis with actual sample consistency
       const combinedConsistency = (parsed.consistencyScore + actualConsistency) / 2;
@@ -208,7 +217,6 @@ export class EntropyParadigm implements ParadigmExecutor {
       let finalConfidence: number;
 
       const maxCount = Math.max(verdictCounts.true, verdictCounts.false, verdictCounts.uncertain);
-      const totalValid = sampleVerdicts.filter((v) => v !== null).length;
 
       if (combinedConsistency >= CONSISTENCY_THRESHOLD) {
         // High consistency - use majority verdict

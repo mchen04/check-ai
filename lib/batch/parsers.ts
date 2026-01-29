@@ -39,31 +39,35 @@ export function parseCSV(csvContent: string): ParseResult {
   const headerLine = lines[0];
   const headers = parseCSVLine(headerLine).map((h) => h.trim().toLowerCase());
 
-  // Find content column (required)
-  const contentIndex = headers.findIndex((h) => h === 'content');
+  // Single-pass header analysis to find all required columns (js-index-maps optimization)
+  let contentIndex = -1;
+  let idempotencyKeyIndex = -1;
+  const contextColumns: { index: number; key: string }[] = [];
+
+  const headersLength = headers.length;
+  for (let i = 0; i < headersLength; i++) {
+    const h = headers[i];
+    if (h === 'content') {
+      contentIndex = i;
+    } else if (h === 'idempotencykey' || h === 'idempotency_key') {
+      idempotencyKeyIndex = i;
+    } else if (h.startsWith('context.')) {
+      const key = h.slice(8); // Remove "context." prefix
+      if (key.length > 0) {
+        contextColumns.push({ index: i, key });
+      }
+    }
+  }
+
+  // Validate content column exists
   if (contentIndex === -1) {
     errors.push({ row: 1, error: 'Missing required column: content' });
     return { items, errors };
   }
 
-  // Find idempotencyKey column (optional)
-  const idempotencyKeyIndex = headers.findIndex(
-    (h) => h === 'idempotencykey' || h === 'idempotency_key'
-  );
-
-  // Find context columns (optional, prefixed with "context.")
-  const contextColumns: { index: number; key: string }[] = [];
-  headers.forEach((header, index) => {
-    if (header.startsWith('context.')) {
-      const key = header.slice(8); // Remove "context." prefix
-      if (key.length > 0) {
-        contextColumns.push({ index, key });
-      }
-    }
-  });
-
-  // Parse data rows
-  for (let i = 1; i < lines.length; i++) {
+  // Parse data rows - cache length for performance
+  const linesLength = lines.length;
+  for (let i = 1; i < linesLength; i++) {
     const rowNumber = i + 1; // 1-indexed for user display
 
     // Check item limit
@@ -133,7 +137,8 @@ function parseCSVLine(line: string): string[] {
   let inQuotes = false;
   let i = 0;
 
-  while (i < line.length) {
+  const lineLength = line.length;
+  while (i < lineLength) {
     const char = line[i];
     const nextChar = line[i + 1];
 
@@ -226,7 +231,8 @@ export function parseJSON(jsonContent: string): ParseResult {
     itemsArray = itemsArray.slice(0, MAX_ITEMS);
   }
 
-  for (let i = 0; i < itemsArray.length; i++) {
+  const itemsLength = itemsArray.length;
+  for (let i = 0; i < itemsLength; i++) {
     const rowNumber = i + 1;
     const item = itemsArray[i];
 

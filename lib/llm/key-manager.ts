@@ -6,6 +6,7 @@
 
 import crypto from 'crypto';
 import { eq, and, isNull } from 'drizzle-orm';
+import { LRUCache } from 'lru-cache';
 import { db } from '@/utils/db/db';
 import { apiKeysTable, providerCredentialsTable } from '@/utils/db/schema';
 import { isDateExpired } from '@/lib/api/formatters';
@@ -13,6 +14,16 @@ import { createLogger } from '@/lib/logger';
 import { ProviderKeys, LLMProvider, PROVIDER_BASE_URLS } from './types';
 
 const log = createLogger('KeyManager');
+
+// =============================================================================
+// LRU CACHE FOR DECRYPTED PROVIDER KEYS (server-cache-lru)
+// =============================================================================
+
+// Cache decrypted keys for 5 minutes to avoid re-decrypting on every request
+const providerKeysCache = new LRUCache<string, ProviderKeys>({
+  max: 500, // Cache up to 500 organizations
+  ttl: 1000 * 60 * 5, // 5 minute TTL
+});
 
 // =============================================================================
 // ENCRYPTION CONFIGURATION
@@ -93,14 +104,11 @@ export function hashApiKey(apiKey: string): string {
 
 /**
  * Generate a prefix for API key identification
+ * Uses cryptographically secure randomness
  */
 export function generateKeyPrefix(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let result = 'vfy_';
-  for (let i = 0; i < 8; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
+  const randomBytes = crypto.randomBytes(6).toString('hex');
+  return `vfy_${randomBytes.slice(0, 8)}`;
 }
 
 /**
@@ -119,8 +127,15 @@ export function generatePlatformApiKey(): string {
 export class KeyManager {
   /**
    * Get all provider keys for an organization (BYOK + fallback to platform)
+   * Uses LRU cache to avoid re-decrypting keys on every request
    */
   async getProviderKeys(orgId: string): Promise<ProviderKeys> {
+    // Check cache first (server-cache-lru)
+    const cached = providerKeysCache.get(orgId);
+    if (cached) {
+      return cached;
+    }
+
     // Fetch all active provider credentials for the organization
     const credentials = await db
       .select({
@@ -171,7 +186,18 @@ export class KeyManager {
     if (!result.openrouter) result.openrouter = process.env.OPENROUTER_API_KEY;
     if (!result.replicate) result.replicate = process.env.REPLICATE_API_TOKEN;
 
+    // Cache the result (server-cache-lru)
+    providerKeysCache.set(orgId, result);
+
     return result;
+  }
+
+  /**
+   * Invalidate cached provider keys for an organization
+   * Call this when provider credentials are updated
+   */
+  invalidateProviderKeysCache(orgId: string): void {
+    providerKeysCache.delete(orgId);
   }
 
   /**

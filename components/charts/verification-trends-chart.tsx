@@ -7,7 +7,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns/format';
+import { parseISO } from 'date-fns/parseISO';
 import {
   ChartContainer,
   ChartTooltip,

@@ -13,6 +13,7 @@ export default function DashboardError({
   reset: () => void;
 }) {
   useEffect(() => {
+    // Log error with proper dependency
     console.error('Dashboard error:', error);
   }, [error]);
 

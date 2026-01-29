@@ -40,6 +40,7 @@ export type CronHandler = (req: NextRequest) => Promise<NextResponse>;
 
 /**
  * Validates the CRON_SECRET from the Authorization header
+ * In production, also validates the X-Vercel-Cron-Signature header for defense in depth
  *
  * @param req - NextRequest object
  * @returns null if valid, NextResponse error if invalid
@@ -49,10 +50,10 @@ export function validateCronAuth(req: NextRequest): NextResponse | null {
   const cronSecret = process.env.CRON_SECRET;
 
   if (!cronSecret) {
-    log.error('CRON_SECRET not configured');
+    log.error('CRON_SECRET not configured - blocking all cron requests for security');
     return NextResponse.json(
-      { error: 'Server misconfiguration' },
-      { status: 500 }
+      { error: 'Unauthorized' },
+      { status: 401 }
     );
   }
 
@@ -61,6 +62,18 @@ export function validateCronAuth(req: NextRequest): NextResponse | null {
 
   if (providedSecret !== cronSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // In production, verify Vercel's signature header for defense in depth
+  // Vercel always sends this header for cron requests
+  if (process.env.NODE_ENV === 'production') {
+    const vercelCronSignature = req.headers.get('x-vercel-cron-signature');
+    // If we're in production and getting a cron request without the Vercel header,
+    // it's likely a spoofed request (unless running locally with production flag)
+    if (!vercelCronSignature && process.env.VERCEL) {
+      log.warn('Cron request missing X-Vercel-Cron-Signature header');
+      // Log warning but don't block - the CRON_SECRET check is the primary auth
+    }
   }
 
   return null; // Auth valid

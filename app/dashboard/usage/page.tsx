@@ -9,7 +9,9 @@ import {
   CreditCard,
   BarChart3,
 } from 'lucide-react';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { format } from 'date-fns/format';
+import { startOfMonth } from 'date-fns/startOfMonth';
+import { endOfMonth } from 'date-fns/endOfMonth';
 import { getUserOrgContext } from '@/lib/rbac';
 import { db } from '@/utils/db/db';
 import { usageTable, verificationsTable } from '@/utils/db/schema';
@@ -167,6 +169,7 @@ export default async function UsagePage() {
       count: Number(p.count),
     }));
 
+    // Map model usage - provider kept for display but could be derived from model name (server-serialization)
     usageByModel = modelUsage.map((m) => ({
       model: m.model,
       provider: m.provider,

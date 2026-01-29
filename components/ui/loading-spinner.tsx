@@ -48,12 +48,13 @@ const containerHeightConfig = {
 /**
  * Simple loading spinner icon.
  * Use inside buttons or inline with text.
+ * Wrapped in a div for better animation performance (GPU acceleration).
  */
 export function LoadingSpinner({ size = 'sm', className }: LoadingSpinnerProps) {
   return (
-    <Loader2
-      className={cn('animate-spin', spinnerSizeConfig[size], className)}
-    />
+    <div className={cn('animate-spin', spinnerSizeConfig[size], className)}>
+      <Loader2 className="h-full w-full" />
+    </div>
   );
 }
 
@@ -76,9 +77,9 @@ export function LoadingState({
       )}
     >
       <LoadingSpinner size={size} className="text-muted-foreground" />
-      {message && (
+      {message ? (
         <p className="mt-2 text-sm text-muted-foreground">{message}</p>
-      )}
+      ) : null}
     </div>
   );
 }

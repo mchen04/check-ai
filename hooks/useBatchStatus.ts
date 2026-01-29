@@ -61,7 +61,24 @@ export function useBatchStatus(
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const realtimeConnectedRef = useRef(false);
 
-  // Handle status update from realtime
+  // Store callbacks in refs to avoid re-subscription on callback changes
+  const onItemCompleteRef = useRef(onItemComplete);
+  const onCompleteRef = useRef(onComplete);
+  const onErrorRef = useRef(onError);
+
+  useEffect(() => {
+    onItemCompleteRef.current = onItemComplete;
+  }, [onItemComplete]);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
+  // Handle status update from realtime - stable callback using refs
   const handleStatusUpdate = useCallback(
     (payload: {
       type: string;
@@ -94,7 +111,7 @@ export function useBatchStatus(
         }));
 
         if (payload.itemId && payload.itemIndex !== undefined) {
-          onItemComplete?.(payload.itemId, payload.itemIndex, payload.success ?? false);
+          onItemCompleteRef.current?.(payload.itemId, payload.itemIndex, payload.success ?? false);
         }
       } else if (payload.type === 'complete') {
         setState((prev) => ({
@@ -110,7 +127,7 @@ export function useBatchStatus(
           isLoading: false,
         }));
 
-        onComplete?.(payload.status || 'completed');
+        onCompleteRef.current?.(payload.status || 'completed');
 
         // Stop polling
         if (pollIntervalRef.current) {
@@ -119,7 +136,7 @@ export function useBatchStatus(
         }
       }
     },
-    [onItemComplete, onComplete]
+    [] // Now stable - uses refs for callbacks
   );
 
   // Poll for status (fallback and initial load)
@@ -164,14 +181,14 @@ export function useBatchStatus(
       });
 
       if (['completed', 'failed', 'cancelled'].includes(data.status)) {
-        onComplete?.(data.status);
+        onCompleteRef.current?.(data.status);
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Unknown error');
       setState((prev) => ({ ...prev, error, isLoading: false }));
-      onError?.(error);
+      onErrorRef.current?.(error);
     }
-  }, [batchId, onComplete, onError]);
+  }, [batchId]); // Now stable - uses refs for callbacks
 
   // Setup subscription and polling
   useEffect(() => {
@@ -214,7 +231,7 @@ export function useBatchStatus(
           if (status === 'CHANNEL_ERROR') {
             const error = new Error('Failed to subscribe to batch channel');
             setState((prev) => ({ ...prev, error }));
-            onError?.(error);
+            onErrorRef.current?.(error);
           }
         } else if (status === 'CLOSED') {
           realtimeConnectedRef.current = false;
@@ -241,7 +258,7 @@ export function useBatchStatus(
         pollIntervalRef.current = null;
       }
     };
-  }, [batchId, pollInterval, handleStatusUpdate, pollStatus, onError]);
+  }, [batchId, pollInterval, handleStatusUpdate, pollStatus]); // Removed onError - using ref
 
   return state;
 }

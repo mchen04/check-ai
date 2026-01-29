@@ -11,7 +11,7 @@
  * - Success state with optional callback
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { getErrorMessage } from '@/lib/utils';
 
 // =============================================================================
@@ -80,6 +80,19 @@ export function useDialogForm<TFormData, TResult = void>(
   // Store initial data in ref for reset
   const initialDataRef = useRef(initialData);
 
+  // Store callbacks in refs to prevent re-creating handleSubmit (useLatest pattern)
+  const onSubmitRef = useRef(onSubmit);
+  const onSuccessRef = useRef(onSuccess);
+
+  // Keep callback refs in sync
+  useEffect(() => {
+    onSubmitRef.current = onSubmit;
+  }, [onSubmit]);
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  }, [onSuccess]);
+
   // State
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState<TFormData>(initialData);
@@ -126,16 +139,16 @@ export function useDialogForm<TFormData, TResult = void>(
     setFormData((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  // Handle form submission
+  // Handle form submission (uses refs for callbacks to avoid dependency changes)
   const handleSubmit = useCallback(async () => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const submitResult = await onSubmit(formData);
+      const submitResult = await onSubmitRef.current(formData);
       setIsSuccess(true);
       setResult(submitResult);
-      onSuccess?.(submitResult);
+      onSuccessRef.current?.(submitResult);
 
       if (closeOnSuccess) {
         close();
@@ -145,7 +158,7 @@ export function useDialogForm<TFormData, TResult = void>(
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, onSubmit, onSuccess, closeOnSuccess, close]);
+  }, [formData, closeOnSuccess, close]);
 
   return {
     isOpen,

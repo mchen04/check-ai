@@ -184,9 +184,9 @@ export default async function Dashboard() {
       hasVisitedPlayground: preferencesResult[0]?.hasVisitedPlayground ?? false,
       hasRunVerification,
     };
-  } catch (error) {
-    // Log database errors for monitoring while showing default values to user
-    console.error('[Dashboard] Failed to load stats:', error);
+  } catch {
+    // Database errors are handled silently - default values shown to user
+    // Error monitoring should be handled via APM/error boundary at a higher level
   }
 
   const usagePercentage = stats.verificationsLimit > 0

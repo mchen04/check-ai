@@ -71,8 +71,21 @@ export function useVerificationStatus(
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const realtimeConnectedRef = useRef(false);
 
-  // Handle status update
+  // Store callbacks in refs to avoid re-subscription on callback changes
+  const onCompleteRef = useRef(onComplete);
+  const onErrorRef = useRef(onError);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
+  // Handle status update - stable callback
   const handleStatusUpdate = useCallback((data: VerificationUpdate['data']) => {
     setStatus((prev) => ({
       ...prev,
@@ -81,7 +94,7 @@ export function useVerificationStatus(
     }));
   }, []);
 
-  // Handle paradigm completion
+  // Handle paradigm completion - stable callback
   const handleParadigmComplete = useCallback((data: VerificationUpdate['data']) => {
     if (data.paradigm) {
       setStatus((prev) => ({
@@ -100,7 +113,7 @@ export function useVerificationStatus(
     }
   }, []);
 
-  // Handle final result
+  // Handle final result - stable callback using ref
   const handleFinalResult = useCallback(
     (data: VerificationUpdate['data']) => {
       const result = data.result || null;
@@ -114,20 +127,20 @@ export function useVerificationStatus(
       setIsLoading(false);
 
       if (result) {
-        onComplete?.(result);
+        onCompleteRef.current?.(result);
       }
     },
-    [onComplete]
+    [] // Now stable - uses ref for callback
   );
 
-  // Handle error
+  // Handle error - stable callback using ref
   const handleError = useCallback(
     (err: Error) => {
       setError(err);
       setIsLoading(false);
-      onError?.(err);
+      onErrorRef.current?.(err);
     },
-    [onError]
+    [] // Now stable - uses ref for callback
   );
 
   // Poll for status (fallback)
@@ -184,7 +197,7 @@ export function useVerificationStatus(
         setIsLoading(false);
 
         if (data.status === 'completed' && data.verdict !== undefined) {
-          onComplete?.({
+          onCompleteRef.current?.({
             verdict: data.verdict,
             confidence: data.confidence,
             decision: data.decision,
@@ -202,7 +215,7 @@ export function useVerificationStatus(
     } catch (err) {
       handleError(err instanceof Error ? err : new Error('Unknown error'));
     }
-  }, [verificationId, onComplete, handleError]);
+  }, [verificationId, handleError]); // Removed onComplete - using ref
 
   // Setup subscription and polling
   useEffect(() => {
@@ -222,14 +235,24 @@ export function useVerificationStatus(
       onParadigmComplete: handleParadigmComplete,
       onFinalResult: handleFinalResult,
       onError: handleError,
+      onSubscribed: () => {
+        // Realtime connected - stop polling to avoid redundant requests
+        realtimeConnectedRef.current = true;
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
+      },
     });
 
-    // Start polling as fallback
+    // Start polling as fallback (will be stopped when realtime connects)
     pollStatus();
     pollIntervalRef.current = setInterval(pollStatus, pollInterval);
 
     // Cleanup
     return () => {
+      realtimeConnectedRef.current = false;
+
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
@@ -248,7 +271,7 @@ export function useVerificationStatus(
     handleFinalResult,
     handleError,
     pollStatus,
-  ]);
+  ]); // All callbacks are now stable
 
   return {
     ...status,

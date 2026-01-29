@@ -24,15 +24,13 @@ async function handler(req: DashboardRequest) {
     return errorResponse.badRequest('Invalid range parameter. Must be 7d, 30d, or 90d');
   }
 
-  // Fetch basic analytics
-  const data = await getAnalyticsData(context.orgId, range);
   const { startDate, endDate } = getDateRange(range);
 
-  // Optionally include advanced analytics
-  let advancedData = null;
-  if (includeAdvanced) {
-    advancedData = await getAdvancedAnalyticsData(context.orgId, range);
-  }
+  // Fetch basic and advanced analytics in parallel (async-parallel optimization)
+  const [data, advancedData] = await Promise.all([
+    getAnalyticsData(context.orgId, range),
+    includeAdvanced ? getAdvancedAnalyticsData(context.orgId, range) : Promise.resolve(null),
+  ]);
 
   return NextResponse.json({
     success: true,

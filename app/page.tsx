@@ -44,7 +44,7 @@ export default async function LandingPage() {
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link className="flex items-center gap-2.5" href="/">
-            <Image src="/logo.svg" alt="Check" width={28} height={28} />
+            <Image src="/logo.svg" alt="Check" width={28} height={28} priority />
             <span className="text-lg font-semibold tracking-tight">Check</span>
           </Link>
 
@@ -593,12 +593,14 @@ export default async function LandingPage() {
             <Link
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               href="/terms"
+              prefetch={false}
             >
               Terms
             </Link>
             <Link
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               href="/privacy"
+              prefetch={false}
             >
               Privacy
             </Link>

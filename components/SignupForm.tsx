@@ -37,7 +37,13 @@ export default function SignupForm() {
       </div>
       <SubmitButton />
       {formState?.message && (
-        <p className="text-center text-sm text-destructive">{formState.message}</p>
+        <p
+          role="alert"
+          aria-live="polite"
+          className="text-center text-sm text-destructive"
+        >
+          {formState.message}
+        </p>
       )}
     </form>
   );

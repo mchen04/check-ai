@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback, useTransition, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { RefreshCw, X, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
-import { formatRelativeTime, getErrorMessage } from '@/lib/utils';
+import { formatRelativeTime } from '@/lib/utils';
+import { useLogs } from '@/lib/swr';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -121,15 +122,6 @@ function LogsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Data state
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
-  const [providers, setProviders] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  // useTransition for loading state (rendering-usetransition-loading)
-  const [isPending, startTransition] = useTransition();
-
   // Filter state with lazy initialization (rerender-lazy-state-init)
   const [providerFilter, setProviderFilter] = useState(() => searchParams.get('provider') || 'all');
   const [page, setPage] = useState(() => {
@@ -137,38 +129,12 @@ function LogsContent() {
     return pageParam ? parseInt(pageParam, 10) : 1;
   });
 
-  const fetchLogs = useCallback(async () => {
-    setError(null);
-
-    const params = new URLSearchParams();
-    params.set('page', page.toString());
-    params.set('limit', PAGINATION_LIMITS.defaultLimit.toString());
-
-    if (providerFilter && providerFilter !== 'all') {
-      params.set('provider', providerFilter);
-    }
-
-    const response = await fetch(`/api/dashboard/logs?${params.toString()}`);
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch logs');
-    }
-
-    const data = await response.json();
-    setLogs(data.logs);
-    setPagination(data.pagination);
-    setProviders(data.providers);
-  }, [page, providerFilter]);
-
-  useEffect(() => {
-    startTransition(async () => {
-      try {
-        await fetchLogs();
-      } catch (err) {
-        setError(getErrorMessage(err));
-      }
-    });
-  }, [fetchLogs]);
+  // Use SWR for automatic request deduplication and caching (client-swr-dedup)
+  const { logs, pagination, providers, isLoading, error, mutate } = useLogs(
+    page,
+    PAGINATION_LIMITS.defaultLimit,
+    providerFilter
+  );
 
   // Update URL when filters change using Next.js router (not window.history)
   useEffect(() => {
@@ -181,29 +147,23 @@ function LogsContent() {
     router.replace(newUrl, { scroll: false });
   }, [page, providerFilter, router]);
 
-  const handleRefresh = () => {
-    startTransition(async () => {
-      try {
-        await fetchLogs();
-      } catch (err) {
-        setError(getErrorMessage(err));
-      }
-    });
-  };
+  const handleRefresh = useCallback(() => {
+    mutate();
+  }, [mutate]);
 
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
-  };
+  }, []);
 
-  const handleProviderFilterChange = (value: string) => {
+  const handleProviderFilterChange = useCallback((value: string) => {
     setProviderFilter(value);
     setPage(1);
-  };
+  }, []);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setProviderFilter('all');
     setPage(1);
-  };
+  }, []);
 
   const hasActiveFilters = providerFilter && providerFilter !== 'all';
 
@@ -219,8 +179,8 @@ function LogsContent() {
             </p>
           )}
         </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isPending}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${isPending ? 'animate-spin' : ''}`} />
+        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
+          <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} suppressHydrationWarning />
           Refresh
         </Button>
       </div>
@@ -241,12 +201,12 @@ function LogsContent() {
               ))}
             </SelectContent>
           </Select>
-          {hasActiveFilters && (
+          {hasActiveFilters ? (
             <Button variant="ghost" size="sm" onClick={handleClearFilters}>
               <X className="mr-1 h-4 w-4" />
               Clear
             </Button>
-          )}
+          ) : null}
         </div>
       </Card>
 
@@ -260,7 +220,7 @@ function LogsContent() {
                 Try Again
               </Button>
             </div>
-          ) : logs.length === 0 && !isPending ? (
+          ) : logs.length === 0 && !isLoading ? (
             <div className="py-8 text-center text-muted-foreground">
               <p className="text-sm">
                 {hasActiveFilters ? 'No logs match your filters' : 'No API calls yet'}
@@ -286,10 +246,10 @@ function LogsContent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isPending && logs.length === 0 ? (
+                  {isLoading && logs.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="h-24 text-center">
-                        <RefreshCw className="mx-auto h-4 w-4 animate-spin text-muted-foreground" />
+                        <RefreshCw className="mx-auto h-4 w-4 animate-spin text-muted-foreground" suppressHydrationWarning />
                         <p className="mt-1 text-xs text-muted-foreground">Loading...</p>
                       </TableCell>
                     </TableRow>
@@ -343,7 +303,7 @@ function LogsContent() {
                     totalPages={pagination.totalPages}
                     total={pagination.total}
                     onPageChange={handlePageChange}
-                    disabled={isPending}
+                    disabled={isLoading}
                     showFirstLast
                   />
                 </div>

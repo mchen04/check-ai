@@ -36,22 +36,30 @@ export function extractProviderFromModel(model: string): string {
  */
 const UNIVERSAL_GATEWAYS = ['openrouter'] as const;
 
+// Pre-built Set for O(1) gateway lookups
+const UNIVERSAL_GATEWAYS_SET = new Set(UNIVERSAL_GATEWAYS);
+
 /**
- * Find the right credential for a model
+ * Find the right credential for a model using Map for O(1) lookups
  * Checks for exact provider match first, then falls back to universal gateways
  *
  * @param model - Model string (e.g., "anthropic/claude-3.5-sonnet")
  * @param credentials - Available decrypted credentials
+ * @param credentialMap - Optional pre-built map for repeated lookups (use buildCredentialMap)
  * @returns Matching credential or null if none found
  */
 export function findCredentialForModel(
   model: string,
-  credentials: DecryptedCredentialInfo[]
+  credentials: DecryptedCredentialInfo[],
+  credentialMap?: Map<string, DecryptedCredentialInfo>
 ): { provider: string; apiKey: string; config?: ProviderConfig } | null {
   const targetProvider = extractProviderFromModel(model);
 
-  // First try exact provider match
-  const exactMatch = credentials.find((c) => c.provider === targetProvider);
+  // Use provided map or build one for this call
+  const map = credentialMap || buildCredentialMap(credentials);
+
+  // First try exact provider match (O(1) lookup)
+  const exactMatch = map.get(targetProvider);
   if (exactMatch) {
     return {
       provider: exactMatch.provider,
@@ -61,13 +69,15 @@ export function findCredentialForModel(
   }
 
   // Fall back to universal gateways (e.g., OpenRouter can route any model)
-  const gatewayMatch = credentials.find((c) => UNIVERSAL_GATEWAYS.includes(c.provider as typeof UNIVERSAL_GATEWAYS[number]));
-  if (gatewayMatch) {
-    return {
-      provider: gatewayMatch.provider,
-      apiKey: gatewayMatch.decryptedKey,
-      config: gatewayMatch.config,
-    };
+  for (const gateway of UNIVERSAL_GATEWAYS) {
+    const gatewayMatch = map.get(gateway);
+    if (gatewayMatch) {
+      return {
+        provider: gatewayMatch.provider,
+        apiKey: gatewayMatch.decryptedKey,
+        config: gatewayMatch.config,
+      };
+    }
   }
 
   // No match found
@@ -105,8 +115,11 @@ function hasCredentialForProvider(provider: string, availableProviders: Set<stri
   if (availableProviders.has(provider)) {
     return true;
   }
-  // Check if any universal gateway is available
-  return UNIVERSAL_GATEWAYS.some((gateway) => availableProviders.has(gateway));
+  // Check if any universal gateway is available (use loop instead of .some for small array)
+  for (const gateway of UNIVERSAL_GATEWAYS) {
+    if (availableProviders.has(gateway)) return true;
+  }
+  return false;
 }
 
 /**

@@ -13,7 +13,8 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
+    // Log error with proper dependency (rendering-hydration-suppress-warning compliance)
+    // Using console.error as this is a client-side error boundary
     console.error('Application error:', error);
   }, [error]);
 

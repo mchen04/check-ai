@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { format } from 'date-fns/format';
+import { subDays } from 'date-fns/subDays';
+import { startOfDay } from 'date-fns/startOfDay';
+import { endOfDay } from 'date-fns/endOfDay';
 import {
   History,
   Key,
@@ -269,12 +272,12 @@ export function AuditLogsCard() {
                 ))}
               </SelectContent>
             </Select>
-            {hasActiveFilters && (
+            {hasActiveFilters ? (
               <Button variant="ghost" size="sm" onClick={resetFilters}>
                 <X className="mr-1 h-4 w-4" />
                 Clear
               </Button>
-            )}
+            ) : null}
           </div>
         </CardHeader>
         <CardContent>
