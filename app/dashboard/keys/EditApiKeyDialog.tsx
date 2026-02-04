@@ -117,10 +117,15 @@ export function EditApiKeyDialog({ apiKey, open, onOpenChange }: EditApiKeyDialo
   );
   const selectedProvider = defaultCredential?.provider as LLMProvider | undefined;
 
-  // Get available models for the selected provider
-  const availableModels = useMemo(() => {
+  // Get available models for the selected provider, split by type
+  const embeddingModels = useMemo(() => {
     if (!selectedProvider) return [];
-    return getModelsForProvider(selectedProvider);
+    return getModelsForProvider(selectedProvider, { embeddingOnly: true });
+  }, [selectedProvider]);
+
+  const chatModels = useMemo(() => {
+    if (!selectedProvider) return [];
+    return getModelsForProvider(selectedProvider, { excludeEmbedding: true });
   }, [selectedProvider]);
 
   // Check if at least one paradigm is enabled
@@ -361,26 +366,29 @@ export function EditApiKeyDialog({ apiKey, open, onOpenChange }: EditApiKeyDialo
                         </div>
 
                         {/* Model selector - only show when enabled and allowed */}
-                        {config.enabled && isAllowed && availableModels.length > 0 && (
-                          <div className="mt-3 pt-3 border-t">
-                            <Label className="text-xs text-muted-foreground">Model</Label>
-                            <Select
-                              value={config.model}
-                              onValueChange={(model) => updateParadigmModel(paradigm, model)}
-                            >
-                              <SelectTrigger className="mt-1 h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {availableModels.map((model) => (
-                                  <SelectItem key={model} value={model} className="text-xs">
-                                    {model}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        )}
+                        {config.enabled && isAllowed && (() => {
+                          const modelsForParadigm = paradigm === 'semantic' ? embeddingModels : chatModels;
+                          return modelsForParadigm.length > 0 && (
+                            <div className="mt-3 pt-3 border-t">
+                              <Label className="text-xs text-muted-foreground">Model</Label>
+                              <Select
+                                value={config.model}
+                                onValueChange={(model) => updateParadigmModel(paradigm, model)}
+                              >
+                                <SelectTrigger className="mt-1 h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {modelsForParadigm.map((model) => (
+                                    <SelectItem key={model} value={model} className="text-xs">
+                                      {model}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })}

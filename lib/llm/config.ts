@@ -156,6 +156,10 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
   // GPT-5.x Series
   'gpt-5.2': { inputPer1M: 1.75, outputPer1M: 14.0 },
   'gpt-5-mini': { inputPer1M: 0.3, outputPer1M: 1.2 },
+  // OpenAI Embedding Models
+  'text-embedding-3-small': { inputPer1M: 0.02, outputPer1M: 0 },
+  'text-embedding-3-large': { inputPer1M: 0.13, outputPer1M: 0 },
+  'text-embedding-ada-002': { inputPer1M: 0.1, outputPer1M: 0 },
   // GPT-4.1 Series (April 2025)
   'gpt-4.1': { inputPer1M: 2.0, outputPer1M: 8.0 },
   'gpt-4.1-mini': { inputPer1M: 0.4, outputPer1M: 1.6 },
@@ -418,21 +422,66 @@ const PROVIDER_MODEL_PATTERNS: Record<LLMProvider, RegExp | null> = {
   replicate: /^meta\//,
 };
 
+// =============================================================================
+// EMBEDDING MODEL DETECTION
+// =============================================================================
+
+/**
+ * Patterns that identify embedding models
+ */
+export const EMBEDDING_MODEL_PATTERNS = [
+  /^text-embedding/, // OpenAI embeddings
+];
+
+/**
+ * Check if a model is an embedding model
+ */
+export function isEmbeddingModel(model: string): boolean {
+  return EMBEDDING_MODEL_PATTERNS.some((pattern) => pattern.test(model));
+}
+
+/**
+ * Options for filtering models by type
+ */
+export interface GetModelsOptions {
+  /** Only return embedding models */
+  embeddingOnly?: boolean;
+  /** Exclude embedding models (return only chat/reasoning models) */
+  excludeEmbedding?: boolean;
+}
+
 /**
  * Get available models for a specific provider
  * OpenRouter can access all models (it's a gateway)
  * Direct providers only return their own models
+ *
+ * @param provider - The LLM provider
+ * @param options - Optional filtering by model type (embedding vs chat)
  */
-export function getModelsForProvider(provider: LLMProvider): string[] {
+export function getModelsForProvider(
+  provider: LLMProvider,
+  options?: GetModelsOptions
+): string[] {
   const pattern = PROVIDER_MODEL_PATTERNS[provider];
 
+  let models: string[];
   // OpenRouter (and other gateways) can access all models
   if (pattern === null) {
-    return Object.keys(MODEL_PRICING);
+    models = Object.keys(MODEL_PRICING);
+  } else {
+    // Filter models by the provider's pattern
+    models = Object.keys(MODEL_PRICING).filter((model) => pattern.test(model));
   }
 
-  // Filter models by the provider's pattern
-  return Object.keys(MODEL_PRICING).filter((model) => pattern.test(model));
+  // Filter by embedding type if requested
+  if (options?.embeddingOnly) {
+    return models.filter(isEmbeddingModel);
+  }
+  if (options?.excludeEmbedding) {
+    return models.filter((m) => !isEmbeddingModel(m));
+  }
+
+  return models;
 }
 
 /**

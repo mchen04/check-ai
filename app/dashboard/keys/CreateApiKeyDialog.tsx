@@ -101,10 +101,15 @@ export default function CreateApiKeyDialog() {
   );
   const selectedProvider = selectedCredential?.provider as LLMProvider | undefined;
 
-  // Get available models for the selected provider
-  const availableModels = useMemo(() => {
+  // Get available models for the selected provider, split by type
+  const embeddingModels = useMemo(() => {
     if (!selectedProvider) return [];
-    return getModelsForProvider(selectedProvider);
+    return getModelsForProvider(selectedProvider, { embeddingOnly: true });
+  }, [selectedProvider]);
+
+  const chatModels = useMemo(() => {
+    if (!selectedProvider) return [];
+    return getModelsForProvider(selectedProvider, { excludeEmbedding: true });
   }, [selectedProvider]);
 
   // Check if at least one paradigm is enabled
@@ -136,26 +141,29 @@ export default function CreateApiKeyDialog() {
 
   // Update models when provider changes
   useEffect(() => {
-    if (selectedProvider && availableModels.length > 0) {
+    if (selectedProvider) {
       setParadigmConfigs((prev) => {
         const updated = { ...prev };
         for (const paradigm of ALL_PARADIGMS) {
           const currentModel = prev[paradigm].model;
-          // If current model is not compatible with new provider, reset to default or first available
-          if (!isModelCompatibleWithProvider(currentModel, selectedProvider)) {
+          // Determine the correct model list based on paradigm type
+          const modelsForParadigm = paradigm === 'semantic' ? embeddingModels : chatModels;
+
+          // If current model is not in the available models, reset to first available
+          if (modelsForParadigm.length > 0 && !modelsForParadigm.includes(currentModel)) {
             const defaultModel = DEFAULT_MODELS[paradigm];
             updated[paradigm] = {
               ...prev[paradigm],
-              model: isModelCompatibleWithProvider(defaultModel, selectedProvider)
+              model: modelsForParadigm.includes(defaultModel)
                 ? defaultModel
-                : availableModels[0],
+                : modelsForParadigm[0],
             };
           }
         }
         return updated;
       });
     }
-  }, [selectedProvider, availableModels]);
+  }, [selectedProvider, embeddingModels, chatModels]);
 
   function initializeParadigmConfigs(): Record<ParadigmType, ParadigmState> {
     const configs: Record<ParadigmType, ParadigmState> = {} as Record<ParadigmType, ParadigmState>;
@@ -440,26 +448,29 @@ export default function CreateApiKeyDialog() {
                             </div>
 
                             {/* Model selector - only show when enabled and allowed */}
-                            {config.enabled && isAllowed && availableModels.length > 0 && (
-                              <div className="mt-3 pt-3 border-t">
-                                <Label className="text-xs text-muted-foreground">Model</Label>
-                                <Select
-                                  value={config.model}
-                                  onValueChange={(model) => updateParadigmModel(paradigm, model)}
-                                >
-                                  <SelectTrigger className="mt-1 h-8 text-xs">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {availableModels.map((model) => (
-                                      <SelectItem key={model} value={model} className="text-xs">
-                                        {model}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
+                            {config.enabled && isAllowed && (() => {
+                              const modelsForParadigm = paradigm === 'semantic' ? embeddingModels : chatModels;
+                              return modelsForParadigm.length > 0 && (
+                                <div className="mt-3 pt-3 border-t">
+                                  <Label className="text-xs text-muted-foreground">Model</Label>
+                                  <Select
+                                    value={config.model}
+                                    onValueChange={(model) => updateParadigmModel(paradigm, model)}
+                                  >
+                                    <SelectTrigger className="mt-1 h-8 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {modelsForParadigm.map((model) => (
+                                        <SelectItem key={model} value={model} className="text-xs">
+                                          {model}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              );
+                            })()}
                           </div>
                         );
                       })}
