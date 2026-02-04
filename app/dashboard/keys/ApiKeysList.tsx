@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Key, Trash2 } from 'lucide-react';
+import { Key, Pencil, Trash2 } from 'lucide-react';
+import { EditApiKeyDialog } from './EditApiKeyDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -18,6 +19,20 @@ import {
 import { ButtonSpinner, Spinner } from '@/components/ui/loading-spinner';
 import { formatRelativeTime } from '@/lib/utils';
 
+interface ProviderCredential {
+  id: string;
+  name: string;
+  provider: string;
+  isActive: boolean;
+}
+
+interface ApiKeyCredential {
+  id: string;
+  providerCredentialId: string;
+  isDefault: boolean;
+  credential: ProviderCredential | null;
+}
+
 interface ApiKeyData {
   id: string;
   name: string;
@@ -26,6 +41,9 @@ interface ApiKeyData {
   lastUsedAt: Date | null;
   createdAt: Date;
   expiresAt: Date | null;
+  paradigmConfig?: Record<string, { enabled: boolean; weight: number; model: string }> | null;
+  defaultThresholds?: { escalateThreshold?: number } | null;
+  credentials?: ApiKeyCredential[];
 }
 
 interface ApiKeysListProps {
@@ -36,6 +54,7 @@ export function ApiKeysList({ initialKeys }: ApiKeysListProps) {
   const router = useRouter();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editKey, setEditKey] = useState<ApiKeyData | null>(null);
 
   const keyToDelete = initialKeys.find((k) => k.id === deleteId);
 
@@ -101,20 +120,29 @@ export function ApiKeysList({ initialKeys }: ApiKeysListProps) {
                 </div>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="shrink-0"
-              onClick={() => setDeleteId(key.id)}
-              disabled={isDeleting && deleteId === key.id}
-              aria-label={`Delete API key ${key.name}`}
-            >
-              {isDeleting && deleteId === key.id ? (
-                <Spinner size="sm" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-            </Button>
+            <div className="flex items-center gap-1 shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setEditKey(key)}
+                aria-label={`Edit API key ${key.name}`}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setDeleteId(key.id)}
+                disabled={isDeleting && deleteId === key.id}
+                aria-label={`Delete API key ${key.name}`}
+              >
+                {isDeleting && deleteId === key.id ? (
+                  <Spinner size="sm" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
         ))}
       </div>
@@ -143,6 +171,14 @@ export function ApiKeysList({ initialKeys }: ApiKeysListProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {editKey && (
+        <EditApiKeyDialog
+          apiKey={editKey}
+          open={!!editKey}
+          onOpenChange={(open) => !open && setEditKey(null)}
+        />
+      )}
     </>
   );
 }

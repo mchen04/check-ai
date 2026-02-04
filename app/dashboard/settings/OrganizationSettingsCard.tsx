@@ -15,15 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
 import { ButtonSpinner } from '@/components/ui/loading-spinner';
 import { InlineError } from '@/components/ui/empty-state';
 import { getErrorMessage } from '@/lib/utils';
@@ -33,24 +25,12 @@ interface OrganizationSettingsCardProps {
     name: string;
     slug: string;
     planType: string;
-    defaultVerificationMethod: string;
-    autoEscalateThreshold: number;
     cacheEnabled: boolean;
     storeVerificationContent: boolean;
   };
   memberCount: number;
   canEdit: boolean;
 }
-
-const VERIFICATION_METHODS = [
-  { value: 'semantic', label: 'Semantic' },
-  { value: 'reasoning', label: 'Reasoning' },
-  { value: 'ensemble', label: 'Ensemble' },
-  { value: 'entropy', label: 'Entropy' },
-  { value: 'formal', label: 'Formal' },
-  { value: 'tool', label: 'Tool-Augmented' },
-  { value: 'biprm', label: 'BiPRM' },
-];
 
 export function OrganizationSettingsCard({
   organization,
@@ -59,8 +39,6 @@ export function OrganizationSettingsCard({
 }: OrganizationSettingsCardProps) {
   const router = useRouter();
   const [name, setName] = useState(organization.name);
-  const [defaultMethod, setDefaultMethod] = useState(organization.defaultVerificationMethod);
-  const [threshold, setThreshold] = useState(organization.autoEscalateThreshold);
   const [cacheEnabled, setCacheEnabled] = useState(organization.cacheEnabled);
   const [storeContent, setStoreContent] = useState(organization.storeVerificationContent);
   const [isLoading, setIsLoading] = useState(false);
@@ -81,11 +59,9 @@ export function OrganizationSettingsCard({
   const hasChanges = useMemo(
     () =>
       name !== organization.name ||
-      defaultMethod !== organization.defaultVerificationMethod ||
-      threshold !== organization.autoEscalateThreshold ||
       cacheEnabled !== organization.cacheEnabled ||
       storeContent !== organization.storeVerificationContent,
-    [name, defaultMethod, threshold, cacheEnabled, storeContent, organization]
+    [name, cacheEnabled, storeContent, organization]
   );
 
   const handleSave = async () => {
@@ -104,8 +80,6 @@ export function OrganizationSettingsCard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim(),
-          defaultVerificationMethod: defaultMethod,
-          autoEscalateThreshold: threshold,
           cacheEnabled,
           storeVerificationContent: storeContent,
         }),
@@ -189,69 +163,31 @@ export function OrganizationSettingsCard({
           </div>
         )}
 
-        {/* Verification Defaults */}
+        {/* Storage Settings */}
         {canEdit && (
-          <>
-            <div className="space-y-4 border-t pt-4">
-              <h4 className="text-sm font-medium">Verification Defaults</h4>
+          <div className="space-y-4 border-t pt-4">
+            <h4 className="text-sm font-medium">Storage Settings</h4>
 
-              <div className="space-y-2">
-                <Label htmlFor="defaultMethod">Default Verification Method</Label>
-                <Select value={defaultMethod} onValueChange={setDefaultMethod}>
-                  <SelectTrigger id="defaultMethod">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {VERIFICATION_METHODS.map((method) => (
-                      <SelectItem key={method.value} value={method.value}>
-                        {method.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Enable Result Caching</Label>
                 <p className="text-xs text-muted-foreground">
-                  Used when no method is specified in API calls
+                  Cache verification results for faster repeated queries
                 </p>
               </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Auto-Escalate Threshold</Label>
-                  <span className="text-sm text-muted-foreground">{(threshold * 100).toFixed(0)}%</span>
-                </div>
-                <Slider
-                  value={[threshold * 100]}
-                  onValueChange={([v]) => setThreshold(v / 100)}
-                  min={0}
-                  max={100}
-                  step={5}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Auto-escalate verifications with confidence below this threshold
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Enable Result Caching</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Cache verification results for faster repeated queries
-                  </p>
-                </div>
-                <Switch checked={cacheEnabled} onCheckedChange={setCacheEnabled} />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Store Verification Content</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Keep original prompts and responses for debugging
-                  </p>
-                </div>
-                <Switch checked={storeContent} onCheckedChange={setStoreContent} />
-              </div>
+              <Switch checked={cacheEnabled} onCheckedChange={setCacheEnabled} />
             </div>
-          </>
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Store Verification Content</Label>
+                <p className="text-xs text-muted-foreground">
+                  Keep original prompts and responses for debugging
+                </p>
+              </div>
+              <Switch checked={storeContent} onCheckedChange={setStoreContent} />
+            </div>
+          </div>
         )}
 
         <InlineError message={error} />

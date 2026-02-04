@@ -98,8 +98,6 @@ export default async function SettingsPage() {
             name: org.name,
             slug: org.slug,
             planType: org.planType,
-            defaultVerificationMethod: org.defaultVerificationMethod,
-            autoEscalateThreshold: parseFloat(org.autoEscalateThreshold || '0.50'),
             cacheEnabled: org.cacheEnabled,
             storeVerificationContent: org.storeVerificationContent,
           }}

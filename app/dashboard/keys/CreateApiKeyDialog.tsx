@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Copy, Check, Crown } from 'lucide-react';
+import { Plus, Copy, Check, Crown, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -23,6 +23,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { getErrorMessage } from '@/lib/utils';
 import { ButtonSpinner, Spinner } from '@/components/ui/loading-spinner';
 import { useCopyToClipboard } from '@/hooks';
@@ -49,6 +55,7 @@ type PlanType = 'free' | 'pro' | 'enterprise';
 interface ParadigmState {
   enabled: boolean;
   model: string;
+  weight: number;
 }
 
 // Methods allowed per plan tier
@@ -81,6 +88,12 @@ export default function CreateApiKeyDialog() {
     initializeParadigmConfigs()
   );
 
+  // Escalation threshold (0-1, default 0.5)
+  const [escalateThreshold, setEscalateThreshold] = useState(0.5);
+
+  // Advanced settings visibility
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   // Get the selected credential's provider
   const selectedCredential = useMemo(
     () => credentials.find((c) => c.id === selectedCredentialId),
@@ -97,6 +110,12 @@ export default function CreateApiKeyDialog() {
   // Check if at least one paradigm is enabled
   const hasEnabledParadigm = useMemo(
     () => Object.values(paradigmConfigs).some((config) => config.enabled),
+    [paradigmConfigs]
+  );
+
+  // Count enabled paradigms for showing advanced settings
+  const enabledParadigmCount = useMemo(
+    () => Object.values(paradigmConfigs).filter((config) => config.enabled).length,
     [paradigmConfigs]
   );
 
@@ -144,6 +163,7 @@ export default function CreateApiKeyDialog() {
       configs[paradigm] = {
         enabled: paradigm === 'semantic', // Default to semantic enabled
         model: DEFAULT_MODELS[paradigm] || 'anthropic/claude-3.5-sonnet',
+        weight: 1.0, // Default equal weights
       };
     }
     return configs;
@@ -184,12 +204,9 @@ export default function CreateApiKeyDialog() {
     }
   };
 
-  const isParadigmAllowed = useCallback(
-    (paradigm: ParadigmType): boolean => {
-      return PLAN_ALLOWED_METHODS[planType].includes(paradigm);
-    },
-    [planType]
-  );
+  const isParadigmAllowed = (paradigm: ParadigmType): boolean => {
+    return PLAN_ALLOWED_METHODS[planType].includes(paradigm);
+  };
 
   const toggleParadigm = useCallback(
     (paradigm: ParadigmType) => {
@@ -212,6 +229,16 @@ export default function CreateApiKeyDialog() {
       [paradigm]: {
         ...prev[paradigm],
         model,
+      },
+    }));
+  }, []);
+
+  const updateParadigmWeight = useCallback((paradigm: ParadigmType, weight: number) => {
+    setParadigmConfigs((prev) => ({
+      ...prev,
+      [paradigm]: {
+        ...prev[paradigm],
+        weight,
       },
     }));
   }, []);
@@ -243,7 +270,7 @@ export default function CreateApiKeyDialog() {
         if (paradigmConfigs[paradigm].enabled) {
           paradigmConfig[paradigm] = {
             enabled: true,
-            weight: 1.0,
+            weight: paradigmConfigs[paradigm].weight,
             model: paradigmConfigs[paradigm].model,
           };
         }
@@ -258,6 +285,9 @@ export default function CreateApiKeyDialog() {
           name: name.trim(),
           providerCredentialIds: [selectedCredentialId],
           paradigmConfig,
+          defaultThresholds: {
+            escalateThreshold,
+          },
         }),
       });
 
@@ -273,7 +303,7 @@ export default function CreateApiKeyDialog() {
     } finally {
       setIsCreating(false);
     }
-  }, [name, selectedCredentialId, hasEnabledParadigm, paradigmConfigs]);
+  }, [name, selectedCredentialId, hasEnabledParadigm, paradigmConfigs, escalateThreshold]);
 
   const handleCopy = useCallback(() => {
     if (newKey) {
@@ -288,18 +318,20 @@ export default function CreateApiKeyDialog() {
     setError(null);
     setSelectedCredentialId(credentials[0]?.id || '');
     setParadigmConfigs(initializeParadigmConfigs());
+    setEscalateThreshold(0.5);
+    setShowAdvanced(false);
     if (newKey) {
       router.refresh();
     }
   }, [credentials, newKey, router]);
 
-  const handleCancel = useCallback(() => {
+  const handleCancel = () => {
     setOpen(false);
-  }, []);
+  };
 
-  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value);
-  }, []);
+  };
 
   const handleNameKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -441,6 +473,76 @@ export default function CreateApiKeyDialog() {
                       </p>
                     )}
                   </div>
+
+                  {/* Escalation Threshold */}
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Escalation Threshold</Label>
+                      <span className="text-sm text-muted-foreground">
+                        {Math.round(escalateThreshold * 100)}%
+                      </span>
+                    </div>
+                    <Slider
+                      value={[escalateThreshold * 100]}
+                      onValueChange={([v]) => setEscalateThreshold(v / 100)}
+                      min={0}
+                      max={100}
+                      step={5}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Auto-escalate verifications below this confidence level
+                    </p>
+                  </div>
+
+                  {/* Advanced Settings - Paradigm Weights */}
+                  {enabledParadigmCount >= 2 && (
+                    <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex w-full items-center justify-between px-0 hover:bg-transparent"
+                        >
+                          <span className="text-sm font-medium">Advanced Settings</span>
+                          {showAdvanced ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-3 pt-2">
+                        <div className="space-y-2">
+                          <Label className="text-xs text-muted-foreground">
+                            Paradigm Weights
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            Adjust relative importance of each verification method
+                          </p>
+                        </div>
+                        {ALL_PARADIGMS.filter(
+                          (paradigm) =>
+                            paradigmConfigs[paradigm].enabled && isParadigmAllowed(paradigm)
+                        ).map((paradigm) => (
+                          <div key={paradigm} className="space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm">{PARADIGM_DISPLAY_NAMES[paradigm]}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {Math.round(paradigmConfigs[paradigm].weight * 100)}%
+                              </span>
+                            </div>
+                            <Slider
+                              value={[paradigmConfigs[paradigm].weight * 100]}
+                              onValueChange={([v]) => updateParadigmWeight(paradigm, v / 100)}
+                              min={0}
+                              max={100}
+                              step={5}
+                            />
+                          </div>
+                        ))}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
                 </>
               )}
               <InlineError message={error} />
