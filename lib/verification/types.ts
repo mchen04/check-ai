@@ -36,6 +36,32 @@ export const PARADIGM_DISPLAY_NAMES: Record<ParadigmType, string> = {
 };
 
 /**
+ * Brief descriptions for each paradigm
+ */
+export const PARADIGM_DESCRIPTIONS: Record<ParadigmType, string> = {
+  semantic: 'Embedding-based similarity for fast initial screening',
+  reasoning: 'LLM-based logical analysis for nuanced verification',
+  tool: 'External APIs and web search for fact verification',
+  biprm: 'Cross-examines claims from multiple perspectives',
+  ensemble: 'Multiple models vote on the verdict',
+  entropy: 'Measures consistency across paraphrased variations',
+  formal: 'Symbolic logic and mathematical proof verification',
+};
+
+/**
+ * All paradigm types as an array for iteration
+ */
+export const ALL_PARADIGMS: ParadigmType[] = [
+  'semantic',
+  'reasoning',
+  'tool',
+  'biprm',
+  'ensemble',
+  'entropy',
+  'formal',
+];
+
+/**
  * Format a paradigm key to its display name
  */
 export function formatParadigmName(paradigm: string): string {

@@ -385,3 +385,66 @@ export function isOpenAICompatible(provider: LLMProvider): boolean {
   const nonCompatible: LLMProvider[] = ['anthropic', 'cohere', 'azure', 'bedrock'];
   return !nonCompatible.includes(provider);
 }
+
+// =============================================================================
+// MODEL SELECTION BY PROVIDER
+// =============================================================================
+
+/**
+ * Map of provider to their model name patterns/prefixes in MODEL_PRICING
+ * Used to filter which models are available for a specific provider credential
+ */
+const PROVIDER_MODEL_PATTERNS: Record<LLMProvider, RegExp | null> = {
+  // Tier 1: First-party providers
+  openai: /^(gpt-|o[134]|text-embedding)/,
+  anthropic: /^claude-/,
+  google: /^gemini-/,
+  xai: /^grok-/,
+  mistral: /^(mistral-|codestral)/,
+  cohere: /^command-/,
+  deepseek: /^deepseek-/,
+  // Tier 2: Cloud providers
+  azure: /^(gpt-|o[134]|text-embedding)/, // Azure hosts OpenAI models
+  bedrock: /^(claude-|anthropic\.)/, // Bedrock hosts Anthropic + others
+  // Tier 3: Inference providers
+  groq: /^(llama-|mixtral-|gemma)/,
+  together: /^(meta-llama\/|mistralai\/|Qwen\/)/,
+  fireworks: /^accounts\/fireworks/,
+  cerebras: /^(llama3\.|qwen-)/,
+  perplexity: /^sonar/,
+  // Tier 4: Gateways (null = all models)
+  openrouter: null,
+  // Legacy
+  replicate: /^meta\//,
+};
+
+/**
+ * Get available models for a specific provider
+ * OpenRouter can access all models (it's a gateway)
+ * Direct providers only return their own models
+ */
+export function getModelsForProvider(provider: LLMProvider): string[] {
+  const pattern = PROVIDER_MODEL_PATTERNS[provider];
+
+  // OpenRouter (and other gateways) can access all models
+  if (pattern === null) {
+    return Object.keys(MODEL_PRICING);
+  }
+
+  // Filter models by the provider's pattern
+  return Object.keys(MODEL_PRICING).filter((model) => pattern.test(model));
+}
+
+/**
+ * Check if a specific model is compatible with a provider
+ */
+export function isModelCompatibleWithProvider(model: string, provider: LLMProvider): boolean {
+  const pattern = PROVIDER_MODEL_PATTERNS[provider];
+
+  // Gateways support all models
+  if (pattern === null) {
+    return true;
+  }
+
+  return pattern.test(model);
+}

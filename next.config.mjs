@@ -19,11 +19,6 @@ const nextConfig = {
   // Disable source maps in production for security
   productionBrowserSourceMaps: false,
 
-  // Experimental features for better performance
-  experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
-  },
-
   async headers() {
     return [
       {
@@ -54,24 +49,6 @@ const nextConfig = {
             // HSTS - enforce HTTPS for 1 year with subdomains
             key: 'Strict-Transport-Security',
             value: 'max-age=31536000; includeSubDomains; preload',
-          },
-          {
-            // CSP - prevent XSS and injection attacks
-            // Note: 'unsafe-inline' for scripts required by Next.js, but 'unsafe-eval' removed for security
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' js.stripe.com",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https:",
-              "font-src 'self' data:",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com",
-              "frame-src 'self' js.stripe.com",
-              "frame-ancestors 'none'",
-              "form-action 'self'",
-              "base-uri 'self'",
-              "object-src 'none'",
-            ].join('; '),
           },
         ],
       },

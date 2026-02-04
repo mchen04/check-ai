@@ -1,0 +1,107 @@
+JUSTIN TAN
+justinwt922@gmail.com | 925-922-7802 | linkedin.com/in/justinwtan
+
+================================================================================
+EDUCATION
+================================================================================
+
+University of California San Diego, Rady School of Management
+Bachelor of Science in Business Economics                    Expected June 2026
+Minors: Supply Chain & Analytics
+GPA: 3.9/4.0 | Provost Honors
+
+Relevant Coursework: Advanced Business Analytics, Project Management,
+Technology Strategy, Innovation & Growth
+
+================================================================================
+PROFESSIONAL EXPERIENCE
+================================================================================
+
+MASTERCARD                                              San Francisco, CA
+Associate Consultant Intern - Technology & Data Analysis     June 2025 - Present
+
+- Drove $35M revenue-generating solutions for $9B and $2.4B-valued retailers
+  using SQL and proprietary analytics (Test & Learn) to design and execute
+  5+ data-backed experiments
+- Analyzed 250,000+ site data points and 2,500+ store locations to develop
+  pricing strategy recommendations
+- Cultivated 5+ client relationships to diagnose business challenges and
+  guide data-driven decision-making
+- Built 15+ client-facing slide decks and dashboards to convey test results
+  during SteerCos and status meetings
+
+--------------------------------------------------------------------------------
+
+DEPARTMENT OF ECONOMICS, UC SAN DIEGO                        San Diego, CA
+Industry Engagement Student Assistant                   April 2025 - June 2025
+
+- Modeled 10,000+ UCSD graduate data points in Salesforce CRM to inform
+  strategy for outreach and engagement
+- Engaged students, alumni, and employers in greater San Diego, facilitating
+  15+ events, activities, and strategies
+- Mentored 20+ undergraduate students on career development in Economics,
+  Business, and STEM disciplines
+- Improved digital resource usage rates by 35% through user metrics analysis
+  and feedback implementations
+
+--------------------------------------------------------------------------------
+
+WEST MONROE                                             San Francisco, CA
+Associate Consultant Intern - Technology & Strategy      June 2024 - Aug 2024
+
+- Formulated $19M cost-savings per-year solution for $20B-valued IT software
+  client by mapping IT application landscape and facilitating IT vendor
+  management process
+- Documented 20+ service level agreements for 100+ software applications and
+  technology components
+- Composed 2 Request for Proposal bundles consisting of 30+ Word documents
+  and Excel pricing workbooks
+- Analyzed risk and compatibility across 25+ global bidders, recommending
+  5 final IT vendors for client
+
+--------------------------------------------------------------------------------
+
+QUOKKA BREW                                             San Francisco, CA
+Sales Intern                                            June 2023 - Sep 2023
+
+- Closed 50+ accounts across the US by deploying customer acquisition methods
+  to integrate new markets
+- Recorded 1,500+ customer data points in company CRM across 5+ target markets
+- Performed as top 3 intern in cohort by conducting outreach to 600+ clients
+  in New York and New Hampshire
+
+================================================================================
+LEADERSHIP & EXTRACURRICULAR
+================================================================================
+
+BUSINESS COUNCIL OF UC SAN DIEGO                             San Diego, CA
+Vice President of External Relations                    June 2024 - Present
+
+- Organized largest business event at UC San Diego, garnering 1,000+ attendees
+  and 24 student-run organizations
+- Coordinated 5+ business events with Directors at Rady School of Management
+  and Department of Economics
+- Reached 4,000+ business students with Business Council newsletter, providing
+  career advice and opportunities
+
+--------------------------------------------------------------------------------
+
+CORNERSTONE COMMUNITY CONSULTANTS                            San Diego, CA
+Project Manager, Business Analyst                       Sep 2023 - June 2025
+
+- Generated 15% improvement in inventory management by setting bi-weekly
+  check-in system with vendors
+- Leveraged Excel, R, and Stata to analyze product operations and improve
+  regional sales by 10%
+- Created 5+ partnership opportunities and expanded client base by 8% through
+  product-market fit analysis
+
+================================================================================
+SKILLS
+================================================================================
+
+Technical: Microsoft PowerPoint & Excel (Expert), SQL (Proficient),
+           R (Proficient), Stata (Proficient), JMP (Proficient)
+
+Business: Data Analysis, Client Relations, Strategic Planning, Project
+          Management, IT Risk Assessment, Vendor Management

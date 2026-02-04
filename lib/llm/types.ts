@@ -25,6 +25,8 @@ export {
   getProviderTier,
   isProviderInTier,
   isOpenAICompatible,
+  getModelsForProvider,
+  isModelCompatibleWithProvider,
   type ModelPricing,
 } from './config';
 

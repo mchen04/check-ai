@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Copy, Check } from 'lucide-react';
+import { Plus, Copy, Check, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -28,6 +28,15 @@ import { ButtonSpinner, Spinner } from '@/components/ui/loading-spinner';
 import { useCopyToClipboard } from '@/hooks';
 import { InlineError } from '@/components/ui/empty-state';
 import { AlertBanner } from '@/components/ui/alert-banner';
+import {
+  type ParadigmType,
+  PARADIGM_DISPLAY_NAMES,
+  PARADIGM_DESCRIPTIONS,
+  ALL_PARADIGMS,
+} from '@/lib/verification/types';
+import { getModelsForProvider, isModelCompatibleWithProvider } from '@/lib/llm/config';
+import { DEFAULT_MODELS } from '@/lib/api-keys/types';
+import type { LLMProvider } from '@/lib/llm/types';
 
 interface ProviderCredential {
   id: string;
@@ -35,7 +44,19 @@ interface ProviderCredential {
   provider: string;
 }
 
-const DEFAULT_MODEL = 'anthropic/claude-3.5-sonnet';
+type PlanType = 'free' | 'pro' | 'enterprise';
+
+interface ParadigmState {
+  enabled: boolean;
+  model: string;
+}
+
+// Methods allowed per plan tier
+const PLAN_ALLOWED_METHODS: Record<PlanType, readonly ParadigmType[]> = {
+  free: ['semantic'],
+  pro: ['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal'],
+  enterprise: ['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal'],
+};
 
 export default function CreateApiKeyDialog() {
   const router = useRouter();
@@ -51,16 +72,82 @@ export default function CreateApiKeyDialog() {
   const [selectedCredentialId, setSelectedCredentialId] = useState<string>('');
   const [isLoadingCredentials, setIsLoadingCredentials] = useState(false);
 
-  // Paradigm state - default to reasoning enabled
-  const [reasoningEnabled, setReasoningEnabled] = useState(true);
+  // Plan type state
+  const [planType, setPlanType] = useState<PlanType>('free');
+  const [isLoadingPlan, setIsLoadingPlan] = useState(false);
 
-  // Fetch credentials when dialog opens
+  // Paradigm configs - keyed by paradigm type
+  const [paradigmConfigs, setParadigmConfigs] = useState<Record<ParadigmType, ParadigmState>>(() =>
+    initializeParadigmConfigs()
+  );
+
+  // Get the selected credential's provider
+  const selectedCredential = useMemo(
+    () => credentials.find((c) => c.id === selectedCredentialId),
+    [credentials, selectedCredentialId]
+  );
+  const selectedProvider = selectedCredential?.provider as LLMProvider | undefined;
+
+  // Get available models for the selected provider
+  const availableModels = useMemo(() => {
+    if (!selectedProvider) return [];
+    return getModelsForProvider(selectedProvider);
+  }, [selectedProvider]);
+
+  // Check if at least one paradigm is enabled
+  const hasEnabledParadigm = useMemo(
+    () => Object.values(paradigmConfigs).some((config) => config.enabled),
+    [paradigmConfigs]
+  );
+
+  // Fetch credentials and plan when dialog opens (in parallel per async-parallel rule)
   useEffect(() => {
-    if (open && credentials.length === 0) {
-      fetchCredentials();
+    if (open) {
+      // Run both fetches in parallel - they are independent operations
+      const fetchData = async () => {
+        await Promise.all([
+          credentials.length === 0 ? fetchCredentials() : Promise.resolve(),
+          fetchPlanType(),
+        ]);
+      };
+      fetchData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // Update models when provider changes
+  useEffect(() => {
+    if (selectedProvider && availableModels.length > 0) {
+      setParadigmConfigs((prev) => {
+        const updated = { ...prev };
+        for (const paradigm of ALL_PARADIGMS) {
+          const currentModel = prev[paradigm].model;
+          // If current model is not compatible with new provider, reset to default or first available
+          if (!isModelCompatibleWithProvider(currentModel, selectedProvider)) {
+            const defaultModel = DEFAULT_MODELS[paradigm];
+            updated[paradigm] = {
+              ...prev[paradigm],
+              model: isModelCompatibleWithProvider(defaultModel, selectedProvider)
+                ? defaultModel
+                : availableModels[0],
+            };
+          }
+        }
+        return updated;
+      });
+    }
+  }, [selectedProvider, availableModels]);
+
+  function initializeParadigmConfigs(): Record<ParadigmType, ParadigmState> {
+    const configs: Record<ParadigmType, ParadigmState> = {} as Record<ParadigmType, ParadigmState>;
+    for (const paradigm of ALL_PARADIGMS) {
+      configs[paradigm] = {
+        enabled: paradigm === 'semantic', // Default to semantic enabled
+        model: DEFAULT_MODELS[paradigm] || 'anthropic/claude-3.5-sonnet',
+      };
+    }
+    return configs;
+  }
 
   const fetchCredentials = async () => {
     setIsLoadingCredentials(true);
@@ -81,7 +168,55 @@ export default function CreateApiKeyDialog() {
     }
   };
 
-  const handleCreate = async () => {
+  const fetchPlanType = async () => {
+    setIsLoadingPlan(true);
+    try {
+      const response = await fetch('/api/dashboard/settings/organization');
+      if (response.ok) {
+        const data = await response.json();
+        setPlanType(data.planType || 'free');
+      }
+    } catch {
+      // Default to free on error
+      setPlanType('free');
+    } finally {
+      setIsLoadingPlan(false);
+    }
+  };
+
+  const isParadigmAllowed = useCallback(
+    (paradigm: ParadigmType): boolean => {
+      return PLAN_ALLOWED_METHODS[planType].includes(paradigm);
+    },
+    [planType]
+  );
+
+  const toggleParadigm = useCallback(
+    (paradigm: ParadigmType) => {
+      if (!PLAN_ALLOWED_METHODS[planType].includes(paradigm)) return;
+
+      setParadigmConfigs((prev) => ({
+        ...prev,
+        [paradigm]: {
+          ...prev[paradigm],
+          enabled: !prev[paradigm].enabled,
+        },
+      }));
+    },
+    [planType]
+  );
+
+  const updateParadigmModel = useCallback((paradigm: ParadigmType, model: string) => {
+    setParadigmConfigs((prev) => ({
+      ...prev,
+      [paradigm]: {
+        ...prev[paradigm],
+        model,
+      },
+    }));
+  }, []);
+
+  const handleCreate = useCallback(async () => {
     if (!name.trim()) {
       setError('Please enter a name for the API key');
       return;
@@ -92,8 +227,8 @@ export default function CreateApiKeyDialog() {
       return;
     }
 
-    if (!reasoningEnabled) {
-      setError('At least one paradigm must be enabled');
+    if (!hasEnabledParadigm) {
+      setError('At least one verification method must be enabled');
       return;
     }
 
@@ -101,6 +236,19 @@ export default function CreateApiKeyDialog() {
     setError(null);
 
     try {
+      // Build paradigm config from enabled paradigms
+      const paradigmConfig: Record<string, { enabled: boolean; weight: number; model: string }> =
+        {};
+      for (const paradigm of ALL_PARADIGMS) {
+        if (paradigmConfigs[paradigm].enabled) {
+          paradigmConfig[paradigm] = {
+            enabled: true,
+            weight: 1.0,
+            model: paradigmConfigs[paradigm].model,
+          };
+        }
+      }
+
       const response = await fetch('/api/dashboard/keys', {
         method: 'POST',
         headers: {
@@ -109,13 +257,7 @@ export default function CreateApiKeyDialog() {
         body: JSON.stringify({
           name: name.trim(),
           providerCredentialIds: [selectedCredentialId],
-          paradigmConfig: {
-            reasoning: {
-              enabled: true,
-              weight: 1.0,
-              model: DEFAULT_MODEL,
-            },
-          },
+          paradigmConfig,
         }),
       });
 
@@ -131,27 +273,43 @@ export default function CreateApiKeyDialog() {
     } finally {
       setIsCreating(false);
     }
-  };
+  }, [name, selectedCredentialId, hasEnabledParadigm, paradigmConfigs]);
 
-  const handleCopy = () => {
+  const handleCopy = useCallback(() => {
     if (newKey) {
       copy(newKey);
     }
-  };
+  }, [newKey, copy]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setOpen(false);
     setName('');
     setNewKey(null);
     setError(null);
     setSelectedCredentialId(credentials[0]?.id || '');
-    setReasoningEnabled(true);
+    setParadigmConfigs(initializeParadigmConfigs());
     if (newKey) {
       router.refresh();
     }
-  };
+  }, [credentials, newKey, router]);
+
+  const handleCancel = useCallback(() => {
+    setOpen(false);
+  }, []);
+
+  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value);
+  }, []);
+
+  const handleNameKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') handleCreate();
+    },
+    [handleCreate]
+  );
 
   const noCredentials = !isLoadingCredentials && credentials.length === 0;
+  const isLoading = isLoadingCredentials || isLoadingPlan;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -161,24 +319,22 @@ export default function CreateApiKeyDialog() {
           Create API Key
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[550px]">
         {!newKey ? (
           <>
             <DialogHeader>
               <DialogTitle>Create API Key</DialogTitle>
-              <DialogDescription>
-                Create a new API key to access the Check API
-              </DialogDescription>
+              <DialogDescription>Create a new API key to access the Check API</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              {isLoadingCredentials ? (
+              {isLoading ? (
                 <div className="flex items-center justify-center py-4">
                   <Spinner size="default" />
                 </div>
               ) : noCredentials ? (
                 <AlertBanner variant="warning" title="No provider credentials found">
-                  You need to add a provider credential (like OpenRouter, OpenAI, or Anthropic)
-                  in Settings before creating an API key.
+                  You need to add a provider credential (like OpenRouter, OpenAI, or Anthropic) in
+                  Settings before creating an API key.
                 </AlertBanner>
               ) : (
                 <>
@@ -188,10 +344,8 @@ export default function CreateApiKeyDialog() {
                       id="name"
                       placeholder="Production API Key"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleCreate();
-                      }}
+                      onChange={handleNameChange}
+                      onKeyDown={handleNameKeyDown}
                     />
                     <p className="text-xs text-muted-foreground">
                       Give your key a descriptive name so you can identify it later
@@ -200,10 +354,7 @@ export default function CreateApiKeyDialog() {
 
                   <div className="grid gap-2">
                     <Label htmlFor="credential">Provider Credential</Label>
-                    <Select
-                      value={selectedCredentialId}
-                      onValueChange={setSelectedCredentialId}
-                    >
+                    <Select value={selectedCredentialId} onValueChange={setSelectedCredentialId}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a provider credential" />
                       </SelectTrigger>
@@ -221,35 +372,84 @@ export default function CreateApiKeyDialog() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label>Verification Method</Label>
-                    <div className="flex items-center justify-between rounded-lg border p-3">
-                      <div>
-                        <p className="text-sm font-medium">Reasoning</p>
-                        <p className="text-xs text-muted-foreground">
-                          LLM-based logical analysis using {DEFAULT_MODEL}
-                        </p>
-                      </div>
-                      <Switch
-                        checked={reasoningEnabled}
-                        onCheckedChange={setReasoningEnabled}
-                      />
+                    <Label>Verification Methods</Label>
+                    <div className="space-y-2">
+                      {ALL_PARADIGMS.map((paradigm) => {
+                        const isAllowed = isParadigmAllowed(paradigm);
+                        const config = paradigmConfigs[paradigm];
+
+                        return (
+                          <div
+                            key={paradigm}
+                            className={`rounded-lg border p-3 ${!isAllowed ? 'bg-muted/50 opacity-60' : ''}`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium">
+                                    {PARADIGM_DISPLAY_NAMES[paradigm]}
+                                  </p>
+                                  {!isAllowed && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                                      <Crown className="h-3 w-3" />
+                                      Pro
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  {PARADIGM_DESCRIPTIONS[paradigm]}
+                                </p>
+                              </div>
+                              <Switch
+                                checked={config.enabled}
+                                onCheckedChange={() => toggleParadigm(paradigm)}
+                                disabled={!isAllowed}
+                              />
+                            </div>
+
+                            {/* Model selector - only show when enabled and allowed */}
+                            {config.enabled && isAllowed && availableModels.length > 0 && (
+                              <div className="mt-3 pt-3 border-t">
+                                <Label className="text-xs text-muted-foreground">Model</Label>
+                                <Select
+                                  value={config.model}
+                                  onValueChange={(model) => updateParadigmModel(paradigm, model)}
+                                >
+                                  <SelectTrigger className="mt-1 h-8 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {availableModels.map((model) => (
+                                      <SelectItem key={model} value={model} className="text-xs">
+                                        {model}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      You can configure additional paradigms in Settings after creation
-                    </p>
+                    {planType === 'free' && (
+                      <p className="text-xs text-muted-foreground">
+                        <a href="/dashboard/settings/billing" className="text-primary underline">
+                          Upgrade to Pro
+                        </a>{' '}
+                        to unlock all verification methods.
+                      </p>
+                    )}
                   </div>
                 </>
               )}
               <InlineError message={error} />
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)}>
+              <Button variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>
-              <Button
-                onClick={handleCreate}
-                disabled={isCreating || noCredentials || isLoadingCredentials}
-              >
+              <Button onClick={handleCreate} disabled={isCreating || noCredentials || isLoading}>
                 {isCreating && <ButtonSpinner />}
                 {isCreating ? 'Creating...' : 'Create Key'}
               </Button>
@@ -265,13 +465,9 @@ export default function CreateApiKeyDialog() {
             </DialogHeader>
             <div className="py-4">
               <div className="rounded-lg border bg-muted p-4">
-                <div className="mb-2 text-xs font-medium text-muted-foreground">
-                  Your API Key
-                </div>
+                <div className="mb-2 text-xs font-medium text-muted-foreground">Your API Key</div>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 break-all font-mono text-sm">
-                    {newKey}
-                  </code>
+                  <code className="flex-1 break-all font-mono text-sm">{newKey}</code>
                   <Button variant="ghost" size="sm" onClick={handleCopy}>
                     {copied ? (
                       <Check className="h-4 w-4 text-success" />

@@ -1,0 +1,113 @@
+MICHAEL CHEN
+michaelluochen1@gmail.com | (925) 365-6778
+linkedin.com/in/michael-luo-chen | github.com/mchen04 | mchen04.github.io
+
+================================================================================
+EDUCATION
+================================================================================
+
+University of California, Riverside
+Bachelor of Science in Computer Science                      Expected June 2026
+Minor: Entrepreneurship and Strategy
+GPA: 3.72/4.0 | Dean's Honor List
+
+Relevant Coursework: Data Structures & Algorithms, Artificial Intelligence,
+Software Engineering, Software Construction, Database Management, Operating
+Systems, Data Analysis, Linear Algebra, Computer Architecture
+
+================================================================================
+AWARDS
+================================================================================
+
+AMD Pervasive AI Competition - University Program Award          September 2024
+- Won among 8,200+ participants at AMD Pervasive AI Developer Contest
+- Presented live demo at AMD Advancing AI Event 2024, San Francisco
+
+Cutie Hack 2022 - Sustainability Award                           November 2022
+
+================================================================================
+PROFESSIONAL EXPERIENCE
+================================================================================
+
+EPOCH                                                              Remote
+AI Software Engineer                                   October 2025 - Present
+
+- Developed core systems for Zerg, an autonomous coding agent: hybrid RAG
+  retrieval (BM25 + embeddings + dependency graphs), spec-driven TDD workflows,
+  and SWE-bench evaluation infrastructure with Docker-based test execution
+- Built ZTC, a production TUI client with streaming LLM integration, real-time
+  tool visualization, Socket.IO bidirectional sync, and slash command
+  orchestration for interactive control of autonomous agent workflows
+
+--------------------------------------------------------------------------------
+
+MOBIVOLT LLC                                               Livermore, CA
+Software Engineer Intern                               June 2023 - Sep 2025
+
+- Developed 10+ automated test systems for $5M+ DOD-funded fuel cell program
+  using C#/.NET, integrating 250+ sensors with zero downtime across 5,000+
+  hours of testing and reducing data logging time by 99%
+- Accelerated data analysis by 300% through automated Python pipelines and
+  embedded Arduino firmware (RS-232/TTL/SPI at 50Hz), enabling multi-week
+  endurance testing for industrial equipment
+
+--------------------------------------------------------------------------------
+
+ARTIFICIAL INTELLIGENCE AT UCR (AIR)                       Riverside, CA
+Founder & President                                    October 2023 - Sep 2025
+
+- Established UCR's first official AI organization, scaling membership from
+  0 to 50+ active members within 6 months with 45% workshop attendance growth
+- Delivered 10+ technical workshops on AI/ML implementation and emerging
+  technologies, establishing UCR's AI community network
+
+================================================================================
+PROJECTS
+================================================================================
+
+PHiLIP: Personalized Human in Loop Image Production     Nov 2023 - July 2024
+hackster.io/engineers-ucr/philip-personalized-human-in-loop-image-production
+
+- Won AMD University Program Award ($2,500) among 8,200+ participants
+- Designed human-in-loop image generation platform achieving 2-second inference
+  with 71 style presets, Stable Diffusion upscaling, and iterative refinement
+  using PyTorch, HuggingFace, and fine-tuned PixArt-alpha on AMD ROCm
+
+--------------------------------------------------------------------------------
+
+Castor: AI-Powered GEO Consultation Platform             August 2025 - Present
+trycastor.dev
+
+- Launched platform using Next.js 15, TypeScript, Supabase, and Stripe,
+  integrating agentic RAG system with 150,000-word knowledge base from
+  15+ peer-reviewed papers and 80+ industry sources
+- Optimized retrieval with parent-child chunking, hybrid search (60% semantic/
+  40% keyword), and Cohere reranking, achieving >0.75 context precision and
+  >0.85 faithfulness via RAGAS evaluation
+
+================================================================================
+TECHNICAL SKILLS
+================================================================================
+
+AI/ML:          Large Language Models (LLMs), AI Agents, RAG, LangChain,
+                LangGraph, Prompt Engineering, PyTorch, HuggingFace,
+                Vector Embeddings, NLP, Model Context Protocol (MCP)
+
+Languages:      Python, TypeScript, JavaScript, C++, C, Java, C#
+
+Backend:        Node.js, Express.js, FastAPI, Django, Flask, RESTful APIs,
+                GraphQL, WebSockets, Socket.IO
+
+Frontend:       React.js, Next.js, Tailwind CSS, shadcn/ui, SSR
+
+Databases:      PostgreSQL, Pinecone, pgvector, Supabase, MongoDB, Redis
+
+Cloud/DevOps:   Docker, Kubernetes, AWS, GCP, Azure, Vercel, CI/CD, Git
+
+================================================================================
+CERTIFICATIONS
+================================================================================
+
+- Unsupervised Learning, Recommenders, Reinforcement Learning (Coursera)
+- Supervised Machine Learning (Coursera)
+- Advanced Learning Algorithms (Coursera)
