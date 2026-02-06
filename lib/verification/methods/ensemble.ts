@@ -33,6 +33,13 @@ const DEFAULT_ENSEMBLE: EnsembleMember[] = [
   { provider: 'google', model: 'gemini-2.0-flash', weight: 0.8 },
 ];
 
+// OpenRouter ensemble (diverse upstream models via single key)
+const OPENROUTER_ENSEMBLE: EnsembleMember[] = [
+  { provider: 'openrouter', model: 'anthropic/claude-3.5-sonnet', weight: 1.0 },
+  { provider: 'openrouter', model: 'openai/gpt-4o', weight: 1.0 },
+  { provider: 'openrouter', model: 'google/gemini-2.0-flash-001', weight: 0.8 },
+];
+
 // Fallback ensemble if some providers unavailable
 const FALLBACK_ENSEMBLE: EnsembleMember[] = [
   { provider: 'openai', model: 'gpt-4o', weight: 1.0 },
@@ -136,6 +143,11 @@ export class EnsembleParadigm implements ParadigmExecutor {
     // If we have at least 2 diverse models, use them
     if (availableMembers.length >= 2) {
       return availableMembers;
+    }
+
+    // Fall back to OpenRouter with diverse upstream models
+    if (this.llmClient.hasProvider('openrouter')) {
+      return OPENROUTER_ENSEMBLE;
     }
 
     // Fall back to multiple OpenAI models if that's all we have
