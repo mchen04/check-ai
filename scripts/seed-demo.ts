@@ -17,8 +17,9 @@
 import 'dotenv/config';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import { eq } from 'drizzle-orm';
-import { db } from '../utils/db/db';
 import {
   usersTable,
   organizationsTable,
@@ -30,8 +31,34 @@ import {
   paradigmResultsTable,
   userPreferencesTable,
 } from '../utils/db/schema';
-import { encrypt } from '../lib/llm/key-manager';
-import { generatePlatformApiKey, hashApiKey, generateKeyPrefix } from '../lib/llm/key-manager';
+// Create standalone DB connection (bypasses server-only guard in db.ts)
+const client = postgres(process.env.DATABASE_URL!, { prepare: false });
+const db = drizzle(client);
+
+// Inline crypto helpers (can't import key-manager.ts — it transitively imports server-only)
+function encrypt(text: string): string {
+  const key = crypto.createHash('sha256').update(process.env.ENCRYPTION_KEY!).digest();
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  const authTag = cipher.getAuthTag();
+  return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
+}
+
+function hashApiKey(apiKey: string): string {
+  return crypto.createHash('sha256').update(apiKey).digest('hex');
+}
+
+function generatePlatformApiKey(): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let prefix = 'vfy_';
+  for (let i = 0; i < 8; i++) {
+    prefix += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  const secret = crypto.randomBytes(24).toString('base64url');
+  return `${prefix}${secret}`;
+}
 
 // ---------------------------------------------------------------------------
 // Config
@@ -361,10 +388,12 @@ async function main() {
   console.log('\n✅ Demo account seeded successfully!');
   console.log(`   Email: ${DEMO_EMAIL}`);
   console.log(`   Org: Demo Organization (${orgSlug})`);
+  await client.end();
   process.exit(0);
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
   console.error('Seed failed:', err);
+  await client.end();
   process.exit(1);
 });
