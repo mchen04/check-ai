@@ -73,6 +73,11 @@ export default async function LandingPage() {
             <Button asChild variant="ghost" size="sm">
               <Link href="/login">Log in</Link>
             </Button>
+            {process.env.DEMO_PASSWORD && (
+              <Button asChild variant="outline" size="sm">
+                <Link href="/demo">Try Demo</Link>
+              </Button>
+            )}
             <Button asChild size="sm">
               <Link href="/signup">Get started</Link>
             </Button>

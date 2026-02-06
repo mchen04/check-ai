@@ -49,6 +49,7 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/auth') &&
     !request.nextUrl.pathname.startsWith('/signup') &&
     !request.nextUrl.pathname.startsWith('/forgot-password') &&
+    !request.nextUrl.pathname.startsWith('/demo') &&
     !request.nextUrl.pathname.startsWith('/docs') &&
     !request.nextUrl.pathname.startsWith('/invite') &&
     !request.nextUrl.pathname.startsWith('/privacy') &&

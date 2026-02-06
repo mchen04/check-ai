@@ -121,6 +121,28 @@ export async function signup(currentState: { message: string }, formData: FormDa
   redirect('/subscribe');
 }
 
+export async function demoLogin(currentState: { message: string }, formData: FormData) {
+  const password = formData.get('password') as string;
+
+  if (password !== process.env.DEMO_PASSWORD) {
+    return { message: 'Invalid demo password' };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: process.env.DEMO_EMAIL!,
+    password: process.env.DEMO_USER_PASSWORD!,
+  });
+
+  if (error) {
+    log.error({ err: error }, 'Demo login failed');
+    return { message: 'Demo access temporarily unavailable' };
+  }
+
+  revalidatePath('/', 'layout');
+  redirect('/dashboard');
+}
+
 export async function loginUser(currentState: { message: string }, formData: FormData) {
   const supabase = await createClient();
 
