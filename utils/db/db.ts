@@ -9,7 +9,13 @@ const globalForDb = globalThis as unknown as {
 };
 
 // Disable prefetch as it is not supported for "Transaction" pool mode
-const client = globalForDb.client ?? postgres(process.env.DATABASE_URL!, { prepare: false });
+// Limit max connections to avoid exhausting Supabase pool in serverless
+const client = globalForDb.client ?? postgres(process.env.DATABASE_URL!, {
+  prepare: false,
+  max: 1,
+  idle_timeout: 20,
+  connect_timeout: 10,
+});
 
 if (process.env.NODE_ENV !== 'production') {
   globalForDb.client = client;
