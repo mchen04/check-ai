@@ -86,12 +86,15 @@ export class SemanticParadigm implements ParadigmExecutor {
       const truthEnergy = this.poolEnergy(contentEmbedding, this.cachedTruthEmbeddings!);
       const falsehoodEnergy = this.poolEnergy(contentEmbedding, this.cachedFalsehoodEmbeddings!);
 
-      // Convert to Boltzmann probabilities
-      const pTruth = Math.exp(-truthEnergy / TAU);
-      const pFalse = Math.exp(-falsehoodEnergy / TAU);
-      const Z = pTruth + pFalse;
-      const pTruthNorm = pTruth / Z;
-      const pFalseNorm = pFalse / Z;
+      // Convert to Boltzmann probabilities using log-sum-exp for numerical stability
+      const logPTruth = -truthEnergy / TAU;
+      const logPFalse = -falsehoodEnergy / TAU;
+      const maxLog = Math.max(logPTruth, logPFalse);
+      const pTruthStable = Math.exp(logPTruth - maxLog);
+      const pFalseStable = Math.exp(logPFalse - maxLog);
+      const Z = pTruthStable + pFalseStable; // always >= 1.0
+      const pTruthNorm = pTruthStable / Z;
+      const pFalseNorm = pFalseStable / Z;
 
       // Energy entropy (binary)
       const H = this.binaryEntropy(pTruthNorm, pFalseNorm);
@@ -204,8 +207,14 @@ export class SemanticParadigm implements ParadigmExecutor {
       normB += b[i] * b[i];
     }
 
+    // Zero-norm guard: if either vector is zero, return max distance (1.0)
+    if (normA < 1e-10 || normB < 1e-10) {
+      return 1.0;
+    }
+
     const similarity = dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
-    return 1 - similarity; // cosine distance
+    // Clamp to [-1, 1] for floating-point safety
+    return 1 - Math.max(-1, Math.min(1, similarity));
   }
 
   /**

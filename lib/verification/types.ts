@@ -308,6 +308,10 @@ export function calculateConsensus(results: ParadigmResult[]): {
   } else if (falseWeight > trueWeight && falseWeight > uncertainWeight) {
     verdict = 'false';
     confidence = falseWeight / totalWeight;
+  } else if (trueWeight === falseWeight && trueWeight > uncertainWeight) {
+    // Exact true/false tie — maximum disagreement signal
+    verdict = 'uncertain';
+    confidence = 0.5;
   } else {
     verdict = 'uncertain';
     // Use the average paradigm confidence for uncertain verdicts instead of

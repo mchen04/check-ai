@@ -468,13 +468,18 @@ Answer:`;
 
     if (Array.isArray(parsed.clusters) && parsed.clusters.length > 0) {
       numClusters = parsed.clusters.length;
-      const total = responses.length;
-      clusterDistribution = parsed.clusters.map((c: unknown) => {
+      // Extract raw counts, then normalize by actual sum (not responses.length)
+      // to guarantee the distribution sums to 1.0 for correct Shannon entropy
+      const rawCounts = parsed.clusters.map((c: unknown) => {
         if (typeof c === 'object' && c !== null && 'count' in c) {
-          return (c as { count: number }).count / total;
+          return (c as { count: number }).count;
         }
-        return 1 / numClusters!;
+        return 1;
       });
+      const countSum = rawCounts.reduce((a: number, b: number) => a + b, 0);
+      clusterDistribution = countSum > 0
+        ? rawCounts.map((count: number) => count / countSum)
+        : rawCounts.map(() => 1 / numClusters!);
     }
 
     return {

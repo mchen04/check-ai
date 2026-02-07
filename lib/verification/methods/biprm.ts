@@ -84,7 +84,7 @@ function parseBiPRMDirectionalResponse(response: string): BiPRMDirectionalRespon
  */
 function calculateStepScore(steps: BiPRMStep[]): number {
   if (steps.length === 0) return 0.5;
-  const scores = steps.map((s) => (s.valid ? s.confidence : 0));
+  const scores = steps.map((s) => (s.valid ? s.confidence : s.confidence * 0.3));
   return Math.min(...scores);
 }
 

@@ -402,9 +402,6 @@ export class EnsembleParadigm implements ParadigmExecutor {
       confidence = Math.max(uncertainWeight / totalWeight, 0.5);
     }
 
-    const agreementRatio = Math.max(trueWeight, falseWeight, uncertainWeight) / totalWeight;
-    confidence *= agreementRatio;
-
     return { verdict, confidence };
   }
 

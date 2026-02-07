@@ -43,6 +43,17 @@ type FormalClaimType =
   | 'set_theory'
   | 'non_formalizable';
 
+// Confidence caps for LLM-autoformalized expressions by claim type.
+// Only the regex fast-path (builtin arithmetic) deserves 1.0 —
+// autoformalization is LLM-generated and can pick wrong constants.
+const AUTOFORMALIZATION_CONFIDENCE_CAPS: Partial<Record<FormalClaimType, number>> = {
+  arithmetic: 0.95,
+  comparison: 0.93,
+  algebraic: 0.92,
+  unit_conversion: 0.88,
+  statistical: 0.85,
+};
+
 function classifyClaimEnhanced(content: string): {
   claimType: FormalClaimType;
   canAutoformalize: boolean;
@@ -351,13 +362,16 @@ export class FormalParadigm implements ParadigmExecutor {
                 formalization.outputTokens
               );
 
+              // Cap confidence by claim type — LLM formalization is fallible
+              const confidenceCap = AUTOFORMALIZATION_CONFIDENCE_CAPS[classification.claimType] ?? 0.90;
+
               return {
                 paradigm: 'formal',
                 weight: options.weight,
                 provider,
                 model,
                 verdict: verified ? 'true' : 'false',
-                confidence: 1.0,
+                confidence: confidenceCap,
                 reasoning: `AUTOFORMALIZATION (${classification.claimType})
 Expression: ${formalization.expression}
 Evaluated: ${String(evalResult)}

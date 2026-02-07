@@ -132,8 +132,15 @@ export class ReasoningParadigm implements ParadigmExecutor {
           finalConfidence = Math.min(initialParsed.confidence * 1.15, 1.0);
           finalReasoning = `${initialParsed.reasoning}\n\n[Self-critique AGREES] ${critiqueParsed.reasoning}`;
         } else {
-          // Disagreement: use initial verdict but cap confidence at 0.75
-          finalConfidence = Math.min(initialParsed.confidence, 0.75);
+          // Disagreement: apply 10% anchoring discount to critique confidence
+          const discountedCritiqueConf = critiqueParsed.confidence * 0.9;
+          if (discountedCritiqueConf > initialParsed.confidence) {
+            // Critique is significantly more confident — use its verdict
+            finalVerdict = critiqueParsed.verdict;
+            finalConfidence = Math.min(discountedCritiqueConf, 0.75);
+          } else {
+            finalConfidence = Math.min(initialParsed.confidence, 0.75);
+          }
           finalReasoning = `${initialParsed.reasoning}\n\n[Self-critique DISAGREES → ${critiqueParsed.verdict} @ ${(critiqueParsed.confidence * 100).toFixed(0)}%] ${critiqueParsed.reasoning}`;
         }
 
