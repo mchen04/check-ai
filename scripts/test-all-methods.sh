@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Test all 7 verification methods + multi-paradigm weighted combo
+# Test 4 production verification methods + multi-paradigm weighted combo
 # Usage: bash scripts/test-all-methods.sh [BASE_URL] [API_KEY]
 #
 # Defaults to localhost:3001 with the dev API key.
@@ -75,19 +75,16 @@ echo "============================================================"
 
 # --- Individual methods (false claim) ---
 
-call_verify "SEMANTIC" "$FALSE_CLAIM" '{"semantic": 1.0}'
 call_verify "REASONING" "$FALSE_CLAIM" '{"reasoning": 1.0}'
-call_verify "TOOL-AUGMENTED" "$FALSE_CLAIM" '{"tool": 1.0}'
 call_verify "ENTROPY" "$FALSE_CLAIM" '{"entropy": 1.0}'
 call_verify "BiPRM" "$FALSE_CLAIM" '{"biprm": 1.0}'
 call_verify "ENSEMBLE" "$FALSE_CLAIM" '{"ensemble": 1.0}'
-call_verify "FORMAL" "$FALSE_CLAIM" '{"formal": 1.0}'
 
 # --- Multi-paradigm weighted (fake court case) ---
 
-call_verify "MULTI-PARADIGM (5 methods weighted)" \
+call_verify "MULTI-PARADIGM (4 methods weighted)" \
   "$FAKE_CASE" \
-  '{"reasoning": 0.3, "tool": 0.3, "biprm": 0.2, "ensemble": 0.1, "entropy": 0.1}'
+  '{"reasoning": 0.35, "biprm": 0.25, "ensemble": 0.25, "entropy": 0.15}'
 
 echo ""
 echo "============================================================"

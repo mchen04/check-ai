@@ -233,6 +233,12 @@ export class EntropyParadigm implements ParadigmExecutor {
         finalConfidence = combinedConsistency;
       }
 
+      // Cap confidence for uncertain verdicts — if the method can't decide,
+      // it shouldn't claim high confidence
+      if (finalVerdict === 'uncertain') {
+        finalConfidence = Math.min(finalConfidence, 0.5);
+      }
+
       // Total costs
       const costCents = calculateCostCents(
         model,
