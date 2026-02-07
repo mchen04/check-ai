@@ -310,7 +310,16 @@ export function calculateConsensus(results: ParadigmResult[]): {
     confidence = falseWeight / totalWeight;
   } else {
     verdict = 'uncertain';
-    confidence = uncertainWeight / totalWeight || 0.5;
+    // Use the average paradigm confidence for uncertain verdicts instead of
+    // weight proportion (which is always 1.0 for single-method calls)
+    const uncertainResults = validResults.filter((r) => r.verdict === 'uncertain');
+    if (uncertainResults.length > 0) {
+      const avgConfidence =
+        uncertainResults.reduce((sum, r) => sum + r.confidence, 0) / uncertainResults.length;
+      confidence = Math.min(avgConfidence, 0.5);
+    } else {
+      confidence = 0.5;
+    }
   }
 
   // Generate reasoning summary
