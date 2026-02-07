@@ -78,12 +78,14 @@ function parseBiPRMDirectionalResponse(response: string): BiPRMDirectionalRespon
 }
 
 /**
- * Calculate step-level score: mean of valid step confidences (invalid = 0)
+ * Calculate step-level score: min of valid step confidences (invalid = 0)
+ * Per BiPRM paper's weakest-link principle: R(τ) = min(rₜ)
+ * A single invalid step should invalidate the chain.
  */
 function calculateStepScore(steps: BiPRMStep[]): number {
   if (steps.length === 0) return 0.5;
   const scores = steps.map((s) => (s.valid ? s.confidence : 0));
-  return scores.reduce((a, b) => a + b, 0) / scores.length;
+  return Math.min(...scores);
 }
 
 // =============================================================================
@@ -143,12 +145,22 @@ export class BiPRMParadigm implements ParadigmExecutor {
       const l2rParsed = parseBiPRMDirectionalResponse(l2rResponse.content);
       const r2lParsed = parseBiPRMDirectionalResponse(r2lResponse.content);
 
-      // Step-level scores
-      const l2rScore = l2rParsed.steps.length > 0
+      // Step-level scores (truth-likelihood: high = steps valid = claim likely true)
+      const l2rStepScore = l2rParsed.steps.length > 0
         ? calculateStepScore(l2rParsed.steps)
         : l2rParsed.confidence;
-      const r2lScore = r2lParsed.steps.length > 0
+      const r2lStepScore = r2lParsed.steps.length > 0
         ? calculateStepScore(r2lParsed.steps)
+        : r2lParsed.confidence;
+
+      // Convert truth-likelihood to verdict-aligned confidence
+      // Paper: low score → reject solution ≡ high confidence in FALSE verdict
+      // Paper: high score → accept solution ≡ high confidence in TRUE verdict
+      const l2rScore = l2rParsed.verdict === 'false' ? 1 - l2rStepScore
+        : l2rParsed.verdict === 'true' ? l2rStepScore
+        : l2rParsed.confidence;
+      const r2lScore = r2lParsed.verdict === 'false' ? 1 - r2lStepScore
+        : r2lParsed.verdict === 'true' ? r2lStepScore
         : r2lParsed.confidence;
 
       // Bidirectional consistency
@@ -195,11 +207,11 @@ export class BiPRMParadigm implements ParadigmExecutor {
         .join('\n');
 
       const combinedReasoning = `
-FORWARD (L2R) ANALYSIS [score: ${(l2rScore * 100).toFixed(1)}%]:
+FORWARD (L2R) ANALYSIS [steps: ${(l2rStepScore * 100).toFixed(1)}%, confidence: ${(l2rScore * 100).toFixed(1)}%]:
 ${l2rStepSummary || '  (no steps parsed)'}
 ${l2rParsed.reasoning}
 
-BACKWARD (R2L) ANALYSIS [score: ${(r2lScore * 100).toFixed(1)}%]:
+BACKWARD (R2L) ANALYSIS [steps: ${(r2lStepScore * 100).toFixed(1)}%, confidence: ${(r2lScore * 100).toFixed(1)}%]:
 ${r2lStepSummary || '  (no steps parsed)'}
 ${r2lParsed.reasoning}
 
