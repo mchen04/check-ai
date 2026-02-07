@@ -304,10 +304,12 @@ export function calculateConsensus(results: ParadigmResult[]): {
 
   if (trueWeight > falseWeight && trueWeight > uncertainWeight) {
     verdict = 'true';
-    confidence = trueWeight / totalWeight;
+    const agreement = trueWeight / totalWeight;
+    confidence = agreement * weightedAvgConfidence(validResults, 'true');
   } else if (falseWeight > trueWeight && falseWeight > uncertainWeight) {
     verdict = 'false';
-    confidence = falseWeight / totalWeight;
+    const agreement = falseWeight / totalWeight;
+    confidence = agreement * weightedAvgConfidence(validResults, 'false');
   } else if (trueWeight === falseWeight && trueWeight > uncertainWeight) {
     // Exact true/false tie — maximum disagreement signal
     verdict = 'uncertain';
@@ -335,6 +337,26 @@ export function calculateConsensus(results: ParadigmResult[]): {
     .join('\n');
 
   return { verdict, confidence, reasoning };
+}
+
+/**
+ * Compute weighted average raw confidence for methods voting for a given verdict.
+ * Uses FPR weight × user weight as the base weight for each method.
+ * This separates "how much the methods agree" from "how confident they are".
+ */
+function weightedAvgConfidence(results: ParadigmResult[], verdict: Verdict): number {
+  let confSum = 0;
+  let baseWeightSum = 0;
+
+  for (const result of results) {
+    if (result.verdict === verdict) {
+      const baseWeight = FPR_WEIGHTS[result.paradigm] * result.weight;
+      confSum += baseWeight * result.confidence;
+      baseWeightSum += baseWeight;
+    }
+  }
+
+  return baseWeightSum > 0 ? confSum / baseWeightSum : 0;
 }
 
 /**
