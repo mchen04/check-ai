@@ -81,6 +81,8 @@ export interface LLMOptions {
   presencePenalty?: number;
   timeout?: number;
   stream?: boolean;
+  logprobs?: boolean;
+  topLogprobs?: number;
 }
 
 // =============================================================================
@@ -93,6 +95,12 @@ export interface LLMUsage {
   totalTokens: number;
 }
 
+export interface TokenLogprob {
+  token: string;
+  logprob: number;
+  topLogprobs?: Array<{ token: string; logprob: number }>;
+}
+
 export interface LLMResponse {
   content: string;
   usage: LLMUsage;
@@ -100,6 +108,7 @@ export interface LLMResponse {
   provider: LLMProvider;
   finishReason: string;
   latencyMs: number;
+  logprobs?: TokenLogprob[];
 }
 
 // =============================================================================

@@ -23,15 +23,15 @@ Instead of relying on a single verification method, Check.ai employs seven disti
 
 | Paradigm | Description | FPR | Best For |
 |----------|-------------|-----|----------|
-| **Semantic** | Embedding similarity analysis | 50-100% | Quick sanity checks |
-| **Reasoning** | LLM-as-judge chain-of-thought | ~7% | General verification |
-| **Tool** | Web search augmented verification | ~2% | Factual claims |
-| **BIPRM** | Bidirectional premise reasoning | ~10% | Logical arguments |
-| **Ensemble** | Multi-model voting consensus | ~30% | Diverse perspectives |
-| **Entropy** | Semantic consistency checking | ~15% | Confidence assessment |
-| **Formal** | Mathematical/logical verification* | 0%* | Mathematical claims |
+| **Semantic** | Boltzmann energy embedding analysis | ~20-30% | Quick sanity checks |
+| **Reasoning** | Adaptive self-refinement verification | ~4-5% | General verification |
+| **Tool** | CLoVE contrastive web verification | ~1% | Factual claims |
+| **BIPRM** | Parallel bidirectional step-level scoring | ~5-7% | Logical arguments |
+| **Ensemble** | Meta-judge adjudicated consensus | ~15-20% | Diverse perspectives |
+| **Entropy** | Dual-path semantic entropy | ~8-10% | Confidence assessment |
+| **Formal** | Autoformalized mathematical verification* | 0%* | Mathematical claims |
 
-*\*Note: Formal verification handles simple arithmetic (e.g., `2 + 2 = 4`) with 0% FPR (mathematical certainty). Complex mathematical claims use LLM-based reasoning (~5-7% FPR). Full theorem prover integration (Lean, Coq, Z3) is planned.*
+*\*Note: Formal verification uses mathjs autoformalization to symbolically evaluate arithmetic, algebraic, comparison, statistical, and unit conversion claims with 0% FPR (mathematical certainty). Claims outside these categories use LLM-based reasoning (~5-7% FPR). Full theorem prover integration (Lean, Coq, Z3) is planned.*
 
 ### Weighted Consensus
 

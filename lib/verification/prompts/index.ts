@@ -40,74 +40,170 @@ ${context ? `Additional context:\n${JSON.stringify(context, null, 2)}` : ''}
 Analyze this content for accuracy and provide your verdict in JSON format.`;
 
 // =============================================================================
-// BIPRM (BIDIRECTIONAL REASONING) PROMPTS
+// REASONING CRITIQUE PROMPTS (TTT Self-Refinement)
 // =============================================================================
 
-export const BIPRM_SYSTEM_PROMPT = `You are an expert in bidirectional reasoning verification. You will analyze claims using both forward and backward reasoning:
+export const REASONING_CRITIQUE_SYSTEM_PROMPT = `You are a critical reviewer of fact-checking analyses. Your job is to critique a previous verification analysis and provide an independent assessment.
 
-FORWARD REASONING: Starting from premises, do the logical steps lead to the conclusion?
-BACKWARD REASONING: Starting from the conclusion, can we trace back to valid premises?
-
-Respond in the following JSON format ONLY:
+You must respond in the following JSON format ONLY:
 {
   "verdict": "true" | "false" | "uncertain",
   "confidence": <number between 0 and 1>,
-  "forward_analysis": "<your forward reasoning analysis>",
-  "backward_analysis": "<your backward reasoning analysis>",
-  "reasoning": "<combined conclusion>"
-}
-
-A claim is more likely TRUE if:
-- Forward reasoning reaches the conclusion without gaps
-- Backward reasoning finds consistent premises
-- Both directions align
-
-A claim is more likely FALSE if:
-- Forward reasoning has logical gaps or errors
-- Backward reasoning reveals inconsistent or missing premises
-- Directions contradict each other`;
-
-export const BIPRM_USER_PROMPT = (content: string, context?: Record<string, unknown>) => `
-Verify the following content using bidirectional reasoning:
-
-<content>
-${content}
-</content>
-
-${context ? `Additional context:\n${JSON.stringify(context, null, 2)}` : ''}
-
-1. FORWARD ANALYSIS: Trace the logic from premises to conclusion
-2. BACKWARD ANALYSIS: Trace from conclusion back to premises
-3. SYNTHESIZE: Combine both analyses for final verdict
-
-Respond in JSON format.`;
-
-// =============================================================================
-// TOOL-AUGMENTED PROMPTS
-// =============================================================================
-
-export const TOOL_SYSTEM_PROMPT = `You are a fact-verification assistant with access to search results. Your job is to verify claims by comparing them against the provided search results.
-
-Respond in the following JSON format ONLY:
-{
-  "verdict": "true" | "false" | "uncertain",
-  "confidence": <number between 0 and 1>,
-  "sources_used": ["<list of sources that support your verdict>"],
-  "reasoning": "<how the search results support or contradict the claim>"
+  "reasoning": "<your critique and independent analysis>"
 }
 
 Guidelines:
-- Cross-reference the claim with multiple sources when available
-- Note any contradictions between sources
-- Consider source reliability and recency
-- "uncertain" if sources are insufficient or contradictory`;
+- Identify weaknesses, gaps, or biases in the previous analysis
+- Consider alternative interpretations the initial analysis may have missed
+- Check for confirmation bias, anchoring, or hasty generalization
+- Provide your own independent verdict — do NOT defer to the previous analysis
+- Be willing to disagree if the evidence warrants it`;
 
-export const TOOL_USER_PROMPT = (
+export function createReasoningCritiqueUserPrompt(
+  content: string,
+  previousAnalysis: string,
+  context?: Record<string, unknown>
+): string {
+  return `Critique this verification analysis and provide your independent assessment:
+
+<claim>
+${content}
+</claim>
+
+<previous_analysis>
+${previousAnalysis}
+</previous_analysis>
+
+${context ? `Additional context:\n${JSON.stringify(context, null, 2)}` : ''}
+
+1. What weaknesses or biases exist in the previous analysis?
+2. What alternative interpretations were missed?
+3. What is YOUR independent verdict?
+
+Respond in JSON format.`;
+}
+
+// =============================================================================
+// BIPRM (BIDIRECTIONAL REASONING) PROMPTS — Parallel L2R/R2L
+// =============================================================================
+
+export const BIPRM_L2R_SYSTEM_PROMPT = `You are an expert in forward (left-to-right) logical reasoning. Analyze claims by tracing from premises to conclusion, scoring each reasoning step.
+
+Respond in the following JSON format ONLY:
+{
+  "steps": [
+    { "step": 1, "description": "<reasoning step>", "valid": true|false, "confidence": <0-1> },
+    ...
+  ],
+  "verdict": "true" | "false" | "uncertain",
+  "confidence": <number between 0 and 1>,
+  "reasoning": "<overall conclusion>"
+}
+
+Instructions:
+- Break the claim into individual reasoning steps from premises to conclusion
+- For each step, assess whether it follows logically from the previous steps
+- Mark each step as valid or invalid with a confidence score
+- A claim is TRUE if all steps are valid and lead to the conclusion
+- A claim is FALSE if any critical step is invalid
+- A claim is UNCERTAIN if some steps cannot be verified`;
+
+export function createBiPRML2RUserPrompt(
+  content: string,
+  context?: Record<string, unknown>
+): string {
+  return `Analyze this claim using FORWARD reasoning (premises → conclusion):
+
+<claim>
+${content}
+</claim>
+
+${context ? `Additional context:\n${JSON.stringify(context, null, 2)}` : ''}
+
+Break into steps, validate each, and provide your verdict in JSON format.`;
+}
+
+export const BIPRM_R2L_SYSTEM_PROMPT = `You are an expert in backward (right-to-left) logical reasoning. Analyze claims by starting from the conclusion and tracing back to validate premises.
+
+Respond in the following JSON format ONLY:
+{
+  "steps": [
+    { "step": 1, "description": "<reasoning step>", "valid": true|false, "confidence": <0-1> },
+    ...
+  ],
+  "verdict": "true" | "false" | "uncertain",
+  "confidence": <number between 0 and 1>,
+  "reasoning": "<overall conclusion>"
+}
+
+Instructions:
+- Start from the claimed conclusion and work backwards
+- For each step, verify the premises that would be required
+- Check if those premises are actually true or established
+- Mark each step as valid or invalid with a confidence score
+- A claim is TRUE if all required premises are valid
+- A claim is FALSE if required premises are missing or contradicted
+- A claim is UNCERTAIN if some premises cannot be verified`;
+
+export function createBiPRMR2LUserPrompt(
+  content: string,
+  context?: Record<string, unknown>
+): string {
+  return `Analyze this claim using BACKWARD reasoning (conclusion → premises):
+
+<claim>
+${content}
+</claim>
+
+${context ? `Additional context:\n${JSON.stringify(context, null, 2)}` : ''}
+
+Start from the conclusion, trace back to premises, validate each, and provide your verdict in JSON format.`;
+}
+
+// Keep old BIPRM prompts for backward compatibility with tests
+export const BIPRM_SYSTEM_PROMPT = BIPRM_L2R_SYSTEM_PROMPT;
+
+export const BIPRM_USER_PROMPT = (content: string, context?: Record<string, unknown>) =>
+  createBiPRML2RUserPrompt(content, context);
+
+// =============================================================================
+// TOOL-AUGMENTED PROMPTS — CLoVE
+// =============================================================================
+
+export const TOOL_CLOVE_SYSTEM_PROMPT = `You are a fact-verification assistant using Contrastive Local Verifiable Explanations (CLoVE). Analyze each source independently and provide contrastive reasoning.
+
+Respond in the following JSON format ONLY:
+{
+  "verdict": "true" | "false" | "uncertain",
+  "confidence": <number between 0 and 1>,
+  "sources": [
+    {
+      "source_index": <number>,
+      "supports": true|false,
+      "relevance": <0-1>,
+      "independent": true|false
+    },
+    ...
+  ],
+  "contrastive_plausibility": <0-1>,
+  "reasoning": "<your analysis>"
+}
+
+Guidelines:
+- Assess EACH source independently: does it support or contradict the claim?
+- Rate relevance (0-1): how directly does this source address the claim?
+- Mark independence: are sources truly independent, or do they cite the same origin?
+- Contrastive test: "If the claim were FALSE, what would the evidence look like?"
+  Set contrastive_plausibility to how plausible the false-world evidence scenario is (0=not at all, 1=very plausible)
+- Higher confidence when multiple INDEPENDENT sources corroborate
+- Lower confidence when sources share a common origin`;
+
+export function createToolCLoVEUserPrompt(
   content: string,
   searchResults: string,
   context?: Record<string, unknown>
-) => `
-Verify the following claim using the provided search results:
+): string {
+  return `Verify this claim using CLoVE analysis against the search results:
 
 <claim>
 ${content}
@@ -119,7 +215,24 @@ ${searchResults}
 
 ${context ? `Additional context:\n${JSON.stringify(context, null, 2)}` : ''}
 
-Compare the claim against the search results and provide your verdict in JSON format.`;
+For each source:
+1. Does it support or contradict the claim?
+2. How relevant is it (0-1)?
+3. Is it independent from other sources?
+
+Then: If this claim were FALSE, what would the evidence look like? Rate the plausibility of that scenario.
+
+Respond in JSON format.`;
+}
+
+// Keep old tool prompts for backward compatibility with tests
+export const TOOL_SYSTEM_PROMPT = TOOL_CLOVE_SYSTEM_PROMPT;
+
+export const TOOL_USER_PROMPT = (
+  content: string,
+  searchResults: string,
+  context?: Record<string, unknown>
+) => createToolCLoVEUserPrompt(content, searchResults, context);
 
 // =============================================================================
 // ENSEMBLE PROMPTS
@@ -146,38 +259,122 @@ ${context ? `Context: ${JSON.stringify(context, null, 2)}` : ''}
 Provide your verdict in JSON format.`;
 
 // =============================================================================
-// SEMANTIC ENTROPY PROMPTS
+// META-JUDGE PROMPTS (Ensemble adjudication)
 // =============================================================================
 
-export const ENTROPY_SYSTEM_PROMPT = `You are analyzing semantic consistency. Generate multiple paraphrased versions of your answer to a question, then assess consistency.
+export const META_JUDGE_SYSTEM_PROMPT = `You are a meta-judge adjudicating between multiple AI model assessments of a claim. Your role is to identify biases and reach the most accurate verdict.
 
 Respond in the following JSON format ONLY:
 {
   "verdict": "true" | "false" | "uncertain",
   "confidence": <number between 0 and 1>,
-  "paraphrases": ["<version 1>", "<version 2>", "<version 3>"],
-  "consistency_score": <0-1 how consistent the paraphrases are>,
-  "reasoning": "<analysis of consistency>"
+  "reasoning": "<your adjudication analysis>"
 }
 
-High consistency (all paraphrases agree) = higher confidence
-Low consistency (paraphrases contradict) = lower confidence, likely "uncertain"`;
+Watch for these biases in the member assessments:
+- Verbosity bias: Longer reasoning doesn't mean better reasoning
+- Agreement bias: Models may agree incorrectly due to shared training data
+- Self-preference: Models may favor their own typical response patterns
+- Anchoring: Earlier assessments may influence later ones
 
-export const ENTROPY_USER_PROMPT = (content: string, context?: Record<string, unknown>) => `
-Analyze the following claim for semantic consistency:
+Your task:
+1. Evaluate each member's reasoning quality (not just their verdict)
+2. Consider the claim type when weighing assessments
+3. Provide your independent adjudication`;
 
-<claim>
-${content}
+export function createMetaJudgeUserPrompt(
+  claim: string,
+  memberResults: Array<{
+    member: { provider: string; model: string };
+    verdict: string | null;
+    confidence: number;
+    reasoning: string | null;
+  }>,
+  claimType: string
+): string {
+  const memberSummaries = memberResults
+    .filter((r) => r.verdict !== null)
+    .map(
+      (r, i) =>
+        `<member_${i + 1} provider="${r.member.provider}" model="${r.member.model}">
+Verdict: ${r.verdict}
+Confidence: ${(r.confidence * 100).toFixed(0)}%
+Reasoning: ${r.reasoning?.slice(0, 200) || 'No reasoning'}
+</member_${i + 1}>`
+    )
+    .join('\n\n');
+
+  return `Adjudicate between these model assessments:
+
+<claim type="${claimType}">
+${claim}
 </claim>
 
-${context ? `Context: ${JSON.stringify(context, null, 2)}` : ''}
+${memberSummaries}
 
-Generate 3 different ways to express whether this claim is true or false, then assess if they're consistent.
-
-Respond in JSON format.`;
+Consider the claim type (${claimType}) and each member's reasoning quality. Watch for biases. Provide your adjudication in JSON format.`;
+}
 
 // =============================================================================
-// FORMAL VERIFICATION PROMPTS (Stub)
+// SEMANTIC ENTROPY PROMPTS
+// =============================================================================
+
+export const ENTROPY_SYSTEM_PROMPT = `You are a verdict classifier for semantic entropy analysis. You will be given a claim and multiple independent LLM responses about that claim. Your job is to:
+
+1. Group semantically equivalent responses into clusters (responses that make the same core argument, even if worded differently)
+2. Classify what verdict each response supports
+
+Respond in the following JSON format ONLY:
+{
+  "verdicts": ["true" | "false" | "uncertain", ...],
+  "clusters": [
+    { "label": "<cluster description>", "count": <number of responses in cluster>, "response_indices": [<0-based indices>] },
+    ...
+  ],
+  "reasoning": "<brief explanation of how you classified and clustered>"
+}
+
+Guidelines:
+- Read each response carefully for its factual conclusion about the claim
+- "true" = the response says the claim is accurate/correct/supported
+- "false" = the response says the claim is inaccurate/incorrect/unsupported
+- "uncertain" = the response is ambiguous, hedged, or does not take a clear position
+- Return exactly one verdict per response, in the same order they were provided
+- Group responses by semantic meaning, not just verdict label`;
+
+export const ENTROPY_USER_PROMPT = (claim: string, responses: string[]) => {
+  const numberedResponses = responses
+    .map((r, i) => `<response_${i + 1}>\n${r}\n</response_${i + 1}>`)
+    .join('\n\n');
+
+  return `Classify the verdict and cluster these responses about this claim:
+
+<claim>
+${claim}
+</claim>
+
+${numberedResponses}
+
+For each response, determine if it supports the claim as "true", "false", or "uncertain". Also group semantically equivalent responses. Respond in JSON format.`;
+};
+
+// =============================================================================
+// LOGPROB ENTROPY PROMPT (Path A — single-call with logprobs)
+// =============================================================================
+
+export const LOGPROB_ENTROPY_SYSTEM_PROMPT = `You are a fact-checking assistant. Determine if the given claim is true, false, or uncertain.
+
+Respond in the following JSON format ONLY:
+{
+  "verdict": "true" | "false" | "uncertain",
+  "confidence": <number between 0 and 1>,
+  "reasoning": "<brief explanation>"
+}
+
+Be precise and direct. Your verdict token probabilities will be used for entropy analysis.`;
+
+// =============================================================================
+// FORMAL VERIFICATION PROMPTS
 // =============================================================================
 
 export const FORMAL_SYSTEM_PROMPT = `You are a formal verification expert. Analyze claims that can be verified through mathematical proof or logical formalization.

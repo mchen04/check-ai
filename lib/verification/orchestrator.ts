@@ -161,6 +161,9 @@ export class VerificationOrchestrator {
         maxRetries
       );
 
+      // Apply BiPRM x Formal synergy (post-processing, zero latency)
+      this.applyBiPRMFormalSynergy(results);
+
       // Calculate consensus from results
       consensus = calculateConsensus(results);
 
@@ -294,6 +297,32 @@ export class VerificationOrchestrator {
     }
 
     return results;
+  }
+
+  /**
+   * Apply BiPRM x Formal synergy: cross-method confidence adjustment
+   * If Formal has a high-confidence symbolic result, boost or reduce BiPRM confidence accordingly.
+   */
+  private applyBiPRMFormalSynergy(results: ParadigmResult[]): void {
+    const biprm = results.find((r) => r.paradigm === 'biprm' && r.verdict !== null && !r.error);
+    const formal = results.find((r) => r.paradigm === 'formal' && r.verdict !== null && !r.error);
+
+    if (!biprm || !formal) return;
+
+    // Only apply synergy when formal has high confidence (symbolic verification)
+    if (formal.confidence < 0.95) return;
+
+    if (formal.verdict === biprm.verdict) {
+      // Formal confirms BiPRM → boost BiPRM confidence by 15%
+      const boosted = Math.min(biprm.confidence * 1.15, 1.0);
+      biprm.reasoning = `${biprm.reasoning}\n\n[SYNERGY] Formal verification confirms BiPRM verdict → confidence boosted from ${(biprm.confidence * 100).toFixed(1)}% to ${(boosted * 100).toFixed(1)}%`;
+      biprm.confidence = boosted;
+    } else if (formal.verdict !== 'uncertain' && biprm.verdict !== 'uncertain') {
+      // Formal contradicts BiPRM → reduce BiPRM confidence by 50%
+      const reduced = biprm.confidence * 0.5;
+      biprm.reasoning = `${biprm.reasoning}\n\n[SYNERGY] Formal verification CONTRADICTS BiPRM verdict (formal=${formal.verdict}) → confidence reduced from ${(biprm.confidence * 100).toFixed(1)}% to ${(reduced * 100).toFixed(1)}%`;
+      biprm.confidence = reduced;
+    }
   }
 
   /**

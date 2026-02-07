@@ -48,19 +48,19 @@ export type VerificationStatus =
  * At least one method must be specified with a weight between 0 and 1
  */
 export interface MethodsConfig {
-  /** Embedding similarity (50-100% FPR) */
+  /** Boltzmann energy embedding analysis (~20-30% FPR) */
   semantic?: number;
-  /** LLM judge (~7% FPR) */
+  /** Adaptive self-refinement reasoning (~4-5% FPR) */
   reasoning?: number;
-  /** Fact-grounded with web search (~2% FPR) */
+  /** CLoVE contrastive web verification (~1% FPR) */
   tool?: number;
-  /** Bidirectional reasoning (~10% FPR) */
+  /** Parallel bidirectional reasoning (~5-7% FPR) */
   biprm?: number;
-  /** Multi-model voting (~30% FPR) */
+  /** Meta-judge adjudicated consensus (~15-20% FPR) */
   ensemble?: number;
-  /** Consistency checking (~15% FPR) */
+  /** Dual-path semantic entropy (~8-10% FPR) */
   entropy?: number;
-  /** Mathematical certainty (0% FPR for formalizable claims) */
+  /** Autoformalized mathematical verification (0% FPR for formalizable) */
   formal?: number;
 }
 

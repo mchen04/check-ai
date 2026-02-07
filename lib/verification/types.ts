@@ -39,13 +39,13 @@ export const PARADIGM_DISPLAY_NAMES: Record<ParadigmType, string> = {
  * Brief descriptions for each paradigm
  */
 export const PARADIGM_DESCRIPTIONS: Record<ParadigmType, string> = {
-  semantic: 'Embedding-based similarity for fast initial screening',
-  reasoning: 'LLM-based logical analysis for nuanced verification',
-  tool: 'External APIs and web search for fact verification',
-  biprm: 'Cross-examines claims from multiple perspectives',
-  ensemble: 'Multiple models vote on the verdict',
-  entropy: 'Measures consistency across paraphrased variations',
-  formal: 'Symbolic logic and mathematical proof verification',
+  semantic: 'Boltzmann energy distributions over embedding space',
+  reasoning: 'Adaptive self-refinement with conditional critique',
+  tool: 'CLoVE contrastive verification with source independence',
+  biprm: 'Parallel bidirectional reasoning with step-level scoring',
+  ensemble: 'Multi-model voting with conditional meta-judge adjudication',
+  entropy: 'Dual-path entropy via logprobs or semantic clustering',
+  formal: 'Autoformalization with mathjs symbolic evaluation',
 };
 
 /**
@@ -213,13 +213,13 @@ export interface VerifyOptions {
  * Lower FPR = Higher trust weight in consensus
  */
 export const FPR_WEIGHTS: Record<ParadigmType, number> = {
-  formal: 1.0, // 0% FPR - Mathematical certainty
-  tool: 0.98, // ~2% FPR - Fact-grounded
-  reasoning: 0.93, // ~7% FPR - LLM judge
-  biprm: 0.9, // ~10% FPR - Bidirectional reasoning
-  entropy: 0.85, // ~15% FPR - Consistency checking
-  ensemble: 0.7, // ~30% FPR - Multi-model voting
-  semantic: 0.3, // 50-100% FPR - Embedding similarity
+  formal: 1.0, // 0% FPR - Mathematical certainty (symbolic verification)
+  tool: 0.99, // ~1% FPR - CLoVE source independence
+  reasoning: 0.95, // ~4-5% FPR - Self-critique reduces errors
+  biprm: 0.93, // ~5-7% FPR - Parallel debiased directions
+  entropy: 0.90, // ~8-10% FPR - Logprob + semantic clustering
+  ensemble: 0.80, // ~15-20% FPR - Meta-judge adjudication
+  semantic: 0.70, // ~20-30% FPR - Energy-based reduces FPR
 };
 
 // =============================================================================

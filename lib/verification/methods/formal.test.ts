@@ -128,19 +128,17 @@ describe('FormalParadigm', () => {
       expect(result.confidence).toBe(1.0);
     });
 
-    it('should correctly reject when decimal result is truncated by regex', async () => {
-      // The regex \d+ only matches the integer part "2" from "2.5"
-      // So it compares 10/4=2.5 against claimed value 2, which is incorrect
+    it('should correctly verify decimal arithmetic: 10 / 4 = 2.5', async () => {
       const result = await paradigm.execute(
         '10 / 4 = 2.5',
         {},
         { weight: 1.0 }
       );
 
-      // The builtin arithmetic handles this but gives incorrect verdict
-      // because the regex doesn't handle decimals properly
+      // Updated regex now handles decimals correctly
       expect(result.model).toBe('builtin-arithmetic');
-      expect(result.verdict).toBe('false'); // 2.5 != 2
+      expect(result.verdict).toBe('true');
+      expect(result.confidence).toBe(1.0);
     });
   });
 

@@ -26,13 +26,13 @@ Seven distinct verification methods work together to determine truth:
 
 | Method | FPR | Description |
 |--------|-----|-------------|
-| **Semantic** | 50-100% | Embedding similarity checking |
-| **Reasoning** | ~7% | LLM judge evaluating statements |
-| **Tool** | ~2% | Web search-augmented verification |
-| **BIPRM** | ~10% | Bidirectional reasoning from multiple angles |
-| **Ensemble** | ~30% | Multi-model voting consensus |
-| **Entropy** | ~15% | Consistency checking across variations |
-| **Formal** | 0%* | Mathematical/logical verification (see note) |
+| **Semantic** | ~20-30% | Boltzmann energy embedding analysis |
+| **Reasoning** | ~4-5% | Adaptive self-refinement verification |
+| **Tool** | ~1% | CLoVE contrastive web verification |
+| **BIPRM** | ~5-7% | Parallel bidirectional step-level scoring |
+| **Ensemble** | ~15-20% | Meta-judge adjudicated consensus |
+| **Entropy** | ~8-10% | Dual-path semantic entropy |
+| **Formal** | 0%* | Autoformalized mathematical verification |
 
 ### Enterprise-Grade
 

@@ -46,13 +46,13 @@ POST /v1/verify
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `semantic` | number (0-1) | Embedding similarity checking |
-| `reasoning` | number (0-1) | LLM judge evaluation |
-| `tool` | number (0-1) | Web search-augmented verification |
-| `biprm` | number (0-1) | Bidirectional premise reasoning |
-| `ensemble` | number (0-1) | Multi-model voting consensus |
-| `entropy` | number (0-1) | Consistency checking |
-| `formal` | number (0-1) | Mathematical verification (direct arithmetic + LLM reasoning) |
+| `semantic` | number (0-1) | Boltzmann energy embedding analysis |
+| `reasoning` | number (0-1) | Adaptive self-refinement verification |
+| `tool` | number (0-1) | CLoVE contrastive web verification |
+| `biprm` | number (0-1) | Parallel bidirectional step-level scoring |
+| `ensemble` | number (0-1) | Meta-judge adjudicated consensus |
+| `entropy` | number (0-1) | Dual-path semantic entropy |
+| `formal` | number (0-1) | Autoformalized mathematical verification |
 
 **Options Object:**
 

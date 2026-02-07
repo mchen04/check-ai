@@ -68,7 +68,7 @@ describe('FPR_WEIGHTS', () => {
   });
 
   it('should have semantic with lowest weight (highest FPR)', () => {
-    expect(FPR_WEIGHTS.semantic).toBe(0.3);
+    expect(FPR_WEIGHTS.semantic).toBe(0.7);
   });
 
   it('should have tool weighted higher than reasoning', () => {

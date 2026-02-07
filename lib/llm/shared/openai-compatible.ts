@@ -6,7 +6,8 @@
  */
 
 import OpenAI from 'openai';
-import { LLMMessage, LLMOptions, LLMResponse, LLMProvider, PROVIDER_BASE_URLS } from '../types';
+import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
+import { LLMMessage, LLMOptions, LLMResponse, TokenLogprob, LLMProvider, PROVIDER_BASE_URLS } from '../types';
 import { BaseLLMProvider, LLMError } from '../providers/interfaces';
 
 // =============================================================================
@@ -61,7 +62,7 @@ export abstract class OpenAICompatibleProvider extends BaseLLMProvider {
     });
 
     try {
-      const response = await client.chat.completions.create({
+      const params: ChatCompletionCreateParamsNonStreaming = {
         model: options.model,
         messages: messages.map((m) => ({
           role: m.role,
@@ -69,12 +70,35 @@ export abstract class OpenAICompatibleProvider extends BaseLLMProvider {
         })),
         temperature: options.temperature ?? 0.1,
         max_tokens: options.maxTokens ?? 4096,
-        top_p: options.topP,
-        frequency_penalty: options.frequencyPenalty,
-        presence_penalty: options.presencePenalty,
-      });
+        top_p: options.topP ?? undefined,
+        frequency_penalty: options.frequencyPenalty ?? undefined,
+        presence_penalty: options.presencePenalty ?? undefined,
+      };
 
-      return this.createResponse(
+      if (options.logprobs) {
+        params.logprobs = true;
+        if (options.topLogprobs) {
+          params.top_logprobs = options.topLogprobs;
+        }
+      }
+
+      const response = await client.chat.completions.create(params);
+
+      // Extract logprobs if available
+      let logprobsData: TokenLogprob[] | undefined;
+      const choiceLogprobs = response.choices[0]?.logprobs;
+      if (choiceLogprobs?.content) {
+        logprobsData = choiceLogprobs.content.map((lp) => ({
+          token: lp.token,
+          logprob: lp.logprob,
+          topLogprobs: lp.top_logprobs?.map((tlp) => ({
+            token: tlp.token,
+            logprob: tlp.logprob,
+          })),
+        }));
+      }
+
+      const result = this.createResponse(
         response.choices[0]?.message?.content ?? '',
         {
           inputTokens: response.usage?.prompt_tokens ?? 0,
@@ -84,6 +108,12 @@ export abstract class OpenAICompatibleProvider extends BaseLLMProvider {
         response.choices[0]?.finish_reason ?? 'stop',
         startTime
       );
+
+      if (logprobsData) {
+        result.logprobs = logprobsData;
+      }
+
+      return result;
     } catch (error) {
       throw new LLMError(
         `${this.name} API error: ${error instanceof Error ? error.message : 'Unknown error'}`,

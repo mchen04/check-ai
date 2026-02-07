@@ -8,14 +8,25 @@ import {
   parseVerificationResponse,
   REASONING_SYSTEM_PROMPT,
   REASONING_USER_PROMPT,
+  REASONING_CRITIQUE_SYSTEM_PROMPT,
+  createReasoningCritiqueUserPrompt,
   BIPRM_SYSTEM_PROMPT,
   BIPRM_USER_PROMPT,
+  BIPRM_L2R_SYSTEM_PROMPT,
+  createBiPRML2RUserPrompt,
+  BIPRM_R2L_SYSTEM_PROMPT,
+  createBiPRMR2LUserPrompt,
   TOOL_SYSTEM_PROMPT,
   TOOL_USER_PROMPT,
+  TOOL_CLOVE_SYSTEM_PROMPT,
+  createToolCLoVEUserPrompt,
   ENSEMBLE_SYSTEM_PROMPT,
   ENSEMBLE_USER_PROMPT,
+  META_JUDGE_SYSTEM_PROMPT,
+  createMetaJudgeUserPrompt,
   ENTROPY_SYSTEM_PROMPT,
   ENTROPY_USER_PROMPT,
+  LOGPROB_ENTROPY_SYSTEM_PROMPT,
   FORMAL_SYSTEM_PROMPT,
   FORMAL_USER_PROMPT,
 } from './index';
@@ -425,13 +436,13 @@ describe('Prompt Templates', () => {
       expect(BIPRM_SYSTEM_PROMPT.length).toBeGreaterThan(100);
     });
 
-    it('should mention bidirectional reasoning', () => {
-      expect(BIPRM_SYSTEM_PROMPT.toLowerCase()).toContain('bidirectional');
+    it('should mention forward reasoning', () => {
+      expect(BIPRM_SYSTEM_PROMPT.toLowerCase()).toContain('forward');
     });
 
-    it('should mention forward and backward', () => {
-      expect(BIPRM_SYSTEM_PROMPT.toLowerCase()).toContain('forward');
-      expect(BIPRM_SYSTEM_PROMPT.toLowerCase()).toContain('backward');
+    it('should mention reasoning steps', () => {
+      expect(BIPRM_SYSTEM_PROMPT.toLowerCase()).toContain('steps');
+      expect(BIPRM_SYSTEM_PROMPT.toLowerCase()).toContain('valid');
     });
 
     it('should generate user prompt with content', () => {
@@ -446,8 +457,8 @@ describe('Prompt Templates', () => {
       expect(TOOL_SYSTEM_PROMPT).toBeDefined();
     });
 
-    it('should mention search results', () => {
-      expect(TOOL_SYSTEM_PROMPT.toLowerCase()).toContain('search');
+    it('should mention source verification', () => {
+      expect(TOOL_SYSTEM_PROMPT.toLowerCase()).toContain('source');
     });
 
     it('should generate user prompt with search results', () => {
@@ -475,18 +486,30 @@ describe('Prompt Templates', () => {
       expect(ENTROPY_SYSTEM_PROMPT).toBeDefined();
     });
 
-    it('should mention consistency', () => {
-      expect(ENTROPY_SYSTEM_PROMPT.toLowerCase()).toContain('consistency');
+    it('should mention verdict classification', () => {
+      expect(ENTROPY_SYSTEM_PROMPT.toLowerCase()).toContain('verdict');
+      expect(ENTROPY_SYSTEM_PROMPT.toLowerCase()).toContain('classify');
     });
 
-    it('should mention paraphrases', () => {
-      expect(ENTROPY_SYSTEM_PROMPT.toLowerCase()).toContain('paraphras');
+    it('should request JSON with verdicts array', () => {
+      expect(ENTROPY_SYSTEM_PROMPT).toContain('verdicts');
+      expect(ENTROPY_SYSTEM_PROMPT).toContain('JSON');
     });
 
-    it('should generate user prompt with content', () => {
-      const prompt = ENTROPY_USER_PROMPT('Test claim', {});
+    it('should generate user prompt with claim and responses', () => {
+      const prompt = ENTROPY_USER_PROMPT('Test claim', ['Response 1', 'Response 2']);
 
       expect(prompt).toContain('Test claim');
+      expect(prompt).toContain('Response 1');
+      expect(prompt).toContain('Response 2');
+    });
+
+    it('should number responses in user prompt', () => {
+      const prompt = ENTROPY_USER_PROMPT('Claim', ['A', 'B', 'C']);
+
+      expect(prompt).toContain('response_1');
+      expect(prompt).toContain('response_2');
+      expect(prompt).toContain('response_3');
     });
   });
 
@@ -507,6 +530,143 @@ describe('Prompt Templates', () => {
       const prompt = FORMAL_USER_PROMPT('Test claim', {});
 
       expect(prompt).toContain('Test claim');
+    });
+  });
+
+  // =========================================================================
+  // NEW SOTA PROMPTS
+  // =========================================================================
+
+  describe('REASONING CRITIQUE prompts (TTT)', () => {
+    it('should define critique system prompt', () => {
+      expect(REASONING_CRITIQUE_SYSTEM_PROMPT).toBeDefined();
+      expect(REASONING_CRITIQUE_SYSTEM_PROMPT.length).toBeGreaterThan(100);
+    });
+
+    it('should mention critique and bias', () => {
+      expect(REASONING_CRITIQUE_SYSTEM_PROMPT.toLowerCase()).toContain('critique');
+      expect(REASONING_CRITIQUE_SYSTEM_PROMPT.toLowerCase()).toContain('bias');
+    });
+
+    it('should generate critique user prompt with content and analysis', () => {
+      const prompt = createReasoningCritiqueUserPrompt(
+        'Test claim',
+        'Previous analysis here',
+        { source: 'test' }
+      );
+
+      expect(prompt).toContain('Test claim');
+      expect(prompt).toContain('Previous analysis here');
+    });
+  });
+
+  describe('BIPRM L2R/R2L prompts', () => {
+    it('should define L2R system prompt', () => {
+      expect(BIPRM_L2R_SYSTEM_PROMPT).toBeDefined();
+      expect(BIPRM_L2R_SYSTEM_PROMPT.toLowerCase()).toContain('forward');
+    });
+
+    it('should define R2L system prompt', () => {
+      expect(BIPRM_R2L_SYSTEM_PROMPT).toBeDefined();
+      expect(BIPRM_R2L_SYSTEM_PROMPT.toLowerCase()).toContain('backward');
+    });
+
+    it('should request step-level JSON from L2R', () => {
+      expect(BIPRM_L2R_SYSTEM_PROMPT).toContain('steps');
+      expect(BIPRM_L2R_SYSTEM_PROMPT).toContain('valid');
+    });
+
+    it('should request step-level JSON from R2L', () => {
+      expect(BIPRM_R2L_SYSTEM_PROMPT).toContain('steps');
+      expect(BIPRM_R2L_SYSTEM_PROMPT).toContain('valid');
+    });
+
+    it('should generate L2R user prompt', () => {
+      const prompt = createBiPRML2RUserPrompt('Test claim', {});
+      expect(prompt).toContain('Test claim');
+      expect(prompt).toContain('FORWARD');
+    });
+
+    it('should generate R2L user prompt', () => {
+      const prompt = createBiPRMR2LUserPrompt('Test claim', {});
+      expect(prompt).toContain('Test claim');
+      expect(prompt).toContain('BACKWARD');
+    });
+
+    it('should maintain backward compatibility with BIPRM_SYSTEM_PROMPT', () => {
+      expect(BIPRM_SYSTEM_PROMPT).toBe(BIPRM_L2R_SYSTEM_PROMPT);
+    });
+  });
+
+  describe('TOOL CLoVE prompts', () => {
+    it('should define CLoVE system prompt', () => {
+      expect(TOOL_CLOVE_SYSTEM_PROMPT).toBeDefined();
+      expect(TOOL_CLOVE_SYSTEM_PROMPT.toLowerCase()).toContain('contrastive');
+    });
+
+    it('should request per-source independence', () => {
+      expect(TOOL_CLOVE_SYSTEM_PROMPT).toContain('independent');
+      expect(TOOL_CLOVE_SYSTEM_PROMPT).toContain('sources');
+    });
+
+    it('should generate CLoVE user prompt', () => {
+      const prompt = createToolCLoVEUserPrompt('Test claim', 'Search results here', {});
+      expect(prompt).toContain('Test claim');
+      expect(prompt).toContain('Search results here');
+      expect(prompt).toContain('FALSE');
+    });
+
+    it('should maintain backward compatibility with TOOL_SYSTEM_PROMPT', () => {
+      expect(TOOL_SYSTEM_PROMPT).toBe(TOOL_CLOVE_SYSTEM_PROMPT);
+    });
+  });
+
+  describe('META-JUDGE prompts', () => {
+    it('should define meta-judge system prompt', () => {
+      expect(META_JUDGE_SYSTEM_PROMPT).toBeDefined();
+      expect(META_JUDGE_SYSTEM_PROMPT.toLowerCase()).toContain('meta-judge');
+    });
+
+    it('should mention bias detection', () => {
+      expect(META_JUDGE_SYSTEM_PROMPT.toLowerCase()).toContain('verbosity bias');
+      expect(META_JUDGE_SYSTEM_PROMPT.toLowerCase()).toContain('agreement bias');
+    });
+
+    it('should generate meta-judge user prompt', () => {
+      const prompt = createMetaJudgeUserPrompt(
+        'Test claim',
+        [
+          { member: { provider: 'openai', model: 'gpt-4o' }, verdict: 'true', confidence: 0.9, reasoning: 'Analysis 1' },
+          { member: { provider: 'anthropic', model: 'claude' }, verdict: 'false', confidence: 0.8, reasoning: 'Analysis 2' },
+        ],
+        'factual'
+      );
+
+      expect(prompt).toContain('Test claim');
+      expect(prompt).toContain('openai');
+      expect(prompt).toContain('anthropic');
+      expect(prompt).toContain('factual');
+    });
+  });
+
+  describe('LOGPROB ENTROPY prompt', () => {
+    it('should define logprob entropy system prompt', () => {
+      expect(LOGPROB_ENTROPY_SYSTEM_PROMPT).toBeDefined();
+    });
+
+    it('should request verdict in JSON', () => {
+      expect(LOGPROB_ENTROPY_SYSTEM_PROMPT).toContain('verdict');
+      expect(LOGPROB_ENTROPY_SYSTEM_PROMPT).toContain('JSON');
+    });
+  });
+
+  describe('ENTROPY prompts with clustering', () => {
+    it('should mention clustering in system prompt', () => {
+      expect(ENTROPY_SYSTEM_PROMPT.toLowerCase()).toContain('cluster');
+    });
+
+    it('should request clusters array in JSON', () => {
+      expect(ENTROPY_SYSTEM_PROMPT).toContain('clusters');
     });
   });
 });

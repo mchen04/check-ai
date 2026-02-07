@@ -9,6 +9,7 @@ export {
   type LLMOptions,
   type LLMUsage,
   type LLMResponse,
+  type TokenLogprob,
   type ProviderConfig,
   type AzureOpenAIConfig,
   type BedrockConfig,
