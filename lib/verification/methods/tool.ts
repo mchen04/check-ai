@@ -11,7 +11,7 @@ import { LLMClient, ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/
 import { createLogger } from '@/lib/logger';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions } from '../types';
 import { TOOL_SYSTEM_PROMPT, TOOL_USER_PROMPT, parseVerificationResponse } from '../prompts';
-import { createParadigmErrorResult } from './shared';
+import { createParadigmErrorResult, selectBestProvider } from './shared';
 
 const log = createLogger('ToolVerification');
 
@@ -118,7 +118,7 @@ export class ToolParadigm implements ParadigmExecutor {
   ): Promise<ParadigmResult> {
     const startTime = Date.now();
 
-    const provider: LLMProvider = options.provider || 'openai';
+    const provider: LLMProvider = options.provider || selectBestProvider(this.llmClient);
     const model = options.model || 'gpt-4o-mini'; // Use faster model for tool-augmented
 
     try {

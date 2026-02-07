@@ -17,6 +17,7 @@ import { ParadigmExecutor, ParadigmResult, ParadigmOptions, Verdict } from '../t
 import { FORMAL_SYSTEM_PROMPT, FORMAL_USER_PROMPT } from '../prompts';
 import {
   createParadigmErrorResult,
+  selectBestProvider,
   normalizeVerdict,
   normalizeConfidence,
   extractJsonFromResponse,
@@ -198,7 +199,7 @@ export class FormalParadigm implements ParadigmExecutor {
   ): Promise<ParadigmResult> {
     const startTime = Date.now();
 
-    const provider: LLMProvider = options.provider || 'openai';
+    const provider: LLMProvider = options.provider || selectBestProvider(this.llmClient);
     const model = options.model || 'gpt-4o'; // Use capable model for formal reasoning
 
     try {

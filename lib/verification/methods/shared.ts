@@ -52,6 +52,7 @@ export function getDefaultModel(provider: LLMProvider): string {
 /**
  * Provider preference order for reasoning-heavy paradigms
  * Anthropic and OpenAI excel at chain-of-thought reasoning
+ * OpenRouter is last because it's a gateway — prefer direct providers first
  */
 export const REASONING_PROVIDER_PREFERENCE: LLMProvider[] = [
   'anthropic',
@@ -59,6 +60,16 @@ export const REASONING_PROVIDER_PREFERENCE: LLMProvider[] = [
   'google',
   'deepseek',
   'groq',
+  'together',
+  'fireworks',
+  'cerebras',
+  'mistral',
+  'cohere',
+  'xai',
+  'perplexity',
+  'azure',
+  'bedrock',
+  'openrouter',
 ];
 
 /**
@@ -73,7 +84,11 @@ export function selectBestProvider(
       return provider;
     }
   }
-  return 'openai'; // Default fallback
+  // Final fallback: check openrouter explicitly (most common BYOK setup)
+  if (llmClient.hasProvider('openrouter')) {
+    return 'openrouter';
+  }
+  return 'openai';
 }
 
 // =============================================================================
