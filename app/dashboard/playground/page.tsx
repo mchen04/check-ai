@@ -430,7 +430,18 @@ console.log(result);`;
                             step={0.01}
                             className="flex-1"
                           />
-                          <span className="w-10 font-mono text-xs">{config.weight.toFixed(2)}</span>
+                          <input
+                            type="number"
+                            value={config.weight}
+                            onChange={(e) => {
+                              const v = parseFloat(e.target.value);
+                              if (!isNaN(v) && v >= 0 && v <= 1) handleWeightChange(method, Math.round(v * 100) / 100);
+                            }}
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            className="w-14 rounded border bg-background px-1.5 py-0.5 text-center font-mono text-xs"
+                          />
                         </div>
                       )}
                     </div>
