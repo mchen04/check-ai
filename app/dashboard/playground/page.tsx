@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Play, Copy, Code, Info, Settings2 } from 'lucide-react';
+import { Play, Copy, Code, Info, Settings2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -378,24 +378,39 @@ console.log(result);`;
                           </Tooltip>
                         </div>
                         <div className="flex items-center gap-2">
-                          {config.provider && (
-                            <Badge variant="default" className="text-[10px] px-1.5">
-                              {getProviderLabel(config.provider)}
-                              {config.model ? ` / ${config.model}` : ''}
-                            </Badge>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSettingsMethod(method);
-                            }}
-                            aria-label={`${info.name} settings`}
-                          >
-                            <Settings2 className="h-3.5 w-3.5 text-muted-foreground" />
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="relative h-6 w-6 p-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSettingsMethod(method);
+                                }}
+                                aria-label={`${info.name} settings`}
+                              >
+                                <Settings2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                {config.provider ? (
+                                  <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-primary">
+                                    <Check className="h-2 w-2 text-primary-foreground" />
+                                  </span>
+                                ) : (
+                                  <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-destructive" />
+                                )}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {config.provider ? (
+                                <p className="text-xs">
+                                  {getProviderLabel(config.provider)}
+                                  {config.model ? ` / ${config.model}` : ''}
+                                </p>
+                              ) : (
+                                <p className="text-xs">No model configured</p>
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
                           <Badge variant="outline" className="text-xs">{info.fpr}</Badge>
                           <Badge variant="secondary" className="text-xs">{info.latency}</Badge>
                         </div>
