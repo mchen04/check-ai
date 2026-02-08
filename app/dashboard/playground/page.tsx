@@ -323,10 +323,12 @@ console.log(result);`;
     }
   };
 
-  const enabledMethods = Object.values(methods).filter((m) => m.enabled);
-  const enabledMethodsCount = enabledMethods.length;
-  const weightSum = Math.round(enabledMethods.reduce((s, m) => s + m.weight, 0) * 100) / 100;
+  const enabledEntries = (Object.entries(methods) as Array<[keyof MethodsState, MethodConfig]>).filter(([, m]) => m.enabled);
+  const enabledMethodsCount = enabledEntries.length;
+  const weightSum = Math.round(enabledEntries.reduce((s, [, m]) => s + m.weight, 0) * 100) / 100;
   const weightsValid = Math.abs(weightSum - 1) < 0.001;
+  const unconfiguredMethods = enabledEntries.filter(([, m]) => !m.provider).map(([k]) => METHOD_INFO[k].name);
+  const allConfigured = unconfiguredMethods.length === 0;
 
   return (
     <div className="p-6">
@@ -449,13 +451,20 @@ console.log(result);`;
                 })}
               </TooltipProvider>
               {enabledMethodsCount > 0 && (
-                <div className={`mt-3 flex items-center justify-between rounded-md border px-3 py-2 text-xs ${
-                  weightsValid ? 'border-primary/20 bg-primary/5 text-primary' : 'border-destructive/30 bg-destructive/5 text-destructive'
-                }`}>
-                  <span>Weights must equal 1.0</span>
-                  <span className="font-mono font-medium">
-                    {weightSum.toFixed(2)} / 1.00
-                  </span>
+                <div className="mt-3 space-y-2">
+                  <div className={`flex items-center justify-between rounded-md border px-3 py-2 text-xs ${
+                    weightsValid ? 'border-primary/20 bg-primary/5 text-primary' : 'border-destructive/30 bg-destructive/5 text-destructive'
+                  }`}>
+                    <span>Weights must equal 1.0</span>
+                    <span className="font-mono font-medium">
+                      {weightSum.toFixed(2)} / 1.00
+                    </span>
+                  </div>
+                  {!allConfigured && (
+                    <div className="flex items-center justify-between rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+                      <span>Missing provider: {unconfiguredMethods.join(', ')}</span>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -570,7 +579,7 @@ console.log(result);`;
           <Button
             className="w-full"
             onClick={handleSubmit}
-            disabled={isSubmitting || !content.trim() || enabledMethodsCount === 0 || !weightsValid}
+            disabled={isSubmitting || !content.trim() || enabledMethodsCount === 0 || !weightsValid || !allConfigured}
           >
             {isSubmitting ? (
               <>
