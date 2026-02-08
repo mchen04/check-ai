@@ -128,13 +128,13 @@ const METHOD_INFO: Record<
 };
 
 const DEFAULT_METHODS: MethodsState = {
-  semantic: { enabled: false, weight: 0.5 },
-  reasoning: { enabled: true, weight: 1.0 },
-  tool: { enabled: true, weight: 1.0 },
-  biprm: { enabled: false, weight: 0.8 },
-  ensemble: { enabled: false, weight: 0.7 },
-  entropy: { enabled: false, weight: 0.6 },
-  formal: { enabled: false, weight: 1.0 },
+  semantic: { enabled: false, weight: 0.2 },
+  reasoning: { enabled: true, weight: 0.5 },
+  tool: { enabled: true, weight: 0.5 },
+  biprm: { enabled: false, weight: 0.2 },
+  ensemble: { enabled: false, weight: 0.2 },
+  entropy: { enabled: false, weight: 0.2 },
+  formal: { enabled: false, weight: 0.2 },
 };
 
 const DEFAULT_OPTIONS: OptionsState = {
@@ -323,7 +323,10 @@ console.log(result);`;
     }
   };
 
-  const enabledMethodsCount = Object.values(methods).filter((m) => m.enabled).length;
+  const enabledMethods = Object.values(methods).filter((m) => m.enabled);
+  const enabledMethodsCount = enabledMethods.length;
+  const weightSum = Math.round(enabledMethods.reduce((s, m) => s + m.weight, 0) * 100) / 100;
+  const weightsValid = Math.abs(weightSum - 1) < 0.001;
 
   return (
     <div className="p-6">
@@ -422,18 +425,28 @@ console.log(result);`;
                           <Slider
                             value={[config.weight]}
                             onValueChange={([value]) => handleWeightChange(method, value)}
-                            min={0.1}
+                            min={0.01}
                             max={1}
-                            step={0.1}
+                            step={0.01}
                             className="flex-1"
                           />
-                          <span className="w-10 font-mono text-xs">{config.weight.toFixed(1)}</span>
+                          <span className="w-10 font-mono text-xs">{config.weight.toFixed(2)}</span>
                         </div>
                       )}
                     </div>
                   );
                 })}
               </TooltipProvider>
+              {enabledMethodsCount > 0 && (
+                <div className={`mt-3 flex items-center justify-between rounded-md border px-3 py-2 text-xs ${
+                  weightsValid ? 'border-primary/20 bg-primary/5 text-primary' : 'border-destructive/30 bg-destructive/5 text-destructive'
+                }`}>
+                  <span>Weights must equal 1.0</span>
+                  <span className="font-mono font-medium">
+                    {weightSum.toFixed(2)} / 1.00
+                  </span>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -546,7 +559,7 @@ console.log(result);`;
           <Button
             className="w-full"
             onClick={handleSubmit}
-            disabled={isSubmitting || !content.trim() || enabledMethodsCount === 0}
+            disabled={isSubmitting || !content.trim() || enabledMethodsCount === 0 || !weightsValid}
           >
             {isSubmitting ? (
               <>
