@@ -161,6 +161,7 @@ export default function PlaygroundPage() {
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [showCodeSnippet, setShowCodeSnippet] = useState(false);
   const [settingsMethod, setSettingsMethod] = useState<keyof MethodsState | null>(null);
+  const [userProviders, setUserProviders] = useState<LLMProvider[]>([]);
   const { copied, copy } = useCopyToClipboard();
 
   // Use real-time updates for in-progress verification
@@ -169,6 +170,19 @@ export default function PlaygroundPage() {
   // Mark playground as visited for onboarding
   useEffect(() => {
     markOnboardingStep('hasVisitedPlayground');
+  }, []);
+
+  // Fetch user's configured provider credentials
+  useEffect(() => {
+    fetch('/api/dashboard/provider-credentials')
+      .then((res) => res.ok ? res.json() : Promise.reject(res))
+      .then((data: { credentials: Array<{ provider: string; isActive: boolean; validationStatus: string }> }) => {
+        const active = data.credentials
+          .filter((c) => c.isActive && c.validationStatus !== 'invalid')
+          .map((c) => c.provider as LLMProvider);
+        setUserProviders([...new Set(active)]);
+      })
+      .catch(() => { /* credentials will remain empty — dialog shows helper text */ });
   }, []);
 
   const handleMethodToggle = (method: keyof MethodsState) => {
@@ -796,6 +810,7 @@ console.log(result);`;
           provider={methods[settingsMethod].provider}
           model={methods[settingsMethod].model}
           onSave={(override) => handleMethodSettingsSave(settingsMethod, override)}
+          userProviders={userProviders}
         />
       )}
     </div>

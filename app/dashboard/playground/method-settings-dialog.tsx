@@ -19,7 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { PROVIDER_OPTIONS, getProviderLabel } from '@/lib/llm/provider-ui-config';
+import { getProviderLabel } from '@/lib/llm/provider-ui-config';
 import { ModelRegistry, type ModelCapability, type ModelInfo } from '@/lib/llm/model-registry';
 import type { LLMProvider } from '@/lib/llm/types';
 
@@ -49,6 +49,7 @@ interface MethodSettingsDialogProps {
   provider?: LLMProvider;
   model?: string;
   onSave: (override: MethodOverride) => void;
+  userProviders: LLMProvider[];
 }
 
 // =============================================================================
@@ -72,13 +73,13 @@ const METHOD_CAPABILITIES: Record<MethodKey, ModelCapability[]> = {
 
 const registry = ModelRegistry.getInstance();
 
-function getProvidersForMethod(methodKey: MethodKey) {
+function getProvidersForMethod(methodKey: MethodKey, userProviders: LLMProvider[]) {
+  const userSet = new Set(userProviders);
   if (methodKey === 'semantic') {
-    return registry.getEmbeddingProviders();
+    return registry.getEmbeddingProviders().filter((p) => userSet.has(p));
   }
-  // For text methods, return all providers that have text models
-  const allProviders = PROVIDER_OPTIONS.map((p) => p.value);
-  return allProviders.filter((p) => {
+  // For text methods, return user's providers that have text models
+  return userProviders.filter((p) => {
     const models = registry.findModels({ provider: p, capabilities: METHOD_CAPABILITIES[methodKey] });
     return models.length > 0;
   });
@@ -111,8 +112,9 @@ export function MethodSettingsDialog({
   provider,
   model,
   onSave,
+  userProviders,
 }: MethodSettingsDialogProps) {
-  const validProviders = useMemo(() => getProvidersForMethod(methodKey), [methodKey]);
+  const validProviders = useMemo(() => getProvidersForMethod(methodKey, userProviders), [methodKey, userProviders]);
 
   const availableModels = useMemo(() => {
     if (!provider) return [];
@@ -125,27 +127,13 @@ export function MethodSettingsDialog({
   }, [model]);
 
   const handleProviderChange = (value: string) => {
-    if (value === 'auto') {
-      onSave({ provider: undefined, model: undefined });
-    } else {
-      // Reset model when provider changes
-      onSave({ provider: value as LLMProvider, model: undefined });
-    }
+    // Reset model when provider changes
+    onSave({ provider: value as LLMProvider, model: undefined });
   };
 
   const handleModelChange = (value: string) => {
-    if (value === 'default') {
-      onSave({ provider, model: undefined });
-    } else {
-      onSave({ provider, model: value });
-    }
+    onSave({ provider, model: value });
   };
-
-  const handleReset = () => {
-    onSave({ provider: undefined, model: undefined });
-  };
-
-  const isCustomized = provider !== undefined || model !== undefined;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -161,31 +149,38 @@ export function MethodSettingsDialog({
           {/* Provider Selection */}
           <div className="space-y-2">
             <Label className="text-sm">Provider</Label>
-            <Select value={provider ?? 'auto'} onValueChange={handleProviderChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select provider" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="auto">Auto (recommended)</SelectItem>
-                {validProviders.map((p) => (
-                  <SelectItem key={p} value={p}>
-                    {getProviderLabel(p)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              {methodKey === 'semantic'
-                ? 'Only providers with embedding models are shown.'
-                : 'Only providers with text generation models are shown.'}
-            </p>
+            {validProviders.length > 0 ? (
+              <>
+                <Select value={provider ?? ''} onValueChange={handleProviderChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {validProviders.map((p) => (
+                      <SelectItem key={p} value={p}>
+                        {getProviderLabel(p)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {methodKey === 'semantic'
+                    ? 'Only your configured providers with embedding models are shown.'
+                    : 'Only your configured providers with text generation models are shown.'}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground rounded-md border border-dashed px-3 py-2">
+                No configured providers support this method. Add one in the Providers tab.
+              </p>
+            )}
           </div>
 
           {/* Model Selection */}
           <div className="space-y-2">
             <Label className="text-sm">Model</Label>
             <Select
-              value={model ?? 'default'}
+              value={model ?? ''}
               onValueChange={handleModelChange}
               disabled={!provider}
             >
@@ -193,7 +188,6 @@ export function MethodSettingsDialog({
                 <SelectValue placeholder={!provider ? 'Select a provider first' : 'Select model'} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="default">Default</SelectItem>
                 {availableModels.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
                     <div className="flex items-center gap-2">
@@ -230,14 +224,7 @@ export function MethodSettingsDialog({
           )}
         </div>
 
-        <DialogFooter className="flex items-center justify-between sm:justify-between">
-          {isCustomized ? (
-            <Button variant="ghost" size="sm" className="text-xs" onClick={handleReset}>
-              Reset to defaults
-            </Button>
-          ) : (
-            <div />
-          )}
+        <DialogFooter>
           <Button size="sm" onClick={() => onOpenChange(false)}>
             Done
           </Button>
