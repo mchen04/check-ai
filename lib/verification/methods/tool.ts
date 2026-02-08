@@ -17,6 +17,7 @@ import { TOOL_CLOVE_SYSTEM_PROMPT, createToolCLoVEUserPrompt } from '../prompts'
 import {
   createParadigmErrorResult,
   selectBestProvider,
+  getDefaultModel,
   normalizeVerdict,
   normalizeConfidence,
   extractJsonFromResponse,
@@ -232,7 +233,7 @@ export class ToolParadigm implements ParadigmExecutor {
     const startTime = Date.now();
 
     const provider: LLMProvider = options.provider || selectBestProvider(this.llmClient);
-    const model = options.model || 'gpt-4o-mini';
+    const model = options.model || getDefaultModel(provider);
 
     try {
       // Step 1: Extract improved search query

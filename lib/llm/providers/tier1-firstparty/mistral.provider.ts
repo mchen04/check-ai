@@ -27,6 +27,10 @@ export class MistralProvider extends OpenAICompatibleProvider {
   getDefaultModel(): string {
     return DEFAULT_MODELS.mistral;
   }
+
+  getDefaultEmbeddingModel(): string | null {
+    return 'mistral-embed';
+  }
 }
 
 // Register provider

@@ -6,7 +6,8 @@
 import OpenAI from 'openai';
 import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
 import { LLMMessage, LLMOptions, LLMResponse, TokenLogprob, DEFAULT_MODELS } from '../../types';
-import { BaseLLMProvider, LLMError, ProviderFactoryConfig } from '../interfaces';
+import { BaseLLMProvider, LLMError, EmbeddingResult, ProviderFactoryConfig } from '../interfaces';
+import type { ModelCapability } from '../../model-registry';
 import { providerRegistry } from '../registry';
 
 // =============================================================================
@@ -33,6 +34,35 @@ export class OpenAIProvider extends BaseLLMProvider {
 
   getDefaultModel(): string {
     return DEFAULT_MODELS.openai;
+  }
+
+  async getEmbedding(texts: string[], model?: string): Promise<EmbeddingResult | null> {
+    if (!this.client) return null;
+    const embeddingModel = model ?? 'text-embedding-3-small';
+
+    try {
+      const response = await this.client.embeddings.create({
+        model: embeddingModel,
+        input: texts,
+      });
+
+      const embeddings = response.data
+        .sort((a, b) => a.index - b.index)
+        .map((d) => d.embedding);
+
+      return {
+        embeddings,
+        model: embeddingModel,
+        provider: this.name,
+        usage: { inputTokens: response.usage?.prompt_tokens ?? 0 },
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  getProviderCapabilities(): Set<ModelCapability> {
+    return new Set(['text', 'embedding', 'logprobs', 'tool_use', 'vision', 'json_mode'] as ModelCapability[]);
   }
 
   async complete(

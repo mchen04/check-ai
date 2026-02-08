@@ -179,6 +179,15 @@ export interface ExtendedProviderKeys extends ProviderKeys {
   bedrockConfig?: BedrockConfig;
 }
 
+// Re-export model registry types
+export {
+  type ModelCapability,
+  type ModelInfo,
+  type ModelQuery,
+} from './model-registry';
+
+export { type EmbeddingResult } from './providers/interfaces';
+
 // =============================================================================
 // NOTE: MODEL_PRICING, DEFAULT_MODELS, PROVIDER_BASE_URLS, LITELLM_PREFIXES,
 // and helper functions are now defined in ./config.ts and re-exported above.

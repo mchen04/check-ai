@@ -297,10 +297,13 @@ describe('VerificationOrchestrator', () => {
       expect(methods).toContain('ensemble');
     });
 
-    it('should include ensemble with just OpenAI', () => {
-      const methods = orchestrator.getAvailableMethods();
+    it('should include ensemble with openrouter (gateway to multiple models)', () => {
+      const orOrchestrator = new VerificationOrchestrator({
+        keys: { openrouter: 'test-openrouter-key' },
+      });
 
-      // Can use ensemble with multiple OpenAI models
+      const methods = orOrchestrator.getAvailableMethods();
+
       expect(methods).toContain('ensemble');
     });
 

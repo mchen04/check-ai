@@ -21,6 +21,9 @@ import {
 // Import providers - this triggers registration
 import './providers';
 import { providerRegistry, ILLMProvider, LLMError, getProvidersByTier } from './providers';
+import type { EmbeddingResult } from './providers/interfaces';
+import type { ModelCapability } from './model-registry';
+import { ModelRegistry } from './model-registry';
 
 // Re-export LLMError for backwards compatibility
 export { LLMError };
@@ -100,6 +103,52 @@ export class LLMClient {
   getDefaultModel(provider: LLMProvider): string {
     const providerInstance = this.providers.get(provider);
     return providerInstance?.getDefaultModel() || DEFAULT_MODELS[provider];
+  }
+
+  /**
+   * Generate embeddings using the specified provider
+   */
+  async getEmbedding(
+    provider: LLMProvider,
+    texts: string[],
+    model?: string
+  ): Promise<EmbeddingResult | null> {
+    const providerInstance = this.providers.get(provider);
+    if (!providerInstance?.getEmbedding) return null;
+    return providerInstance.getEmbedding(texts, model);
+  }
+
+  /**
+   * Get the provider instance for direct access
+   */
+  getProviderInstance(provider: LLMProvider): ILLMProvider | undefined {
+    return this.providers.get(provider);
+  }
+
+  /**
+   * Find the first available provider that has a given capability
+   */
+  findProviderWithCapability(
+    capability: ModelCapability,
+    preferenceOrder?: LLMProvider[]
+  ): LLMProvider | null {
+    const registry = ModelRegistry.getInstance();
+    const order = preferenceOrder ?? Array.from(this.providers.keys());
+
+    for (const provider of order) {
+      if (!this.providers.has(provider)) continue;
+
+      const providerInstance = this.providers.get(provider)!;
+      if (providerInstance.getProviderCapabilities().has(capability)) {
+        return provider;
+      }
+
+      // Fallback: check registry for models with this capability
+      const model = registry.findBestModel({ provider, capabilities: [capability] });
+      if (model) return provider;
+    }
+
+    return null;
   }
 }
 

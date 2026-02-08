@@ -75,7 +75,7 @@ export const DEFAULT_MODELS: Record<LLMProvider, string> = {
   cohere: 'command-r-plus',
   deepseek: 'deepseek-chat',
   // Tier 2: Cloud providers
-  azure: 'gpt-4o', // Deployment name varies by customer
+  azure: 'gpt-4.1', // Deployment name varies by customer
   bedrock: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
   // Tier 3: Inference providers
   groq: 'llama-3.3-70b-versatile',
@@ -84,7 +84,7 @@ export const DEFAULT_MODELS: Record<LLMProvider, string> = {
   cerebras: 'llama3.3-70b',
   perplexity: 'sonar',
   // Tier 4: Unified gateways
-  openrouter: 'anthropic/claude-3.5-sonnet',
+  openrouter: 'anthropic/claude-sonnet-4.5',
   // Legacy
   replicate: 'meta/llama-2-70b-chat',
 };
@@ -181,6 +181,7 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
   'claude-opus-4-5-20251124': { inputPer1M: 5.0, outputPer1M: 25.0 },
   'claude-sonnet-4-5-20250929': { inputPer1M: 3.0, outputPer1M: 15.0 },
   'claude-haiku-4-5-20251015': { inputPer1M: 1.0, outputPer1M: 5.0 },
+  'claude-opus-4-6': { inputPer1M: 15.0, outputPer1M: 75.0 },
   // Claude 4.x Series (May-Aug 2025)
   'claude-opus-4-1-20250805': { inputPer1M: 15.0, outputPer1M: 75.0 },
   'claude-sonnet-4-20250522': { inputPer1M: 3.0, outputPer1M: 15.0 },
@@ -277,8 +278,11 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
   // OpenRouter (pass-through pricing varies by model)
   // ==========================================================================
   'openai/gpt-4o': { inputPer1M: 2.5, outputPer1M: 10.0 },
+  'openai/gpt-4.1': { inputPer1M: 2.0, outputPer1M: 8.0 },
   'anthropic/claude-3.5-sonnet': { inputPer1M: 3.0, outputPer1M: 15.0 },
+  'anthropic/claude-sonnet-4.5': { inputPer1M: 3.0, outputPer1M: 15.0 },
   'google/gemini-2.0-flash': { inputPer1M: 0.1, outputPer1M: 0.4 },
+  'google/gemini-2.5-flash': { inputPer1M: 0.15, outputPer1M: 0.6 },
 };
 
 // =============================================================================
@@ -321,8 +325,8 @@ export function calculateCostCents(
 ): number {
   const pricing = MODEL_PRICING[model];
   if (!pricing) {
-    // Default to gpt-4o pricing if model not found
-    const defaultPricing = MODEL_PRICING['gpt-4o'];
+    // Default to gpt-4.1 pricing if model not found
+    const defaultPricing = MODEL_PRICING['gpt-4.1'];
     const inputCost = (inputTokens / 1_000_000) * defaultPricing.inputPer1M;
     const outputCost = (outputTokens / 1_000_000) * defaultPricing.outputPer1M;
     return Math.ceil((inputCost + outputCost) * 100);
@@ -402,10 +406,12 @@ const PROVIDER_MODEL_PATTERNS: Record<LLMProvider, RegExp | null> = {
   // Tier 1: First-party providers
   openai: /^(gpt-|o[134]|text-embedding)/,
   anthropic: /^claude-/,
-  google: /^gemini-/,
-  xai: /^grok-/,
-  mistral: /^(mistral-|codestral)/,
-  cohere: /^command-/,
+  google: /^(gemini-|text-embedding-004)/,
+  xai: /^grok-/,  // grok-4, grok-3, etc.
+
+  mistral: /^(mistral-|codestral)/,  // includes mistral-embed
+
+  cohere: /^(command-|embed-)/,
   deepseek: /^deepseek-/,
   // Tier 2: Cloud providers
   azure: /^(gpt-|o[134]|text-embedding)/, // Azure hosts OpenAI models
@@ -430,7 +436,9 @@ const PROVIDER_MODEL_PATTERNS: Record<LLMProvider, RegExp | null> = {
  * Patterns that identify embedding models
  */
 export const EMBEDDING_MODEL_PATTERNS = [
-  /^text-embedding/, // OpenAI embeddings
+  /^text-embedding/, // OpenAI & Google embeddings
+  /^embed-/, // Cohere embeddings
+  /^mistral-embed/, // Mistral embeddings
 ];
 
 /**

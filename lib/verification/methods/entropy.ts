@@ -23,9 +23,11 @@ import {
 import {
   createParadigmErrorResult,
   selectBestProvider,
+  getDefaultModel,
   normalizeVerdict,
   extractJsonFromResponse,
 } from './shared';
+import { ModelRegistry } from '@/lib/llm/model-registry';
 
 // =============================================================================
 // ENTROPY CONFIGURATION
@@ -34,8 +36,20 @@ import {
 const NUM_SAMPLES = 5;
 const TEMPERATURE = 0.7;
 
-// Providers known to support logprobs
-const LOGPROB_PROVIDERS: Set<LLMProvider> = new Set(['openai', 'azure', 'together', 'groq', 'fireworks']);
+/**
+ * Check if a provider/model combination supports logprobs.
+ * Uses registry metadata when available, falls back to known-good set.
+ */
+function supportsLogprobs(provider: LLMProvider, model: string): boolean {
+  const registry = ModelRegistry.getInstance();
+  const modelInfo = registry.getModel(model);
+  if (modelInfo) {
+    return modelInfo.capabilities.includes('logprobs');
+  }
+  // Fallback: providers known to support logprobs via OpenAI-compatible API
+  const LOGPROB_PROVIDERS: Set<LLMProvider> = new Set(['openai', 'azure', 'together', 'groq', 'fireworks']);
+  return LOGPROB_PROVIDERS.has(provider);
+}
 
 // =============================================================================
 // SHANNON ENTROPY
@@ -144,11 +158,11 @@ export class EntropyParadigm implements ParadigmExecutor {
     const startTime = Date.now();
 
     const provider: LLMProvider = options.provider || selectBestProvider(this.llmClient);
-    const model = options.model || 'gpt-4o-mini';
+    const model = options.model || getDefaultModel(provider);
 
     try {
-      // Try Path A (logprobs) if provider supports it
-      if (LOGPROB_PROVIDERS.has(provider)) {
+      // Try Path A (logprobs) if provider/model supports it
+      if (supportsLogprobs(provider, model)) {
         const logprobResult = await this.executeWithLogprobs(
           provider, model, content, context, options
         );

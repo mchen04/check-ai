@@ -70,7 +70,7 @@ const RETRY_DEFAULTS = {
 type ParadigmFactory = (keys: ProviderKeys) => ParadigmExecutor;
 
 const PARADIGM_FACTORIES: Record<ParadigmType, ParadigmFactory> = {
-  semantic: (keys) => createSemanticParadigm(keys.openai),
+  semantic: createSemanticParadigm,
   reasoning: createReasoningParadigm,
   tool: createToolParadigm,
   biprm: createBiPRMParadigm,
@@ -350,8 +350,9 @@ export class VerificationOrchestrator {
   getAvailableMethods(): ParadigmType[] {
     const available: ParadigmType[] = [];
 
-    // Semantic requires OpenAI
-    if (this.keys.openai) {
+    // Semantic requires any embedding provider (openai, google, cohere, or mistral)
+    const EMBEDDING_PROVIDERS: (keyof ProviderKeys)[] = ['openai', 'google', 'cohere', 'mistral'];
+    if (EMBEDDING_PROVIDERS.some((p) => this.keys[p])) {
       available.push('semantic');
     }
 
@@ -361,12 +362,9 @@ export class VerificationOrchestrator {
     if (hasAnyProvider) {
       available.push('reasoning', 'tool', 'biprm', 'entropy', 'formal');
 
-      // Ensemble requires at least 2 providers ideally
+      // Ensemble requires at least 2 providers ideally, or openrouter (gateway to many)
       const providerCount = Object.values(this.keys).filter(Boolean).length;
-      if (providerCount >= 2) {
-        available.push('ensemble');
-      } else if (this.keys.openai) {
-        // Can still use ensemble with multiple OpenAI models
+      if (providerCount >= 2 || this.keys.openrouter) {
         available.push('ensemble');
       }
     }

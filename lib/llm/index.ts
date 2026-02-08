@@ -15,9 +15,16 @@ export {
   type BedrockConfig,
   type ProviderKeys,
   type ExtendedProviderKeys,
+  type ModelCapability,
+  type ModelInfo,
+  type ModelQuery,
+  type EmbeddingResult,
   PROVIDER_BASE_URLS,
   calculateCostCents,
 } from './types';
+
+// Model Registry
+export { ModelRegistry } from './model-registry';
 
 // Client
 export { LLMClient, createLLMClient } from './client';

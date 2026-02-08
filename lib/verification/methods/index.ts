@@ -13,12 +13,13 @@ export { FormalParadigm, createFormalParadigm } from './formal';
 
 // Export shared utilities for external use
 export {
-  DEFAULT_PARADIGM_MODELS,
   getDefaultModel,
   selectBestProvider,
+  selectBestEmbeddingProvider,
   createParadigmErrorResult,
   normalizeVerdict,
   normalizeConfidence,
   extractJsonFromResponse,
   REASONING_PROVIDER_PREFERENCE,
+  EMBEDDING_PROVIDER_PREFERENCE,
 } from './shared';

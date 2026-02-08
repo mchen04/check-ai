@@ -8,21 +8,20 @@
  *   H = -P_truth·log₂(P_truth) - P_false·log₂(P_false) // Energy entropy
  *   confidence = P_majority · (1 - H)               // Entropy-modulated
  *
+ * Multi-provider embedding support: OpenAI, Google, Cohere, Mistral
+ *
  * FPR: ~20-30% (down from 50-100%)
  * Latency: ~15ms (cached references, 1 embedding call instead of 7)
  * Best for: Quick filtering, low-stakes content
  */
 
-import OpenAI from 'openai';
-import { calculateCostCents } from '@/lib/llm';
+import { LLMClient, ProviderKeys, LLMProvider, calculateCostCents } from '@/lib/llm';
 import { ParadigmExecutor, ParadigmResult, ParadigmOptions, Verdict } from '../types';
-import { createParadigmErrorResult } from './shared';
+import { createParadigmErrorResult, selectBestEmbeddingProvider, EMBEDDING_PROVIDER_PREFERENCE } from './shared';
 
 // =============================================================================
 // EMBEDDING CONFIGURATION
 // =============================================================================
-
-const EMBEDDING_MODEL = 'text-embedding-3-small';
 
 // Temperature for Boltzmann distribution — lower = sharper discrimination
 const TAU = 0.05;
@@ -49,14 +48,13 @@ const FALSEHOOD_INDICATORS = [
 
 export class SemanticParadigm implements ParadigmExecutor {
   name = 'semantic' as const;
-  private openaiClient: OpenAI | null = null;
+  private llmClient: LLMClient;
+  private embeddingProvider: LLMProvider | null = null;
   private cachedTruthEmbeddings: number[][] | null = null;
   private cachedFalsehoodEmbeddings: number[][] | null = null;
 
-  constructor(apiKey?: string) {
-    if (apiKey) {
-      this.openaiClient = new OpenAI({ apiKey });
-    }
+  constructor(keys: ProviderKeys) {
+    this.llmClient = new LLMClient(keys);
   }
 
   async execute(
@@ -67,20 +65,24 @@ export class SemanticParadigm implements ParadigmExecutor {
     const startTime = Date.now();
 
     try {
-      // Initialize client if needed
-      if (!this.openaiClient) {
-        const apiKey = process.env.OPENAI_API_KEY;
-        if (!apiKey) {
-          throw new Error('OpenAI API key required for semantic verification');
+      // Resolve embedding provider (cached after first call)
+      if (!this.embeddingProvider) {
+        this.embeddingProvider = selectBestEmbeddingProvider(this.llmClient);
+        if (!this.embeddingProvider) {
+          throw new Error(
+            'No embedding provider available. Configure one of: ' +
+            EMBEDDING_PROVIDER_PREFERENCE.join(', ')
+          );
         }
-        this.openaiClient = new OpenAI({ apiKey });
       }
 
+      const provider = this.embeddingProvider;
+
       // Cache reference embeddings (once per instance, not per call)
-      await this.ensureReferenceEmbeddings();
+      await this.ensureReferenceEmbeddings(provider);
 
       // Get embedding for the content (single API call)
-      const contentEmbedding = await this.getEmbedding(content);
+      const contentEmbedding = await this.getEmbedding(provider, content);
 
       // Calculate Boltzmann pool energies
       const truthEnergy = this.poolEnergy(contentEmbedding, this.cachedTruthEmbeddings!);
@@ -124,16 +126,17 @@ export class SemanticParadigm implements ParadigmExecutor {
       // Estimate token usage (embedding model)
       const inputTokens = Math.ceil(content.length / 4);
       const outputTokens = 0;
-      const costCents = calculateCostCents(EMBEDDING_MODEL, inputTokens, outputTokens);
+      const embeddingModel = this.llmClient.getDefaultModel(provider);
+      const costCents = calculateCostCents(embeddingModel, inputTokens, outputTokens);
 
       return {
         paradigm: 'semantic',
         weight: options.weight,
-        provider: 'openai',
-        model: EMBEDDING_MODEL,
+        provider,
+        model: `embedding-${provider}`,
         verdict,
         confidence,
-        reasoning: `Semantic Energy Analysis: P(truth)=${(pTruthNorm * 100).toFixed(1)}%, P(false)=${(pFalseNorm * 100).toFixed(1)}%, Entropy=${H.toFixed(3)} bits. Energy-modulated confidence: ${(confidence * 100).toFixed(1)}%.`,
+        reasoning: `Semantic Energy Analysis (${provider}): P(truth)=${(pTruthNorm * 100).toFixed(1)}%, P(false)=${(pFalseNorm * 100).toFixed(1)}%, Entropy=${H.toFixed(3)} bits. Energy-modulated confidence: ${(confidence * 100).toFixed(1)}%.`,
         processingTimeMs: Date.now() - startTime,
         costCents,
         tokenUsage: {
@@ -145,8 +148,8 @@ export class SemanticParadigm implements ParadigmExecutor {
       return createParadigmErrorResult(
         'semantic',
         options.weight,
-        'openai',
-        EMBEDDING_MODEL,
+        this.embeddingProvider ?? 'openai',
+        'embedding',
         Date.now() - startTime,
         error
       );
@@ -156,44 +159,30 @@ export class SemanticParadigm implements ParadigmExecutor {
   /**
    * Cache reference embeddings on first call (1 batch API call instead of 7 individual calls)
    */
-  private async ensureReferenceEmbeddings(): Promise<void> {
+  private async ensureReferenceEmbeddings(provider: LLMProvider): Promise<void> {
     if (this.cachedTruthEmbeddings && this.cachedFalsehoodEmbeddings) {
       return;
     }
 
     const allReferences = [...TRUTH_INDICATORS, ...FALSEHOOD_INDICATORS];
-    const embeddings = await this.getBatchEmbeddings(allReferences);
+    const result = await this.llmClient.getEmbedding(provider, allReferences);
 
-    this.cachedTruthEmbeddings = embeddings.slice(0, TRUTH_INDICATORS.length);
-    this.cachedFalsehoodEmbeddings = embeddings.slice(TRUTH_INDICATORS.length);
-  }
-
-  private async getEmbedding(text: string): Promise<number[]> {
-    if (!this.openaiClient) {
-      throw new Error('OpenAI client not initialized');
+    if (!result || result.embeddings.length !== allReferences.length) {
+      throw new Error(`Failed to get reference embeddings from ${provider}`);
     }
 
-    const response = await this.openaiClient.embeddings.create({
-      model: EMBEDDING_MODEL,
-      input: text,
-    });
-
-    return response.data[0].embedding;
+    this.cachedTruthEmbeddings = result.embeddings.slice(0, TRUTH_INDICATORS.length);
+    this.cachedFalsehoodEmbeddings = result.embeddings.slice(TRUTH_INDICATORS.length);
   }
 
-  private async getBatchEmbeddings(texts: string[]): Promise<number[][]> {
-    if (!this.openaiClient) {
-      throw new Error('OpenAI client not initialized');
+  private async getEmbedding(provider: LLMProvider, text: string): Promise<number[]> {
+    const result = await this.llmClient.getEmbedding(provider, [text]);
+
+    if (!result || result.embeddings.length === 0) {
+      throw new Error(`Failed to get embedding from ${provider}`);
     }
 
-    const response = await this.openaiClient.embeddings.create({
-      model: EMBEDDING_MODEL,
-      input: texts,
-    });
-
-    return response.data
-      .sort((a, b) => a.index - b.index)
-      .map((d) => d.embedding);
+    return result.embeddings[0];
   }
 
   private cosineDistance(a: number[], b: number[]): number {
@@ -244,6 +233,6 @@ export class SemanticParadigm implements ParadigmExecutor {
 // FACTORY FUNCTION
 // =============================================================================
 
-export function createSemanticParadigm(apiKey?: string): SemanticParadigm {
-  return new SemanticParadigm(apiKey);
+export function createSemanticParadigm(keys: ProviderKeys): SemanticParadigm {
+  return new SemanticParadigm(keys);
 }

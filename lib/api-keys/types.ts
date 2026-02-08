@@ -369,16 +369,16 @@ export const DEFAULT_THRESHOLDS = {
 } as const;
 
 export const DEFAULT_MODELS: Record<string, string> = {
-  reasoning: 'anthropic/claude-3.5-sonnet',
-  tool: 'openai/gpt-4o-mini',
+  reasoning: 'anthropic/claude-sonnet-4.5',
+  tool: 'openai/gpt-4.1-mini',
   semantic: 'openai/text-embedding-3-small',
-  biprm: 'anthropic/claude-3.5-sonnet',
-  entropy: 'openai/gpt-4o-mini',
-  formal: 'openai/gpt-4o',
+  biprm: 'anthropic/claude-sonnet-4.5',
+  entropy: 'openai/gpt-4.1-mini',
+  formal: 'openai/gpt-4.1',
 };
 
 export const DEFAULT_ENSEMBLE_MODELS = [
-  'openai/gpt-4o',
-  'anthropic/claude-3.5-sonnet',
-  'google/gemini-2.0-flash',
+  'anthropic/claude-sonnet-4.5',
+  'openai/gpt-4.1',
+  'google/gemini-2.5-flash',
 ];

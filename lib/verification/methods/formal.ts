@@ -24,6 +24,7 @@ import { FORMAL_SYSTEM_PROMPT, FORMAL_USER_PROMPT } from '../prompts';
 import {
   createParadigmErrorResult,
   selectBestProvider,
+  getDefaultModel,
   normalizeVerdict,
   normalizeConfidence,
   extractJsonFromResponse,
@@ -312,7 +313,7 @@ export class FormalParadigm implements ParadigmExecutor {
     const startTime = Date.now();
 
     const provider: LLMProvider = options.provider || selectBestProvider(this.llmClient);
-    const model = options.model || 'gpt-4o';
+    const model = options.model || getDefaultModel(provider);
 
     try {
       // Step 1: Classify the claim

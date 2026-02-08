@@ -27,6 +27,10 @@ export class GoogleProvider extends OpenAICompatibleProvider {
   getDefaultModel(): string {
     return DEFAULT_MODELS.google;
   }
+
+  getDefaultEmbeddingModel(): string | null {
+    return 'text-embedding-004';
+  }
 }
 
 // Register provider

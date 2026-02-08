@@ -8,7 +8,8 @@
 import OpenAI from 'openai';
 import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
 import { LLMMessage, LLMOptions, LLMResponse, TokenLogprob, LLMProvider, PROVIDER_BASE_URLS } from '../types';
-import { BaseLLMProvider, LLMError } from '../providers/interfaces';
+import { BaseLLMProvider, LLMError, EmbeddingResult } from '../providers/interfaces';
+import type { ModelCapability } from '../model-registry';
 
 // =============================================================================
 // OPENAI-COMPATIBLE BASE CLASS
@@ -39,6 +40,54 @@ export abstract class OpenAICompatibleProvider extends BaseLLMProvider {
 
   isConfigured(): boolean {
     return !!this.getApiKey();
+  }
+
+  /**
+   * Override in subclass to return an embedding model ID, or null if unsupported.
+   */
+  getDefaultEmbeddingModel(): string | null {
+    return null;
+  }
+
+  async getEmbedding(texts: string[], model?: string): Promise<EmbeddingResult | null> {
+    const embeddingModel = model ?? this.getDefaultEmbeddingModel();
+    if (!embeddingModel) return null;
+
+    const apiKey = this.getApiKey();
+    if (!apiKey) return null;
+
+    try {
+      const client = new OpenAI({
+        apiKey,
+        baseURL: this.getBaseUrl(),
+      });
+
+      const response = await client.embeddings.create({
+        model: embeddingModel,
+        input: texts,
+      });
+
+      const embeddings = response.data
+        .sort((a, b) => a.index - b.index)
+        .map((d) => d.embedding);
+
+      return {
+        embeddings,
+        model: embeddingModel,
+        provider: this.name,
+        usage: { inputTokens: response.usage?.prompt_tokens ?? 0 },
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  getProviderCapabilities(): Set<ModelCapability> {
+    const caps: ModelCapability[] = ['text'];
+    if (this.getDefaultEmbeddingModel()) {
+      caps.push('embedding');
+    }
+    return new Set(caps);
   }
 
   async complete(

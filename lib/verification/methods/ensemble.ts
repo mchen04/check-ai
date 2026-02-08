@@ -33,29 +33,19 @@ interface EnsembleMember {
   weight: number;
 }
 
-const DEFAULT_ENSEMBLE: EnsembleMember[] = [
-  { provider: 'openai', model: 'gpt-4o', weight: 1.0 },
-  { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', weight: 1.0 },
-  { provider: 'google', model: 'gemini-2.0-flash', weight: 0.8 },
+/**
+ * Provider priority for dynamic ensemble selection.
+ * We want model diversity — pick one model per provider.
+ */
+const ENSEMBLE_PROVIDER_PRIORITY: LLMProvider[] = [
+  'anthropic', 'openai', 'google', 'deepseek', 'xai', 'mistral',
+  'groq', 'together', 'fireworks', 'cerebras', 'cohere',
 ];
 
 const OPENROUTER_ENSEMBLE: EnsembleMember[] = [
-  { provider: 'openrouter', model: 'anthropic/claude-3.5-sonnet', weight: 1.0 },
-  { provider: 'openrouter', model: 'openai/gpt-4o', weight: 1.0 },
-  { provider: 'openrouter', model: 'google/gemini-2.0-flash-001', weight: 0.8 },
-];
-
-const FALLBACK_ENSEMBLE: EnsembleMember[] = [
-  { provider: 'openai', model: 'gpt-4o', weight: 1.0 },
-  { provider: 'openai', model: 'gpt-4o-mini', weight: 0.7 },
-  { provider: 'openai', model: 'gpt-4-turbo', weight: 0.9 },
-];
-
-// Meta-judge preference: use a model NOT in the ensemble
-const META_JUDGE_PREFERENCE: Array<{ provider: LLMProvider; model: string }> = [
-  { provider: 'deepseek', model: 'deepseek-chat' },
-  { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022' },
-  { provider: 'openai', model: 'gpt-4o-mini' },
+  { provider: 'openrouter', model: 'anthropic/claude-sonnet-4.5', weight: 1.0 },
+  { provider: 'openrouter', model: 'openai/gpt-4.1', weight: 1.0 },
+  { provider: 'openrouter', model: 'google/gemini-2.5-flash', weight: 0.8 },
 ];
 
 // =============================================================================
@@ -217,25 +207,31 @@ export class EnsembleParadigm implements ParadigmExecutor {
     inputTokens: number;
     outputTokens: number;
   } | null> {
-    // Find a meta-judge model not in the ensemble
-    const ensembleModels = new Set(ensemble.map((m) => `${m.provider}/${m.model}`));
+    // Find a meta-judge model NOT in the ensemble for independence
+    const ensembleProviders = new Set(ensemble.map((m) => m.provider));
     let metaProvider: LLMProvider | null = null;
     let metaModel: string | null = null;
 
-    for (const pref of META_JUDGE_PREFERENCE) {
-      const key = `${pref.provider}/${pref.model}`;
-      if (!ensembleModels.has(key) && this.llmClient.hasProvider(pref.provider)) {
-        metaProvider = pref.provider;
-        metaModel = pref.model;
+    // Preference: pick any available provider not already in the ensemble
+    const metaJudgePriority: LLMProvider[] = [
+      'deepseek', 'anthropic', 'openai', 'google', 'mistral', 'groq',
+      'together', 'fireworks', 'cerebras', 'cohere', 'xai', 'openrouter',
+    ];
+
+    for (const provider of metaJudgePriority) {
+      if (!ensembleProviders.has(provider) && this.llmClient.hasProvider(provider)) {
+        metaProvider = provider;
+        metaModel = getDefaultModel(provider);
         break;
       }
     }
 
-    // Fallback: use first available provider with a different model
+    // Fallback: use first ensemble provider but with a different (smaller) model
     if (!metaProvider) {
-      if (this.llmClient.hasProvider('openai')) {
-        metaProvider = 'openai';
-        metaModel = 'gpt-4o-mini';
+      const firstEnsemble = ensemble[0];
+      if (firstEnsemble && this.llmClient.hasProvider(firstEnsemble.provider)) {
+        metaProvider = firstEnsemble.provider;
+        metaModel = getDefaultModel(firstEnsemble.provider);
       } else {
         return null; // Can't run meta-judge
       }
@@ -274,42 +270,30 @@ export class EnsembleParadigm implements ParadigmExecutor {
   }
 
   private selectEnsemble(): EnsembleMember[] {
-    const availableMembers: EnsembleMember[] = [];
+    const members: EnsembleMember[] = [];
 
-    for (const member of DEFAULT_ENSEMBLE) {
-      if (this.llmClient.hasProvider(member.provider)) {
-        availableMembers.push(member);
+    // Dynamically pick up to 3 diverse models from available providers
+    for (const provider of ENSEMBLE_PROVIDER_PRIORITY) {
+      if (members.length >= 3) break;
+      if (this.llmClient.hasProvider(provider)) {
+        members.push({
+          provider,
+          model: getDefaultModel(provider),
+          weight: members.length === 0 ? 1.0 : members.length === 1 ? 1.0 : 0.8,
+        });
       }
     }
 
-    if (availableMembers.length >= 2) {
-      return availableMembers;
+    if (members.length >= 2) {
+      return members;
     }
 
+    // OpenRouter fallback — single key gives access to multiple models
     if (this.llmClient.hasProvider('openrouter')) {
       return OPENROUTER_ENSEMBLE;
     }
 
-    if (this.llmClient.hasProvider('openai')) {
-      return FALLBACK_ENSEMBLE;
-    }
-
-    const providers: LLMProvider[] = [
-      'anthropic', 'google', 'deepseek', 'groq', 'together', 'mistral',
-    ];
-
-    for (const provider of providers) {
-      if (this.llmClient.hasProvider(provider)) {
-        availableMembers.push({
-          provider,
-          model: getDefaultModel(provider),
-          weight: 1.0,
-        });
-      }
-      if (availableMembers.length >= 3) break;
-    }
-
-    return availableMembers;
+    return members;
   }
 
   private async runMember(

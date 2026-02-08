@@ -4,6 +4,18 @@
  */
 
 import { LLMMessage, LLMOptions, LLMResponse, LLMProvider, ExtendedProviderKeys } from '../types';
+import type { ModelCapability } from '../model-registry';
+
+// =============================================================================
+// EMBEDDING TYPES
+// =============================================================================
+
+export interface EmbeddingResult {
+  embeddings: number[][];
+  model: string;
+  provider: LLMProvider;
+  usage: { inputTokens: number };
+}
 
 // =============================================================================
 // PROVIDER INTERFACE
@@ -39,6 +51,16 @@ export interface ILLMProvider {
    * Get the default model for this provider
    */
   getDefaultModel(): string;
+
+  /**
+   * Generate embeddings for the given texts (optional — returns null if unsupported)
+   */
+  getEmbedding?(texts: string[], model?: string): Promise<EmbeddingResult | null>;
+
+  /**
+   * Get the set of capabilities this provider supports
+   */
+  getProviderCapabilities(): Set<ModelCapability>;
 }
 
 // =============================================================================
@@ -81,6 +103,10 @@ export abstract class BaseLLMProvider implements ILLMProvider {
     options: LLMOptions & { model: string }
   ): Promise<LLMResponse>;
   abstract getDefaultModel(): string;
+
+  getProviderCapabilities(): Set<ModelCapability> {
+    return new Set(['text'] as ModelCapability[]);
+  }
 
   /**
    * Helper to create a standardized response

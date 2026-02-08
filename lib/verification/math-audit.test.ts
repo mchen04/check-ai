@@ -295,7 +295,7 @@ describe('Fix 2: Formal autoformalization confidence by claim type', () => {
 describe('Fix 3: Semantic zero-norm guard', () => {
   it('cosineDistance should return 1.0 for zero vectors, not NaN', async () => {
     const { SemanticParadigm } = await import('./methods/semantic');
-    const paradigm = new SemanticParadigm('test-key');
+    const paradigm = new SemanticParadigm({ openai: 'test-key' });
 
     // Access private cosineDistance method
     const cosineDistance = (paradigm as unknown as {
@@ -314,7 +314,7 @@ describe('Fix 3: Semantic zero-norm guard', () => {
 
   it('cosineDistance should return 1.0 for both zero vectors', async () => {
     const { SemanticParadigm } = await import('./methods/semantic');
-    const paradigm = new SemanticParadigm('test-key');
+    const paradigm = new SemanticParadigm({ openai: 'test-key' });
 
     const cosineDistance = (paradigm as unknown as {
       cosineDistance: (a: number[], b: number[]) => number;
@@ -331,7 +331,7 @@ describe('Fix 3: Semantic zero-norm guard', () => {
 
   it('cosineDistance should clamp to valid range for normal vectors', async () => {
     const { SemanticParadigm } = await import('./methods/semantic');
-    const paradigm = new SemanticParadigm('test-key');
+    const paradigm = new SemanticParadigm({ openai: 'test-key' });
 
     const cosineDistance = (paradigm as unknown as {
       cosineDistance: (a: number[], b: number[]) => number;
@@ -354,7 +354,7 @@ describe('Fix 3: Semantic zero-norm guard', () => {
 describe('Fix 4: Semantic partition function — log-sum-exp stability', () => {
   it('should handle extreme energy values without NaN or Infinity', async () => {
     const { SemanticParadigm } = await import('./methods/semantic');
-    const paradigm = new SemanticParadigm('test-key');
+    const paradigm = new SemanticParadigm({ openai: 'test-key' });
 
     // Access private poolEnergy and test the Boltzmann path
     const poolEnergy = (paradigm as unknown as {

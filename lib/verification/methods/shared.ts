@@ -4,6 +4,8 @@
  */
 
 import { LLMClient, LLMProvider } from '@/lib/llm';
+import { getDefaultModel as configGetDefaultModel } from '@/lib/llm/config';
+import type { ModelCapability } from '@/lib/llm/model-registry';
 import { ParadigmResult, ParadigmType } from '../types';
 
 // =============================================================================
@@ -11,38 +13,10 @@ import { ParadigmResult, ParadigmType } from '../types';
 // =============================================================================
 
 /**
- * Default model mappings for each LLM provider
- * Centralized to avoid duplication across paradigm executors
- */
-export const DEFAULT_PARADIGM_MODELS: Record<LLMProvider, string> = {
-  // Tier 1: First-party providers
-  openai: 'gpt-4.1',
-  anthropic: 'claude-sonnet-4-5-20250929',
-  google: 'gemini-2.5-flash',
-  xai: 'grok-4',
-  mistral: 'mistral-large-latest',
-  cohere: 'command-r-plus',
-  deepseek: 'deepseek-chat',
-  // Tier 2: Cloud providers
-  azure: 'gpt-4o',
-  bedrock: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
-  // Tier 3: Inference providers
-  groq: 'llama-3.3-70b-versatile',
-  together: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
-  fireworks: 'accounts/fireworks/models/llama-v3p3-70b-instruct',
-  cerebras: 'llama3.3-70b',
-  perplexity: 'sonar-pro',
-  // Tier 4: Gateways
-  openrouter: 'anthropic/claude-3.5-sonnet',
-  // Legacy
-  replicate: 'meta/llama-2-70b-chat',
-};
-
-/**
- * Get the default model for a provider
+ * Get the default model for a provider — delegates to centralized config
  */
 export function getDefaultModel(provider: LLMProvider): string {
-  return DEFAULT_PARADIGM_MODELS[provider] || 'gpt-4.1';
+  return configGetDefaultModel(provider);
 }
 
 // =============================================================================
@@ -73,22 +47,56 @@ export const REASONING_PROVIDER_PREFERENCE: LLMProvider[] = [
 ];
 
 /**
- * Select the best available provider based on preference order
+ * Provider preference order for embedding-capable providers
+ */
+export const EMBEDDING_PROVIDER_PREFERENCE: LLMProvider[] = [
+  'openai',
+  'google',
+  'cohere',
+  'mistral',
+];
+
+/**
+ * Select the best available provider based on preference order.
+ * Optionally filter by required capabilities.
  */
 export function selectBestProvider(
   llmClient: LLMClient,
-  preferenceOrder: LLMProvider[] = REASONING_PROVIDER_PREFERENCE
+  preferenceOrder: LLMProvider[] = REASONING_PROVIDER_PREFERENCE,
+  requiredCapabilities?: ModelCapability[]
 ): LLMProvider {
   for (const provider of preferenceOrder) {
-    if (llmClient.hasProvider(provider)) {
-      return provider;
+    if (!llmClient.hasProvider(provider)) continue;
+
+    // If capability filtering requested, check via client
+    if (requiredCapabilities && requiredCapabilities.length > 0) {
+      const hasAll = requiredCapabilities.every(
+        (cap) => llmClient.findProviderWithCapability(cap, [provider]) === provider
+      );
+      if (!hasAll) continue;
     }
+
+    return provider;
   }
   // Final fallback: check openrouter explicitly (most common BYOK setup)
   if (llmClient.hasProvider('openrouter')) {
     return 'openrouter';
   }
   return 'openai';
+}
+
+/**
+ * Select the best available embedding provider
+ */
+export function selectBestEmbeddingProvider(
+  llmClient: LLMClient
+): LLMProvider | null {
+  for (const provider of EMBEDDING_PROVIDER_PREFERENCE) {
+    if (llmClient.hasProvider(provider)) {
+      return provider;
+    }
+  }
+  return null;
 }
 
 // =============================================================================
