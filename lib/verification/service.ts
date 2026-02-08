@@ -31,7 +31,7 @@ import {
   checkMonthlyQuota,
   PlanType,
 } from './quota';
-import { ValidatedVerifyRequest, getMethodsCount } from './validator';
+import { ValidatedVerifyRequest, MethodOverrides, getMethodsCount } from './validator';
 import { MethodsConfig, ParadigmResult, Verdict, Decision, VerifyOptions } from './types';
 
 // =============================================================================
@@ -93,7 +93,7 @@ export type VerifyServiceResult =
  */
 export async function verify(input: VerifyServiceRequest): Promise<VerifyServiceResult> {
   const { organization, request, apiKeyConfig } = input;
-  const { content, context, methods, options, idempotencyKey } = request;
+  const { content, context, methods, options, methodOverrides, idempotencyKey } = request;
 
   // Resolve effective methods - use API key's paradigm config if methods not specified in request
   let effectiveMethods: MethodsConfig = methods || {};
@@ -206,6 +206,7 @@ export async function verify(input: VerifyServiceRequest): Promise<VerifyService
       methods: effectiveMethods,
       keys,
       options,
+      methodOverrides,
       apiKeyConfig,
     });
 
@@ -280,6 +281,7 @@ interface ExecuteVerificationInput {
   methods: MethodsConfig;
   keys: ProviderKeys;
   options?: VerifyOptions;
+  methodOverrides?: MethodOverrides;
   apiKeyConfig?: ApiKeyConfiguration;
 }
 
@@ -304,7 +306,7 @@ interface ExecutionResult {
 }
 
 async function executeVerification(input: ExecuteVerificationInput): Promise<ExecutionResult> {
-  const { verificationId, orgId, organizationName, content, context, methods, keys, options } = input;
+  const { verificationId, orgId, organizationName, content, context, methods, keys, options, methodOverrides } = input;
   const methodsCount = getMethodsCount(methods);
 
   // Create streaming orchestrator with real-time broadcasts
@@ -345,6 +347,7 @@ async function executeVerification(input: ExecuteVerificationInput): Promise<Exe
   const result = await orchestrator.verifyWithUpdates(content, {
     context,
     methods,
+    methodOverrides,
     timeout: options?.timeout,
     minConfidence: options?.minConfidence,
     acceptThreshold: options?.acceptThreshold,

@@ -54,11 +54,22 @@ export const VerifyOptionsSchema = z
   )
   .optional();
 
+const MethodOverrideSchema = z.object({
+  provider: z.string().optional(),
+  model: z.string().optional(),
+});
+
+export const MethodOverridesSchema = z.record(
+  z.enum(['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal']),
+  MethodOverrideSchema
+).optional();
+
 export const VerifyRequestSchema = z.object({
   content: z.string().min(1).max(100000),
   context: z.record(z.string(), z.unknown()).optional(),
   methods: MethodsConfigSchema,
   options: VerifyOptionsSchema,
+  methodOverrides: MethodOverridesSchema,
   idempotencyKey: z.string().max(255).optional(),
 });
 
@@ -68,11 +79,14 @@ export const VerifyRequestSchema = z.object({
 
 export type VerifyRequestInput = z.infer<typeof VerifyRequestSchema>;
 
+export type MethodOverrides = Record<string, { provider?: string; model?: string }>;
+
 export interface ValidatedVerifyRequest {
   content: string;
   context?: Record<string, unknown>;
   methods?: MethodsConfig; // Optional - can come from API key's paradigm config
   options?: VerifyOptions;
+  methodOverrides?: MethodOverrides;
   idempotencyKey?: string;
 }
 

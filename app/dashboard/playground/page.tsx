@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Play, Copy, Code, Info } from 'lucide-react';
+import { Play, Copy, Code, Info, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,6 +20,9 @@ import { VerdictIcon, getVerdictColor, type VerdictDisplay } from '@/components/
 import { truncateString } from '@/lib/api/formatters';
 import { getErrorMessage } from '@/lib/utils';
 import type { VerificationStatus, Decision } from '@/lib/api/types';
+import { MethodSettingsDialog, type MethodKey, type MethodOverride } from './method-settings-dialog';
+import { getProviderLabel } from '@/lib/llm/provider-ui-config';
+import type { LLMProvider } from '@/lib/llm/types';
 
 // =============================================================================
 // TYPES
@@ -28,6 +31,8 @@ import type { VerificationStatus, Decision } from '@/lib/api/types';
 interface MethodConfig {
   enabled: boolean;
   weight: number;
+  provider?: LLMProvider;
+  model?: string;
 }
 
 interface MethodsState {
@@ -155,6 +160,7 @@ export default function PlaygroundPage() {
   const [result, setResult] = useState<VerificationResponse | null>(null);
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [showCodeSnippet, setShowCodeSnippet] = useState(false);
+  const [settingsMethod, setSettingsMethod] = useState<keyof MethodsState | null>(null);
   const { copied, copy } = useCopyToClipboard();
 
   // Use real-time updates for in-progress verification
@@ -177,6 +183,25 @@ export default function PlaygroundPage() {
       ...prev,
       [method]: { ...prev[method], weight: value },
     }));
+  };
+
+  const handleMethodSettingsSave = (method: keyof MethodsState, override: MethodOverride) => {
+    setMethods((prev) => ({
+      ...prev,
+      [method]: { ...prev[method], provider: override.provider, model: override.model },
+    }));
+  };
+
+  const buildMethodOverrides = (): Record<string, { provider?: string; model?: string }> | undefined => {
+    const overrides: Record<string, { provider?: string; model?: string }> = {};
+    for (const [key, value] of Object.entries(methods)) {
+      if (value.enabled && (value.provider || value.model)) {
+        overrides[key] = {};
+        if (value.provider) overrides[key].provider = value.provider;
+        if (value.model) overrides[key].model = value.model;
+      }
+    }
+    return Object.keys(overrides).length > 0 ? overrides : undefined;
   };
 
   const buildMethodsConfig = (): Record<string, number> => {
@@ -215,6 +240,7 @@ export default function PlaygroundPage() {
   const generateCodeSnippet = (): string => {
     const methodsConfig = buildMethodsConfig();
     const optionsConfig = buildOptionsConfig();
+    const methodOverrides = buildMethodOverrides();
 
     const bodyObj: Record<string, unknown> = {
       content,
@@ -222,6 +248,9 @@ export default function PlaygroundPage() {
     };
     if (optionsConfig) {
       bodyObj.options = optionsConfig;
+    }
+    if (methodOverrides) {
+      bodyObj.methodOverrides = methodOverrides;
     }
 
     return `// Using fetch
@@ -253,6 +282,7 @@ console.log(result);`;
     }
 
     const optionsConfig = buildOptionsConfig();
+    const methodOverrides = buildMethodOverrides();
 
     setIsSubmitting(true);
     setError(null);
@@ -265,6 +295,9 @@ console.log(result);`;
       };
       if (optionsConfig) {
         body.options = optionsConfig;
+      }
+      if (methodOverrides) {
+        body.methodOverrides = methodOverrides;
       }
 
       const response = await fetch('/api/dashboard/verify', {
@@ -387,6 +420,24 @@ console.log(result);`;
                           </Tooltip>
                         </div>
                         <div className="flex items-center gap-2">
+                          {config.provider && (
+                            <Badge variant="default" className="text-[10px] px-1.5">
+                              {getProviderLabel(config.provider)}
+                              {config.model ? ` / ${config.model}` : ''}
+                            </Badge>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSettingsMethod(method);
+                            }}
+                            aria-label={`${info.name} settings`}
+                          >
+                            <Settings2 className="h-3.5 w-3.5 text-muted-foreground" />
+                          </Button>
                           <Badge variant="outline" className="text-xs">{info.fpr}</Badge>
                           <Badge variant="secondary" className="text-xs">{info.latency}</Badge>
                         </div>
@@ -686,6 +737,19 @@ console.log(result);`;
           )}
         </div>
       </div>
+
+      {/* Method Settings Dialog */}
+      {settingsMethod && (
+        <MethodSettingsDialog
+          open={!!settingsMethod}
+          onOpenChange={(open) => { if (!open) setSettingsMethod(null); }}
+          methodKey={settingsMethod as MethodKey}
+          methodName={METHOD_INFO[settingsMethod]?.name ?? settingsMethod}
+          provider={methods[settingsMethod].provider}
+          model={methods[settingsMethod].model}
+          onSave={(override) => handleMethodSettingsSave(settingsMethod, override)}
+        />
+      )}
     </div>
   );
 }
