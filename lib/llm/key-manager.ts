@@ -351,7 +351,7 @@ export class KeyManager {
           const client = new Anthropic({ apiKey });
           // Make a minimal request to validate the key
           await client.messages.create({
-            model: 'claude-3-haiku-20240307',
+            model: 'claude-haiku-4-5-20251015',
             max_tokens: 1,
             messages: [{ role: 'user', content: 'test' }],
           });

@@ -216,12 +216,12 @@ async function main() {
 
     const paradigmConfig = {
       semantic: { enabled: true, weight: 0.15, model: 'openai/text-embedding-3-small' },
-      reasoning: { enabled: true, weight: 0.25, model: 'anthropic/claude-3.5-sonnet' },
-      tool: { enabled: true, weight: 0.15, model: 'openai/gpt-4o' },
-      biprm: { enabled: true, weight: 0.15, model: 'anthropic/claude-3.5-sonnet' },
-      ensemble: { enabled: true, weight: 0.15, models: ['openai/gpt-4o', 'anthropic/claude-3.5-sonnet', 'google/gemini-pro-1.5'] },
-      entropy: { enabled: true, weight: 0.10, model: 'openai/gpt-4o-mini' },
-      formal: { enabled: true, weight: 0.05, model: 'openai/gpt-4o' },
+      reasoning: { enabled: true, weight: 0.25, model: 'anthropic/claude-sonnet-4.5' },
+      tool: { enabled: true, weight: 0.15, model: 'openai/gpt-4.1-mini' },
+      biprm: { enabled: true, weight: 0.15, model: 'anthropic/claude-sonnet-4.5' },
+      ensemble: { enabled: true, weight: 0.15, models: ['anthropic/claude-sonnet-4.5', 'openai/gpt-4.1', 'google/gemini-2.5-flash'] },
+      entropy: { enabled: true, weight: 0.10, model: 'openai/gpt-4.1-mini' },
+      formal: { enabled: true, weight: 0.05, model: 'openai/gpt-4.1' },
     };
 
     const [newKey] = await db
@@ -373,7 +373,7 @@ async function main() {
           paradigmType: paradigm as 'semantic' | 'reasoning' | 'tool' | 'biprm' | 'ensemble' | 'entropy' | 'formal',
           weight: weight.toFixed(2),
           provider: 'openrouter',
-          model: paradigm === 'semantic' ? 'openai/text-embedding-3-small' : 'anthropic/claude-3.5-sonnet',
+          model: paradigm === 'semantic' ? 'openai/text-embedding-3-small' : 'anthropic/claude-sonnet-4.5',
           verdict: verdictMap[sample.finalVerdict] || sample.finalVerdict,
           confidence: (parseFloat(sample.confidenceScore) + (Math.random() * 0.06 - 0.03)).toFixed(4),
           reasoning: sample.reasoning,

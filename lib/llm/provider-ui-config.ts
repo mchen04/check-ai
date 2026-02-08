@@ -1,13 +1,12 @@
 /**
  * Provider UI Configuration
  *
- * Single source of truth for provider UI metadata (labels, descriptions, colors).
+ * Single source of truth for provider UI metadata (labels, colors).
  * This extends the core config.ts with UI-specific data.
  *
  * Usage:
- * - Import PROVIDER_UI_CONFIG for full metadata
  * - Import PROVIDER_OPTIONS for select/dropdown options
- * - Import getProviderColor for badge/indicator colors
+ * - Import getProviderColor / getProviderLabel for badges/indicators
  */
 
 import { LLMProvider } from './types';
@@ -56,17 +55,17 @@ const PROVIDER_METADATA: Record<LLMProvider, Omit<ProviderUIConfig, 'id' | 'tier
   // Tier 1: First-party providers
   openai: {
     label: 'OpenAI',
-    description: 'GPT-4o, GPT-4o-mini',
+    description: 'GPT-4.1, O3, O4-mini',
     color: 'bg-emerald-600',
   },
   anthropic: {
     label: 'Anthropic',
-    description: 'Claude 3.5 Sonnet, Opus',
+    description: 'Claude Sonnet 4.5, Opus 4.6',
     color: 'bg-orange-500',
   },
   google: {
     label: 'Google AI',
-    description: 'Gemini 2.0',
+    description: 'Gemini 2.5 Pro, Flash',
     color: 'bg-blue-500',
   },
   xai: {
@@ -178,28 +177,6 @@ export const PROVIDER_OPTIONS: ProviderSelectOption[] = Object.values(PROVIDER_U
     description: p.description,
   }));
 
-/**
- * All provider options including enterprise providers
- */
-export const ALL_PROVIDER_OPTIONS: ProviderSelectOption[] = Object.values(PROVIDER_UI_CONFIG)
-  .sort((a, b) => {
-    if (a.recommended && !b.recommended) return -1;
-    if (!a.recommended && b.recommended) return 1;
-    if (a.tier !== b.tier) return a.tier - b.tier;
-    return a.label.localeCompare(b.label);
-  })
-  .map((p) => ({
-    value: p.id,
-    label: p.label,
-    description: p.description,
-  }));
-
-/**
- * Provider colors map for backward compatibility
- */
-export const PROVIDER_COLORS: Record<LLMProvider, string> = Object.fromEntries(
-  ALL_PROVIDERS.map((provider) => [provider, PROVIDER_METADATA[provider].color])
-) as Record<LLMProvider, string>;
 
 /**
  * Get provider color class
@@ -215,16 +192,3 @@ export function getProviderLabel(provider: LLMProvider): string {
   return PROVIDER_UI_CONFIG[provider]?.label ?? provider;
 }
 
-/**
- * Get provider description
- */
-export function getProviderDescription(provider: LLMProvider): string {
-  return PROVIDER_UI_CONFIG[provider]?.description ?? '';
-}
-
-/**
- * Check if provider is enterprise-only
- */
-export function isEnterpriseProvider(provider: LLMProvider): boolean {
-  return PROVIDER_UI_CONFIG[provider]?.enterprise ?? false;
-}

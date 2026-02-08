@@ -6,7 +6,6 @@
  * - Default models per provider
  * - Provider base URLs
  * - Model pricing
- * - LiteLLM prefixes
  * - Provider tiers
  */
 
@@ -110,34 +109,6 @@ export const PROVIDER_BASE_URLS: Partial<Record<LLMProvider, string>> = {
   perplexity: 'https://api.perplexity.ai',
   openrouter: 'https://openrouter.ai/api/v1',
   cohere: 'https://api.cohere.ai/v1', // Note: Cohere has its own SDK format
-};
-
-// =============================================================================
-// LITELLM MODEL PREFIXES
-// =============================================================================
-
-export const LITELLM_PREFIXES: Record<LLMProvider, string> = {
-  // Tier 1
-  openai: 'openai/',
-  anthropic: 'anthropic/',
-  google: 'gemini/',
-  xai: 'xai/',
-  mistral: 'mistral/',
-  cohere: 'cohere/',
-  deepseek: 'deepseek/',
-  // Tier 2
-  azure: 'azure/',
-  bedrock: 'bedrock/',
-  // Tier 3
-  groq: 'groq/',
-  together: 'together_ai/',
-  fireworks: 'fireworks_ai/',
-  cerebras: 'cerebras/',
-  perplexity: 'perplexity/',
-  // Tier 4
-  openrouter: 'openrouter/',
-  // Legacy
-  replicate: 'replicate/',
 };
 
 // =============================================================================
@@ -286,32 +257,6 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
 };
 
 // =============================================================================
-// ENVIRONMENT VARIABLE MAPPING
-// =============================================================================
-
-/**
- * Maps providers to their environment variable names
- */
-export const PROVIDER_ENV_VARS: Record<LLMProvider, string> = {
-  openai: 'OPENAI_API_KEY',
-  anthropic: 'ANTHROPIC_API_KEY',
-  google: 'GOOGLE_API_KEY',
-  xai: 'XAI_API_KEY',
-  mistral: 'MISTRAL_API_KEY',
-  cohere: 'COHERE_API_KEY',
-  deepseek: 'DEEPSEEK_API_KEY',
-  azure: 'AZURE_OPENAI_API_KEY',
-  bedrock: 'AWS_ACCESS_KEY_ID',
-  groq: 'GROQ_API_KEY',
-  together: 'TOGETHER_API_KEY',
-  fireworks: 'FIREWORKS_API_KEY',
-  cerebras: 'CEREBRAS_API_KEY',
-  perplexity: 'PERPLEXITY_API_KEY',
-  openrouter: 'OPENROUTER_API_KEY',
-  replicate: 'REPLICATE_API_KEY',
-};
-
-// =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
 
@@ -338,60 +283,10 @@ export function calculateCostCents(
 }
 
 /**
- * Get the LiteLLM model string for a provider and model
- */
-export function getLiteLLMModel(provider: LLMProvider, model: string): string {
-  const prefix = LITELLM_PREFIXES[provider];
-  if (!prefix) {
-    return model;
-  }
-  // Don't double-prefix if already prefixed
-  if (model.startsWith(prefix)) {
-    return model;
-  }
-  return `${prefix}${model}`;
-}
-
-/**
- * Extract provider from a LiteLLM model string
- */
-export function getProviderFromModel(litellmModel: string): LLMProvider {
-  for (const [provider, prefix] of Object.entries(LITELLM_PREFIXES)) {
-    if (litellmModel.startsWith(prefix)) {
-      return provider as LLMProvider;
-    }
-  }
-  return 'openai'; // Default
-}
-
-/**
  * Get default model for a provider
  */
 export function getDefaultModel(provider: LLMProvider): string {
   return DEFAULT_MODELS[provider];
-}
-
-/**
- * Check if a provider is in a specific tier
- */
-export function isProviderInTier(provider: LLMProvider, tier: 1 | 2 | 3 | 4): boolean {
-  return PROVIDER_TIERS[provider] === tier;
-}
-
-/**
- * Get the tier for a provider
- */
-export function getProviderTier(provider: LLMProvider): 1 | 2 | 3 | 4 {
-  return PROVIDER_TIERS[provider];
-}
-
-/**
- * Check if a provider uses OpenAI-compatible API
- */
-export function isOpenAICompatible(provider: LLMProvider): boolean {
-  // These providers don't use OpenAI-compatible APIs
-  const nonCompatible: LLMProvider[] = ['anthropic', 'cohere', 'azure', 'bedrock'];
-  return !nonCompatible.includes(provider);
 }
 
 // =============================================================================

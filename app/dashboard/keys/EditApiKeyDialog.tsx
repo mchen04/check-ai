@@ -146,7 +146,7 @@ export function EditApiKeyDialog({ apiKey, open, onOpenChange }: EditApiKeyDialo
       const existingConfig = key.paradigmConfig?.[paradigm];
       configs[paradigm] = {
         enabled: existingConfig?.enabled ?? false,
-        model: existingConfig?.model ?? DEFAULT_MODELS[paradigm] ?? 'anthropic/claude-3.5-sonnet',
+        model: existingConfig?.model ?? DEFAULT_MODELS[paradigm] ?? 'anthropic/claude-sonnet-4.5',
         weight: existingConfig?.weight ?? 1.0,
       };
     }

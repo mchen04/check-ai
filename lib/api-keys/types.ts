@@ -86,7 +86,7 @@ export interface ProviderCredential {
 export interface ParadigmConfig {
   enabled: boolean;
   weight: number; // 0-1
-  model: string; // e.g., "anthropic/claude-3.5-sonnet"
+  model: string; // e.g., "anthropic/claude-sonnet-4.5"
 }
 
 /**

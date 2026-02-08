@@ -13,13 +13,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { ButtonSpinner, Spinner } from '@/components/ui/loading-spinner';
 import { useVerificationStatus, useCopyToClipboard } from '@/hooks';
 import { markOnboardingStep } from '@/app/dashboard/actions';
@@ -148,15 +141,6 @@ const DEFAULT_OPTIONS: OptionsState = {
   retryOnLowConfidence: false,
 };
 
-const MODEL_OPTIONS = [
-  { value: 'auto', label: 'Auto (Recommended)', description: 'Automatically select best model' },
-  { value: 'gpt-4o', label: 'GPT-4o', description: 'OpenAI GPT-4o' },
-  { value: 'gpt-4o-mini', label: 'GPT-4o Mini', description: 'OpenAI GPT-4o Mini' },
-  { value: 'claude-3-5-sonnet', label: 'Claude 3.5 Sonnet', description: 'Anthropic Claude 3.5' },
-  { value: 'claude-3-5-haiku', label: 'Claude 3.5 Haiku', description: 'Anthropic Claude 3.5 Haiku' },
-  { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', description: 'Google Gemini 2.0' },
-];
-
 // =============================================================================
 // COMPONENT
 // =============================================================================
@@ -166,7 +150,6 @@ export default function PlaygroundPage() {
   const [content, setContent] = useState('');
   const [methods, setMethods] = useState<MethodsState>(DEFAULT_METHODS);
   const [options, setOptions] = useState<OptionsState>(DEFAULT_OPTIONS);
-  const [selectedModel, setSelectedModel] = useState('auto');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<VerificationResponse | null>(null);
@@ -369,18 +352,6 @@ console.log(result);`;
                   <CardTitle className="text-sm">Verification Methods</CardTitle>
                   <CardDescription className="text-xs">Select methods and weights</CardDescription>
                 </div>
-                <Select value={selectedModel} onValueChange={setSelectedModel}>
-                  <SelectTrigger className="w-[160px]">
-                    <SelectValue placeholder="Select model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MODEL_OPTIONS.map((model) => (
-                      <SelectItem key={model.value} value={model.value}>
-                        {model.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
             </CardHeader>
             <CardContent className="p-4 pt-0 space-y-3">

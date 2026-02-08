@@ -170,7 +170,7 @@ export default function CreateApiKeyDialog() {
     for (const paradigm of ALL_PARADIGMS) {
       configs[paradigm] = {
         enabled: paradigm === 'semantic', // Default to semantic enabled
-        model: DEFAULT_MODELS[paradigm] || 'anthropic/claude-3.5-sonnet',
+        model: DEFAULT_MODELS[paradigm] || 'anthropic/claude-sonnet-4.5',
         weight: 1.0, // Default equal weights
       };
     }

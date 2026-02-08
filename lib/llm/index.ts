@@ -44,12 +44,7 @@ export {
 export {
   type ProviderUIConfig,
   type ProviderSelectOption,
-  PROVIDER_UI_CONFIG,
   PROVIDER_OPTIONS,
-  ALL_PROVIDER_OPTIONS,
-  PROVIDER_COLORS,
   getProviderColor,
   getProviderLabel,
-  getProviderDescription,
-  isEnterpriseProvider,
 } from './provider-ui-config';

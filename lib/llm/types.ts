@@ -8,23 +8,15 @@
  */
 
 // Re-export configuration constants from centralized config
-// This provides backward compatibility for existing imports
 export {
   DEFAULT_MODELS,
   MODEL_PRICING,
   PROVIDER_BASE_URLS,
-  LITELLM_PREFIXES,
   PROVIDER_TIERS,
-  PROVIDER_ENV_VARS,
   ALL_PROVIDERS,
   calculateCostCents,
-  getLiteLLMModel,
-  getProviderFromModel,
   getDefaultModel,
   getProvidersByTier,
-  getProviderTier,
-  isProviderInTier,
-  isOpenAICompatible,
   getModelsForProvider,
   isModelCompatibleWithProvider,
   type ModelPricing,
@@ -189,6 +181,6 @@ export {
 export { type EmbeddingResult } from './providers/interfaces';
 
 // =============================================================================
-// NOTE: MODEL_PRICING, DEFAULT_MODELS, PROVIDER_BASE_URLS, LITELLM_PREFIXES,
-// and helper functions are now defined in ./config.ts and re-exported above.
+// NOTE: MODEL_PRICING, DEFAULT_MODELS, PROVIDER_BASE_URLS, and helper
+// functions are defined in ./config.ts and re-exported above.
 // =============================================================================

@@ -19,8 +19,8 @@ export interface DecryptedCredentialInfo {
 
 /**
  * Extract provider from model string
- * e.g., "anthropic/claude-3.5-sonnet" → "anthropic"
- * e.g., "openai/gpt-4o" → "openai"
+ * e.g., "anthropic/claude-sonnet-4.5" → "anthropic"
+ * e.g., "openai/gpt-4.1" → "openai"
  */
 export function extractProviderFromModel(model: string): string {
   const parts = model.split('/');
@@ -40,7 +40,7 @@ const UNIVERSAL_GATEWAYS = ['openrouter'] as const;
  * Find the right credential for a model
  * Checks for exact provider match first, then falls back to universal gateways
  *
- * @param model - Model string (e.g., "anthropic/claude-3.5-sonnet")
+ * @param model - Model string (e.g., "anthropic/claude-sonnet-4.5")
  * @param credentials - Available decrypted credentials
  * @returns Matching credential or null if none found
  */
