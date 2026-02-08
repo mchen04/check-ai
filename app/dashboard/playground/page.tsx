@@ -332,51 +332,9 @@ console.log(result);`;
         <p className="text-sm text-muted-foreground">Test verification methods interactively</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* Left Column - Input */}
-        <div className="space-y-4">
-          {/* Content Input */}
-          <Card>
-            <CardHeader className="py-3 px-4">
-              <CardTitle className="text-sm">Content to Verify</CardTitle>
-              <CardDescription className="text-xs">Enter claim or statement</CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-              <Textarea
-                placeholder="The Eiffel Tower is located in Paris, France and was completed in 1889..."
-                className="min-h-[100px] font-mono text-sm"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-              />
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">{content.length} characters</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowCodeSnippet(!showCodeSnippet)}
-                >
-                  <Code className="mr-2 h-4 w-4" />
-                  {showCodeSnippet ? 'Hide' : 'Show'} Code
-                </Button>
-              </div>
-
-              {showCodeSnippet && (
-                <div className="mt-4">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-sm font-medium">API Code Snippet</span>
-                    <Button variant="ghost" size="sm" onClick={handleCopyCode}>
-                      <Copy className="mr-2 h-4 w-4" />
-                      {copied ? 'Copied!' : 'Copy'}
-                    </Button>
-                  </div>
-                  <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs max-h-[150px]">
-                    {generateCodeSnippet()}
-                  </pre>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.5fr]">
+        {/* Left Column - Configuration */}
+        <div className="space-y-4 lg:sticky lg:top-6 lg:self-start">
           {/* Methods Configuration */}
           <Card>
             <CardHeader className="py-3 px-4">
@@ -590,8 +548,50 @@ console.log(result);`;
           </Button>
         </div>
 
-        {/* Right Column - Results */}
+        {/* Right Column - Input & Results */}
         <div className="space-y-4">
+          {/* Content Input */}
+          <Card>
+            <CardHeader className="py-3 px-4">
+              <CardTitle className="text-sm">Content to Verify</CardTitle>
+              <CardDescription className="text-xs">Enter claim or statement</CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <Textarea
+                placeholder="The Eiffel Tower is located in Paris, France and was completed in 1889..."
+                className="min-h-[100px] font-mono text-sm"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+              />
+              <div className="mt-2 flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">{content.length} characters</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCodeSnippet(!showCodeSnippet)}
+                >
+                  <Code className="mr-2 h-4 w-4" />
+                  {showCodeSnippet ? 'Hide' : 'Show'} Code
+                </Button>
+              </div>
+
+              {showCodeSnippet && (
+                <div className="mt-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-sm font-medium">API Code Snippet</span>
+                    <Button variant="ghost" size="sm" onClick={handleCopyCode}>
+                      <Copy className="mr-2 h-4 w-4" />
+                      {copied ? 'Copied!' : 'Copy'}
+                    </Button>
+                  </div>
+                  <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs max-h-[150px]">
+                    {generateCodeSnippet()}
+                  </pre>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Error Display */}
           {error && (
             <Card className="border-destructive/30 bg-destructive/5">
