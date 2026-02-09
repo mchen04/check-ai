@@ -589,25 +589,6 @@ console.log(result);`;
             )}
           </Card>
 
-          {/* Submit Button */}
-          <Button
-            className="w-full"
-            onClick={handleSubmit}
-            disabled={isSubmitting || !content.trim() || enabledMethodsCount === 0 || !weightsValid || !allConfigured}
-          >
-            {isSubmitting ? (
-              <>
-                <ButtonSpinner />
-                Verifying...
-              </>
-            ) : (
-              <>
-                <Play className="mr-2 h-4 w-4" />
-                Verify ({enabledMethodsCount} method
-                {enabledMethodsCount !== 1 ? 's' : ''})
-              </>
-            )}
-          </Button>
         </div>
 
         {/* Right Column - Input & Results */}
@@ -653,6 +634,26 @@ console.log(result);`;
               )}
             </CardContent>
           </Card>
+
+          {/* Submit Button */}
+          <Button
+            className="w-full"
+            onClick={handleSubmit}
+            disabled={isSubmitting || !content.trim() || enabledMethodsCount === 0 || !weightsValid || !allConfigured}
+          >
+            {isSubmitting ? (
+              <>
+                <ButtonSpinner />
+                Verifying...
+              </>
+            ) : (
+              <>
+                <Play className="mr-2 h-4 w-4" />
+                Verify ({enabledMethodsCount} method
+                {enabledMethodsCount !== 1 ? 's' : ''})
+              </>
+            )}
+          </Button>
 
           {/* Error Display */}
           {error && (
