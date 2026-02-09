@@ -6,7 +6,9 @@
 import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { withDashboardAuth, DashboardRequest } from '@/lib/api';
+import type { ApiKeyConfiguration } from '@/lib/api';
 import { verify, validateVerifyRequest, OrganizationContext } from '@/lib/verification';
+import { getApiKeyWithCredential } from '@/lib/api-keys/service';
 import { db } from '@/utils/db/db';
 import { organizationsTable } from '@/utils/db/schema';
 
@@ -24,6 +26,11 @@ async function handleVerify(req: DashboardRequest): Promise<NextResponse> {
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
+
+  // Extract apiKeyId before validation (not part of verify schema)
+  const apiKeyId = typeof rawBody === 'object' && rawBody !== null && 'apiKeyId' in rawBody
+    ? (rawBody as Record<string, unknown>).apiKeyId as string | undefined
+    : undefined;
 
   // Validate request
   const validation = validateVerifyRequest(rawBody);
@@ -60,11 +67,29 @@ async function handleVerify(req: DashboardRequest): Promise<NextResponse> {
     verificationRetentionDays: org.verificationRetentionDays,
   };
 
-  // Execute verification via service (no API key config - uses request methods directly)
+  // Resolve API key config if provided
+  let apiKeyConfig: ApiKeyConfiguration | undefined;
+  if (apiKeyId) {
+    const keyData = await getApiKeyWithCredential(context.orgId, apiKeyId);
+    if (!keyData) {
+      return NextResponse.json({ error: 'API key not found' }, { status: 404 });
+    }
+    if (!keyData.isActive) {
+      return NextResponse.json({ error: 'API key is inactive' }, { status: 400 });
+    }
+    apiKeyConfig = {
+      id: keyData.id,
+      name: keyData.name,
+      paradigmConfig: keyData.paradigmConfig,
+      defaultThresholds: keyData.defaultThresholds,
+    };
+  }
+
+  // Execute verification via service
   const result = await verify({
     organization: orgContext,
     request: validation.data,
-    // No apiKeyConfig - playground specifies methods directly in the request
+    apiKeyConfig,
   });
 
   // Handle service errors

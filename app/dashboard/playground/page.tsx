@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Play, Copy, Code, Info, Settings2, Check } from 'lucide-react';
+import { Play, Copy, Code, Info, Settings2, Check, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -62,6 +63,26 @@ interface ParadigmResult {
   reasoning?: string;
   processingTimeMs: number;
   error?: string;
+}
+
+interface ApiKeyCredentialInfo {
+  id: string;
+  providerCredentialId: string;
+  isDefault: boolean;
+  credential: {
+    id: string;
+    name: string;
+    provider: string;
+    isActive: boolean;
+  } | null;
+}
+
+interface ApiKeyInfo {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  credentials?: ApiKeyCredentialInfo[];
+  isActive: boolean;
 }
 
 interface VerificationResponse {
@@ -162,7 +183,8 @@ export default function PlaygroundPage() {
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [showCodeSnippet, setShowCodeSnippet] = useState(false);
   const [settingsMethod, setSettingsMethod] = useState<keyof MethodsState | null>(null);
-  const [userProviders, setUserProviders] = useState<LLMProvider[]>([]);
+  const [apiKeys, setApiKeys] = useState<ApiKeyInfo[]>([]);
+  const [selectedKeyId, setSelectedKeyId] = useState<string | null>(null);
   const { copied, copy } = useCopyToClipboard();
 
   // Use real-time updates for in-progress verification
@@ -173,18 +195,34 @@ export default function PlaygroundPage() {
     markOnboardingStep('hasVisitedPlayground');
   }, []);
 
-  // Fetch user's configured provider credentials
+  // Fetch API keys on mount
   useEffect(() => {
-    fetch('/api/dashboard/provider-credentials')
+    fetch('/api/dashboard/keys')
       .then((res) => res.ok ? res.json() : Promise.reject(res))
-      .then((data: { credentials: Array<{ provider: string; isActive: boolean; validationStatus: string }> }) => {
-        const active = data.credentials
-          .filter((c) => c.isActive && c.validationStatus !== 'invalid')
-          .map((c) => c.provider as LLMProvider);
-        setUserProviders([...new Set(active)]);
+      .then((data: { keys: ApiKeyInfo[] }) => {
+        const active = data.keys.filter((k) => k.isActive);
+        setApiKeys(active);
+        // Auto-select if only one key
+        if (active.length === 1) {
+          setSelectedKeyId(active[0].id);
+        }
       })
-      .catch(() => { /* credentials will remain empty — dialog shows helper text */ });
+      .catch(() => { /* keys will remain empty */ });
   }, []);
+
+  const selectedKey = useMemo(
+    () => apiKeys.find((k) => k.id === selectedKeyId) ?? null,
+    [apiKeys, selectedKeyId]
+  );
+
+  // Derive available providers from selected key's credentials
+  const userProviders = useMemo<LLMProvider[]>(() => {
+    if (!selectedKey?.credentials) return [];
+    const providers = selectedKey.credentials
+      .filter((c) => c.credential?.isActive)
+      .map((c) => c.credential!.provider as LLMProvider);
+    return [...new Set(providers)];
+  }, [selectedKey]);
 
   const handleMethodToggle = (method: keyof MethodsState) => {
     setMethods((prev) => ({
@@ -323,6 +361,9 @@ console.log(result);`;
         content,
         methods: methodsConfig,
       };
+      if (selectedKey) {
+        body.apiKeyId = selectedKey.id;
+      }
       if (optionsConfig) {
         body.options = optionsConfig;
       }
@@ -377,6 +418,39 @@ console.log(result);`;
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.5fr]">
         {/* Left Column - Configuration */}
         <div className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+          {/* API Key Selector */}
+          <Card>
+            <CardHeader className="py-3 px-4">
+              <CardTitle className="text-sm">API Key</CardTitle>
+              <CardDescription className="text-xs">Select key for provider credentials</CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              {apiKeys.length === 0 ? (
+                <div className="flex items-center gap-2 rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                  <Key className="h-4 w-4" />
+                  <span>No API keys found.{' '}
+                    <Button variant="link" className="h-auto p-0 text-xs" onClick={() => router.push('/dashboard/keys')}>
+                      Create one
+                    </Button>
+                  </span>
+                </div>
+              ) : (
+                <Select value={selectedKeyId ?? ''} onValueChange={setSelectedKeyId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an API key" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {apiKeys.map((key) => (
+                      <SelectItem key={key.id} value={key.id}>
+                        {key.name} ({key.keyPrefix}...)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Methods Configuration */}
           <Card>
             <CardHeader className="py-3 px-4">
@@ -678,7 +752,7 @@ console.log(result);`;
           <Button
             className="w-full"
             onClick={handleSubmit}
-            disabled={isSubmitting || !content.trim() || enabledMethodsCount === 0 || !weightsValid || !allConfigured}
+            disabled={isSubmitting || !content.trim() || enabledMethodsCount === 0 || !weightsValid || !allConfigured || !selectedKey}
           >
             {isSubmitting ? (
               <>
