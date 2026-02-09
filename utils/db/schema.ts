@@ -631,6 +631,7 @@ export const batchJobsTable = pgTable('batch_jobs', {
   // Configuration
   methodsConfig: jsonb('methods_config').notNull(), // Same as verification
   verifyOptions: jsonb('verify_options'), // Optional verification options (thresholds, retries)
+  methodOverrides: jsonb('method_overrides'), // Per-method provider/model overrides
   context: jsonb('context'), // Shared context for all items
 
   // Processing state

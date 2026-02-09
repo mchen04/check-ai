@@ -10,6 +10,7 @@ import { db } from "@/utils/db/db";
 import { batchJobsTable, batchItemsTable } from "@/utils/db/schema";
 import { createLogger } from "@/lib/logger";
 import type { VerifyOptions } from "@/lib/verification/types";
+import type { MethodOverrides } from "@/lib/verification/validator";
 import type { MethodsConfig } from "./types";
 
 const log = createLogger("Batch Trigger");
@@ -36,6 +37,7 @@ export interface BatchItemPayload {
   content: string;
   context: Record<string, unknown> | null;
   methodsConfig: MethodsConfig;
+  methodOverrides?: MethodOverrides;
   options?: VerifyOptions;
 }
 
@@ -63,7 +65,8 @@ export async function queueBatchItems(
   }>,
   orgId: string,
   methodsConfig: MethodsConfig,
-  options?: VerifyOptions
+  options?: VerifyOptions,
+  methodOverrides?: MethodOverrides
 ): Promise<{ queued: number; taskIds: string[] }> {
   if (!isTriggerConfigured()) {
     throw new Error("Trigger.dev not configured for batch processing");
@@ -86,6 +89,7 @@ export async function queueBatchItems(
         content: item.content,
         context: item.itemContext,
         methodsConfig,
+        methodOverrides,
         options,
       };
 

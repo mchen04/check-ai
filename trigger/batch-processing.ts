@@ -31,6 +31,7 @@ import {
   broadcastBatchComplete,
 } from "@/utils/supabase/realtime";
 import type { MethodsConfig } from "@/lib/batch/types";
+import type { MethodOverrides } from "@/lib/verification/validator";
 import type { VerifyOptions } from "@/lib/verification/types";
 
 // =============================================================================
@@ -45,6 +46,7 @@ export interface BatchItemPayload {
   content: string;
   context: Record<string, unknown> | null;
   methodsConfig: MethodsConfig;
+  methodOverrides?: MethodOverrides;
   options?: VerifyOptions;
 }
 
@@ -71,7 +73,7 @@ export const batchItemProcessingTask = task({
     randomize: false,
   },
   run: async (payload: BatchItemPayload, { ctx }) => {
-    const { batchId, itemId, itemIndex, orgId, content, context, methodsConfig, options } = payload;
+    const { batchId, itemId, itemIndex, orgId, content, context, methodsConfig, methodOverrides, options } = payload;
     const attemptNumber = ctx.attempt.number;
 
     logger.info("Processing batch item", {
@@ -111,6 +113,7 @@ export const batchItemProcessingTask = task({
       const result = await orchestrator.verify(content, {
         context: context || undefined,
         methods: methodsConfig,
+        methodOverrides,
         timeout: options?.timeout,
         minConfidence: options?.minConfidence,
         acceptThreshold: options?.acceptThreshold,

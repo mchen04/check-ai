@@ -5,6 +5,7 @@
 
 import { z } from 'zod';
 import { methodsConfigSchema, MethodsConfig, VerifyOptions, VerifyOptionsSchema } from '@/lib/verification';
+import { MethodOverridesSchema, type MethodOverrides } from '@/lib/verification/validator';
 import type { BatchStatus, BatchItemStatus } from '@/utils/db/schema';
 
 // Re-export MethodsConfig for consumers of this module
@@ -21,6 +22,7 @@ export interface BatchJob {
   inputFormat: 'json' | 'csv';
   originalFileName: string | null;
   methodsConfig: MethodsConfig;
+  methodOverrides: MethodOverrides | null;
   verifyOptions: VerifyOptions | null;
   context: Record<string, unknown> | null;
   status: BatchStatus;
@@ -100,6 +102,8 @@ export const createBatchSchema = z.object({
   fileId: z.uuid().optional(),
   methods: methodsConfigSchema,
   options: VerifyOptionsSchema,
+  methodOverrides: MethodOverridesSchema,
+  apiKeyId: z.string().uuid().optional(),
   context: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -189,6 +193,7 @@ export interface BatchItemQueuePayload {
   content: string;
   context: Record<string, unknown> | null;
   methodsConfig: MethodsConfig;
+  methodOverrides?: MethodOverrides;
 }
 
 /**

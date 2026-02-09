@@ -99,6 +99,7 @@ export async function createBatch(
       name: request.name || null,
       inputFormat: 'json',
       methodsConfig: request.methods,
+      methodOverrides: request.methodOverrides || null,
       verifyOptions: request.options || null,
       context: request.context || null,
       status: 'pending',
@@ -131,7 +132,8 @@ export async function createBatch(
       })),
       orgId,
       request.methods as MethodsConfig,
-      request.options
+      request.options,
+      request.methodOverrides
     );
 
     await createAuditLog({
