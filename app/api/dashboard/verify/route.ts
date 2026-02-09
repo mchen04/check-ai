@@ -32,6 +32,11 @@ async function handleVerify(req: DashboardRequest): Promise<NextResponse> {
     ? (rawBody as Record<string, unknown>).apiKeyId as string | undefined
     : undefined;
 
+  // Strip apiKeyId from body before validation (Zod v4 rejects unknown keys)
+  if (typeof rawBody === 'object' && rawBody !== null && 'apiKeyId' in rawBody) {
+    delete (rawBody as Record<string, unknown>).apiKeyId;
+  }
+
   // Validate request
   const validation = validateVerifyRequest(rawBody);
   if (!validation.success) {

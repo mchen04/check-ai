@@ -325,7 +325,7 @@ export default function PlaygroundPage() {
 const response = await fetch('https://api.check.ai/v1/verify', {
   method: 'POST',
   headers: {
-    'Authorization': 'Bearer YOUR_API_KEY',
+    'Authorization': 'Bearer ${selectedKey ? `${selectedKey.keyPrefix}..._your_key` : 'YOUR_API_KEY'}',
     'Content-Type': 'application/json',
   },
   body: JSON.stringify(${JSON.stringify(bodyObj, null, 4).replace(/\n/g, '\n  ')}),
@@ -381,7 +381,11 @@ console.log(result);`;
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Verification failed');
+        const details = errorData.details;
+        const detailStr = Array.isArray(details)
+          ? ': ' + details.map((d: { field: string; message: string }) => `${d.field} — ${d.message}`).join(', ')
+          : '';
+        throw new Error((errorData.error || 'Verification failed') + detailStr);
       }
 
       const data = await response.json();

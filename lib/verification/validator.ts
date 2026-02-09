@@ -60,10 +60,15 @@ const MethodOverrideSchema = z.object({
   members: z.array(z.object({ provider: z.string(), model: z.string() })).optional(),
 });
 
-export const MethodOverridesSchema = z.record(
-  z.enum(['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal']),
-  MethodOverrideSchema
-).optional();
+export const MethodOverridesSchema = z.object({
+  semantic: MethodOverrideSchema.optional(),
+  reasoning: MethodOverrideSchema.optional(),
+  tool: MethodOverrideSchema.optional(),
+  biprm: MethodOverrideSchema.optional(),
+  ensemble: MethodOverrideSchema.optional(),
+  entropy: MethodOverrideSchema.optional(),
+  formal: MethodOverrideSchema.optional(),
+}).optional();
 
 export const VerifyRequestSchema = z.object({
   content: z.string().min(1).max(100000),
