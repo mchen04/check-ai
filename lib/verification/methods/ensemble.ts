@@ -112,7 +112,10 @@ export class EnsembleParadigm implements ParadigmExecutor {
     const startTime = Date.now();
 
     try {
-      const ensemble = this.selectEnsemble();
+      // Use user-provided ensemble members if available (2+), otherwise auto-select
+      const ensemble = options.ensembleMembers && options.ensembleMembers.length >= 2
+        ? options.ensembleMembers.map((m) => ({ provider: m.provider, model: m.model, weight: 1.0 }))
+        : this.selectEnsemble();
 
       if (ensemble.length < 2) {
         throw new Error('Ensemble requires at least 2 models');

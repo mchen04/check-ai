@@ -43,7 +43,7 @@ interface OrchestratorConfig {
 interface OrchestratorVerifyOptions {
   context?: Record<string, unknown>;
   methods: MethodsConfig;
-  methodOverrides?: Record<string, { provider?: string; model?: string }>;
+  methodOverrides?: Record<string, { provider?: string; model?: string; members?: Array<{ provider: string; model: string }> }>;
   idempotencyKey?: string;
   timeout?: number;
   // User-configurable options from VerifyOptionsType
@@ -202,9 +202,9 @@ export class VerificationOrchestrator {
    */
   protected parseMethodsConfig(
     config: MethodsConfig,
-    overrides?: Record<string, { provider?: string; model?: string }>
-  ): Array<{ paradigm: ParadigmType; weight: number; provider?: string; model?: string }> {
-    const methods: Array<{ paradigm: ParadigmType; weight: number; provider?: string; model?: string }> = [];
+    overrides?: Record<string, { provider?: string; model?: string; members?: Array<{ provider: string; model: string }> }>
+  ): Array<{ paradigm: ParadigmType; weight: number; provider?: string; model?: string; members?: Array<{ provider: string; model: string }> }> {
+    const methods: Array<{ paradigm: ParadigmType; weight: number; provider?: string; model?: string; members?: Array<{ provider: string; model: string }> }> = [];
 
     const paradigmTypes: ParadigmType[] = [
       'semantic',
@@ -225,6 +225,7 @@ export class VerificationOrchestrator {
           weight,
           provider: override?.provider,
           model: override?.model,
+          members: override?.members,
         });
       }
     }
@@ -243,7 +244,8 @@ export class VerificationOrchestrator {
     timeout: number,
     maxRetries: number,
     provider?: string,
-    model?: string
+    model?: string,
+    members?: Array<{ provider: string; model: string }>
   ): Promise<ParadigmResult> {
     let lastError: unknown = null;
     let attempts = 0;
@@ -256,6 +258,10 @@ export class VerificationOrchestrator {
           timeout,
           provider: provider as import('@/lib/llm/types').LLMProvider | undefined,
           model,
+          ensembleMembers: members?.map((m) => ({
+            provider: m.provider as import('@/lib/llm/types').LLMProvider,
+            model: m.model,
+          })),
         });
 
         // Success - return result
@@ -290,7 +296,7 @@ export class VerificationOrchestrator {
   protected async executeParadigms(
     content: string,
     context: Record<string, unknown>,
-    methods: Array<{ paradigm: ParadigmType; weight: number; provider?: string; model?: string }>,
+    methods: Array<{ paradigm: ParadigmType; weight: number; provider?: string; model?: string; members?: Array<{ provider: string; model: string }> }>,
     timeout: number,
     maxRetries: number = 0
   ): Promise<ParadigmResult[]> {
@@ -300,8 +306,8 @@ export class VerificationOrchestrator {
     for (let i = 0; i < methods.length; i += this.maxParallelMethods) {
       const batch = methods.slice(i, i + this.maxParallelMethods);
 
-      const batchPromises = batch.map(({ paradigm, weight, provider, model }) =>
-        this.executeParadigmWithRetry(content, context, paradigm, weight, timeout, maxRetries, provider, model)
+      const batchPromises = batch.map(({ paradigm, weight, provider, model, members }) =>
+        this.executeParadigmWithRetry(content, context, paradigm, weight, timeout, maxRetries, provider, model, members)
       );
 
       const batchResults = await Promise.all(batchPromises);
@@ -454,7 +460,8 @@ export class StreamingVerificationOrchestrator extends VerificationOrchestrator 
     timeout: number,
     maxRetries: number,
     provider?: string,
-    model?: string
+    model?: string,
+    members?: Array<{ provider: string; model: string }>
   ): Promise<ParadigmResult> {
     // Emit paradigm_started event
     if (this.currentVerificationId) {
@@ -475,7 +482,8 @@ export class StreamingVerificationOrchestrator extends VerificationOrchestrator 
       timeout,
       maxRetries,
       provider,
-      model
+      model,
+      members
     );
 
     this.completedMethods++;
@@ -506,7 +514,7 @@ export class StreamingVerificationOrchestrator extends VerificationOrchestrator 
   protected async executeParadigms(
     content: string,
     context: Record<string, unknown>,
-    methods: Array<{ paradigm: ParadigmType; weight: number; provider?: string; model?: string }>,
+    methods: Array<{ paradigm: ParadigmType; weight: number; provider?: string; model?: string; members?: Array<{ provider: string; model: string }> }>,
     timeout: number,
     maxRetries: number = 0
   ): Promise<ParadigmResult[]> {
@@ -517,7 +525,7 @@ export class StreamingVerificationOrchestrator extends VerificationOrchestrator 
     for (let i = 0; i < methods.length; i += this.maxParallelMethods) {
       const batch = methods.slice(i, i + this.maxParallelMethods);
 
-      const batchPromises = batch.map(({ paradigm, weight, provider, model }) =>
+      const batchPromises = batch.map(({ paradigm, weight, provider, model, members }) =>
         this.executeParadigmWithRetryAndUpdates(
           content,
           context,
@@ -526,7 +534,8 @@ export class StreamingVerificationOrchestrator extends VerificationOrchestrator 
           timeout,
           maxRetries,
           provider,
-          model
+          model,
+          members
         )
       );
 

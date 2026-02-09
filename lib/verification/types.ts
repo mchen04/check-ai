@@ -179,6 +179,7 @@ export interface ParadigmOptions {
   provider?: LLMProvider;
   model?: string;
   timeout?: number;
+  ensembleMembers?: Array<{ provider: LLMProvider; model: string }>;
 }
 
 // =============================================================================

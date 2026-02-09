@@ -20,7 +20,7 @@ import { VerdictIcon, getVerdictColor, type VerdictDisplay } from '@/components/
 import { truncateString } from '@/lib/api/formatters';
 import { getErrorMessage } from '@/lib/utils';
 import type { VerificationStatus, Decision } from '@/lib/api/types';
-import { MethodSettingsDialog, type MethodKey, type MethodOverride } from './method-settings-dialog';
+import { MethodSettingsDialog, type MethodKey, type MethodOverride, type EnsembleMemberConfig } from './method-settings-dialog';
 import { getProviderLabel } from '@/lib/llm/provider-ui-config';
 import type { LLMProvider } from '@/lib/llm/types';
 
@@ -33,6 +33,7 @@ interface MethodConfig {
   weight: number;
   provider?: LLMProvider;
   model?: string;
+  members?: EnsembleMemberConfig[];
 }
 
 interface MethodsState {
@@ -200,16 +201,31 @@ export default function PlaygroundPage() {
   };
 
   const handleMethodSettingsSave = (method: keyof MethodsState, override: MethodOverride) => {
-    setMethods((prev) => ({
-      ...prev,
-      [method]: { ...prev[method], provider: override.provider, model: override.model },
-    }));
+    if (method === 'ensemble' && override.members) {
+      // Ensemble uses members array instead of single provider/model
+      setMethods((prev) => ({
+        ...prev,
+        ensemble: { ...prev.ensemble, members: override.members },
+      }));
+    } else {
+      setMethods((prev) => ({
+        ...prev,
+        [method]: { ...prev[method], provider: override.provider, model: override.model },
+      }));
+    }
   };
 
-  const buildMethodOverrides = (): Record<string, { provider?: string; model?: string }> | undefined => {
-    const overrides: Record<string, { provider?: string; model?: string }> = {};
+  const buildMethodOverrides = (): Record<string, { provider?: string; model?: string; members?: Array<{ provider: string; model: string }> }> | undefined => {
+    const overrides: Record<string, { provider?: string; model?: string; members?: Array<{ provider: string; model: string }> }> = {};
     for (const [key, value] of Object.entries(methods)) {
-      if (value.enabled && (value.provider || value.model)) {
+      if (!value.enabled) continue;
+      if (key === 'ensemble' && value.members) {
+        // Ensemble: emit configured members (only those with both provider and model)
+        const configured = value.members.filter((m: EnsembleMemberConfig) => m.provider && m.model);
+        if (configured.length >= 2) {
+          overrides[key] = { members: configured };
+        }
+      } else if (value.provider || value.model) {
         overrides[key] = {};
         if (value.provider) overrides[key].provider = value.provider;
         if (value.model) overrides[key].model = value.model;
@@ -341,7 +357,14 @@ console.log(result);`;
   const enabledMethodsCount = enabledEntries.length;
   const weightSum = Math.round(enabledEntries.reduce((s, [, m]) => s + m.weight, 0) * 100) / 100;
   const weightsValid = Math.abs(weightSum - 1) < 0.001;
-  const unconfiguredMethods = enabledEntries.filter(([, m]) => !m.provider).map(([k]) => METHOD_INFO[k].name);
+  const unconfiguredMethods = enabledEntries.filter(([k, m]) => {
+    if (k === 'ensemble') {
+      // Ensemble needs at least 2 fully configured members
+      const configured = (m.members ?? []).filter((mem) => mem.provider && mem.model);
+      return configured.length < 2;
+    }
+    return !m.provider;
+  }).map(([k]) => METHOD_INFO[k].name);
   const allConfigured = unconfiguredMethods.length === 0;
 
   return (
@@ -410,7 +433,10 @@ console.log(result);`;
                                 aria-label={`${info.name} settings`}
                               >
                                 <Settings2 className="h-3.5 w-3.5 text-muted-foreground" />
-                                {config.provider ? (
+                                {(method === 'ensemble'
+                                  ? (config.members ?? []).filter((m) => m.provider && m.model).length >= 2
+                                  : !!config.provider
+                                ) ? (
                                   <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-primary">
                                     <Check className="h-2 w-2 text-primary-foreground" />
                                   </span>
@@ -420,7 +446,20 @@ console.log(result);`;
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              {config.provider ? (
+                              {method === 'ensemble' ? (
+                                (() => {
+                                  const configured = (config.members ?? []).filter((m) => m.provider && m.model);
+                                  return configured.length >= 2 ? (
+                                    <div className="text-xs space-y-0.5">
+                                      {configured.map((m, i) => (
+                                        <p key={i}>{getProviderLabel(m.provider)} / {m.model}</p>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs">No models configured</p>
+                                  );
+                                })()
+                              ) : config.provider ? (
                                 <p className="text-xs">
                                   {getProviderLabel(config.provider)}
                                   {config.model ? ` / ${config.model}` : ''}
@@ -810,6 +849,7 @@ console.log(result);`;
           methodName={METHOD_INFO[settingsMethod]?.name ?? settingsMethod}
           provider={methods[settingsMethod].provider}
           model={methods[settingsMethod].model}
+          members={methods[settingsMethod].members}
           onSave={(override) => handleMethodSettingsSave(settingsMethod, override)}
           userProviders={userProviders}
         />

@@ -57,6 +57,7 @@ export const VerifyOptionsSchema = z
 const MethodOverrideSchema = z.object({
   provider: z.string().optional(),
   model: z.string().optional(),
+  members: z.array(z.object({ provider: z.string(), model: z.string() })).optional(),
 });
 
 export const MethodOverridesSchema = z.record(
@@ -79,7 +80,7 @@ export const VerifyRequestSchema = z.object({
 
 export type VerifyRequestInput = z.infer<typeof VerifyRequestSchema>;
 
-export type MethodOverrides = Record<string, { provider?: string; model?: string }>;
+export type MethodOverrides = Record<string, { provider?: string; model?: string; members?: Array<{ provider: string; model: string }> }>;
 
 export interface ValidatedVerifyRequest {
   content: string;

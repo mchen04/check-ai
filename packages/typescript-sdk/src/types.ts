@@ -90,6 +90,8 @@ export type MethodOverride = number | {
   weight: number;
   /** Override model for this request */
   model?: string;
+  /** Ensemble members - specify 2+ provider/model pairs for multi-model consensus */
+  members?: Array<{ provider: string; model: string }>;
 };
 
 /**
