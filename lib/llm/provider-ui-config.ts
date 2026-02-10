@@ -55,7 +55,7 @@ const PROVIDER_METADATA: Record<LLMProvider, Omit<ProviderUIConfig, 'id' | 'tier
   // Tier 1: First-party providers
   openai: {
     label: 'OpenAI',
-    description: 'GPT-4.1, O3, O4-mini',
+    description: 'GPT-4.1, GPT-4o, O3, O4-mini',
     color: 'bg-emerald-600',
   },
   anthropic: {
@@ -65,27 +65,27 @@ const PROVIDER_METADATA: Record<LLMProvider, Omit<ProviderUIConfig, 'id' | 'tier
   },
   google: {
     label: 'Google AI',
-    description: 'Gemini 2.5 Pro, Flash',
+    description: 'Gemini 2.5 Pro/Flash, 2.0, 1.5',
     color: 'bg-blue-500',
   },
   xai: {
     label: 'xAI',
-    description: 'Grok models',
+    description: 'Grok 4, Grok 3',
     color: 'bg-stone-600',
   },
   mistral: {
     label: 'Mistral',
-    description: 'Mistral models',
+    description: 'Large, Medium, Small, Codestral',
     color: 'bg-amber-500',
   },
   cohere: {
     label: 'Cohere',
-    description: 'Command models',
+    description: 'Command R+, R, R7B',
     color: 'bg-pink-500',
   },
   deepseek: {
     label: 'DeepSeek',
-    description: 'DeepSeek models',
+    description: 'DeepSeek Chat, V3, Reasoner',
     color: 'bg-cyan-600',
   },
 

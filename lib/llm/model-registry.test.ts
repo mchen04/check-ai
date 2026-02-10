@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { ModelRegistry } from './model-registry';
 import type { ModelCapability, ModelQuery } from './model-registry';
+import { MODEL_PRICING } from './config';
 
 describe('ModelRegistry', () => {
   const registry = ModelRegistry.getInstance();
@@ -186,6 +187,36 @@ describe('ModelRegistry', () => {
     it('should use provided provider', () => {
       const info = registry.inferModelInfo('my-model', 'google');
       expect(info.provider).toBe('google');
+    });
+  });
+
+  describe('pricing-registry parity', () => {
+    // Deprecated/preview models intentionally excluded from the registry
+    const EXCLUDED_MODELS = new Set([
+      'gpt-5.2',
+      'gpt-5-mini',
+      'gpt-4-turbo',
+      'text-embedding-ada-002',
+      'gemini-3-pro',
+      'gemini-3-flash',
+      'grok-2',
+      'deepseek-coder',
+      'claude-opus-4-1-20250805',
+      'claude-sonnet-4-20250522',
+      'claude-3-5-sonnet-20241022',
+      'claude-3-5-haiku-20241022',
+      'claude-3-haiku-20240307',
+    ]);
+
+    it('every MODEL_PRICING key should have a MODEL_ENTRIES entry (or be explicitly excluded)', () => {
+      const missing: string[] = [];
+      for (const modelId of Object.keys(MODEL_PRICING)) {
+        if (EXCLUDED_MODELS.has(modelId)) continue;
+        if (!registry.getModel(modelId)) {
+          missing.push(modelId);
+        }
+      }
+      expect(missing, `Models with pricing but no registry entry: ${missing.join(', ')}`).toEqual([]);
     });
   });
 });

@@ -24,6 +24,13 @@ export abstract class OpenAICompatibleProvider extends BaseLLMProvider {
   protected abstract getApiKey(): string | undefined;
 
   /**
+   * Override to pass extra options to the OpenAI client (e.g., custom headers).
+   */
+  protected getExtraClientOptions(): Record<string, unknown> {
+    return {};
+  }
+
+  /**
    * Get the base URL for this provider
    */
   protected getBaseUrl(): string {
@@ -60,6 +67,7 @@ export abstract class OpenAICompatibleProvider extends BaseLLMProvider {
       const client = new OpenAI({
         apiKey,
         baseURL: this.getBaseUrl(),
+        ...this.getExtraClientOptions(),
       });
 
       const response = await client.embeddings.create({
@@ -108,6 +116,7 @@ export abstract class OpenAICompatibleProvider extends BaseLLMProvider {
     const client = new OpenAI({
       apiKey,
       baseURL: this.getBaseUrl(),
+      ...this.getExtraClientOptions(),
     });
 
     try {

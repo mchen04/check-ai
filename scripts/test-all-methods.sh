@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # Test 4 production verification methods + multi-paradigm weighted combo
 # Usage: bash scripts/test-all-methods.sh [BASE_URL] [API_KEY]
-#
-# Defaults to localhost:3001 with the dev API key.
 # Requires: curl, python3 (for JSON formatting)
 
 set -euo pipefail
