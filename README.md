@@ -1,95 +1,80 @@
-# Check - The Stripe for LLM Verification
+# Check
 
-<p align="center">
-  <strong>Detect hallucinations, verify claims, and ensure accuracy of AI-generated content at scale.</strong>
-</p>
+**The Stripe for LLM Verification**
 
-<p align="center">
-  <a href="#features">Features</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#verification-methods">Verification Methods</a> •
-  <a href="#sdks">SDKs</a> •
-  <a href="#documentation">Documentation</a>
-</p>
-
----
-
-## Overview
-
-Check is a production-grade SaaS platform for verifying the truthfulness and accuracy of Large Language Model (LLM) outputs. It's a developer-first solution that helps organizations detect hallucinations, false claims, and AI-generated inaccuracies through multiple verification paradigms.
+Check is an AI-powered verification API that detects hallucinations, verifies claims, and ensures accuracy of LLM-generated content at scale. A developer-first platform with SDKs, webhooks, batch processing, and a multi-paradigm verification engine.
 
 ## Features
 
-### Multi-Paradigm Verification
+- **7 Verification Paradigms** — from fast semantic checks to formal mathematical proofs
+- **7 LLM Providers** — OpenAI, Anthropic, Google, Mistral, Azure, Bedrock, OpenRouter
+- **Bring Your Own Key (BYOK)** — use your own API keys for cost control and compliance
+- **Batch Processing** — CSV/JSON upload for bulk verification with progress tracking
+- **SDKs** — TypeScript (`@check/sdk`) and Python (`check`) with LangChain/LlamaIndex integrations
+- **Webhooks** — real-time notifications for verification completion and escalation events
+- **RBAC** — team management with Owner, Admin, Member, and Viewer roles
 
-Seven distinct verification methods work together to determine truth:
+## Verification Methods
 
-| Method | FPR | Description |
-|--------|-----|-------------|
-| **Semantic** | ~20-30% | Boltzmann energy embedding analysis |
-| **Reasoning** | ~4-5% | Adaptive self-refinement verification |
-| **Tool** | ~1% | CLoVE contrastive web verification |
-| **BIPRM** | ~5-7% | Parallel bidirectional step-level scoring |
-| **Ensemble** | ~15-20% | Meta-judge adjudicated consensus |
-| **Entropy** | ~8-10% | Dual-path semantic entropy |
-| **Formal** | 0%* | Autoformalized mathematical verification |
+Each method has a different False Positive Rate (FPR) — the probability of incorrectly verifying a false claim as true. Lower is better.
 
-### Enterprise-Grade
+| Method | FPR | Weight | Description |
+|--------|-----|--------|-------------|
+| **Formal** | 0% | 1.00 | mathjs autoformalization for arithmetic, algebraic, comparison, statistical, and unit conversion claims |
+| **Tool** | ~1% | 0.99 | CLoVE contrastive web verification with per-source independence |
+| **Reasoning** | ~4-5% | 0.95 | Adaptive self-refinement with conditional self-critique (TTT) |
+| **BiPRM** | ~5-7% | 0.93 | Parallel bidirectional (L2R/R2L) step-level scoring |
+| **Entropy** | ~8-10% | 0.90 | Dual-path: logprobs fast path + behavioral semantic clustering |
+| **Ensemble** | ~15-20% | 0.80 | Meta-judge adjudicated multi-model consensus |
+| **Semantic** | ~20-30% | 0.70 | Boltzmann energy embedding analysis with batch cached references |
 
-- **RBAC** - Role-based access control (Owner, Admin, Member, Viewer)
-- **Audit Logs** - Immutable activity trail for compliance
-- **Webhooks** - Real-time event notifications with retry logic
-- **Team Management** - Invite members, assign roles, manage permissions
+Results are aggregated using FPR-weighted voting to produce a final verdict and confidence score.
 
-### Developer-Friendly
+## Decision Framework
 
-- **SDKs** - TypeScript, Python, LangChain, LlamaIndex
-- **Streaming APIs** - Real-time verification results
-- **Batch Processing** - CSV/JSON upload for bulk verification
-- **Comprehensive Docs** - API reference, guides, and examples
-
-### Flexible & Cost-Effective
-
-- **BYOK** - Bring Your Own Key for LLM providers
-- **16+ Providers** - OpenAI, Anthropic, Google, DeepSeek, Groq, and more
-- **Usage Tracking** - Detailed cost breakdown per verification
+| Confidence | Decision | Condition |
+|---|---|---|
+| >= 0.95 | **Accept** | High confidence |
+| 0.70 - 0.95 | **Refine** | Moderate confidence |
+| < 0.70 | **Escalate** | Low confidence + paradigm disagreement |
+| < 0.70 | **Reject** | Low confidence + paradigm agreement |
 
 ## Quick Start
 
-### Installation
+### TypeScript
 
 ```bash
-# TypeScript/Node.js
 npm install @check/sdk
-
-# Python
-pip install check
 ```
-
-### Basic Usage
 
 ```typescript
 import { Check } from '@check/sdk';
 
-const client = new Check({ apiKey: 'vfy_...' });
+const client = new Check({ apiKey: 'vfy_your_api_key' });
 
 const result = await client.verifyAndWait({
-  content: 'The speed of light is approximately 299,792 km/s.',
+  content: 'The Eiffel Tower was built in 1889.',
   methods: { reasoning: 1.0, tool: 0.5 }
 });
 
-console.log(result.verdict);     // 'true'
-console.log(result.confidence);  // 0.95
-console.log(result.decision);    // 'accept'
+console.log(result.verdict);    // 'true'
+console.log(result.confidence); // 0.95
+console.log(result.decision);   // 'accept'
+```
+
+### Python
+
+```bash
+pip install check
 ```
 
 ```python
 from check import Check
 
-client = Check(api_key="vfy_...")
+client = Check(api_key="vfy_your_api_key")
 
 result = client.verify_and_wait(
-    content="The speed of light is approximately 299,792 km/s.",
+    content="The Eiffel Tower was built in 1889.",
     methods={"reasoning": 1.0, "tool": 0.5}
 )
 
@@ -98,231 +83,41 @@ print(result.confidence)  # 0.95
 print(result.decision)    # 'accept'
 ```
 
-### REST API
-
-```bash
-curl -X POST https://api.check.ai/v1/verify \
-  -H "Authorization: Bearer vfy_your_api_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content": "The speed of light is approximately 299,792 km/s.",
-    "methods": { "reasoning": 1.0, "tool": 0.5 }
-  }'
-```
-
-## Verification Methods
-
-Choose methods based on your accuracy/speed requirements:
-
-### Fast Verification (Chatbots, Real-time)
-
-```typescript
-const result = await client.verifyAndWait({
-  content: 'Your claim here',
-  methods: { reasoning: 1.0 }
-});
-```
-
-### High-Accuracy Verification (Important Content)
-
-```typescript
-const result = await client.verifyAndWait({
-  content: 'Your claim here',
-  methods: {
-    reasoning: 1.0,
-    tool: 1.0,
-    ensemble: 0.5
-  }
-});
-```
-
-### Mathematical Claims
-
-```typescript
-const result = await client.verifyAndWait({
-  content: '2 + 2 = 4',
-  methods: { formal: 1.0 }
-});
-```
-
-> **Note on Formal Verification:** The formal method verifies simple arithmetic operations (e.g., `2 + 2 = 4`) with mathematical certainty (0% FPR). For more complex mathematical and logical claims, it uses LLM-based reasoning (~5-7% FPR). Full theorem prover integration (Lean, Coq, Z3) is on the roadmap.
-
-## SDKs
-
-| Package | Description | Install |
-|---------|-------------|---------|
-| `@check/sdk` | TypeScript/Node.js SDK | `npm install @check/sdk` |
-| `check` | Python SDK | `pip install check` |
-| `@check/langchain` | LangChain TypeScript integration | `npm install @check/langchain` |
-| `check-langchain` | LangChain Python integration | `pip install check-langchain` |
-| `@check/llamaindex` | LlamaIndex integration | `npm install @check/llamaindex` |
-
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 14, React 18, TypeScript, Tailwind CSS, shadcn/ui |
-| Backend | Next.js API Routes, Drizzle ORM |
-| Database | PostgreSQL |
-| Auth | Supabase Auth (OAuth + Email/Password) |
-| Real-time | Supabase Realtime (WebSockets) |
-| Payments | Stripe (subscriptions, webhooks, customer portal) |
-| Caching/Rate Limiting | Upstash Redis |
-| Async Jobs | Trigger.dev |
-| Email | Resend |
-| LLM Providers | OpenAI, Anthropic, Google, DeepSeek, Mistral, Cohere, X.ai, Azure, AWS Bedrock, Groq, Together, Fireworks, Cerebras, Perplexity, OpenRouter |
-
-## Project Structure
-
-```
-/
-├── app/                      # Next.js App Router
-│   ├── api/                  # API routes
-│   │   ├── v1/               # Public API (verify, batch)
-│   │   ├── dashboard/        # Dashboard APIs
-│   │   ├── webhooks/         # Webhook endpoints
-│   │   └── cron/             # Scheduled jobs
-│   ├── dashboard/            # Dashboard pages
-│   ├── auth/                 # Authentication pages
-│   └── (marketing)/          # Landing, pricing, legal
-├── lib/                      # Core business logic
-│   ├── verification/         # 7 verification paradigms
-│   ├── llm/                  # Multi-provider LLM client
-│   ├── consensus/            # FPR-weighted voting
-│   └── ...
-├── packages/                 # SDK packages
-│   ├── typescript-sdk/
-│   ├── python-sdk/
-│   ├── langchain-ts/
-│   ├── langchain-python/
-│   └── llamaindex/
-└── docs/                     # Documentation
-```
-
-## Getting Started (Development)
-
-### Prerequisites
-
-- Node.js 18+
-- PostgreSQL
-- Supabase account
-- Stripe account (for billing)
-
-### Setup
-
-1. **Clone the repository**
-
-```bash
-git clone https://github.com/your-org/check.git
-cd check
-```
-
-2. **Install dependencies**
-
-```bash
-npm install
-```
-
-3. **Set up environment variables**
-
-```bash
-cp .env.example .env.local
-```
-
-Required environment variables:
-
-```bash
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-
-# Database
-DATABASE_URL=
-
-# Stripe
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-
-# Upstash Redis
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
-
-# Resend (Email)
-RESEND_API_KEY=
-
-# LLM Providers (optional - for platform keys)
-OPENAI_API_KEY=
-ANTHROPIC_API_KEY=
-```
-
-4. **Run database migrations**
-
-```bash
-npm run db:migrate
-```
-
-5. **Start the development server**
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) to see the application.
-
-### Setting Up Stripe
-
-See [docs/stripe-setup.md](docs/stripe-setup.md) for detailed Stripe configuration instructions.
-
-## API Reference
-
-### Verify Content
-
-```
-POST /api/v1/verify
-```
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `content` | string | Yes | Content to verify (max 100,000 chars) |
-| `methods` | object | Yes | Verification methods with weights (0-1) |
-| `context` | object | No | Additional context for verification |
-| `webhookUrl` | string | No | URL for result notification |
-| `metadata` | object | No | Custom metadata (max 1KB) |
-
-### Batch Processing
-
-```
-POST /api/v1/batch
-GET  /api/v1/batch/:id
-GET  /api/v1/batch/:id/results
-POST /api/v1/batch/:id/cancel
-POST /api/v1/batch/upload
-```
-
-## Pricing
-
-| Plan | Verifications/mo | Rate Limit | Methods |
-|------|-----------------|------------|---------|
-| Free | 100 | 10 req/min | Semantic only |
-| Pro | 5,000 | 100 req/min | All methods |
-| Enterprise | Unlimited | 1,000 req/min | All methods |
+- **Framework**: Next.js 15 (App Router)
+- **Database**: Supabase (PostgreSQL + Realtime)
+- **Auth**: Supabase Auth with RBAC
+- **Queue**: Inngest for async verification jobs
+- **LLM Providers**: OpenAI, Anthropic, Google, Mistral, Azure, Bedrock, OpenRouter
+- **Verification**: 7-paradigm engine with FPR-weighted consensus
 
 ## Documentation
 
+- [Introduction](content/docs/introduction.mdx)
+- [Quickstart](content/docs/quickstart.mdx)
+- [Verification Methods](content/docs/paradigms.mdx)
+- [API Reference](content/docs/api-reference/verify.mdx)
 - [Platform Overview](docs/overview.md)
-- [API Reference](docs/api-reference.md)
-- [SDK Guide](docs/sdk-guide.md)
-- [Implementation Plan](docs/plan.md)
-- [Stripe Setup](docs/stripe-setup.md)
+
+## SDKs
+
+| Package | Description |
+|---------|-------------|
+| [`@check/sdk`](packages/typescript-sdk) | TypeScript/Node.js SDK |
+| [`check`](packages/python-sdk) | Python SDK |
+| `@check/langchain` | LangChain TypeScript integration |
+| `check-langchain` | LangChain Python integration |
+| `@check/llamaindex` | LlamaIndex integration |
+
+## Development
+
+```bash
+npm install
+npm run dev     # Start development server
+npm test        # Run tests
+```
 
 ## License
 
 MIT
-
-## Support
-
-- **Documentation**: [/docs](/docs)
-- **API Playground**: [/dashboard/playground](/dashboard/playground)
-- **Email**: support@check.ai

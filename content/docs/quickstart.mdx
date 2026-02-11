@@ -167,12 +167,12 @@ A successful response looks like this:
 
 ### Understanding Decisions
 
-| Decision | Confidence Range | What It Means |
-|----------|------------------|---------------|
-| `accept` | 0.95+ | High confidence - safe to use |
-| `refine` | 0.7 – 0.95 | Moderate confidence - may need clarification |
-| `escalate` | 0.5 – 0.7 | Low confidence - flag for human review |
-| `reject` | < 0.3 | Very low confidence - do not use |
+| Decision | Confidence | Condition |
+|----------|------------|-----------|
+| `accept` | >= 0.95 | High confidence - safe to use |
+| `refine` | 0.70 – 0.95 | Moderate confidence - may need clarification |
+| `escalate` | < 0.70 | Low confidence + paradigm disagreement - flag for human review |
+| `reject` | < 0.70 | Low confidence + paradigm agreement - do not use |
 
 ## Step 5: Choose Your Verification Methods
 
@@ -180,13 +180,13 @@ Check offers 7 verification methods with different accuracy/speed tradeoffs:
 
 | Method | FPR | Speed | Best For |
 |--------|-----|-------|----------|
-| `semantic` | 50-100% | Fast | Basic similarity checking |
-| `reasoning` | ~7% | Medium | General fact verification |
-| `tool` | ~2% | Slow | Real-time fact-checking |
-| `biprm` | ~10% | Medium | Complex reasoning chains |
-| `ensemble` | ~30% | Slow | High-stakes decisions |
-| `entropy` | ~15% | Medium | Consistency validation |
 | `formal` | 0% | Fast | Mathematical claims |
+| `tool` | ~1% | Slow | Real-time fact-checking |
+| `reasoning` | ~4-5% | Medium | General fact verification |
+| `biprm` | ~5-7% | Medium | Complex reasoning chains |
+| `entropy` | ~8-10% | Medium | Consistency validation |
+| `ensemble` | ~15-20% | Slow | High-stakes decisions |
+| `semantic` | ~20-30% | Fast | Quick similarity checking |
 
 Configure methods with weights (0.0 to 1.0) based on your needs:
 

@@ -14,13 +14,13 @@ Check uses a multi-paradigm verification approach combining seven distinct verif
 
 | Method | FPR | Description |
 |--------|-----|-------------|
-| **Semantic** | 50-100% | Embedding similarity checking for basic content matching |
-| **Reasoning** | ~7% | LLM-based reasoning judge that analyzes claims contextually |
-| **Tool** | ~2% | Web search-augmented fact-checking against authoritative sources |
-| **BIPRM** | ~10% | Bidirectional reasoning from multiple angles |
-| **Ensemble** | ~30% | Multi-model voting consensus across different LLMs |
-| **Entropy** | ~15% | Consistency checking across prompt variations |
-| **Formal** | 0% | Mathematical and logical proof verification |
+| **Formal** | 0% | mathjs autoformalization for symbolic verification |
+| **Tool** | ~1% | CLoVE contrastive web verification with source independence |
+| **Reasoning** | ~4-5% | Adaptive self-refinement with conditional self-critique |
+| **BiPRM** | ~5-7% | Parallel bidirectional step-level scoring |
+| **Entropy** | ~8-10% | Dual-path: logprobs fast path + behavioral semantic clustering |
+| **Ensemble** | ~15-20% | Meta-judge adjudicated multi-model consensus |
+| **Semantic** | ~20-30% | Boltzmann energy embedding analysis |
 
 ## Key Features
 
@@ -32,12 +32,12 @@ Each piece of content is analyzed through multiple verification methods simultan
 
 Based on confidence scores, Check automatically recommends actions:
 
-| Confidence | Decision |
-|------------|----------|
-| 0.95+ | **Accept** - High confidence, auto-approve |
-| 0.7 – 0.95 | **Refine** - Needs clarification |
-| 0.5 – 0.7 | **Escalate** - Flag for human review |
-| < 0.3 | **Reject** - Low confidence, reject |
+| Confidence | Decision | Condition |
+|------------|----------|-----------|
+| >= 0.95 | **Accept** | High confidence, auto-approve |
+| 0.70 – 0.95 | **Refine** | Moderate confidence, needs clarification |
+| < 0.70 | **Escalate** | Low confidence + paradigm disagreement |
+| < 0.70 | **Reject** | Low confidence + paradigm agreement |
 
 ### Automatic Escalation
 
@@ -57,7 +57,7 @@ Invite team members, assign roles (Owner, Admin, Member, Viewer), and manage per
 
 ### Bring Your Own Key (BYOK)
 
-Use your own LLM provider API keys for cost control and compliance. Check supports 16+ providers including OpenAI, Anthropic, Google, DeepSeek, Groq, and more.
+Use your own LLM provider API keys for cost control and compliance. Check supports 7 providers: OpenAI, Anthropic, Google, Mistral, Azure, Bedrock, and OpenRouter.
 
 ## SDKs & Integrations
 

@@ -48,37 +48,37 @@ class MethodsConfig(BaseModel):
         default=None,
         ge=0,
         le=1,
-        description="Embedding similarity (50-100% FPR)"
+        description="Boltzmann energy embedding analysis (~20-30% FPR)"
     )
     reasoning: Optional[float] = Field(
         default=None,
         ge=0,
         le=1,
-        description="LLM judge (~7% FPR)"
+        description="Adaptive self-refinement verification (~4-5% FPR)"
     )
     tool: Optional[float] = Field(
         default=None,
         ge=0,
         le=1,
-        description="Fact-grounded with web search (~2% FPR)"
+        description="CLoVE contrastive web verification (~1% FPR)"
     )
     biprm: Optional[float] = Field(
         default=None,
         ge=0,
         le=1,
-        description="Bidirectional reasoning (~10% FPR)"
+        description="Parallel bidirectional step-level scoring (~5-7% FPR)"
     )
     ensemble: Optional[float] = Field(
         default=None,
         ge=0,
         le=1,
-        description="Multi-model voting (~30% FPR)"
+        description="Meta-judge adjudicated consensus (~15-20% FPR)"
     )
     entropy: Optional[float] = Field(
         default=None,
         ge=0,
         le=1,
-        description="Consistency checking (~15% FPR)"
+        description="Dual-path semantic entropy (~8-10% FPR)"
     )
     formal: Optional[float] = Field(
         default=None,

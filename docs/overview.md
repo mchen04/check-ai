@@ -75,7 +75,7 @@ Based on the consensus, Check.ai provides an actionable **decision**:
                 │                                   │
           ┌─────▼─────┐                       ┌─────▼─────┐
           │  LLM Hub  │                       │  Tool Hub │
-          │ (16+ LLMs)│                       │  (Search) │
+          │(7 Provdrs)│                       │  (Search) │
           └───────────┘                       └───────────┘
 ```
 
@@ -100,7 +100,7 @@ Based on the consensus, Check.ai provides an actionable **decision**:
 ### For Cost Control
 
 - **BYOK**: Bring Your Own Key for LLM providers
-- **16+ Providers**: Choose based on cost/quality tradeoffs
+- **7 Providers**: OpenAI, Anthropic, Google, Mistral, Azure, Bedrock, OpenRouter
 - **Per-Key Configuration**: Different settings for different use cases
 - **Usage Tracking**: Detailed cost breakdown per verification
 

@@ -12,12 +12,12 @@ Check uses a multi-paradigm approach to verification, combining seven distinct m
 
 | Method | FPR | Speed | Best For |
 |--------|-----|-------|----------|
-| [Semantic](#semantic) | 50-100% | Fast | Basic similarity checking |
-| [Reasoning](#reasoning) | ~7% | Medium | General fact verification |
-| [Tool](#tool) | ~2% | Slow | Real-time fact-checking |
-| [BIPRM](#biprm) | ~10% | Medium | Complex reasoning chains |
-| [Ensemble](#ensemble) | ~30% | Slow | High-stakes decisions |
-| [Entropy](#entropy) | ~15% | Medium | Consistency validation |
+| [Semantic](#semantic) | ~20-30% | Fast | Quick sanity checks |
+| [Reasoning](#reasoning) | ~4-5% | Medium | General fact verification |
+| [Tool](#tool) | ~1% | Slow | Real-time fact-checking |
+| [BIPRM](#biprm) | ~5-7% | Medium | Complex reasoning chains |
+| [Ensemble](#ensemble) | ~15-20% | Slow | High-stakes decisions |
+| [Entropy](#entropy) | ~8-10% | Medium | Consistency validation |
 | [Formal](#formal) | 0% | Fast | Mathematical claims |
 
 **FPR (False Positive Rate)** = Probability of incorrectly verifying a false claim as true. Lower is better.
@@ -26,18 +26,18 @@ Check uses a multi-paradigm approach to verification, combining seven distinct m
 
 ### Semantic
 
-The simplest verification method using embedding similarity to compare claims against known facts.
+Boltzmann energy-based embedding analysis with batch cached references for efficient similarity verification.
 
 | Property | Value |
 |----------|-------|
-| FPR | 50-100% |
+| FPR | ~20-30% |
 | Speed | Fast (~100ms) |
 | Cost | Low |
 
 **How it works:**
 1. Converts the claim to a vector embedding
-2. Compares against a knowledge base of verified facts
-3. Returns similarity score as confidence
+2. Computes Boltzmann energy distributions over embeddings against batch cached reference facts (single API call)
+3. Returns energy-based confidence score (lower energy = higher similarity)
 
 **Best for:**
 - Quick sanity checks
@@ -45,7 +45,7 @@ The simplest verification method using embedding similarity to compare claims ag
 - High-volume, low-stakes verification
 
 **Limitations:**
-- High false positive rate
+- Still the highest FPR method
 - Cannot verify novel claims
 - Struggles with nuanced statements
 
@@ -60,18 +60,18 @@ const result = await client.verifyAndWait({
 
 ### Reasoning
 
-Uses a large language model as a reasoning judge to analyze claims contextually.
+Adaptive self-refinement verification with conditional self-critique (test-time training) when confidence falls in the [0.4, 0.85] range.
 
 | Property | Value |
 |----------|-------|
-| FPR | ~7% |
+| FPR | ~4-5% |
 | Speed | Medium (~1-2s) |
 | Cost | Medium |
 
 **How it works:**
 1. Sends the claim to an LLM with a verification prompt
-2. LLM analyzes the claim using its training knowledge
-3. Returns verdict with reasoning explanation
+2. If initial confidence is in [0.4, 0.85], triggers conditional self-critique (TTT) for refinement
+3. Self-critique challenges the initial reasoning and produces a refined verdict
 
 **Best for:**
 - General fact verification
@@ -81,7 +81,7 @@ Uses a large language model as a reasoning judge to analyze claims contextually.
 **Limitations:**
 - Relies on LLM's training data
 - May not have recent information
-- Can hallucinate reasoning
+- Self-critique adds latency for borderline cases
 
 ```typescript
 const result = await client.verifyAndWait({
@@ -94,19 +94,19 @@ const result = await client.verifyAndWait({
 
 ### Tool
 
-Augments verification with real-time web search and authoritative source checking.
+CLoVE (Contrastive Language-grounded Verification) with per-source independence scoring and contrastive reasoning.
 
 | Property | Value |
 |----------|-------|
-| FPR | ~2% |
+| FPR | ~1% |
 | Speed | Slow (~2-5s) |
 | Cost | High |
 
 **How it works:**
-1. Extracts key claims from the content
-2. Searches authoritative sources (Wikipedia, academic databases, official sites)
-3. Cross-references findings with the claim
-4. Returns verdict with source citations
+1. Extracts key claims using CLoVE structured prompts
+2. Searches authoritative sources with per-source independence scoring
+3. Applies contrastive reasoning to weigh supporting vs. contradicting evidence
+4. Returns verdict with source citations and independence-weighted confidence
 
 **Best for:**
 - Fact-checking current events
@@ -133,19 +133,19 @@ console.log(result.paradigmResults[0].sources);
 
 ### BIPRM
 
-Bidirectional Iterative Prompting for Reasoning and Metacognition. Analyzes claims from multiple angles.
+Parallel bidirectional (L2R/R2L) step-level scoring via Promise.all() for debiased reasoning from multiple angles.
 
 | Property | Value |
 |----------|-------|
-| FPR | ~10% |
+| FPR | ~5-7% |
 | Speed | Medium (~1-3s) |
 | Cost | Medium-High |
 
 **How it works:**
-1. Generates arguments supporting the claim
-2. Generates arguments against the claim
-3. Synthesizes both perspectives
-4. Produces balanced verdict with nuanced reasoning
+1. Runs left-to-right (L2R) and right-to-left (R2L) reasoning in parallel via Promise.all()
+2. Scores each reasoning step independently for step-level granularity
+3. Aggregates bidirectional step scores to produce a debiased verdict
+4. BiPRM x Formal synergy: when both methods run, orchestrator cross-validates results
 
 **Best for:**
 - Controversial or debatable claims
@@ -168,18 +168,18 @@ const result = await client.verifyAndWait({
 
 ### Ensemble
 
-Multi-model voting using multiple LLMs to reach consensus.
+Meta-judge adjudicated multi-model consensus with conditional meta-judge activation when members disagree.
 
 | Property | Value |
 |----------|-------|
-| FPR | ~30% |
+| FPR | ~15-20% |
 | Speed | Slow (~3-5s) |
 | Cost | High |
 
 **How it works:**
 1. Sends claim to multiple LLM providers (GPT-4, Claude, Gemini, etc.)
 2. Collects verdicts from each model
-3. Aggregates results using weighted voting
+3. When members disagree, a conditional meta-judge adjudicates the dispute
 4. Returns consensus verdict with confidence
 
 **Best for:**
@@ -203,19 +203,18 @@ const result = await client.verifyAndWait({
 
 ### Entropy
 
-Consistency checking by rephrasing and re-verifying across prompt variations.
+Dual-path semantic entropy: logprobs fast path when available, behavioral path with semantic clustering as fallback.
 
 | Property | Value |
 |----------|-------|
-| FPR | ~15% |
+| FPR | ~8-10% |
 | Speed | Medium (~2-3s) |
 | Cost | Medium |
 
 **How it works:**
-1. Generates multiple rephrasings of the claim
-2. Verifies each rephrasing independently
-3. Measures consistency across responses
-4. Low entropy = high confidence, high entropy = uncertainty
+1. **Logprobs fast path**: When the model provides token-level log probabilities, computes entropy directly from logprobs for instant confidence estimation
+2. **Behavioral path** (fallback): Generates multiple rephrasings, verifies each independently, then clusters responses using semantic similarity
+3. Low entropy = high confidence, high entropy = uncertainty
 
 **Best for:**
 - Detecting hallucinations
@@ -224,8 +223,8 @@ Consistency checking by rephrasing and re-verifying across prompt variations.
 
 **Limitations:**
 - Can give false confidence on consistently wrong claims
-- Additional latency for rephrasings
-- May struggle with phrasing-sensitive facts
+- Behavioral path adds latency for rephrasings
+- Logprobs path depends on provider support
 
 ```typescript
 const result = await client.verifyAndWait({
@@ -238,7 +237,7 @@ const result = await client.verifyAndWait({
 
 ### Formal
 
-Mathematical and logical proof verification for provable claims.
+mathjs autoformalization with expanded claim classification for symbolic verification of mathematical claims.
 
 | Property | Value |
 |----------|-------|
@@ -247,21 +246,22 @@ Mathematical and logical proof verification for provable claims.
 | Cost | Low |
 
 **How it works:**
-1. Parses mathematical expressions and logical statements
-2. Applies formal verification rules
-3. For complex proofs, uses theorem prover integration
-4. Returns definitive true/false for formalizable claims
+1. Classifies claims into types: arithmetic, algebraic, comparison, statistical, unit conversion
+2. Autoformalizes the claim into a mathjs expression using LLM-assisted translation
+3. Evaluates the expression symbolically with mathjs for 0% FPR (mathematical certainty)
+4. Claims outside supported categories fall back to LLM-based reasoning (~5-7% FPR)
 
 **Best for:**
 - Arithmetic calculations
-- Logical propositions
-- Mathematical proofs
-- Code correctness claims
+- Algebraic identities
+- Numerical comparisons
+- Statistical claims
+- Unit conversions
 
 **Limitations:**
-- Only works for formalizable claims
+- Only works for formalizable claims within supported categories
 - Cannot verify subjective statements
-- Limited to mathematical domain
+- Full theorem prover integration (Lean, Coq, Z3) is planned
 
 ```typescript
 // Arithmetic verification
@@ -290,7 +290,7 @@ const result = await client.verifyAndWait({
 });
 ```
 - ~1-2 second response
-- ~7% FPR
+- ~4-5% FPR
 - Good for real-time applications
 
 ### High Accuracy (Important Content)
@@ -356,12 +356,12 @@ Check uses FPR-weighted voting to combine results from multiple methods:
    - If methods strongly disagree, verdict becomes `uncertain`
 
 4. **Decision thresholds:**
-   | Confidence | Decision |
-   |------------|----------|
-   | 0.95+ | `accept` |
-   | 0.7 – 0.95 | `refine` |
-   | 0.5 – 0.7 | `escalate` |
-   | < 0.3 | `reject` |
+   | Confidence | Decision | Condition |
+   |------------|----------|-----------|
+   | >= 0.95 | `accept` | High confidence |
+   | 0.70 – 0.95 | `refine` | Moderate confidence |
+   | < 0.70 | `escalate` | Low confidence + paradigm disagreement |
+   | < 0.70 | `reject` | Low confidence + paradigm agreement |
 
 ## Choosing Methods by Use Case
 

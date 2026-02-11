@@ -33,13 +33,13 @@ print(result.decision)    # 'accept'
 
 | Method | FPR | Use Case |
 |--------|-----|----------|
-| `semantic` | 50-100% | Basic embedding similarity |
-| `reasoning` | ~7% | LLM-based reasoning judge |
-| `tool` | ~2% | Fact-checking with web search |
-| `biprm` | ~10% | Bidirectional reasoning |
-| `ensemble` | ~30% | Multi-model voting |
-| `entropy` | ~15% | Consistency checking |
-| `formal` | 0% | Mathematical proofs |
+| `formal` | 0% | Mathematical proofs (mathjs autoformalization) |
+| `tool` | ~1% | CLoVE contrastive web verification |
+| `reasoning` | ~4-5% | Adaptive self-refinement verification |
+| `biprm` | ~5-7% | Parallel bidirectional step-level scoring |
+| `entropy` | ~8-10% | Dual-path semantic entropy |
+| `ensemble` | ~15-20% | Meta-judge adjudicated consensus |
+| `semantic` | ~20-30% | Boltzmann energy embedding analysis |
 
 **FPR** = False Positive Rate (lower is more accurate)
 

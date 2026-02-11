@@ -1,12 +1,11 @@
 /**
  * Unified LLM Client (Facade)
- * Provides a consistent interface for calling 16+ LLM providers
+ * Provides a consistent interface for calling 7 LLM providers
  * Supports BYOK (Bring Your Own Key) with OpenAI-compatible APIs
  *
  * Provider Tiers:
- * - Tier 1: First-party (OpenAI, Anthropic, Google, xAI, Mistral, Cohere, DeepSeek)
+ * - Tier 1: First-party (OpenAI, Anthropic, Google, Mistral)
  * - Tier 2: Cloud (Azure OpenAI, AWS Bedrock)
- * - Tier 3: Inference (Groq, Together, Fireworks, Cerebras, Perplexity)
  * - Tier 4: Gateways (OpenRouter)
  */
 

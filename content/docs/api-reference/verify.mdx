@@ -110,13 +110,13 @@ Configure which methods to use and their relative weights:
 
 | Method | FPR | Description | Speed |
 |--------|-----|-------------|-------|
-| `semantic` | 50-100% | Embedding similarity checking | Fast |
-| `reasoning` | ~7% | LLM-based reasoning judge | Medium |
-| `tool` | ~2% | Web search-augmented fact-checking | Slow |
-| `biprm` | ~10% | Bidirectional reasoning from multiple angles | Medium |
-| `ensemble` | ~30% | Multi-model voting consensus | Slow |
-| `entropy` | ~15% | Consistency checking across prompt variations | Medium |
-| `formal` | 0% | Mathematical and logical proof verification | Fast |
+| `formal` | 0% | mathjs autoformalization for symbolic verification | Fast |
+| `tool` | ~1% | CLoVE contrastive web verification | Slow |
+| `reasoning` | ~4-5% | Adaptive self-refinement verification | Medium |
+| `biprm` | ~5-7% | Parallel bidirectional step-level scoring | Medium |
+| `entropy` | ~8-10% | Dual-path semantic entropy | Medium |
+| `ensemble` | ~15-20% | Meta-judge adjudicated consensus | Slow |
+| `semantic` | ~20-30% | Boltzmann energy embedding analysis | Fast |
 
 **FPR** = False Positive Rate (lower is better for accuracy)
 
@@ -383,12 +383,12 @@ console.log(result);`
 
 ### Decision Mapping
 
-| Decision | Confidence Range | Recommended Action |
-|----------|------------------|-------------------|
-| `accept` | 0.95+ | Content is verified, safe to use |
-| `refine` | 0.7 – 0.95 | Content may need clarification |
-| `escalate` | 0.5 – 0.7 | Flag for human review |
-| `reject` | < 0.3 | Content is likely false |
+| Decision | Confidence | Condition | Recommended Action |
+|----------|------------|-----------|-------------------|
+| `accept` | >= 0.95 | High confidence | Content is verified, safe to use |
+| `refine` | 0.70 – 0.95 | Moderate confidence | Content may need clarification |
+| `escalate` | < 0.70 | Low confidence + paradigm disagreement | Flag for human review |
+| `reject` | < 0.70 | Low confidence + paradigm agreement | Content is likely false |
 
 ### Error Responses
 
