@@ -58,8 +58,8 @@ const PROVIDER_COLORS: Record<string, string> = {
   openai: 'bg-green-500/10 text-green-700 dark:text-green-400',
   anthropic: 'bg-orange-500/10 text-orange-700 dark:text-orange-400',
   google: 'bg-blue-500/10 text-blue-700 dark:text-blue-400',
-  together: 'bg-purple-500/10 text-purple-700 dark:text-purple-400',
-  groq: 'bg-red-500/10 text-red-700 dark:text-red-400',
+  mistral: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
+  openrouter: 'bg-purple-500/10 text-purple-700 dark:text-purple-400',
 };
 
 function getProviderColor(provider: string): string {

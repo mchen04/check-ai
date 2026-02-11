@@ -54,13 +54,49 @@ const MODEL_ENTRIES: ModelInfo[] = [
   // OpenAI
   // =========================================================================
   {
+    id: 'gpt-5.2',
+    provider: 'openai',
+    displayName: 'GPT-5.2',
+    capabilities: ['text', 'tool_use', 'vision', 'logprobs', 'json_mode'],
+    contextWindow: 400_000,
+    pricing: MODEL_PRICING['gpt-5.2'] ?? null,
+    qualityTier: 1,
+  },
+  {
+    id: 'gpt-5.1',
+    provider: 'openai',
+    displayName: 'GPT-5.1',
+    capabilities: ['text', 'tool_use', 'vision', 'logprobs', 'json_mode'],
+    contextWindow: 400_000,
+    pricing: MODEL_PRICING['gpt-5.1'] ?? null,
+    qualityTier: 1,
+  },
+  {
+    id: 'gpt-5',
+    provider: 'openai',
+    displayName: 'GPT-5',
+    capabilities: ['text', 'tool_use', 'vision', 'logprobs', 'json_mode'],
+    contextWindow: 400_000,
+    pricing: MODEL_PRICING['gpt-5'] ?? null,
+    qualityTier: 1,
+  },
+  {
+    id: 'gpt-5-nano',
+    provider: 'openai',
+    displayName: 'GPT-5 Nano',
+    capabilities: ['text', 'tool_use', 'vision', 'logprobs', 'json_mode'],
+    contextWindow: 400_000,
+    pricing: MODEL_PRICING['gpt-5-nano'] ?? null,
+    qualityTier: 3,
+  },
+  {
     id: 'gpt-4.1',
     provider: 'openai',
     displayName: 'GPT-4.1',
     capabilities: ['text', 'tool_use', 'vision', 'logprobs', 'json_mode'],
     contextWindow: 1_000_000,
     pricing: MODEL_PRICING['gpt-4.1'] ?? null,
-    qualityTier: 1,
+    qualityTier: 2,
   },
   {
     id: 'gpt-4.1-mini',
@@ -199,6 +235,24 @@ const MODEL_ENTRIES: ModelInfo[] = [
   // Google
   // =========================================================================
   {
+    id: 'gemini-3-pro-preview',
+    provider: 'google',
+    displayName: 'Gemini 3 Pro (Preview)',
+    capabilities: ['text', 'tool_use', 'vision', 'json_mode'],
+    contextWindow: 1_000_000,
+    pricing: MODEL_PRICING['gemini-3-pro-preview'] ?? null,
+    qualityTier: 1,
+  },
+  {
+    id: 'gemini-3-flash-preview',
+    provider: 'google',
+    displayName: 'Gemini 3 Flash (Preview)',
+    capabilities: ['text', 'tool_use', 'vision', 'json_mode'],
+    contextWindow: 1_000_000,
+    pricing: MODEL_PRICING['gemini-3-flash-preview'] ?? null,
+    qualityTier: 2,
+  },
+  {
     id: 'gemini-2.5-pro',
     provider: 'google',
     displayName: 'Gemini 2.5 Pro',
@@ -217,21 +271,12 @@ const MODEL_ENTRIES: ModelInfo[] = [
     qualityTier: 2,
   },
   {
-    id: 'gemini-2.0-flash',
+    id: 'gemini-2.5-flash-lite',
     provider: 'google',
-    displayName: 'Gemini 2.0 Flash',
-    capabilities: ['text', 'tool_use', 'vision', 'json_mode'],
-    contextWindow: 1_000_000,
-    pricing: MODEL_PRICING['gemini-2.0-flash'] ?? null,
-    qualityTier: 3,
-  },
-  {
-    id: 'gemini-2.0-flash-lite',
-    provider: 'google',
-    displayName: 'Gemini 2.0 Flash Lite',
+    displayName: 'Gemini 2.5 Flash Lite',
     capabilities: ['text', 'json_mode'],
     contextWindow: 1_000_000,
-    pricing: MODEL_PRICING['gemini-2.0-flash-lite'] ?? null,
+    pricing: MODEL_PRICING['gemini-2.5-flash-lite'] ?? null,
     qualityTier: 3,
   },
   {
@@ -261,28 +306,6 @@ const MODEL_ENTRIES: ModelInfo[] = [
     pricing: null,
     qualityTier: 2,
     embeddingDimension: 768,
-  },
-
-  // =========================================================================
-  // xAI
-  // =========================================================================
-  {
-    id: 'grok-4',
-    provider: 'xai',
-    displayName: 'Grok 4',
-    capabilities: ['text', 'tool_use', 'vision', 'json_mode'],
-    contextWindow: 131_072,
-    pricing: MODEL_PRICING['grok-4'] ?? null,
-    qualityTier: 1,
-  },
-  {
-    id: 'grok-3',
-    provider: 'xai',
-    displayName: 'Grok 3',
-    capabilities: ['text', 'tool_use', 'json_mode'],
-    contextWindow: 131_072,
-    pricing: MODEL_PRICING['grok-3'] ?? null,
-    qualityTier: 2,
   },
 
   // =========================================================================
@@ -336,262 +359,17 @@ const MODEL_ENTRIES: ModelInfo[] = [
   },
 
   // =========================================================================
-  // Cohere
-  // =========================================================================
-  {
-    id: 'command-r-plus',
-    provider: 'cohere',
-    displayName: 'Command R+',
-    capabilities: ['text', 'tool_use', 'search', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['command-r-plus'] ?? null,
-    qualityTier: 1,
-  },
-  {
-    id: 'command-r',
-    provider: 'cohere',
-    displayName: 'Command R',
-    capabilities: ['text', 'tool_use', 'search', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['command-r'] ?? null,
-    qualityTier: 2,
-  },
-  {
-    id: 'command-r7b',
-    provider: 'cohere',
-    displayName: 'Command R7B',
-    capabilities: ['text', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['command-r7b'] ?? null,
-    qualityTier: 3,
-  },
-  {
-    id: 'embed-english-v4.0',
-    provider: 'cohere',
-    displayName: 'Embed English v4',
-    capabilities: ['embedding'],
-    contextWindow: 512,
-    pricing: null,
-    qualityTier: 1,
-    embeddingDimension: 1024,
-  },
-
-  // =========================================================================
-  // DeepSeek
-  // =========================================================================
-  {
-    id: 'deepseek-chat',
-    provider: 'deepseek',
-    displayName: 'DeepSeek Chat',
-    capabilities: ['text', 'json_mode'],
-    contextWindow: 64_000,
-    pricing: MODEL_PRICING['deepseek-chat'] ?? null,
-    qualityTier: 1,
-  },
-  {
-    id: 'deepseek-reasoner',
-    provider: 'deepseek',
-    displayName: 'DeepSeek Reasoner',
-    capabilities: ['text', 'reasoning', 'json_mode'],
-    contextWindow: 64_000,
-    pricing: MODEL_PRICING['deepseek-reasoner'] ?? null,
-    qualityTier: 1,
-  },
-  {
-    id: 'deepseek-v3',
-    provider: 'deepseek',
-    displayName: 'DeepSeek V3',
-    capabilities: ['text', 'json_mode'],
-    contextWindow: 64_000,
-    pricing: MODEL_PRICING['deepseek-v3'] ?? null,
-    qualityTier: 2,
-  },
-
-  // =========================================================================
-  // Groq
-  // =========================================================================
-  {
-    id: 'llama-3.3-70b-versatile',
-    provider: 'groq',
-    displayName: 'Llama 3.3 70B (Groq)',
-    capabilities: ['text', 'tool_use', 'logprobs', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['llama-3.3-70b-versatile'] ?? null,
-    qualityTier: 2,
-  },
-  {
-    id: 'llama-3.1-8b-instant',
-    provider: 'groq',
-    displayName: 'Llama 3.1 8B (Groq)',
-    capabilities: ['text', 'logprobs', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['llama-3.1-8b-instant'] ?? null,
-    qualityTier: 3,
-  },
-  {
-    id: 'llama-3.1-70b-versatile',
-    provider: 'groq',
-    displayName: 'Llama 3.1 70B (Groq)',
-    capabilities: ['text', 'tool_use', 'logprobs', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['llama-3.1-70b-versatile'] ?? null,
-    qualityTier: 3,
-  },
-  {
-    id: 'mixtral-8x7b-32768',
-    provider: 'groq',
-    displayName: 'Mixtral 8x7B (Groq)',
-    capabilities: ['text', 'logprobs', 'json_mode'],
-    contextWindow: 32_768,
-    pricing: MODEL_PRICING['mixtral-8x7b-32768'] ?? null,
-    qualityTier: 3,
-  },
-  {
-    id: 'gemma2-9b-it',
-    provider: 'groq',
-    displayName: 'Gemma 2 9B (Groq)',
-    capabilities: ['text', 'json_mode'],
-    contextWindow: 8_192,
-    pricing: MODEL_PRICING['gemma2-9b-it'] ?? null,
-    qualityTier: 3,
-  },
-
-  // =========================================================================
-  // Together
-  // =========================================================================
-  {
-    id: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
-    provider: 'together',
-    displayName: 'Llama 3.3 70B (Together)',
-    capabilities: ['text', 'tool_use', 'logprobs', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['meta-llama/Llama-3.3-70B-Instruct-Turbo'] ?? null,
-    qualityTier: 2,
-  },
-  {
-    id: 'meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo',
-    provider: 'together',
-    displayName: 'Llama 3.1 405B (Together)',
-    capabilities: ['text', 'tool_use', 'logprobs', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo'] ?? null,
-    qualityTier: 1,
-  },
-  {
-    id: 'mistralai/Mixtral-8x22B-Instruct-v0.1',
-    provider: 'together',
-    displayName: 'Mixtral 8x22B (Together)',
-    capabilities: ['text', 'logprobs', 'json_mode'],
-    contextWindow: 65_536,
-    pricing: MODEL_PRICING['mistralai/Mixtral-8x22B-Instruct-v0.1'] ?? null,
-    qualityTier: 2,
-  },
-  {
-    id: 'Qwen/Qwen2.5-72B-Instruct-Turbo',
-    provider: 'together',
-    displayName: 'Qwen 2.5 72B (Together)',
-    capabilities: ['text', 'tool_use', 'logprobs', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['Qwen/Qwen2.5-72B-Instruct-Turbo'] ?? null,
-    qualityTier: 2,
-  },
-
-  // =========================================================================
-  // Fireworks
-  // =========================================================================
-  {
-    id: 'accounts/fireworks/models/llama-v3p3-70b-instruct',
-    provider: 'fireworks',
-    displayName: 'Llama 3.3 70B (Fireworks)',
-    capabilities: ['text', 'tool_use', 'logprobs', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['accounts/fireworks/models/llama-v3p3-70b-instruct'] ?? null,
-    qualityTier: 2,
-  },
-  {
-    id: 'accounts/fireworks/models/mixtral-8x22b-instruct',
-    provider: 'fireworks',
-    displayName: 'Mixtral 8x22B (Fireworks)',
-    capabilities: ['text', 'logprobs', 'json_mode'],
-    contextWindow: 65_536,
-    pricing: MODEL_PRICING['accounts/fireworks/models/mixtral-8x22b-instruct'] ?? null,
-    qualityTier: 2,
-  },
-  {
-    id: 'accounts/fireworks/models/qwen2p5-72b-instruct',
-    provider: 'fireworks',
-    displayName: 'Qwen 2.5 72B (Fireworks)',
-    capabilities: ['text', 'logprobs', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['accounts/fireworks/models/qwen2p5-72b-instruct'] ?? null,
-    qualityTier: 2,
-  },
-
-  // =========================================================================
-  // Cerebras
-  // =========================================================================
-  {
-    id: 'llama3.3-70b',
-    provider: 'cerebras',
-    displayName: 'Llama 3.3 70B (Cerebras)',
-    capabilities: ['text', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['llama3.3-70b'] ?? null,
-    qualityTier: 2,
-  },
-  {
-    id: 'llama3.1-8b',
-    provider: 'cerebras',
-    displayName: 'Llama 3.1 8B (Cerebras)',
-    capabilities: ['text', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['llama3.1-8b'] ?? null,
-    qualityTier: 3,
-  },
-  {
-    id: 'qwen-3-32b',
-    provider: 'cerebras',
-    displayName: 'Qwen 3 32B (Cerebras)',
-    capabilities: ['text', 'json_mode'],
-    contextWindow: 128_000,
-    pricing: MODEL_PRICING['qwen-3-32b'] ?? null,
-    qualityTier: 2,
-  },
-
-  // =========================================================================
-  // Perplexity
-  // =========================================================================
-  {
-    id: 'sonar',
-    provider: 'perplexity',
-    displayName: 'Sonar',
-    capabilities: ['text', 'search'],
-    contextWindow: 127_072,
-    pricing: MODEL_PRICING['sonar'] ?? null,
-    qualityTier: 2,
-  },
-  {
-    id: 'sonar-pro',
-    provider: 'perplexity',
-    displayName: 'Sonar Pro',
-    capabilities: ['text', 'search'],
-    contextWindow: 200_000,
-    pricing: MODEL_PRICING['sonar-pro'] ?? null,
-    qualityTier: 1,
-  },
-  {
-    id: 'sonar-reasoning',
-    provider: 'perplexity',
-    displayName: 'Sonar Reasoning',
-    capabilities: ['text', 'search', 'reasoning'],
-    contextWindow: 127_072,
-    pricing: MODEL_PRICING['sonar-reasoning'] ?? null,
-    qualityTier: 1,
-  },
-
-  // =========================================================================
   // OpenRouter (gateway models with current IDs)
   // =========================================================================
+  {
+    id: 'openai/gpt-5.2',
+    provider: 'openrouter',
+    displayName: 'GPT-5.2 (OpenRouter)',
+    capabilities: ['text', 'tool_use', 'vision', 'logprobs', 'json_mode'],
+    contextWindow: 400_000,
+    pricing: MODEL_PRICING['openai/gpt-5.2'] ?? null,
+    qualityTier: 1,
+  },
   {
     id: 'openai/gpt-4.1',
     provider: 'openrouter',
@@ -599,6 +377,15 @@ const MODEL_ENTRIES: ModelInfo[] = [
     capabilities: ['text', 'tool_use', 'vision', 'logprobs', 'json_mode'],
     contextWindow: 1_000_000,
     pricing: MODEL_PRICING['openai/gpt-4.1'] ?? null,
+    qualityTier: 2,
+  },
+  {
+    id: 'anthropic/claude-opus-4.6',
+    provider: 'openrouter',
+    displayName: 'Claude Opus 4.6 (OpenRouter)',
+    capabilities: ['text', 'tool_use', 'vision', 'reasoning', 'json_mode'],
+    contextWindow: 200_000,
+    pricing: MODEL_PRICING['anthropic/claude-opus-4.6'] ?? null,
     qualityTier: 1,
   },
   {
@@ -636,15 +423,6 @@ const MODEL_ENTRIES: ModelInfo[] = [
     contextWindow: 200_000,
     pricing: MODEL_PRICING['anthropic/claude-3.5-sonnet'] ?? null,
     qualityTier: 2,
-  },
-  {
-    id: 'google/gemini-2.0-flash',
-    provider: 'openrouter',
-    displayName: 'Gemini 2.0 Flash (OpenRouter)',
-    capabilities: ['text', 'tool_use', 'vision', 'json_mode'],
-    contextWindow: 1_000_000,
-    pricing: MODEL_PRICING['google/gemini-2.0-flash'] ?? null,
-    qualityTier: 3,
   },
 ];
 

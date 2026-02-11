@@ -368,8 +368,8 @@ export class VerificationOrchestrator {
   getAvailableMethods(): ParadigmType[] {
     const available: ParadigmType[] = [];
 
-    // Semantic requires any embedding provider (openai, google, cohere, or mistral)
-    const EMBEDDING_PROVIDERS: (keyof ProviderKeys)[] = ['openai', 'google', 'cohere', 'mistral'];
+    // Semantic requires any embedding provider (openai, google, or mistral)
+    const EMBEDDING_PROVIDERS: (keyof ProviderKeys)[] = ['openai', 'google', 'mistral'];
     if (EMBEDDING_PROVIDERS.some((p) => this.keys[p])) {
       available.push('semantic');
     }

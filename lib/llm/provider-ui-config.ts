@@ -68,25 +68,10 @@ const PROVIDER_METADATA: Record<LLMProvider, Omit<ProviderUIConfig, 'id' | 'tier
     description: 'Gemini 2.5 Pro/Flash, 2.0, 1.5',
     color: 'bg-blue-500',
   },
-  xai: {
-    label: 'xAI',
-    description: 'Grok 4, Grok 3',
-    color: 'bg-stone-600',
-  },
   mistral: {
     label: 'Mistral',
     description: 'Large, Medium, Small, Codestral',
     color: 'bg-amber-500',
-  },
-  cohere: {
-    label: 'Cohere',
-    description: 'Command R+, R, R7B',
-    color: 'bg-pink-500',
-  },
-  deepseek: {
-    label: 'DeepSeek',
-    description: 'DeepSeek Chat, V3, Reasoner',
-    color: 'bg-cyan-600',
   },
 
   // Tier 2: Cloud providers (enterprise)
@@ -101,40 +86,6 @@ const PROVIDER_METADATA: Record<LLMProvider, Omit<ProviderUIConfig, 'id' | 'tier
     description: 'Enterprise AWS deployment',
     color: 'bg-amber-600',
     enterprise: true,
-  },
-
-  // Tier 3: Inference providers
-  groq: {
-    label: 'Groq',
-    description: 'Fast Llama inference',
-    color: 'bg-red-500',
-  },
-  together: {
-    label: 'Together AI',
-    description: 'Open-source models',
-    color: 'bg-cyan-500',
-  },
-  fireworks: {
-    label: 'Fireworks',
-    description: 'Fast inference',
-    color: 'bg-rose-500',
-  },
-  cerebras: {
-    label: 'Cerebras',
-    description: 'Ultra-fast inference',
-    color: 'bg-teal-600',
-  },
-  perplexity: {
-    label: 'Perplexity',
-    description: 'Search-enhanced models',
-    color: 'bg-teal-500',
-  },
-
-  // Legacy
-  replicate: {
-    label: 'Replicate',
-    description: 'Legacy provider',
-    color: 'bg-stone-500',
   },
 };
 

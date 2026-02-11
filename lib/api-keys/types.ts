@@ -20,19 +20,10 @@ export const providerEnum = z.enum([
   'openai',
   'anthropic',
   'google',
-  'xai',
   'mistral',
-  'cohere',
-  'deepseek',
   // Tier 2: Cloud providers (enterprise)
   'azure',
   'bedrock',
-  // Tier 3: Inference providers
-  'groq',
-  'together',
-  'fireworks',
-  'cerebras',
-  'perplexity',
   // Tier 4: Unified gateways (recommended)
   'openrouter',
 ]);
@@ -374,11 +365,11 @@ export const DEFAULT_MODELS: Record<string, string> = {
   semantic: 'openai/text-embedding-3-small',
   biprm: 'anthropic/claude-sonnet-4.5',
   entropy: 'openai/gpt-4.1-mini',
-  formal: 'openai/gpt-4.1',
+  formal: 'openai/gpt-5.2',
 };
 
 export const DEFAULT_ENSEMBLE_MODELS = [
   'anthropic/claude-sonnet-4.5',
-  'openai/gpt-4.1',
+  'openai/gpt-5.2',
   'google/gemini-2.5-flash',
 ];

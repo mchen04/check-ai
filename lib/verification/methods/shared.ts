@@ -32,15 +32,7 @@ export const REASONING_PROVIDER_PREFERENCE: LLMProvider[] = [
   'anthropic',
   'openai',
   'google',
-  'deepseek',
-  'groq',
-  'together',
-  'fireworks',
-  'cerebras',
   'mistral',
-  'cohere',
-  'xai',
-  'perplexity',
   'azure',
   'bedrock',
   'openrouter',
@@ -52,7 +44,6 @@ export const REASONING_PROVIDER_PREFERENCE: LLMProvider[] = [
 export const EMBEDDING_PROVIDER_PREFERENCE: LLMProvider[] = [
   'openai',
   'google',
-  'cohere',
   'mistral',
 ];
 

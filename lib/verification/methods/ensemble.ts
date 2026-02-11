@@ -38,13 +38,12 @@ interface EnsembleMember {
  * We want model diversity — pick one model per provider.
  */
 const ENSEMBLE_PROVIDER_PRIORITY: LLMProvider[] = [
-  'anthropic', 'openai', 'google', 'deepseek', 'xai', 'mistral',
-  'groq', 'together', 'fireworks', 'cerebras', 'cohere',
+  'anthropic', 'openai', 'google', 'mistral',
 ];
 
 const OPENROUTER_ENSEMBLE: EnsembleMember[] = [
   { provider: 'openrouter', model: 'anthropic/claude-sonnet-4.5', weight: 1.0 },
-  { provider: 'openrouter', model: 'openai/gpt-4.1', weight: 1.0 },
+  { provider: 'openrouter', model: 'openai/gpt-5.2', weight: 1.0 },
   { provider: 'openrouter', model: 'google/gemini-2.5-flash', weight: 0.8 },
 ];
 
@@ -217,8 +216,7 @@ export class EnsembleParadigm implements ParadigmExecutor {
 
     // Preference: pick any available provider not already in the ensemble
     const metaJudgePriority: LLMProvider[] = [
-      'deepseek', 'anthropic', 'openai', 'google', 'mistral', 'groq',
-      'together', 'fireworks', 'cerebras', 'cohere', 'xai', 'openrouter',
+      'anthropic', 'openai', 'google', 'mistral', 'openrouter',
     ];
 
     for (const provider of metaJudgePriority) {

@@ -1,7 +1,7 @@
 /**
  * LLM Types and Interfaces
  * Unified types for multi-provider LLM interactions
- * Supports 16+ providers with BYOK (Bring Your Own Key)
+ * Supports 7 enterprise-priority providers with BYOK (Bring Your Own Key)
  *
  * NOTE: Provider configuration constants (DEFAULT_MODELS, MODEL_PRICING, etc.)
  * are centralized in ./config.ts. This file re-exports them for backward compatibility.
@@ -29,7 +29,6 @@ export {
 /**
  * Tier 1: First-party providers (direct APIs)
  * Tier 2: Cloud providers (enterprise - Azure, Bedrock)
- * Tier 3: Inference providers (fast/cheap)
  * Tier 4: Unified gateways (meta-providers)
  */
 export type LLMProvider =
@@ -37,23 +36,12 @@ export type LLMProvider =
   | 'openai'
   | 'anthropic'
   | 'google'
-  | 'xai'
   | 'mistral'
-  | 'cohere'
-  | 'deepseek'
   // Tier 2: Cloud providers (enterprise)
   | 'azure'
   | 'bedrock'
-  // Tier 3: Inference providers
-  | 'groq'
-  | 'together'
-  | 'fireworks'
-  | 'cerebras'
-  | 'perplexity'
   // Tier 4: Unified gateways
-  | 'openrouter'
-  // Legacy
-  | 'replicate';
+  | 'openrouter';
 
 // =============================================================================
 // MESSAGE TYPES (OpenAI-compatible format)
@@ -144,23 +132,12 @@ export interface ProviderKeys {
   openai?: string;
   anthropic?: string;
   google?: string;
-  xai?: string;
   mistral?: string;
-  cohere?: string;
-  deepseek?: string;
   // Tier 2: Cloud providers (enterprise) - these use config objects
   azure?: string; // Simple key for validation, use AzureOpenAIConfig for full config
   bedrock?: string; // Simple key for validation, use BedrockConfig for full config
-  // Tier 3: Inference providers
-  groq?: string;
-  together?: string;
-  fireworks?: string;
-  cerebras?: string;
-  perplexity?: string;
   // Tier 4: Unified gateways
   openrouter?: string;
-  // Legacy
-  replicate?: string;
 }
 
 /**

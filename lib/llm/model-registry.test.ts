@@ -101,7 +101,7 @@ describe('ModelRegistry', () => {
 
     it('should return null when no models match', () => {
       const model = registry.findBestModel({
-        provider: 'perplexity',
+        provider: 'bedrock',
         capabilities: ['embedding'],
       });
       expect(model).toBeNull();
@@ -128,17 +128,12 @@ describe('ModelRegistry', () => {
       const googleEmbed = registry.getDefaultEmbeddingModel('google');
       expect(googleEmbed).not.toBeNull();
 
-      const cohereEmbed = registry.getDefaultEmbeddingModel('cohere');
-      expect(cohereEmbed).not.toBeNull();
-
       const mistralEmbed = registry.getDefaultEmbeddingModel('mistral');
       expect(mistralEmbed).not.toBeNull();
     });
 
     it('should return null for providers without embedding models', () => {
       expect(registry.getDefaultEmbeddingModel('anthropic')).toBeNull();
-      expect(registry.getDefaultEmbeddingModel('deepseek')).toBeNull();
-      expect(registry.getDefaultEmbeddingModel('perplexity')).toBeNull();
     });
   });
 
@@ -147,10 +142,8 @@ describe('ModelRegistry', () => {
       const providers = registry.getEmbeddingProviders();
       expect(providers).toContain('openai');
       expect(providers).toContain('google');
-      expect(providers).toContain('cohere');
       expect(providers).toContain('mistral');
       expect(providers).not.toContain('anthropic');
-      expect(providers).not.toContain('deepseek');
     });
   });
 
@@ -158,10 +151,8 @@ describe('ModelRegistry', () => {
     it('should return providers with logprobs models', () => {
       const providers = registry.getLogprobsProviders();
       expect(providers).toContain('openai');
-      // Groq, together, fireworks also support logprobs
-      expect(providers).toContain('groq');
-      expect(providers).toContain('together');
-      expect(providers).toContain('fireworks');
+      // OpenRouter models also support logprobs
+      expect(providers).toContain('openrouter');
       expect(providers).not.toContain('anthropic');
     });
   });
@@ -193,14 +184,9 @@ describe('ModelRegistry', () => {
   describe('pricing-registry parity', () => {
     // Deprecated/preview models intentionally excluded from the registry
     const EXCLUDED_MODELS = new Set([
-      'gpt-5.2',
       'gpt-5-mini',
       'gpt-4-turbo',
       'text-embedding-ada-002',
-      'gemini-3-pro',
-      'gemini-3-flash',
-      'grok-2',
-      'deepseek-coder',
       'claude-opus-4-1-20250805',
       'claude-sonnet-4-20250522',
       'claude-3-5-sonnet-20241022',

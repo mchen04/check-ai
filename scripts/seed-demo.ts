@@ -219,9 +219,9 @@ async function main() {
       reasoning: { enabled: true, weight: 0.25, model: 'anthropic/claude-sonnet-4.5' },
       tool: { enabled: true, weight: 0.15, model: 'openai/gpt-4.1-mini' },
       biprm: { enabled: true, weight: 0.15, model: 'anthropic/claude-sonnet-4.5' },
-      ensemble: { enabled: true, weight: 0.15, models: ['anthropic/claude-sonnet-4.5', 'openai/gpt-4.1', 'google/gemini-2.5-flash'] },
+      ensemble: { enabled: true, weight: 0.15, models: ['anthropic/claude-sonnet-4.5', 'openai/gpt-5.2', 'google/gemini-2.5-flash'] },
       entropy: { enabled: true, weight: 0.10, model: 'openai/gpt-4.1-mini' },
-      formal: { enabled: true, weight: 0.05, model: 'openai/gpt-4.1' },
+      formal: { enabled: true, weight: 0.05, model: 'openai/gpt-5.2' },
     };
 
     const [newKey] = await db

@@ -47,7 +47,7 @@ function supportsLogprobs(provider: LLMProvider, model: string): boolean {
     return modelInfo.capabilities.includes('logprobs');
   }
   // Fallback: providers known to support logprobs via OpenAI-compatible API
-  const LOGPROB_PROVIDERS: Set<LLMProvider> = new Set(['openai', 'azure', 'together', 'groq', 'fireworks']);
+  const LOGPROB_PROVIDERS: Set<LLMProvider> = new Set(['openai', 'azure']);
   return LOGPROB_PROVIDERS.has(provider);
 }
 
