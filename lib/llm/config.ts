@@ -60,7 +60,7 @@ export const DEFAULT_MODELS: Record<LLMProvider, string> = {
   mistral: 'mistral-large-latest',
   // Tier 2: Cloud providers
   azure: 'gpt-4.1', // Deployment name varies by customer
-  bedrock: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+  bedrock: 'anthropic.claude-sonnet-4-5-20250929-v1:0',
   // Tier 4: Unified gateways
   openrouter: 'anthropic/claude-sonnet-4.5',
 };
