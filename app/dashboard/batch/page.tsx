@@ -9,7 +9,6 @@ import {
   ChevronRight,
   RefreshCw,
   Plus,
-  Upload,
   Layers,
   FileText,
   Loader2,
@@ -28,14 +27,6 @@ import {
 import { BatchStatusBadge } from '@/components/ui/status-badge';
 import type { BatchStatus } from '@/lib/api/types';
 import { Progress } from '@/components/ui/progress';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import { Spinner } from '@/components/ui/loading-spinner';
 import { truncateString } from '@/lib/api/formatters';
 import { Pagination } from '@/components/ui/pagination';
@@ -156,7 +147,7 @@ function BatchListContent() {
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [stats, setStats] = useState<BatchStats>({ total: 0, processing: 0, completed: 0, failed: 0 });
   const [error, setError] = useState<string | null>(null);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
 
   // useTransition for loading state (rendering-usetransition-loading)
   const [isPending, startTransition] = useTransition();
@@ -259,43 +250,10 @@ function BatchListContent() {
             <RefreshCw className={`mr-2 h-4 w-4 ${isPending ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="mr-2 h-4 w-4" />
-                New
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Create Batch Job</DialogTitle>
-                <DialogDescription>
-                  Upload a CSV or JSON file, or use the API to create a batch job.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <Button
-                  variant="outline"
-                  className="h-20 flex-col gap-2"
-                  onClick={() => {
-                    setIsCreateDialogOpen(false);
-                    router.push('/dashboard/batch/upload');
-                  }}
-                >
-                  <Upload className="h-5 w-5" />
-                  <span className="text-sm">Upload File</span>
-                  <span className="text-xs text-muted-foreground">CSV or JSON</span>
-                </Button>
-                <div className="text-center text-xs text-muted-foreground">or</div>
-                <div className="rounded-md border border-dashed p-4">
-                  <p className="text-sm font-medium">Use the API</p>
-                  <code className="mt-2 block rounded bg-muted p-2 text-xs">
-                    POST /api/v1/batch
-                  </code>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button size="sm" onClick={() => router.push('/dashboard/batch/upload')}>
+            <Plus className="mr-2 h-4 w-4" />
+            New
+          </Button>
         </div>
       </div>
 
@@ -327,7 +285,7 @@ function BatchListContent() {
               <Layers className="mx-auto mb-3 h-10 w-10 opacity-50" />
               <p className="mb-1 text-sm">No batch jobs yet</p>
               <p className="mb-4 text-xs">Create your first batch to process multiple verifications.</p>
-              <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
+              <Button size="sm" onClick={() => router.push('/dashboard/batch/upload')}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Batch
               </Button>
