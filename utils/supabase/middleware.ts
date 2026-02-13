@@ -2,6 +2,15 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function updateSession(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Short-circuit routes that don't need auth — avoids creating a Supabase
+  // client and the JWKS fetch, which can exceed Hobby-plan middleware timeout.
+  const publicPaths = ['/login', '/auth', '/signup', '/forgot-password', '/demo', '/docs', '/invite', '/privacy', '/terms', '/webhook', '/api/'];
+  if (publicPaths.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -33,36 +42,17 @@ export async function updateSession(request: NextRequest) {
   // This also automatically refreshes the session if the token is near expiration.
   const { data, error } = await supabase.auth.getClaims();
   const isAuthenticated = !error && data?.claims?.sub;
-  const url = request.nextUrl.clone();
 
-  // Skip auth redirect for webhook and API routes (they handle their own auth)
-  if (
-    request.nextUrl.pathname.startsWith('/webhook') ||
-    request.nextUrl.pathname.startsWith('/api/')
-  ) {
-    return supabaseResponse;
-  }
-
-  if (
-    !isAuthenticated &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/signup') &&
-    !request.nextUrl.pathname.startsWith('/forgot-password') &&
-    !request.nextUrl.pathname.startsWith('/demo') &&
-    !request.nextUrl.pathname.startsWith('/docs') &&
-    !request.nextUrl.pathname.startsWith('/invite') &&
-    !request.nextUrl.pathname.startsWith('/privacy') &&
-    !request.nextUrl.pathname.startsWith('/terms') &&
-    !(request.nextUrl.pathname === '/')
-  ) {
+  if (!isAuthenticated && pathname !== '/') {
     // no user, redirect to login page
+    const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
   // If user is logged in, redirect from landing to dashboard
-  if (isAuthenticated && request.nextUrl.pathname === '/') {
+  if (isAuthenticated && pathname === '/') {
+    const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);
   }
