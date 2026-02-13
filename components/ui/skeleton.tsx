@@ -55,4 +55,20 @@ function SkeletonTableRow({ columns = 4, className, ...props }: React.HTMLAttrib
   );
 }
 
-export { Skeleton, SkeletonText, SkeletonTitle, SkeletonAvatar, SkeletonCard, SkeletonTableRow };
+/**
+ * Table-native skeleton row using <tr>/<td> for use inside <TableBody>.
+ * The flex-based SkeletonTableRow can't be placed inside a <table>.
+ */
+function SkeletonTableRowNative({ columns = 4, className, ...props }: React.HTMLAttributes<HTMLTableRowElement> & { columns?: number }) {
+  return (
+    <tr className={cn('border-b border-border/50', className)} {...props}>
+      {Array.from({ length: columns }).map((_, i) => (
+        <td key={i} className="px-4 py-3">
+          <Skeleton className="h-4 w-full" />
+        </td>
+      ))}
+    </tr>
+  );
+}
+
+export { Skeleton, SkeletonText, SkeletonTitle, SkeletonAvatar, SkeletonCard, SkeletonTableRow, SkeletonTableRowNative };

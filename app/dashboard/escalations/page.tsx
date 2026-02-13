@@ -14,6 +14,7 @@ import {
   verificationsTable,
   orgMembersTable,
 } from '@/utils/db/schema';
+import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -172,14 +173,15 @@ export default async function EscalationsPage() {
             Review verifications flagged for human review
           </p>
         </div>
-        {pendingCount > 0 && (
-          <div className="flex items-center gap-2 rounded-full bg-warning/10 px-4 py-2 text-warning">
-            <Clock className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              {pendingCount} pending review{pendingCount !== 1 ? 's' : ''}
-            </span>
-          </div>
-        )}
+        <div className={cn(
+          'flex items-center gap-2 rounded-full bg-warning/10 px-4 py-2 text-warning',
+          pendingCount === 0 && 'invisible'
+        )}>
+          <Clock className="h-4 w-4" />
+          <span className="text-sm font-medium">
+            {pendingCount} pending review{pendingCount !== 1 ? 's' : ''}
+          </span>
+        </div>
       </div>
 
       {/* Escalations List */}

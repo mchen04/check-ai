@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useTransition, useRef, Suspense, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronRight, RefreshCw, Download, Search, X } from 'lucide-react';
-import { formatRelativeTime, getErrorMessage } from '@/lib/utils';
+import { formatRelativeTime, getErrorMessage, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,7 @@ import type { VerificationStatus } from '@/lib/api/types';
 import { truncateString } from '@/lib/api/formatters';
 import { Pagination } from '@/components/ui/pagination';
 import { PAGINATION_LIMITS } from '@/lib/constants';
+import { Skeleton, SkeletonTableRowNative } from '@/components/ui/skeleton';
 
 // =============================================================================
 // TYPES
@@ -68,22 +69,44 @@ function VerificationListSkeleton() {
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
-        <div className="h-6 w-40 animate-pulse rounded bg-muted" />
-        <div className="h-9 w-24 animate-pulse rounded bg-muted" />
+        <div>
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="mt-1 h-4 w-56" />
+        </div>
+        <div className="flex gap-3">
+          <Skeleton className="h-9 w-24" />
+          <Skeleton className="h-9 w-24" />
+          <Skeleton className="h-9 w-16" />
+        </div>
       </div>
+      {/* Filter card skeleton */}
       <Card className="mb-4">
         <div className="flex items-center gap-4 p-4">
-          <div className="h-10 w-64 animate-pulse rounded bg-muted" />
-          <div className="h-10 w-40 animate-pulse rounded bg-muted" />
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-10 w-40" />
         </div>
       </Card>
       <Card>
         <div className="p-4">
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-12 animate-pulse rounded bg-muted" />
-            ))}
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Status</TableHead>
+                <TableHead>Content</TableHead>
+                <TableHead>Verdict</TableHead>
+                <TableHead>Confidence</TableHead>
+                <TableHead>Time</TableHead>
+                <TableHead>Cost</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <SkeletonTableRowNative key={i} columns={8} />
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </Card>
     </div>
@@ -271,11 +294,11 @@ function VerificationHistoryContent() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">Verification History</h1>
-          {pagination && (
-            <p className="text-sm text-muted-foreground">
-              {pagination.total.toLocaleString()} verification{pagination.total !== 1 ? 's' : ''}
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground">
+            {pagination
+              ? `${pagination.total.toLocaleString()} verification${pagination.total !== 1 ? 's' : ''}`
+              : '\u00A0'}
+          </p>
         </div>
         <div className="flex gap-3">
           <DropdownMenu>
@@ -329,116 +352,116 @@ function VerificationHistoryContent() {
               <SelectItem value="uncertain">Uncertain</SelectItem>
             </SelectContent>
           </Select>
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={handleClearFilters}>
-              <X className="mr-1 h-4 w-4" />
-              Clear
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearFilters}
+            className={cn(!hasActiveFilters && 'invisible')}
+          >
+            <X className="mr-1 h-4 w-4" />
+            Clear
+          </Button>
         </div>
       </Card>
 
-      {/* Verifications Table */}
+      {/* Verifications Table — headers always visible to prevent CLS */}
       <Card>
         <div className="p-4">
-          {error ? (
-            <div className="py-8 text-center text-destructive">
-              <p className="text-sm">{error}</p>
-              <Button variant="outline" size="sm" className="mt-4" onClick={handleRefresh}>
-                Try Again
-              </Button>
-            </div>
-          ) : verifications.length === 0 && !isPending ? (
-            <div className="py-8 text-center text-muted-foreground">
-              <p className="text-sm">
-                {hasActiveFilters ? 'No verifications match your filters' : 'No verifications yet'}
-              </p>
-              {hasActiveFilters ? (
-                <Button variant="outline" size="sm" className="mt-4" onClick={handleClearFilters}>
-                  Clear filters
-                </Button>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Status</TableHead>
+                <TableHead>Content</TableHead>
+                <TableHead>Verdict</TableHead>
+                <TableHead>Confidence</TableHead>
+                <TableHead>Time</TableHead>
+                <TableHead>Cost</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {error ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="h-24 text-center text-destructive">
+                    <p className="text-sm">{error}</p>
+                    <Button variant="outline" size="sm" className="mt-4" onClick={handleRefresh}>
+                      Try Again
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ) : isPending && verifications.length === 0 ? (
+                [1, 2, 3, 4, 5].map((i) => (
+                  <SkeletonTableRowNative key={i} columns={8} />
+                ))
+              ) : verifications.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                    <p className="text-sm">
+                      {hasActiveFilters ? 'No verifications match your filters' : 'No verifications yet'}
+                    </p>
+                    {hasActiveFilters ? (
+                      <Button variant="outline" size="sm" className="mt-4" onClick={handleClearFilters}>
+                        Clear filters
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm" className="mt-4" onClick={() => router.push('/dashboard/playground')}>
+                        Create your first verification
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
               ) : (
-                <Button variant="outline" size="sm" className="mt-4" onClick={() => router.push('/dashboard/playground')}>
-                  Create your first verification
-                </Button>
-              )}
-            </div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Content</TableHead>
-                    <TableHead>Verdict</TableHead>
-                    <TableHead>Confidence</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Cost</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead />
+                verifications.map((v) => (
+                  <TableRow
+                    key={v.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleRowClick(v.id)}
+                  >
+                    <TableCell><VerificationStatusBadge status={v.status} /></TableCell>
+                    <TableCell className="max-w-xs">
+                      <span className="font-mono text-sm">{truncateString(v.content, 60, true)}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <VerdictIcon verdict={v.verdict} />
+                        <VerdictBadge verdict={v.verdict} />
+                      </div>
+                    </TableCell>
+                    <TableCell className="tabular-nums">
+                      {v.confidence !== null ? `${(v.confidence * 100).toFixed(1)}%` : '-'}
+                    </TableCell>
+                    <TableCell className="tabular-nums">
+                      {v.processingTimeMs !== null ? `${v.processingTimeMs}ms` : '-'}
+                    </TableCell>
+                    <TableCell className="tabular-nums">
+                      {v.costCents !== null ? `$${(v.costCents / 100).toFixed(4)}` : '-'}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatRelativeTime(v.createdAt)}
+                    </TableCell>
+                    <TableCell>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isPending && verifications.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="h-24 text-center">
-                        <RefreshCw className="mx-auto h-4 w-4 animate-spin text-muted-foreground" />
-                        <p className="mt-1 text-xs text-muted-foreground">Loading...</p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    verifications.map((v) => (
-                      <TableRow
-                        key={v.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleRowClick(v.id)}
-                      >
-                        <TableCell><VerificationStatusBadge status={v.status} /></TableCell>
-                        <TableCell className="max-w-xs">
-                          <span className="font-mono text-sm">{truncateString(v.content, 60, true)}</span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <VerdictIcon verdict={v.verdict} />
-                            <VerdictBadge verdict={v.verdict} />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {v.confidence !== null ? `${(v.confidence * 100).toFixed(1)}%` : '-'}
-                        </TableCell>
-                        <TableCell>
-                          {v.processingTimeMs !== null ? `${v.processingTimeMs}ms` : '-'}
-                        </TableCell>
-                        <TableCell>
-                          {v.costCents !== null ? `$${(v.costCents / 100).toFixed(4)}` : '-'}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {formatRelativeTime(v.createdAt)}
-                        </TableCell>
-                        <TableCell>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-
-              {/* Pagination */}
-              {pagination && pagination.totalPages > 1 && (
-                <div className="mt-4 border-t pt-4">
-                  <Pagination
-                    page={pagination.page}
-                    totalPages={pagination.totalPages}
-                    total={pagination.total}
-                    onPageChange={handlePageChange}
-                    disabled={isPending}
-                    showFirstLast
-                  />
-                </div>
+                ))
               )}
-            </>
-          )}
+            </TableBody>
+          </Table>
+
+          {/* Pagination — wrapper always present to reserve vertical space */}
+          <div className="min-h-[52px] mt-4 border-t pt-4">
+            {pagination && pagination.totalPages > 1 && (
+              <Pagination
+                page={pagination.page}
+                totalPages={pagination.totalPages}
+                total={pagination.total}
+                onPageChange={handlePageChange}
+                disabled={isPending}
+                showFirstLast
+              />
+            )}
+          </div>
         </div>
       </Card>
     </div>
