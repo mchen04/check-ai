@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useTransition, Suspense, useMemo } from 'react';
+import { useState, useEffect, useCallback, useTransition, useRef, Suspense, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronRight, RefreshCw, Download, Search, X } from 'lucide-react';
 import { formatRelativeTime, getErrorMessage } from '@/lib/utils';
@@ -126,6 +126,9 @@ function VerificationHistoryContent() {
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState(search);
 
+  // AbortController ref to cancel in-flight requests
+  const abortRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -135,6 +138,11 @@ function VerificationHistoryContent() {
   }, [search]);
 
   const fetchVerifications = useCallback(async () => {
+    // Abort any in-flight request before starting a new one
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setError(null);
 
     const params = new URLSearchParams();
@@ -148,7 +156,9 @@ function VerificationHistoryContent() {
       params.set('verdict', verdictFilter);
     }
 
-    const response = await fetch(`/api/dashboard/verifications?${params.toString()}`);
+    const response = await fetch(`/api/dashboard/verifications?${params.toString()}`, {
+      signal: controller.signal,
+    });
 
     if (!response.ok) {
       throw new Error('Failed to fetch verifications');

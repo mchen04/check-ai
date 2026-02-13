@@ -1,3 +1,5 @@
+export const maxDuration = 30;
+
 import Stripe from 'stripe';
 import { eq } from 'drizzle-orm';
 import { db } from '@/utils/db/db';

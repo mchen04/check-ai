@@ -3,6 +3,8 @@
  * Main verification endpoint
  */
 
+export const maxDuration = 60;
+
 import { NextResponse } from 'next/server';
 import {
   ValidationError,

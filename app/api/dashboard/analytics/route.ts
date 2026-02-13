@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { unstable_cache } from 'next/cache';
 import {
   getAnalyticsData,
   getDateRange,
@@ -12,6 +13,25 @@ import {
   errorResponse,
 } from '@/lib/api';
 
+// Cache advanced analytics for 5 minutes — these queries are the most expensive
+// in the app and the data changes slowly
+const getCachedAdvancedAnalytics = unstable_cache(
+  async (orgId: string, range: TimeRange) => {
+    return getAdvancedAnalyticsData(orgId, range);
+  },
+  ['advanced-analytics'],
+  { revalidate: 300 }
+);
+
+// Cache basic analytics for 60 seconds
+const getCachedAnalytics = unstable_cache(
+  async (orgId: string, range: TimeRange) => {
+    return getAnalyticsData(orgId, range);
+  },
+  ['basic-analytics'],
+  { revalidate: 60 }
+);
+
 async function handler(req: DashboardRequest) {
   const { context } = req;
 
@@ -24,14 +44,14 @@ async function handler(req: DashboardRequest) {
     return errorResponse.badRequest('Invalid range parameter. Must be 7d, 30d, or 90d');
   }
 
-  // Fetch basic analytics
-  const data = await getAnalyticsData(context.orgId, range);
+  // Fetch basic analytics (cached 60s)
+  const data = await getCachedAnalytics(context.orgId, range);
   const { startDate, endDate } = getDateRange(range);
 
-  // Optionally include advanced analytics
+  // Optionally include advanced analytics (cached 5min)
   let advancedData = null;
   if (includeAdvanced) {
-    advancedData = await getAdvancedAnalyticsData(context.orgId, range);
+    advancedData = await getCachedAdvancedAnalytics(context.orgId, range);
   }
 
   return NextResponse.json({

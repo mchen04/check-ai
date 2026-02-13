@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { unstable_cache } from 'next/cache';
 import { eq, and, gte, desc, count, sql } from 'drizzle-orm';
 import Link from 'next/link';
 import {
@@ -32,6 +33,97 @@ function getMonthStart() {
   const now = new Date();
   return new Date(now.getFullYear(), now.getMonth(), 1);
 }
+
+// Cached dashboard queries — revalidates every 60s to avoid 7 DB round-trips on repeat visits
+const getCachedDashboardData = unstable_cache(
+  async (orgId: string, userId: string, monthStartISO: string) => {
+    const monthStart = new Date(monthStartISO);
+
+    const [
+      totalResult,
+      monthlyResult,
+      keysResult,
+      usageResult,
+      recentResult,
+      preferencesResult,
+      providersResult,
+    ] = await Promise.all([
+      db
+        .select({ count: count() })
+        .from(verificationsTable)
+        .where(eq(verificationsTable.orgId, orgId)),
+      db
+        .select({ count: count() })
+        .from(verificationsTable)
+        .where(
+          and(
+            eq(verificationsTable.orgId, orgId),
+            gte(verificationsTable.createdAt, monthStart)
+          )
+        ),
+      db
+        .select({ count: count() })
+        .from(apiKeysTable)
+        .where(
+          and(
+            eq(apiKeysTable.orgId, orgId),
+            eq(apiKeysTable.isActive, true)
+          )
+        ),
+      db
+        .select({
+          tokens: sql<number>`COALESCE(SUM(${usageTable.inputTokens} + ${usageTable.outputTokens}), 0)`,
+          cost: sql<number>`COALESCE(SUM(${usageTable.costCents}), 0)`,
+        })
+        .from(usageTable)
+        .where(
+          and(
+            eq(usageTable.orgId, orgId),
+            gte(usageTable.createdAt, monthStart)
+          )
+        ),
+      db
+        .select({
+          id: verificationsTable.id,
+          content: verificationsTable.content,
+          status: verificationsTable.status,
+          finalVerdict: verificationsTable.finalVerdict,
+          confidenceScore: verificationsTable.confidenceScore,
+          createdAt: verificationsTable.createdAt,
+        })
+        .from(verificationsTable)
+        .where(eq(verificationsTable.orgId, orgId))
+        .orderBy(desc(verificationsTable.createdAt))
+        .limit(10),
+      db
+        .select({
+          onboardingCompleted: userPreferencesTable.onboardingCompleted,
+          hasCreatedApiKey: userPreferencesTable.hasCreatedApiKey,
+          hasVisitedPlayground: userPreferencesTable.hasVisitedPlayground,
+          hasRunVerification: userPreferencesTable.hasRunVerification,
+        })
+        .from(userPreferencesTable)
+        .where(eq(userPreferencesTable.userId, userId))
+        .limit(1),
+      db
+        .select({ count: count() })
+        .from(providerCredentialsTable)
+        .where(eq(providerCredentialsTable.orgId, orgId)),
+    ]);
+
+    return {
+      totalResult,
+      monthlyResult,
+      keysResult,
+      usageResult,
+      recentResult,
+      preferencesResult,
+      providersResult,
+    };
+  },
+  ['dashboard-stats'],
+  { revalidate: 60 }
+);
 
 export default async function Dashboard() {
   // Get authenticated user's organization context
@@ -72,8 +164,7 @@ export default async function Dashboard() {
   };
 
   try {
-    // Execute all queries in parallel for better performance
-    const [
+    const {
       totalResult,
       monthlyResult,
       keysResult,
@@ -81,82 +172,7 @@ export default async function Dashboard() {
       recentResult,
       preferencesResult,
       providersResult,
-    ] = await Promise.all([
-      // Total verifications (all time)
-      db
-        .select({ count: count() })
-        .from(verificationsTable)
-        .where(eq(verificationsTable.orgId, orgId)),
-
-      // Monthly verifications
-      db
-        .select({ count: count() })
-        .from(verificationsTable)
-        .where(
-          and(
-            eq(verificationsTable.orgId, orgId),
-            gte(verificationsTable.createdAt, monthStart)
-          )
-        ),
-
-      // Active API keys
-      db
-        .select({ count: count() })
-        .from(apiKeysTable)
-        .where(
-          and(
-            eq(apiKeysTable.orgId, orgId),
-            eq(apiKeysTable.isActive, true)
-          )
-        ),
-
-      // Monthly tokens + cost
-      db
-        .select({
-          tokens: sql<number>`COALESCE(SUM(${usageTable.inputTokens} + ${usageTable.outputTokens}), 0)`,
-          cost: sql<number>`COALESCE(SUM(${usageTable.costCents}), 0)`,
-        })
-        .from(usageTable)
-        .where(
-          and(
-            eq(usageTable.orgId, orgId),
-            gte(usageTable.createdAt, monthStart)
-          )
-        ),
-
-      // Recent verifications (last 10, org-scoped)
-      db
-        .select({
-          id: verificationsTable.id,
-          content: verificationsTable.content,
-          status: verificationsTable.status,
-          finalVerdict: verificationsTable.finalVerdict,
-          confidenceScore: verificationsTable.confidenceScore,
-          createdAt: verificationsTable.createdAt,
-        })
-        .from(verificationsTable)
-        .where(eq(verificationsTable.orgId, orgId))
-        .orderBy(desc(verificationsTable.createdAt))
-        .limit(10),
-
-      // User preferences (onboarding state)
-      db
-        .select({
-          onboardingCompleted: userPreferencesTable.onboardingCompleted,
-          hasCreatedApiKey: userPreferencesTable.hasCreatedApiKey,
-          hasVisitedPlayground: userPreferencesTable.hasVisitedPlayground,
-          hasRunVerification: userPreferencesTable.hasRunVerification,
-        })
-        .from(userPreferencesTable)
-        .where(eq(userPreferencesTable.userId, context.userId))
-        .limit(1),
-
-      // Provider credentials count
-      db
-        .select({ count: count() })
-        .from(providerCredentialsTable)
-        .where(eq(providerCredentialsTable.orgId, orgId)),
-    ]);
+    } = await getCachedDashboardData(orgId, context.userId, monthStart.toISOString());
 
     stats = {
       totalVerifications: Number(totalResult[0]?.count ?? 0),

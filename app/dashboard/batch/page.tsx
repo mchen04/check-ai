@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useTransition, Suspense } from 'react';
+import { useState, useEffect, useCallback, useTransition, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   CheckCircle2,
@@ -158,14 +158,24 @@ function BatchListContent() {
     return pageParam ? parseInt(pageParam, 10) : 1;
   });
 
+  // AbortController ref to cancel in-flight requests
+  const abortRef = useRef<AbortController | null>(null);
+
   const fetchBatches = useCallback(async () => {
+    // Abort any in-flight request before starting a new one
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setError(null);
 
     const params = new URLSearchParams();
     params.set('page', page.toString());
     params.set('limit', PAGINATION_LIMITS.defaultLimit.toString());
 
-    const response = await fetch(`/api/dashboard/batches?${params.toString()}`);
+    const response = await fetch(`/api/dashboard/batches?${params.toString()}`, {
+      signal: controller.signal,
+    });
 
     if (!response.ok) {
       throw new Error('Failed to fetch batches');
@@ -187,21 +197,54 @@ function BatchListContent() {
     });
   }, [fetchBatches]);
 
-  // Auto-refresh when jobs are processing
+  // Auto-refresh when jobs are processing with adaptive interval + visibility pause
   useEffect(() => {
     if (stats.processing === 0) return;
 
-    const interval = setInterval(() => {
-      startTransition(async () => {
-        try {
-          await fetchBatches();
-        } catch (err) {
-          setError(getErrorMessage(err));
-        }
-      });
-    }, 5000); // Refresh every 5 seconds when jobs are processing
+    // Adaptive interval: 5s for <=2 active jobs, 10s for <=10, 15s for more
+    const intervalMs = stats.processing <= 2 ? 5000 : stats.processing <= 10 ? 10000 : 15000;
 
-    return () => clearInterval(interval);
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const startPolling = () => {
+      if (intervalId) return;
+      intervalId = setInterval(() => {
+        startTransition(async () => {
+          try {
+            await fetchBatches();
+          } catch (err) {
+            setError(getErrorMessage(err));
+          }
+        });
+      }, intervalMs);
+    };
+
+    const stopPolling = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        // Fetch immediately on tab re-focus, then resume polling
+        startTransition(async () => {
+          try { await fetchBatches(); } catch { /* ignore */ }
+        });
+        startPolling();
+      }
+    };
+
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [stats.processing, fetchBatches]);
 
   // Update URL when page changes using Next.js router (not window.history)
@@ -265,7 +308,7 @@ function BatchListContent() {
             <span className="text-sm font-medium">
               {stats.processing} job{stats.processing !== 1 ? 's' : ''} currently processing
             </span>
-            <span className="text-xs text-muted-foreground">• Auto-refreshing every 5s</span>
+            <span className="text-xs text-muted-foreground">• Auto-refreshing</span>
           </div>
         </Card>
       )}

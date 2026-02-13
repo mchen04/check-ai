@@ -3,7 +3,6 @@
  * Native SDK implementation for Claude models
  */
 
-import Anthropic from '@anthropic-ai/sdk';
 import { LLMMessage, LLMOptions, LLMResponse, DEFAULT_MODELS } from '../../types';
 import { BaseLLMProvider, LLMError, ProviderFactoryConfig } from '../interfaces';
 import { providerRegistry } from '../registry';
@@ -17,15 +16,6 @@ export class AnthropicProvider extends BaseLLMProvider {
   readonly tier = 1 as const;
   readonly isOpenAICompatible = false;
 
-  private client?: Anthropic;
-
-  constructor(config: ProviderFactoryConfig) {
-    super(config);
-    if (this.keys.anthropic) {
-      this.client = new Anthropic({ apiKey: this.keys.anthropic });
-    }
-  }
-
   isConfigured(): boolean {
     return !!this.keys.anthropic;
   }
@@ -38,9 +28,13 @@ export class AnthropicProvider extends BaseLLMProvider {
     messages: LLMMessage[],
     options: LLMOptions & { model: string }
   ): Promise<LLMResponse> {
-    if (!this.client) {
+    if (!this.keys.anthropic) {
       throw new LLMError('Anthropic API key not configured', this.name, options.model);
     }
+
+    // Dynamic import to avoid loading ~1MB SDK on every cold start
+    const { default: Anthropic } = await import('@anthropic-ai/sdk');
+    const client = new Anthropic({ apiKey: this.keys.anthropic });
 
     const startTime = Date.now();
 
@@ -49,7 +43,7 @@ export class AnthropicProvider extends BaseLLMProvider {
     const nonSystemMessages = messages.filter((m) => m.role !== 'system');
 
     try {
-      const response = await this.client.messages.create({
+      const response = await client.messages.create({
         model: options.model,
         max_tokens: options.maxTokens ?? 4096,
         temperature: options.temperature ?? 0.1,

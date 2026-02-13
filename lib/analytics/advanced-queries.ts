@@ -5,7 +5,7 @@
  * - Confidence calibration
  */
 
-import { eq, and, gte, sql, count, isNotNull, desc, ne } from 'drizzle-orm';
+import { eq, and, gte, sql, count, isNotNull, desc } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
 import {
   verificationsTable,
@@ -404,13 +404,16 @@ export async function getProviderCostComparison(
 /**
  * Calculate confidence calibration by paradigm
  * Compares predicted confidence vs actual accuracy in each bucket
+ *
+ * Uses SQL-side bucketing via CASE WHEN + GROUP BY to return ~70 rows
+ * (7 paradigms x 10 buckets) instead of fetching 100K+ rows into JS memory.
  */
 export async function getConfidenceCalibration(
   orgId: string,
   startDate: Date
 ): Promise<ParadigmCalibration[]> {
-  // Define confidence buckets
-  const buckets = [
+  // Bucket definitions for post-processing (labels + boundaries)
+  const bucketDefs = [
     { min: 0, max: 0.1, label: '0-10%' },
     { min: 0.1, max: 0.2, label: '10-20%' },
     { min: 0.2, max: 0.3, label: '20-30%' },
@@ -420,16 +423,26 @@ export async function getConfidenceCalibration(
     { min: 0.6, max: 0.7, label: '60-70%' },
     { min: 0.7, max: 0.8, label: '70-80%' },
     { min: 0.8, max: 0.9, label: '80-90%' },
-    { min: 0.9, max: 1.0, label: '90-100%' },
+    { min: 0.9, max: 1.01, label: '90-100%' },
   ];
 
-  // Get paradigm results with escalation feedback
-  const results = await db
+  // SQL-side bucketing: returns ~70 rows instead of 100K+
+  const bucketResults = await db
     .select({
       paradigmType: paradigmResultsTable.paradigmType,
-      confidence: paradigmResultsTable.confidence,
-      verdict: paradigmResultsTable.verdict,
-      humanVerdict: escalationsTable.humanVerdict,
+      bucket: sql<number>`FLOOR(CAST(${paradigmResultsTable.confidence} AS numeric) * 10)`.as('bucket'),
+      count: sql<number>`COUNT(*)`.as('count'),
+      avgConfidence: sql<number>`AVG(CAST(${paradigmResultsTable.confidence} AS numeric))`.as('avg_confidence'),
+      verifiedCount: sql<number>`COUNT(*) FILTER (WHERE ${escalationsTable.humanVerdict} IS NOT NULL)`.as('verified_count'),
+      verifiedCorrect: sql<number>`COUNT(*) FILTER (
+        WHERE ${escalationsTable.humanVerdict} IS NOT NULL
+        AND ${paradigmResultsTable.verdict} = ${escalationsTable.humanVerdict}
+      )`.as('verified_correct'),
+      estimatedCorrect: sql<number>`COUNT(*) FILTER (
+        WHERE ${escalationsTable.humanVerdict} IS NULL
+        OR (${escalationsTable.humanVerdict} IS NOT NULL
+            AND ${paradigmResultsTable.verdict} = ${escalationsTable.humanVerdict})
+      )`.as('estimated_correct'),
     })
     .from(paradigmResultsTable)
     .innerJoin(
@@ -447,99 +460,121 @@ export async function getConfidenceCalibration(
         isNotNull(paradigmResultsTable.confidence),
         isNotNull(paradigmResultsTable.verdict)
       )
+    )
+    .groupBy(
+      paradigmResultsTable.paradigmType,
+      sql`FLOOR(CAST(${paradigmResultsTable.confidence} AS numeric) * 10)`
     );
 
-  // Group by paradigm and calculate calibration (using inferred types from Drizzle)
-  type ResultItem = (typeof results)[number];
-  const paradigmMap = new Map<string, ResultItem[]>();
+  // Also get per-paradigm overall stats for over/under confidence detection
+  const overallResults = await db
+    .select({
+      paradigmType: paradigmResultsTable.paradigmType,
+      totalCount: sql<number>`COUNT(*)`.as('total_count'),
+      avgConfidence: sql<number>`AVG(CAST(${paradigmResultsTable.confidence} AS numeric))`.as('avg_confidence'),
+      verifiedCount: sql<number>`COUNT(*) FILTER (WHERE ${escalationsTable.humanVerdict} IS NOT NULL)`.as('verified_count'),
+      verifiedCorrect: sql<number>`COUNT(*) FILTER (
+        WHERE ${escalationsTable.humanVerdict} IS NOT NULL
+        AND ${paradigmResultsTable.verdict} = ${escalationsTable.humanVerdict}
+      )`.as('verified_correct'),
+      estimatedCorrect: sql<number>`COUNT(*) FILTER (
+        WHERE ${escalationsTable.humanVerdict} IS NULL
+        OR (${escalationsTable.humanVerdict} IS NOT NULL
+            AND ${paradigmResultsTable.verdict} = ${escalationsTable.humanVerdict})
+      )`.as('estimated_correct'),
+    })
+    .from(paradigmResultsTable)
+    .innerJoin(
+      verificationsTable,
+      eq(paradigmResultsTable.verificationId, verificationsTable.id)
+    )
+    .leftJoin(
+      escalationsTable,
+      eq(escalationsTable.verificationId, verificationsTable.id)
+    )
+    .where(
+      and(
+        eq(verificationsTable.orgId, orgId),
+        gte(verificationsTable.createdAt, startDate),
+        isNotNull(paradigmResultsTable.confidence),
+        isNotNull(paradigmResultsTable.verdict)
+      )
+    )
+    .groupBy(paradigmResultsTable.paradigmType);
 
-  for (const r of results) {
-    const existing = paradigmMap.get(r.paradigmType) || [];
+  // Group bucket results by paradigm
+  const paradigmBuckets = new Map<string, typeof bucketResults>();
+  for (const r of bucketResults) {
+    const existing = paradigmBuckets.get(r.paradigmType) || [];
     existing.push(r);
-    paradigmMap.set(r.paradigmType, existing);
+    paradigmBuckets.set(r.paradigmType, existing);
   }
+
+  const overallMap = new Map<string, (typeof overallResults)[number]>(
+    overallResults.map((r) => [r.paradigmType, r])
+  );
 
   const calibrations: ParadigmCalibration[] = [];
 
-  for (const [paradigmType, data] of Array.from(paradigmMap.entries())) {
-    const bucketResults: ConfidenceBucket[] = [];
+  for (const [paradigmType, rows] of Array.from(paradigmBuckets.entries())) {
+    const processedBuckets: ConfidenceBucket[] = [];
     let totalCalibrationError = 0;
-    let totalCount = 0;
+    let totalWeightedCount = 0;
 
-    for (const bucket of buckets) {
-      const bucketData = data.filter((d: ResultItem) => {
-        const conf = Number(d.confidence) || 0;
-        return conf >= bucket.min && conf < bucket.max;
-      });
+    for (const row of rows) {
+      const bucketIdx = Math.min(Number(row.bucket), 9); // Clamp confidence=1.0 into the 90-100% bucket
+      const def = bucketDefs[bucketIdx];
+      if (!def) continue;
 
-      if (bucketData.length === 0) continue;
+      const cnt = Number(row.count) || 0;
+      const avgConf = Number(row.avgConfidence) || 0;
+      const verifiedCnt = Number(row.verifiedCount) || 0;
+      const verifiedCorr = Number(row.verifiedCorrect) || 0;
+      const estimatedCorr = Number(row.estimatedCorrect) || 0;
 
-      const count = bucketData.length;
-      const avgConfidence =
-        bucketData.reduce((sum: number, d: ResultItem) => sum + (Number(d.confidence) || 0), 0) / count;
-
-      // Verified accuracy: only items with human feedback
-      const withFeedback = bucketData.filter((d: ResultItem) => d.humanVerdict !== null);
-      const verifiedCount = withFeedback.length;
-      const verifiedCorrect = withFeedback.filter((d: ResultItem) => d.verdict === d.humanVerdict).length;
-      const verifiedAccuracy = verifiedCount > 0 ? verifiedCorrect / verifiedCount : 0;
-
-      // Estimated accuracy: assumes non-escalated items are correct
-      const estimatedCorrect = bucketData.filter((d: ResultItem) => {
-        if (d.humanVerdict !== null) {
-          return d.verdict === d.humanVerdict;
-        }
-        return true; // Assume correct if no feedback
-      }).length;
-      const estimatedAccuracy = estimatedCorrect / count;
+      const verifiedAccuracy = verifiedCnt > 0 ? verifiedCorr / verifiedCnt : 0;
+      const estimatedAccuracy = cnt > 0 ? estimatedCorr / cnt : 0;
 
       // Use verified accuracy for calibration error when we have feedback, otherwise estimated
-      const accuracyForError = verifiedCount > 0 ? verifiedAccuracy : estimatedAccuracy;
-      const calibrationError = Math.abs(accuracyForError - avgConfidence);
+      const accuracyForError = verifiedCnt > 0 ? verifiedAccuracy : estimatedAccuracy;
+      const calibrationError = Math.abs(accuracyForError - avgConf);
 
-      bucketResults.push({
-        bucket: bucket.label,
-        minConfidence: bucket.min,
-        maxConfidence: bucket.max,
-        count,
-        verifiedCount,
+      processedBuckets.push({
+        bucket: def.label,
+        minConfidence: def.min,
+        maxConfidence: def.max,
+        count: cnt,
+        verifiedCount: verifiedCnt,
         verifiedAccuracy,
         estimatedAccuracy,
-        avgConfidence,
+        avgConfidence: avgConf,
         calibrationError,
       });
 
       // Weight calibration error by verified count when available
-      const weightedCount = verifiedCount > 0 ? verifiedCount : count;
+      const weightedCount = verifiedCnt > 0 ? verifiedCnt : cnt;
       totalCalibrationError += calibrationError * weightedCount;
-      totalCount += weightedCount;
+      totalWeightedCount += weightedCount;
     }
 
-    const overallCalibrationError = totalCount > 0 ? totalCalibrationError / totalCount : 0;
+    const overallCalibrationError = totalWeightedCount > 0 ? totalCalibrationError / totalWeightedCount : 0;
 
-    // Determine if paradigm is over/under confident using verified data when available
-    const avgConfidenceOverall =
-      data.reduce((sum: number, d: ResultItem) => sum + (Number(d.confidence) || 0), 0) / data.length;
-    const withFeedbackOverall = data.filter((d: ResultItem) => d.humanVerdict !== null);
-    const verifiedCorrectOverall = withFeedbackOverall.filter((d: ResultItem) => d.verdict === d.humanVerdict).length;
-    const verifiedAccuracyOverall = withFeedbackOverall.length > 0 ? verifiedCorrectOverall / withFeedbackOverall.length : 0;
+    // Determine if paradigm is over/under confident using overall stats
+    const overall = overallMap.get(paradigmType);
+    const avgConfidenceOverall = Number(overall?.avgConfidence) || 0;
+    const overallVerifiedCnt = Number(overall?.verifiedCount) || 0;
+    const overallVerifiedCorr = Number(overall?.verifiedCorrect) || 0;
+    const overallTotalCnt = Number(overall?.totalCount) || 0;
+    const overallEstimatedCorr = Number(overall?.estimatedCorrect) || 0;
 
-    // Use verified accuracy if we have feedback, otherwise use estimated
-    const correctCount = data.filter((d: ResultItem) => {
-      if (d.humanVerdict !== null) {
-        return d.verdict === d.humanVerdict;
-      }
-      return true;
-    }).length;
-    const actualAccuracyOverall = data.length > 0 ? correctCount / data.length : 0;
-
-    // Use verified accuracy for over/under confidence when available
-    const accuracyToCompare = withFeedbackOverall.length > 0 ? verifiedAccuracyOverall : actualAccuracyOverall;
+    const verifiedAccuracyOverall = overallVerifiedCnt > 0 ? overallVerifiedCorr / overallVerifiedCnt : 0;
+    const estimatedAccuracyOverall = overallTotalCnt > 0 ? overallEstimatedCorr / overallTotalCnt : 0;
+    const accuracyToCompare = overallVerifiedCnt > 0 ? verifiedAccuracyOverall : estimatedAccuracyOverall;
 
     calibrations.push({
       paradigmType,
       displayName: PARADIGM_DISPLAY_NAMES[paradigmType] || paradigmType,
-      buckets: bucketResults,
+      buckets: processedBuckets,
       overallCalibrationError,
       isOverconfident: avgConfidenceOverall > accuracyToCompare + 0.05,
       isUnderconfident: avgConfidenceOverall < accuracyToCompare - 0.05,

@@ -2,6 +2,8 @@
  * POST /api/v1/batch/upload - Upload a batch file (CSV/JSON)
  */
 
+export const maxDuration = 60;
+
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { parseFile, storeUploadedFile, isFileStorageAvailable, BATCH_CONSTANTS } from '@/lib/batch';

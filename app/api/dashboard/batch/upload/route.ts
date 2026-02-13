@@ -2,6 +2,8 @@
  * POST /api/dashboard/batch/upload - Upload a batch file (session auth for dashboard)
  */
 
+export const maxDuration = 60;
+
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { eq } from 'drizzle-orm';

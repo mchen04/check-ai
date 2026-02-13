@@ -5,7 +5,6 @@
  * Used by: Google, xAI, Mistral, DeepSeek, Groq, Together, Fireworks, Cerebras, Perplexity
  */
 
-import OpenAI from 'openai';
 import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
 import { LLMMessage, LLMOptions, LLMResponse, TokenLogprob, LLMProvider, PROVIDER_BASE_URLS } from '../types';
 import { BaseLLMProvider, LLMError, EmbeddingResult } from '../providers/interfaces';
@@ -64,6 +63,7 @@ export abstract class OpenAICompatibleProvider extends BaseLLMProvider {
     if (!apiKey) return null;
 
     try {
+      const { default: OpenAI } = await import('openai');
       const client = new OpenAI({
         apiKey,
         baseURL: this.getBaseUrl(),
@@ -113,6 +113,7 @@ export abstract class OpenAICompatibleProvider extends BaseLLMProvider {
 
     const startTime = Date.now();
 
+    const { default: OpenAI } = await import('openai');
     const client = new OpenAI({
       apiKey,
       baseURL: this.getBaseUrl(),

@@ -3,12 +3,17 @@
  * Native SDK implementation for OpenAI models
  */
 
-import OpenAI from 'openai';
 import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
 import { LLMMessage, LLMOptions, LLMResponse, TokenLogprob, DEFAULT_MODELS } from '../../types';
 import { BaseLLMProvider, LLMError, EmbeddingResult, ProviderFactoryConfig } from '../interfaces';
 import type { ModelCapability } from '../../model-registry';
 import { providerRegistry } from '../registry';
+
+// Dynamic import helper to avoid loading ~1MB SDK on every cold start
+async function getOpenAIClient(apiKey: string) {
+  const { default: OpenAI } = await import('openai');
+  return new OpenAI({ apiKey });
+}
 
 // =============================================================================
 // OPENAI PROVIDER
@@ -19,15 +24,6 @@ export class OpenAIProvider extends BaseLLMProvider {
   readonly tier = 1 as const;
   readonly isOpenAICompatible = true;
 
-  private client?: OpenAI;
-
-  constructor(config: ProviderFactoryConfig) {
-    super(config);
-    if (this.keys.openai) {
-      this.client = new OpenAI({ apiKey: this.keys.openai });
-    }
-  }
-
   isConfigured(): boolean {
     return !!this.keys.openai;
   }
@@ -37,11 +33,12 @@ export class OpenAIProvider extends BaseLLMProvider {
   }
 
   async getEmbedding(texts: string[], model?: string): Promise<EmbeddingResult | null> {
-    if (!this.client) return null;
+    if (!this.keys.openai) return null;
     const embeddingModel = model ?? 'text-embedding-3-small';
 
     try {
-      const response = await this.client.embeddings.create({
+      const client = await getOpenAIClient(this.keys.openai);
+      const response = await client.embeddings.create({
         model: embeddingModel,
         input: texts,
       });
@@ -69,10 +66,11 @@ export class OpenAIProvider extends BaseLLMProvider {
     messages: LLMMessage[],
     options: LLMOptions & { model: string }
   ): Promise<LLMResponse> {
-    if (!this.client) {
+    if (!this.keys.openai) {
       throw new LLMError('OpenAI API key not configured', this.name, options.model);
     }
 
+    const client = await getOpenAIClient(this.keys.openai);
     const startTime = Date.now();
 
     try {
@@ -96,7 +94,7 @@ export class OpenAIProvider extends BaseLLMProvider {
         }
       }
 
-      const response = await this.client.chat.completions.create(params);
+      const response = await client.chat.completions.create(params);
 
       // Extract logprobs if available
       let logprobsData: TokenLogprob[] | undefined;
