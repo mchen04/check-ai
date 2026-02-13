@@ -61,7 +61,7 @@ export default async function DocsPage({ params }: DocsPageProps) {
 
       {/* Content */}
       <div className="mdx-content">
-        <MDXRemote source={doc.content} components={mdxComponents} />
+        <MDXRemote source={doc.content} components={mdxComponents} options={{ blockJS: false }} />
       </div>
 
       {/* Navigation */}
