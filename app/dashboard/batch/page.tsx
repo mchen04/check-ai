@@ -31,7 +31,7 @@ import { Spinner } from '@/components/ui/loading-spinner';
 import { truncateString } from '@/lib/api/formatters';
 import { Pagination } from '@/components/ui/pagination';
 import { PAGINATION_LIMITS } from '@/lib/constants';
-import { Skeleton, SkeletonTableRowNative } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // =============================================================================
 // TYPES
@@ -107,6 +107,26 @@ function sortBatchesByActivity(batches: BatchJob[]): BatchJob[] {
 // LOADING SKELETON
 // =============================================================================
 
+function BatchSkeletonRows({ count }: { count: number }) {
+  return Array.from({ length: count }, (_, i) => (
+    <TableRow key={i}>
+      <TableCell className="px-4 py-3"><Skeleton className="h-5 w-24" /></TableCell>
+      <TableCell className="px-4 py-3">
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="h-3 w-16 mt-1" />
+      </TableCell>
+      <TableCell className="min-w-[150px] px-4 py-3">
+        <Skeleton className="h-2 w-full" />
+        <Skeleton className="h-3 w-20 mt-1" />
+      </TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-4 w-12" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-4 w-14" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-4 w-14" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-4 w-4" /></TableCell>
+    </TableRow>
+  ));
+}
+
 function BatchListSkeleton() {
   return (
     <div className="p-6">
@@ -135,9 +155,7 @@ function BatchListSkeleton() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {[1, 2, 3].map((i) => (
-                <SkeletonTableRowNative key={i} columns={7} />
-              ))}
+              <BatchSkeletonRows count={3} />
             </TableBody>
           </Table>
         </div>
@@ -366,9 +384,7 @@ function BatchListContent() {
                   </TableCell>
                 </TableRow>
               ) : isPending && batches.length === 0 ? (
-                [1, 2, 3].map((i) => (
-                  <SkeletonTableRowNative key={i} columns={7} />
-                ))
+                <BatchSkeletonRows count={3} />
               ) : batches.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">

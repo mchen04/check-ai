@@ -35,7 +35,7 @@ import type { VerificationStatus } from '@/lib/api/types';
 import { truncateString } from '@/lib/api/formatters';
 import { Pagination } from '@/components/ui/pagination';
 import { PAGINATION_LIMITS } from '@/lib/constants';
-import { Skeleton, SkeletonTableRowNative } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // =============================================================================
 // TYPES
@@ -64,6 +64,21 @@ interface PaginationInfo {
 // =============================================================================
 // LOADING SKELETON
 // =============================================================================
+
+function VerificationSkeletonRows({ count }: { count: number }) {
+  return Array.from({ length: count }, (_, i) => (
+    <TableRow key={i}>
+      <TableCell className="px-4 py-3"><Skeleton className="h-5 w-20" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-4 w-52" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-5 w-24" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-4 w-12" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-4 w-14" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-4 w-16" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-4 w-14" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-4 w-4" /></TableCell>
+    </TableRow>
+  ));
+}
 
 function VerificationListSkeleton() {
   return (
@@ -102,9 +117,7 @@ function VerificationListSkeleton() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {[1, 2, 3, 4, 5].map((i) => (
-                <SkeletonTableRowNative key={i} columns={8} />
-              ))}
+              <VerificationSkeletonRows count={5} />
             </TableBody>
           </Table>
         </div>
@@ -391,9 +404,7 @@ function VerificationHistoryContent() {
                   </TableCell>
                 </TableRow>
               ) : isPending && verifications.length === 0 ? (
-                [1, 2, 3, 4, 5].map((i) => (
-                  <SkeletonTableRowNative key={i} columns={8} />
-                ))
+                <VerificationSkeletonRows count={5} />
               ) : verifications.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">

@@ -25,7 +25,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Pagination } from '@/components/ui/pagination';
 import { PAGINATION_LIMITS } from '@/lib/constants';
-import { Skeleton, SkeletonTableRowNative } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // =============================================================================
 // TYPES
@@ -81,6 +81,20 @@ function formatTokens(tokens: number): string {
 // LOADING SKELETON
 // =============================================================================
 
+function LogsSkeletonRows({ count }: { count: number }) {
+  return Array.from({ length: count }, (_, i) => (
+    <TableRow key={i}>
+      <TableCell className="px-4 py-3"><Skeleton className="h-5 w-20" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-4 w-32" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="ml-auto h-4 w-10" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="ml-auto h-4 w-10" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="ml-auto h-4 w-14" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-4 w-16" /></TableCell>
+      <TableCell className="px-4 py-3"><Skeleton className="h-4 w-14" /></TableCell>
+    </TableRow>
+  ));
+}
+
 function LogsListSkeleton() {
   return (
     <div className="p-6">
@@ -112,9 +126,7 @@ function LogsListSkeleton() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {[1, 2, 3, 4, 5].map((i) => (
-                <SkeletonTableRowNative key={i} columns={7} />
-              ))}
+              <LogsSkeletonRows count={5} />
             </TableBody>
           </Table>
         </div>
@@ -297,9 +309,7 @@ function LogsContent() {
                   </TableCell>
                 </TableRow>
               ) : isPending && logs.length === 0 ? (
-                [1, 2, 3, 4, 5].map((i) => (
-                  <SkeletonTableRowNative key={i} columns={7} />
-                ))
+                <LogsSkeletonRows count={5} />
               ) : logs.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
