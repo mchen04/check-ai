@@ -3,7 +3,8 @@
 import { memo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronRight, Book, PlayCircle } from 'lucide-react';
+import Image from 'next/image';
+import { ChevronRight, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { docsNavigation, type NavItem } from '@/lib/docs/navigation';
 
@@ -57,7 +58,7 @@ export function DocsSidebar() {
         {/* Logo/Brand */}
         <div className="mb-8 px-4">
           <Link href="/" className="flex items-center gap-2">
-            <Book className="h-5 w-5 text-primary" />
+            <Image src="/logo.svg" alt="Check" width={20} height={20} />
             <span className="font-semibold">Check Docs</span>
           </Link>
         </div>

@@ -36,7 +36,6 @@ export const docsNavigation: NavItem[] = [
       { title: 'Webhooks', href: '/docs/webhooks' },
       { title: 'Error Handling', href: '/docs/errors' },
       { title: 'Rate Limiting', href: '/docs/rate-limiting' },
-      { title: 'Environment Variables', href: '/docs/environment-variables' },
     ],
   },
 ];

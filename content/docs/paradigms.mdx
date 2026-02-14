@@ -26,7 +26,7 @@ Check uses a multi-paradigm approach to verification, combining seven distinct m
 
 ### Semantic
 
-Boltzmann energy-based embedding analysis with batch cached references for efficient similarity verification.
+Embedding-based similarity analysis for fast claim comparison against known facts.
 
 | Property | Value |
 |----------|-------|
@@ -35,9 +35,9 @@ Boltzmann energy-based embedding analysis with batch cached references for effic
 | Cost | Low |
 
 **How it works:**
-1. Converts the claim to a vector embedding
-2. Computes Boltzmann energy distributions over embeddings against batch cached reference facts (single API call)
-3. Returns energy-based confidence score (lower energy = higher similarity)
+1. Converts the claim to vector embeddings
+2. Compares against known reference facts
+3. Returns a similarity-based confidence score
 
 **Best for:**
 - Quick sanity checks
@@ -60,7 +60,7 @@ const result = await client.verifyAndWait({
 
 ### Reasoning
 
-Adaptive self-refinement verification with conditional self-critique (test-time training) when confidence falls in the [0.4, 0.85] range.
+LLM-based chain-of-thought verification with adaptive self-refinement for borderline cases.
 
 | Property | Value |
 |----------|-------|
@@ -69,8 +69,8 @@ Adaptive self-refinement verification with conditional self-critique (test-time 
 | Cost | Medium |
 
 **How it works:**
-1. Sends the claim to an LLM with a verification prompt
-2. If initial confidence is in [0.4, 0.85], triggers conditional self-critique (TTT) for refinement
+1. Sends the claim to an LLM for structured analysis
+2. For borderline confidence cases, automatically triggers self-critique to refine the verdict
 3. Self-critique challenges the initial reasoning and produces a refined verdict
 
 **Best for:**
@@ -94,7 +94,7 @@ const result = await client.verifyAndWait({
 
 ### Tool
 
-CLoVE (Contrastive Language-grounded Verification) with per-source independence scoring and contrastive reasoning.
+Web search-grounded verification with source-level evidence analysis.
 
 | Property | Value |
 |----------|-------|
@@ -103,10 +103,10 @@ CLoVE (Contrastive Language-grounded Verification) with per-source independence 
 | Cost | High |
 
 **How it works:**
-1. Extracts key claims using CLoVE structured prompts
-2. Searches authoritative sources with per-source independence scoring
-3. Applies contrastive reasoning to weigh supporting vs. contradicting evidence
-4. Returns verdict with source citations and independence-weighted confidence
+1. Extracts key claims from the input
+2. Searches authoritative web sources
+3. Weighs supporting vs. contradicting evidence
+4. Returns verdict with source citations
 
 **Best for:**
 - Fact-checking current events
@@ -133,7 +133,7 @@ console.log(result.paradigmResults[0].sources);
 
 ### BIPRM
 
-Parallel bidirectional (L2R/R2L) step-level scoring via Promise.all() for debiased reasoning from multiple angles.
+Bidirectional step-by-step reasoning that analyzes claims from multiple angles to reduce bias.
 
 | Property | Value |
 |----------|-------|
@@ -142,10 +142,10 @@ Parallel bidirectional (L2R/R2L) step-level scoring via Promise.all() for debias
 | Cost | Medium-High |
 
 **How it works:**
-1. Runs left-to-right (L2R) and right-to-left (R2L) reasoning in parallel via Promise.all()
-2. Scores each reasoning step independently for step-level granularity
-3. Aggregates bidirectional step scores to produce a debiased verdict
-4. BiPRM x Formal synergy: when both methods run, orchestrator cross-validates results
+1. Runs forward and reverse reasoning in parallel
+2. Scores each reasoning step independently
+3. Aggregates bidirectional scores for a debiased verdict
+4. When combined with Formal method, cross-validates results
 
 **Best for:**
 - Controversial or debatable claims
@@ -168,7 +168,7 @@ const result = await client.verifyAndWait({
 
 ### Ensemble
 
-Meta-judge adjudicated multi-model consensus with conditional meta-judge activation when members disagree.
+Multi-model consensus with intelligent dispute resolution when models disagree.
 
 | Property | Value |
 |----------|-------|
@@ -203,7 +203,7 @@ const result = await client.verifyAndWait({
 
 ### Entropy
 
-Dual-path semantic entropy: logprobs fast path when available, behavioral path with semantic clustering as fallback.
+Semantic consistency analysis that measures how stable a claim's verification is across rephrasing.
 
 | Property | Value |
 |----------|-------|
@@ -212,9 +212,9 @@ Dual-path semantic entropy: logprobs fast path when available, behavioral path w
 | Cost | Medium |
 
 **How it works:**
-1. **Logprobs fast path**: When the model provides token-level log probabilities, computes entropy directly from logprobs for instant confidence estimation
-2. **Behavioral path** (fallback): Generates multiple rephrasings, verifies each independently, then clusters responses using semantic similarity
-3. Low entropy = high confidence, high entropy = uncertainty
+1. Generates multiple rephrasings of the claim
+2. Verifies each rephrasing independently
+3. Measures consistency across results — high consistency = high confidence
 
 **Best for:**
 - Detecting hallucinations
@@ -237,7 +237,7 @@ const result = await client.verifyAndWait({
 
 ### Formal
 
-mathjs autoformalization with expanded claim classification for symbolic verification of mathematical claims.
+Symbolic mathematical verification with zero false positive rate for supported claim types.
 
 | Property | Value |
 |----------|-------|
@@ -247,8 +247,8 @@ mathjs autoformalization with expanded claim classification for symbolic verific
 
 **How it works:**
 1. Classifies claims into types: arithmetic, algebraic, comparison, statistical, unit conversion
-2. Autoformalizes the claim into a mathjs expression using LLM-assisted translation
-3. Evaluates the expression symbolically with mathjs for 0% FPR (mathematical certainty)
+2. Translates the claim into a symbolic expression
+3. Evaluates the expression formally for 0% FPR (mathematical certainty)
 4. Claims outside supported categories fall back to LLM-based reasoning (~5-7% FPR)
 
 **Best for:**
@@ -261,7 +261,7 @@ mathjs autoformalization with expanded claim classification for symbolic verific
 **Limitations:**
 - Only works for formalizable claims within supported categories
 - Cannot verify subjective statements
-- Full theorem prover integration (Lean, Coq, Z3) is planned
+- Only supports specific mathematical categories
 
 ```typescript
 // Arithmetic verification
