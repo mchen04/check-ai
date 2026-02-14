@@ -15,7 +15,7 @@ interface ParameterTableProps {
   className?: string;
 }
 
-export function ParameterTable({ parameters, title, className }: ParameterTableProps) {
+export function ParameterTable({ parameters = [], title, className }: ParameterTableProps) {
   return (
     <div className={cn('my-6', className)}>
       {title && (

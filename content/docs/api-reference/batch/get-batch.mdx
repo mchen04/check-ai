@@ -35,7 +35,7 @@ Retrieve the status and details of a specific batch job.
     {
       language: 'curl',
       label: 'cURL',
-      code: `curl -X GET https://api.verifact.ai/v1/batch/batch_abc123def456 \\
+      code: `curl -X GET https://api.check.ai/v1/batch/batch_abc123def456 \\
   -H "Authorization: Bearer vfy_your_api_key"`
     },
     {
@@ -56,7 +56,7 @@ console.log(\`Progress: \${batch.processedItems}/\${batch.totalItems}\`);`
       code: `import requests
 
 response = requests.get(
-    'https://api.verifact.ai/v1/batch/batch_abc123def456',
+    'https://api.check.ai/v1/batch/batch_abc123def456',
     headers={'Authorization': 'Bearer vfy_your_api_key'}
 )
 

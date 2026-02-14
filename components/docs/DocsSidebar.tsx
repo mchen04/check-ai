@@ -58,7 +58,7 @@ export function DocsSidebar() {
         <div className="mb-8 px-4">
           <Link href="/" className="flex items-center gap-2">
             <Book className="h-5 w-5 text-primary" />
-            <span className="font-semibold">Verifact Docs</span>
+            <span className="font-semibold">Check Docs</span>
           </Link>
         </div>
 

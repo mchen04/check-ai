@@ -75,22 +75,25 @@ export const mdxComponents = {
     />
   ),
   table: ({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) => (
-    <div className="my-6 w-full overflow-y-auto">
-      <table className={cn('w-full', className)} {...props} />
+    <div className="my-6 w-full overflow-x-auto rounded-lg border border-border">
+      <table className={cn('w-full text-sm', className)} {...props} />
     </div>
+  ),
+  thead: ({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) => (
+    <thead className={cn('bg-muted/50', className)} {...props} />
   ),
   tr: ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
     <tr className={cn('border-b border-border', className)} {...props} />
   ),
   th: ({ className, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
     <th
-      className={cn('px-4 py-2 text-left font-semibold [&[align=center]]:text-center [&[align=right]]:text-right', className)}
+      className={cn('px-4 py-3 text-left text-sm font-semibold [&[align=center]]:text-center [&[align=right]]:text-right', className)}
       {...props}
     />
   ),
   td: ({ className, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
     <td
-      className={cn('px-4 py-2 [&[align=center]]:text-center [&[align=right]]:text-right', className)}
+      className={cn('px-4 py-3 [&[align=center]]:text-center [&[align=right]]:text-right', className)}
       {...props}
     />
   ),

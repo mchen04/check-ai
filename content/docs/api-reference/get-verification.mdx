@@ -34,7 +34,7 @@ Retrieve the details of a previously submitted verification.
     {
       language: 'curl',
       label: 'cURL',
-      code: `curl https://api.verifact.ai/v1/verify/ver_abc123def456 \\
+      code: `curl https://api.check.ai/v1/verify/ver_abc123def456 \\
   -H "Authorization: Bearer vfy_your_api_key"`
     },
     {
@@ -42,7 +42,7 @@ Retrieve the details of a previously submitted verification.
       label: 'Node.js',
       code: `const verificationId = 'ver_abc123def456';
 
-const response = await fetch(\`https://api.verifact.ai/v1/verify/\${verificationId}\`, {
+const response = await fetch(\`https://api.check.ai/v1/verify/\${verificationId}\`, {
   headers: {
     'Authorization': 'Bearer vfy_your_api_key',
   },
@@ -59,7 +59,7 @@ console.log(result);`
 verification_id = 'ver_abc123def456'
 
 response = requests.get(
-    f'https://api.verifact.ai/v1/verify/{verification_id}',
+    f'https://api.check.ai/v1/verify/{verification_id}',
     headers={
         'Authorization': 'Bearer vfy_your_api_key',
     }
@@ -86,17 +86,17 @@ print(response.json())`
   "paradigmResults": [
     {
       "id": "pr_111",
-      "paradigm": "llm_analysis",
+      "paradigm": "reasoning",
       "verdict": "true",
       "confidence": 0.94,
       "reasoning": "Analysis indicates factual accuracy",
       "provider": "anthropic",
-      "model": "claude-3-sonnet",
+      "model": "claude-sonnet-4-5-20250929",
       "processingTimeMs": 850
     },
     {
       "id": "pr_222",
-      "paradigm": "search_verification",
+      "paradigm": "tool",
       "verdict": "true",
       "confidence": 0.97,
       "reasoning": "Confirmed by 3 authoritative sources",
@@ -177,7 +177,7 @@ For long-running verifications, you can poll this endpoint:
 ```javascript
 async function waitForVerification(id, maxAttempts = 30) {
   for (let i = 0; i < maxAttempts; i++) {
-    const response = await fetch(`https://api.verifact.ai/v1/verify/${id}`, {
+    const response = await fetch(`https://api.check.ai/v1/verify/${id}`, {
       headers: { 'Authorization': `Bearer ${apiKey}` },
     });
 

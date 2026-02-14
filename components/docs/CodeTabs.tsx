@@ -17,11 +17,12 @@ interface CodeTabsProps {
 
 const STORAGE_KEY = 'docs-preferred-language';
 
-export function CodeTabs({ examples, className }: CodeTabsProps) {
+export function CodeTabs({ examples = [], className }: CodeTabsProps) {
   const [activeTab, setActiveTab] = useState(0);
 
   // Load preference from localStorage
   useEffect(() => {
+    if (!examples.length) return;
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const index = examples.findIndex((e) => e.language === saved);
@@ -30,6 +31,8 @@ export function CodeTabs({ examples, className }: CodeTabsProps) {
       }
     }
   }, [examples]);
+
+  if (!examples.length) return null;
 
   function handleTabChange(index: number) {
     setActiveTab(index);

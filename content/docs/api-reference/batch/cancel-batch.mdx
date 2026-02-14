@@ -35,7 +35,7 @@ Cancel a batch job that is pending or processing.
     {
       language: 'curl',
       label: 'cURL',
-      code: `curl -X POST https://api.verifact.ai/v1/batch/batch_abc123/cancel \\
+      code: `curl -X POST https://api.check.ai/v1/batch/batch_abc123/cancel \\
   -H "Authorization: Bearer vfy_your_api_key"`
     },
     {
@@ -54,7 +54,7 @@ console.log(result.message); // "Batch cancelled successfully"`
       code: `import requests
 
 response = requests.post(
-    'https://api.verifact.ai/v1/batch/batch_abc123/cancel',
+    'https://api.check.ai/v1/batch/batch_abc123/cancel',
     headers={'Authorization': 'Bearer vfy_your_api_key'}
 )
 

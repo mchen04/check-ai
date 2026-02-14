@@ -116,7 +116,7 @@ Note: `acceptThreshold` must be greater than `escalateThreshold`. Using `retryOn
     {
       language: 'curl',
       label: 'cURL',
-      code: `curl -X POST https://api.verifact.ai/v1/batch \\
+      code: `curl -X POST https://api.check.ai/v1/batch \\
   -H "Authorization: Bearer vfy_your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -183,14 +183,14 @@ console.log('Batch ID:', batch.id);`
 
 ```bash
 # First upload the file
-curl -X POST https://api.verifact.ai/v1/batch/upload \
+curl -X POST https://api.check.ai/v1/batch/upload \
   -H "Authorization: Bearer vfy_your_api_key" \
   -F "file=@claims.csv"
 
 # Response: { "fileId": "abc123", ... }
 
 # Then create batch with fileId
-curl -X POST https://api.verifact.ai/v1/batch \
+curl -X POST https://api.check.ai/v1/batch \
   -H "Authorization: Bearer vfy_your_api_key" \
   -H "Content-Type: application/json" \
   -d '{

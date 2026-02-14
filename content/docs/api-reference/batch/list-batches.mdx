@@ -49,7 +49,7 @@ Retrieve a paginated list of your batch jobs.
     {
       language: 'curl',
       label: 'cURL',
-      code: `curl -X GET "https://api.verifact.ai/v1/batch?limit=10&status=completed" \\
+      code: `curl -X GET "https://api.check.ai/v1/batch?limit=10&status=completed" \\
   -H "Authorization: Bearer vfy_your_api_key"`
     },
     {
@@ -75,7 +75,7 @@ data.forEach(batch => {
       code: `import requests
 
 response = requests.get(
-    'https://api.verifact.ai/v1/batch',
+    'https://api.check.ai/v1/batch',
     headers={'Authorization': 'Bearer vfy_your_api_key'},
     params={'limit': 10, 'status': 'completed'}
 )

@@ -63,7 +63,7 @@ Retrieve the verification results for items in a batch.
     {
       language: 'curl',
       label: 'cURL',
-      code: `curl -X GET "https://api.verifact.ai/v1/batch/batch_abc123/results?limit=20" \\
+      code: `curl -X GET "https://api.check.ai/v1/batch/batch_abc123/results?limit=20" \\
   -H "Authorization: Bearer vfy_your_api_key"`
     },
     {
@@ -88,7 +88,7 @@ results.items.forEach(item => {
       code: `import requests
 
 response = requests.get(
-    'https://api.verifact.ai/v1/batch/batch_abc123/results',
+    'https://api.check.ai/v1/batch/batch_abc123/results',
     headers={'Authorization': 'Bearer vfy_your_api_key'},
     params={'limit': 20}
 )
@@ -298,6 +298,6 @@ async function fetchAllResults(client, batchId) {
 
 ```bash
 # Get only failed items
-curl -X GET "https://api.verifact.ai/v1/batch/batch_abc123/results?status=failed" \
+curl -X GET "https://api.check.ai/v1/batch/batch_abc123/results?status=failed" \
   -H "Authorization: Bearer vfy_your_api_key"
 ```

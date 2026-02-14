@@ -11,6 +11,7 @@ export const docsNavigation: NavItem[] = [
       { title: 'Introduction', href: '/docs/introduction' },
       { title: 'Quickstart', href: '/docs/quickstart' },
       { title: 'Authentication', href: '/docs/authentication' },
+      { title: 'Verification Methods', href: '/docs/paradigms' },
     ],
   },
   {
@@ -19,14 +20,23 @@ export const docsNavigation: NavItem[] = [
       { title: 'Overview', href: '/docs/api-reference/overview' },
       { title: 'Verify Content', href: '/docs/api-reference/verify' },
       { title: 'Get Verification', href: '/docs/api-reference/get-verification' },
+      { title: 'Create Batch', href: '/docs/api-reference/batch/create-batch' },
+      { title: 'List Batches', href: '/docs/api-reference/batch/list-batches' },
+      { title: 'Get Batch', href: '/docs/api-reference/batch/get-batch' },
+      { title: 'Get Results', href: '/docs/api-reference/batch/get-results' },
+      { title: 'Cancel Batch', href: '/docs/api-reference/batch/cancel-batch' },
+      { title: 'Upload File', href: '/docs/api-reference/batch/upload-file' },
+      { title: 'File Formats', href: '/docs/api-reference/batch/file-formats' },
     ],
   },
   {
     title: 'Guides',
     items: [
+      { title: 'Dashboard', href: '/docs/dashboard' },
       { title: 'Webhooks', href: '/docs/webhooks' },
       { title: 'Error Handling', href: '/docs/errors' },
       { title: 'Rate Limiting', href: '/docs/rate-limiting' },
+      { title: 'Environment Variables', href: '/docs/environment-variables' },
     ],
   },
 ];

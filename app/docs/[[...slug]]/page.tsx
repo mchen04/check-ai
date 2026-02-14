@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import remarkGfm from 'remark-gfm';
 import { getDoc, getAllDocs, findAdjacentDocs } from '@/lib/docs';
 import { mdxComponents } from '@/components/docs/MDXComponents';
 import { Button } from '@/components/ui/button';
@@ -24,11 +25,11 @@ export async function generateMetadata({ params }: DocsPageProps) {
   const doc = getDoc(docSlug);
 
   if (!doc) {
-    return { title: 'Not Found | Verifact Docs' };
+    return { title: 'Not Found | Check Docs' };
   }
 
   return {
-    title: `${doc.frontmatter.title} | Verifact Docs`,
+    title: `${doc.frontmatter.title} | Check Docs`,
     description: doc.frontmatter.description,
   };
 }
@@ -61,7 +62,9 @@ export default async function DocsPage({ params }: DocsPageProps) {
 
       {/* Content */}
       <div className="mdx-content">
-        <MDXRemote source={doc.content} components={mdxComponents} options={{ blockJS: false }} />
+        <MDXRemote source={doc.content} components={mdxComponents} options={{
+          mdxOptions: { remarkPlugins: [remarkGfm] }
+        }} />
       </div>
 
       {/* Navigation */}
