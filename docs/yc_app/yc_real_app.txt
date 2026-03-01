@@ -1,11 +1,19 @@
 Submit your application before February 9 at 8pm PT to get a decision by March 13
 
 Founders
+
+How long have the founders known one another and how did you meet? Have any of the founders not met in person?
+
+Michael and I (Justin) have been good hometown friends for six years, since the 10th grade. When COVID-19 hit, we grew closer as we spent countless hours in our friend group’s discord server, where we worked together on school work, played competitive team-based video games, and grew our friendship. We’ve attempted to build two previous tech start-ups, but we are the most passionate and invested into Check and are looking for Y-Combinator’s support in building.
+
+There are no other founders. We have met in person.
+
 Who writes code, or does other technical work on your product?
 Was any of it done by a non-founder? Please explain.
-Michael writes all the code. No non-founders involved.
 
-Justin Tan (CEO): Product strategy, business operations, customer development. 3 months compliance audits at Mastercard reviewing 400+ applications for data security and regulatory compliance. IT risk frameworks at West Monroe. Built $35M revenue solutions using data analytics for Fortune 500 retailers.
+Michael writes all the code. No non-founders involved. 
+
+Justin Tan (CEO): Product strategy, business operations, customer development. All non-technical aspects of Check. Drove $35M revenue-generating solutions combining experimentation and analytics for Fortune 500 retailers at Mastercard. Built $19M cost-saving RFP bundles for IT software clients, covering risk and compliance for 400+ data security and service applications at West Monroe.
 
 Michael Chen (CTO): Built the entire platform in one month part-time while being a full-time student and working as an AI Software Engineer at Epoch (building Zerg, an autonomous coding agent). Previously built $5M DOD-funded sensor systems with 250+ sensors and zero downtime across 5,000+ hours. Won AMD Pervasive AI award ($2,500) among 8,200+ participants.
 
@@ -17,7 +25,7 @@ No
 Founder Video
 Please record a one minute video introducing the founder(s).*
 Make sure the file does not exceed 100 MB. Read more about the video here.
-<TBD - Record video>
+<TBD>
 
 Company
 Company name*
@@ -31,18 +39,23 @@ https://check-tau-taupe.vercel.app/
 
 If you have a demo, attach it below.
 Anything that shows us how the product works. Please limit to 3 minutes / 100 MB.
-<TBD - Record demo>
+https://drive.google.com/file/d/1dZ0JSadD63TNhRJyBI7FVPummVlv4Dtz/view?usp=drive_link 
 
 Please provide a link to the product, if any.
-https://check-tau-taupe.vercel.app/
+https://check-tau-taupe.vercel.app/demo 
 
 If login credentials are required for the link above, enter them here. (username / password)
-<TBD - Create demo account credentials>
+
+No Username
+PW: source-trust-me-bro
 
 What is your company going to make? Please describe your product and what it does or will do.
-Check is an API that verifies AI-generated content for accuracy. Like Stripe offers credit cards, ACH, and crypto for payments, we offer 7 verification methods: semantic similarity, entropy checking, LLM-as-judge reasoning, bidirectional premise reasoning, tool-augmented web search, multi-model ensemble voting, and formal mathematical proofs.
+
+Check is an API that evaluates confidence and accuracy in AI-generated text. Like Stripe offers credit cards, ACH, and crypto for payments, we offer 7 verification methods: semantic similarity, entropy checking, LLM-as-judge reasoning, bidirectional premise reasoning, tool-augmented web search, multi-model ensemble voting, and formal mathematical proofs. With more on the way!
 
 Customers pick which methods to use based on their needs. A legal AI company might use 50% ensemble + 50% tool-augmented to catch both reasoning errors and fake citations. A medical AI might use 60% BiPRM + 30% tool + 10% formal. A blog writer uses semantic only for speed.
+
+As AI grows in speed and accessibility, customers prioritize trust and accuracy.
 
 One API call. Choose your methods. Get a verdict (TRUE/FALSE/UNCERTAIN) with confidence score and explanation.
 
@@ -51,14 +64,17 @@ Use the format City A, Country A / City B, Country B
 Dublin, CA, USA / San Francisco, CA, USA
 
 Explain your decision regarding location.
-Both founders are born and raised in Dublin, CA in the East Bay. San Francisco is where our target customers (legal tech, healthcare AI, fintech) are concentrated.
+Both founders were born and raised in Dublin, CA in the East Bay. San Francisco is where our target customers (legal tech, healthcare AI, fintech) are concentrated.
 
 Progress
 How far along are you?
-Working product. Built all 7 verification methods, enterprise features (RBAC, audit logs, webhooks), batch processing, BYOK support for 16+ LLM providers, dashboard with analytics. 123 git commits. Michael is finishing customer onboarding flow and UX polish. No customers yet—launching beta in weeks.
+
+Working product. Built all 7 verification methods, enterprise features (RBAC, audit logs, webhooks), batch processing, BYOK support for 16+ LLM providers, dashboard with analytics. 123 git commits. Michael is finishing customer onboarding flow and UX polish. 
+No customers yet - launching beta in 1 week.
 
 How long have each of you been working on this? How much of that has been full-time? Please explain.
-One month part-time. Michael built the entire platform while being a full-time CS student and working as an AI engineer at Epoch. Justin handling product strategy and customer outreach while completing his final semester at UCSD.
+
+One month part-time. Michael built the entire platform while being a full-time CS student and working as an AI engineer at Epoch. Justin handles product strategy and business direction while completing his final full-time quarter at UCSD.
 
 What tech stack are you using, or planning to use, to build this product? Include AI models and AI coding tools you use.
 Frontend: Next.js 14, React 18, TypeScript, Tailwind CSS, shadcn/ui
@@ -67,11 +83,23 @@ Database: PostgreSQL (Supabase), Redis (Upstash) for rate limiting
 Auth: Supabase Auth with Google/GitHub OAuth
 Payments: Stripe
 Infrastructure: Vercel, Trigger.dev for async jobs
-AI Models: GPT-4o, Claude 3.5 Sonnet, Gemini for verification. Users can BYOK any of 16+ providers.
+AI Models: Users can BYOK any of 16+ providers.
+
 AI Coding Tools: Cursor, Claude Code
+
+Optional: attach a coding agent session you're particularly proud of.
+
+
+LINK: 
+https://drive.google.com/file/d/15raEqI6VKTIz6HcCr-LD4f8bmaBxSyEk/view?usp=drive_link 
+
+
 
 Are people using your product?
 No
+
+When will you have a version people can use?
+1 week
 
 Do you have revenue?
 No
@@ -84,19 +112,19 @@ N/A
 
 Idea
 Why did you pick this idea to work on? Do you have domain expertise in this area? How do you know people need what you're making?
-Justin (Mastercard compliance, 400+ application audits): Saw enterprise paranoia about AI accuracy firsthand. Companies won't deploy AI at scale without verification—it's a compliance blocker.
+We realized this major opportunity through our combined experience in AI and tech. AI development and usage is rapidly increasing, and users are growing more and more reliant on trust and accuracy. 
 
-Michael (autonomous AI agents at Epoch, DOD sensor systems): Saw cascading failure problem. One hallucination in an agent workflow breaks code, breaks subsequent decisions. Built AI systems where accuracy was non-negotiable.
+Justin saw enterprise paranoia about AI accuracy firsthand when building multi-million dollar IT vendor RFPs that require strict regulation compliance. Companies won't deploy AI at scale without verification; it's a compliance blocker.
 
-Market validation: Air Canada chatbot invented a refund policy (Feb 2024), customer sued and won—established legal precedent. FDA (Jan 2025) mandated verification for medical AI. CA AB 3030 (Jan 2026) requires disclosure of AI-generated healthcare content. 78% of enterprises now use AI in production.
+Michael saw cascading failure problem where one hallucination in an agent workflow breaks code and breaks subsequent decisions. Built AI systems where accuracy was non-negotiable.
 
-Competitors (Guardrails AI $7.5M, Cleanlab $25M, Harmonic $1.45B valuation) prove the market exists. But they all force one verification approach. We're the only multi-method platform.
+Regarding the market, Air Canada chatbot hallucinated a refund policy (Feb 2024), customer sued, won, and established legal precedent. FDA (Jan 2025) mandated verification for medical AI. CA AB 3030 (Jan 2026) requires disclosure of AI-generated healthcare content. 78% of enterprises now use AI in production.
 
 Who are your competitors? What do you understand about your business that they don't?
-Guardrails AI ($7.5M seed): Rule-based safety only. Can't verify factual accuracy.
-Cleanlab ($25M Series A): Single trustworthiness score. Can't customize per use case.
+
+Guardrails AI ($7.5M seed): Rule-based safety only. Doesn’t verify factual accuracy of AI-generated statements.
+Cleanlab ($30M combined seed and series A funding): Single trustworthiness score. Doesn’t incorporate multiple methodologies to customize trustworthiness score.
 Harmonic ($295M, $1.45B valuation): Math proofs only. 99% of use cases aren't math.
-AIMon: Single detection model.
 
 What they all miss: Single-method verification is fundamentally brittle. When that one method fails (misses a negation, hallucinates a citation), nothing catches it. Different domains need different verification approaches. A medical AI needs different checks than a legal AI than a coding assistant.
 
@@ -104,40 +132,39 @@ We're the only platform offering multiple methods with custom weighting. Custome
 
 How do or will you make money? How much could you make?
 (We realize you can't know precisely, but give your best estimate)
+
 SaaS pricing:
 - Free: 100 verifications/month, semantic only
-- Pro: $X/month for 5,000 verifications, all 7 methods
-- Enterprise: Unlimited, custom SLAs, dedicated support
+- Pro: $99/month for 5,000 verifications, all 7 methods
+- Enterprise: Custom pricing, unlimited verifications, custom SLAs, dedicated support
 
-Year 1 target: $500K ARR from legal tech + healthcare AI companies.
-Market size: Guardrails, Cleanlab, Harmonic raised $328M combined. Harmonic alone at $1.45B valuation doing math verification only. We cover all domains.
+Planning to target B2B sales, and enterprise plans will drive the most value for customers and Check.
+
+Market size: Guardrails, Cleanlab, Harmonic raised $332.5M combined. Harmonic alone at $1.45B valuation doing math verification only. We cover all domains.
+
+Year 1	target: $500K ARR. Early revenue from a focused cohort of legal + healthcare customers. Attainable given Guardrails AI ~$1M revenue with simple tooling, and we have 7 methodologies already available
+Year 2	target: $1.8M-$2.5M ARR. 3-5x growth with broader enterprise adoption and enhanced product integrations. Aiming to leverage a greater B2B customer portfolio.
+Year 3	target: $5M-$8M ARR. Aiming to be in the mix with fast-growing vertical SaaS; aggressive but realistic if product-market fit is found
 
 Which category best applies to your company?
+
 B2B Software and Services
 
 If you had any other ideas you considered applying with, please list them. One may be something we've been waiting for. Often when we fund people it's to do something they list here and not in the main application.
 
-1. AI FinOps / Internal Cost Attribution - "Stripe for internal AI billing." Enterprises track AI spend by team/project/cost center with automatic chargeback. Our BYOK system for 16+ providers + usage analytics is 90% of this product. No pure-play startup exists.
+1. Chaos Monkey for AI Systems - Inject adversarial inputs and edge cases into your AI pipeline automatically. Stress-test models against prompt injections, jailbreaks, and malformed data before production. Our batch processing + automated testing + real-time monitoring could power this.
 
-2. AI Approval Workflow Platform - Human-in-the-loop routing for AI decisions. When AI recommends an action, route through approval workflows before execution. Our escalation queue system is already built. ServiceNow charges $100K+, no developer-first option.
+2. Enterprise AI App Store - IT admins curate which AI tools employees can use, with SSO, usage limits, audit trails. Our multi-tenant org + API key management + RBAC is perfect. Aligns with YC's "Secure AI App Store" RFS.
 
-3. AI Compliance Logger - One-line audit trail for every AI interaction. Captures prompts, responses, costs for EU AI Act/SOC2/HIPAA. Our audit logging already exists. WitnessAI and Credo AI are expensive enterprise tools, no simple developer solution.
-
-4. AI Gateway with Smart Routing - Unified API that routes to cheapest/fastest provider automatically. Our 16-provider BYOK system is the foundation. Add automatic failover + cost optimization.
-
-5. AI Agent Testing Platform - Simulate 1000 scenarios before deploying agents. Test against diverse personas and edge cases. Our batch processing + webhooks + analytics could power this.
-
-6. Enterprise AI App Store - IT admins curate which AI tools employees can use, with SSO, usage limits, audit trails. Our multi-tenant org + API key management + RBAC is perfect. Aligns with YC's "Secure AI App Store" RFS.
+3. AI Approval Workflow Platform - Human-in-the-loop routing for AI decisions. When AI recommends an action, route through approval workflows before execution. Our escalation queue system is already built. ServiceNow charges $100K+, no developer-first option.
 
 Equity
 Have you formed ANY legal entity yet?
-This may be in the US, in your home country or in another country.
 No
 
-If you have not formed the company yet, describe the planned equity ownership breakdown among the founders, employees and any other proposed stockholders.
-Justin Tan (CEO): 50%
-Michael Chen (CTO): 50%
-Will carve out 10% employee option pool at incorporation.
+If you have not formed the company yet, describe the planned equity ownership breakdown among the founders, employees and any other proposed stockholders. If there are multiple founders, be sure to give the proposed equity ownership of each founder and founder title (e.g. CEO). (This question is as much for you as us.)
+Justin Tan, CEO: 51%
+Michael Chen, CTO: 49%
 
 Have you taken any investment yet?
 No
@@ -146,15 +173,17 @@ Are you currently fundraising?
 No
 
 Curious
-What convinced you to apply to Y Combinator? Did someone encourage you to apply?
-YC's network includes exactly our target customers: legal tech (Harvey AI alumni network), healthcare AI, fintech. The alumni we've talked to about accuracy-critical verification encouraged us to apply.
+What convinced you to apply to Y Combinator? Did someone encourage you to apply? 
+YC's network includes exactly our target customers: legal tech (Harvey AI alumni network), healthcare AI, fintech. We’re also looking for business advice to reach Check’s potential on all technical and non-technical fronts, and Y Combinator is the perfect start-up accelerator which aligns with our visions for Check.
 
 Have you been to any YC events?
 No
 
 How did you hear about Y Combinator?
-Paul Graham essays. "Do Things That Don't Scale" shaped how we're approaching early customers—manually understand each customer's verification needs before automating.
+Paul Graham essays. "Do Things That Don't Scale" shaped how we're approaching early customers. We understand each customer's verification needs before automating, and this inspired our custom weighting feature.
 
 Batch Preference
 What batch do you want to apply for?
 Spring 2026
+
+
