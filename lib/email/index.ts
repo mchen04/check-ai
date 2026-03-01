@@ -6,6 +6,7 @@
 export { sendInviteEmail } from './send-invite';
 export { sendWelcomeEmail } from './send-welcome';
 export { sendEscalationAlert } from './send-escalation-alert';
+export { sendPaymentFailedEmail } from './send-payment-failed';
 export { sendWeeklyReportForOrg, sendAllWeeklyReports } from './send-weekly-report';
 
 // Core utilities
@@ -28,6 +29,7 @@ export { TeamInviteEmail } from './templates/team-invite';
 export { EscalationAlertEmail } from './templates/escalation-alert';
 export { WeeklyReportEmail } from './templates/weekly-report';
 export { WelcomeEmail } from './templates/welcome';
+export { PaymentFailedEmail } from './templates/payment-failed';
 export {
   BaseTemplate,
   StandardFooter,

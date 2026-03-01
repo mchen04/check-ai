@@ -52,6 +52,14 @@ vi.mock('@/lib/api/formatters', () => ({
   }),
 }));
 
+vi.mock('@/lib/logger', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/logger')>();
+  return {
+    ...actual,
+    generateRequestId: vi.fn(() => 'req_test_123'),
+  };
+});
+
 // Import after mocks
 const {
   withApiAuth,

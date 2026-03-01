@@ -62,7 +62,8 @@ export async function signup(currentState: { message: string }, formData: FormDa
   const existingDBUser = await db.select().from(usersTable).where(eq(usersTable.email, data.email));
 
   if (existingDBUser.length > 0) {
-    return { message: 'An account with this email already exists. Please login instead.' };
+    // Return generic message to prevent email enumeration
+    redirect('/auth/check-email');
   }
 
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -79,7 +80,8 @@ export async function signup(currentState: { message: string }, formData: FormDa
 
   if (signUpError) {
     if (signUpError.message.includes('already registered')) {
-      return { message: 'An account with this email already exists. Please login instead.' };
+      // Return generic message to prevent email enumeration
+      redirect('/auth/check-email');
     }
     return { message: signUpError.message };
   }
@@ -118,7 +120,7 @@ export async function signup(currentState: { message: string }, formData: FormDa
   }
 
   revalidatePath('/', 'layout');
-  redirect('/subscribe');
+  redirect('/auth/check-email');
 }
 
 export async function demoLogin(currentState: { message: string }, formData: FormData) {

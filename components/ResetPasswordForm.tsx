@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { useFormState } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
@@ -17,6 +18,11 @@ export default function ResetPasswordForm() {
     message: '',
   };
   const [formState, formAction] = useFormState(resetPassword, initialState);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [touched, setTouched] = useState(false);
+
+  const mismatch = touched && confirmPassword.length > 0 && password !== confirmPassword;
 
   return (
     <form action={formAction} className="space-y-4">
@@ -30,6 +36,8 @@ export default function ResetPasswordForm() {
             name="password"
             required
             minLength={6}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
         <div className="space-y-2">
@@ -41,13 +49,19 @@ export default function ResetPasswordForm() {
             name="confirm_password"
             required
             minLength={6}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            onBlur={() => setTouched(true)}
           />
+          {mismatch && (
+            <p className="text-sm text-destructive">Passwords do not match</p>
+          )}
         </div>
         <Suspense>
           <GetCodeHiddenInput />
         </Suspense>
       </div>
-      <Button className="w-full" type="submit">
+      <Button className="w-full" type="submit" disabled={mismatch || !password || !confirmPassword}>
         Update Password
       </Button>
       {formState?.message && (

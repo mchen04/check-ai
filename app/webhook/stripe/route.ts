@@ -6,6 +6,7 @@ import { db } from '@/utils/db/db';
 import { organizationsTable, PLAN_LIMITS } from '@/utils/db/schema';
 import { stripe, getPlanTypeFromName, PlanType } from '@/utils/stripe/api';
 import { createLogger } from '@/lib/logger';
+import { sendPaymentFailedEmail } from '@/lib/email';
 import { getRedisClient } from '@/lib/cache/redis';
 
 const log = createLogger('StripeWebhook');
@@ -156,7 +157,20 @@ export async function POST(req: Request) {
       }
 
       case 'invoice.payment_failed': {
-        log.warn({ invoiceId: event.data.object.id }, 'Invoice payment failed');
+        const failedInvoice = event.data.object as Stripe.Invoice;
+        const failedCustomerId = failedInvoice.customer as string;
+
+        log.warn(
+          { invoiceId: failedInvoice.id, customerId: failedCustomerId },
+          'Invoice payment failed'
+        );
+
+        // Notify org admins (fire-and-forget)
+        sendPaymentFailedEmail({
+          stripeCustomerId: failedCustomerId,
+          invoiceUrl: failedInvoice.hosted_invoice_url ?? null,
+        }).catch((err) => log.error({ err }, 'Payment failure email error'));
+
         break;
       }
 

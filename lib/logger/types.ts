@@ -25,6 +25,7 @@ export type LogContext =
   | 'Cleanup'
   | 'Cron'
   | 'Email'
+  | 'Env'
   | 'Escalation'
   | 'KeyManager'
   | 'Profile'

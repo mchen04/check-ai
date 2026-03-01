@@ -8,6 +8,7 @@
  * - Authenticated job execution (GET with auth, POST)
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createLogger } from '@/lib/logger';
 
@@ -57,9 +58,14 @@ export function validateCronAuth(req: NextRequest): NextResponse | null {
   }
 
   // Vercel sends: Authorization: Bearer <CRON_SECRET>
-  const providedSecret = authHeader?.replace('Bearer ', '');
+  const providedSecret = authHeader?.replace('Bearer ', '') ?? '';
 
-  if (providedSecret !== cronSecret) {
+  // Use timing-safe comparison to prevent timing attacks
+  const isValid =
+    providedSecret.length === cronSecret.length &&
+    timingSafeEqual(Buffer.from(providedSecret), Buffer.from(cronSecret));
+
+  if (!isValid) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
