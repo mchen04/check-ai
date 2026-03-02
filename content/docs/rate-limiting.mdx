@@ -10,12 +10,11 @@ Rate limits protect the API from abuse and ensure fair usage for all customers. 
 
 ## Rate Limits by Plan
 
-| Plan | Requests/Minute | Requests/Day | Monthly Verifications |
-|------|-----------------|--------------|----------------------|
-| Free | 10 | 100 | 100 |
-| Starter | 60 | 1,000 | 1,000 |
-| Pro | 300 | 10,000 | 10,000 |
-| Enterprise | Custom | Custom | Custom |
+| Plan | Requests/Minute | Monthly Verifications |
+|------|-----------------|----------------------|
+| Free | 20 | 1,000 |
+| Pro | 200 | 25,000 |
+| Enterprise | 1,000 | Unlimited |
 
 <Callout type="info" title="Need Higher Limits?">
 Enterprise plans offer custom rate limits tailored to your needs. [Contact sales](mailto:sales@check.ai) to discuss your requirements.
@@ -376,12 +375,11 @@ async function verifyWithThrottle(
 
 In addition to rate limits (requests per minute), each plan has a monthly verification quota:
 
-| Plan | Monthly Verifications | Cost Per Additional |
-|------|----------------------|---------------------|
-| Free | 100 | N/A (upgrade required) |
-| Starter | 1,000 | $0.05/verification |
-| Pro | 10,000 | $0.03/verification |
-| Enterprise | Custom | Custom pricing |
+| Plan | Monthly Verifications | Price |
+|------|----------------------|-------|
+| Free | 1,000 | $0 |
+| Pro | 25,000 | $99/month |
+| Enterprise | Unlimited | Custom pricing |
 
 Track your usage in the [Dashboard](/dashboard/usage). You'll receive:
 - Email notification at 80% usage

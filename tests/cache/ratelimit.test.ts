@@ -29,9 +29,9 @@ vi.mock('@upstash/redis', () => {
 
 vi.mock('@/utils/db/schema', () => ({
   PLAN_LIMITS: {
-    free: { verificationsPerMonth: 100, allowedMethods: ['semantic'], rateLimit: { windowMs: 60000, maxRequests: 10 } },
-    pro: { verificationsPerMonth: 5000, allowedMethods: ['semantic', 'reasoning'], rateLimit: { windowMs: 60000, maxRequests: 100 } },
-    enterprise: { verificationsPerMonth: Infinity, allowedMethods: ['semantic'], rateLimit: { windowMs: 60000, maxRequests: 1000 } },
+    free: { verificationsPerMonth: 1000, allowedMethods: ['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal'], rateLimit: { windowMs: 60000, maxRequests: 20 }, maxTeamMembers: 1, dataRetentionDays: 7, batchProcessing: false },
+    pro: { verificationsPerMonth: 25000, allowedMethods: ['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal'], rateLimit: { windowMs: 60000, maxRequests: 200 }, maxTeamMembers: 5, dataRetentionDays: 30, batchProcessing: true },
+    enterprise: { verificationsPerMonth: Infinity, allowedMethods: ['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal'], rateLimit: { windowMs: 60000, maxRequests: 1000 }, maxTeamMembers: Infinity, dataRetentionDays: 90, batchProcessing: true },
   },
 }));
 
@@ -130,7 +130,7 @@ describe('rate limiting', () => {
 
       // Should succeed (first request in-memory)
       expect(result.success).toBe(true);
-      expect(result.limit).toBe(100);
+      expect(result.limit).toBe(200);
     });
   });
 
@@ -143,7 +143,7 @@ describe('rate limiting', () => {
       const result = await checkRateLimit('org_inmem', 'free');
 
       expect(result.success).toBe(true);
-      expect(result.limit).toBe(10);
+      expect(result.limit).toBe(20);
     });
 
     it('denies requests exceeding limit', async () => {
@@ -152,8 +152,8 @@ describe('rate limiting', () => {
 
       const { checkRateLimit } = await import('@/lib/cache/ratelimit');
 
-      // Exhaust limit
-      for (let i = 0; i < 10; i++) {
+      // Exhaust limit (free plan: 20 requests/min)
+      for (let i = 0; i < 20; i++) {
         await checkRateLimit('org_exhaust', 'free');
       }
 

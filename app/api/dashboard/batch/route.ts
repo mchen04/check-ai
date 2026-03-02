@@ -58,9 +58,9 @@ async function handleCreateBatch(req: DashboardRequest): Promise<NextResponse> {
 
   // Check plan allows batch processing
   const planLimits = PLAN_LIMITS[org.planType as keyof typeof PLAN_LIMITS];
-  if (org.planType === 'free') {
+  if (!planLimits.batchProcessing) {
     return NextResponse.json(
-      { error: 'Batch processing is not available on the free plan. Please upgrade to Pro or Enterprise.' },
+      { error: 'Batch processing is not available on your current plan. Please upgrade to Pro or Enterprise.' },
       { status: 403 }
     );
   }

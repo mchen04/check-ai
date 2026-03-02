@@ -55,7 +55,8 @@ export async function createDefaultOrganization(
       name: orgName,
       slug,
       planType: 'free',
-      verificationsLimit: 100, // Free tier default
+      verificationsLimit: 1000, // Free tier default
+      verificationRetentionDays: 7, // Free tier retention
       stripeCustomerId: stripeCustomerId || null,
     })
     .returning({ id: organizationsTable.id, slug: organizationsTable.slug });

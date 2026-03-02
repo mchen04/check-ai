@@ -147,7 +147,7 @@ async function main() {
         name: 'Demo Organization',
         slug: orgSlug,
         planType: 'pro',
-        verificationsLimit: 10000,
+        verificationsLimit: 25000,
         verificationsUsed: 12,
       })
       .returning({ id: organizationsTable.id });

@@ -7,7 +7,7 @@ import ProviderSigninBlock from '@/components/ProviderSigninBlock';
 
 export const metadata: Metadata = {
   title: 'Sign Up | Check',
-  description: 'Create a free Check account. Get 100 free AI verifications and access to multi-method hallucination detection.',
+  description: 'Create a free Check account. Get 1,000 free AI verifications with all 7 methods for hallucination detection.',
 };
 
 export default function Signup() {

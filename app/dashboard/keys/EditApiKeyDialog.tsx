@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Crown, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -73,11 +73,11 @@ interface ParadigmState {
   weight: number;
 }
 
-// Methods allowed per plan tier
+// All methods are available on all plans
 const PLAN_ALLOWED_METHODS: Record<PlanType, readonly ParadigmType[]> = {
-  free: ['semantic'],
-  pro: ['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal'],
-  enterprise: ['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal'],
+  free: ALL_PARADIGMS,
+  pro: ALL_PARADIGMS,
+  enterprise: ALL_PARADIGMS,
 };
 
 interface EditApiKeyDialogProps {
@@ -347,12 +347,6 @@ export function EditApiKeyDialog({ apiKey, open, onOpenChange }: EditApiKeyDialo
                               <p className="text-sm font-medium">
                                 {PARADIGM_DISPLAY_NAMES[paradigm]}
                               </p>
-                              {!isAllowed && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
-                                  <Crown className="h-3 w-3" />
-                                  Pro
-                                </span>
-                              )}
                             </div>
                             <p className="text-xs text-muted-foreground mt-0.5">
                               {PARADIGM_DESCRIPTIONS[paradigm]}
@@ -361,7 +355,6 @@ export function EditApiKeyDialog({ apiKey, open, onOpenChange }: EditApiKeyDialo
                           <Switch
                             checked={config.enabled}
                             onCheckedChange={() => toggleParadigm(paradigm)}
-                            disabled={!isAllowed}
                           />
                         </div>
 

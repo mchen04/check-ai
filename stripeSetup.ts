@@ -32,25 +32,21 @@ const PUBLIC_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || 'http://localhost:3001
 const CURRENCY = 'usd';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
-// Product Plans
+// Product Plans — only Pro is self-serve. Free requires no Stripe product.
+// Enterprise is sales-led (custom pricing, no Stripe product).
 const plans: Plan[] = [
   {
-    name: IS_PRODUCTION ? 'Basic' : 'Basic-Test',
-    price: 1000, // price in cents
-    description: 'Perfect for small teams and individuals',
-    features: ['Up to 10 users', 'Up to 1000 records', 'Up to 1000 API calls'],
-  },
-  {
     name: IS_PRODUCTION ? 'Pro' : 'Pro-Test',
-    price: 2000,
-    description: 'Great for growing teams',
-    features: ['Up to 100 users', 'Up to 10000 records', 'Up to 10000 API calls'],
-  },
-  {
-    name: IS_PRODUCTION ? 'Enterprise' : 'Enterprise-Test',
-    price: 5000,
-    description: 'For large organizations',
-    features: ['Unlimited users', 'Unlimited records', 'Unlimited API calls'],
+    price: 9900, // $99/month in cents
+    description: '25,000 verifications/month with all 7 methods, batch processing, and team collaboration',
+    features: [
+      '25,000 verifications per month',
+      'All 7 verification methods',
+      '200 requests/min rate limit',
+      'Up to 5 team members',
+      'Batch processing',
+      '30-day data retention',
+    ],
   },
 ];
 

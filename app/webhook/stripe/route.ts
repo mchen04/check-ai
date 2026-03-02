@@ -116,6 +116,7 @@ export async function POST(req: Request) {
           .set({
             planType,
             verificationsLimit,
+            verificationRetentionDays: limits.dataRetentionDays,
             stripeSubscriptionId: subscription.id,
             updatedAt: new Date(),
           })
@@ -137,6 +138,7 @@ export async function POST(req: Request) {
           .set({
             planType: 'free' as PlanType,
             verificationsLimit: PLAN_LIMITS.free.verificationsPerMonth,
+            verificationRetentionDays: PLAN_LIMITS.free.dataRetentionDays,
             stripeSubscriptionId: null,
             updatedAt: new Date(),
           })

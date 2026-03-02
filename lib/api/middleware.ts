@@ -232,43 +232,12 @@ export function withRateLimit(handler: ApiHandler): ApiHandler {
 // =============================================================================
 
 /**
- * Middleware that checks if requested methods are allowed for the plan
+ * Middleware that checks if requested methods are allowed for the plan.
+ * Currently a pass-through since all plans have access to all 7 methods.
+ * Kept for forward-compatibility if method restrictions are reintroduced.
  */
 export function withMethodCheck(handler: ApiHandler): ApiHandler {
-  return async (req, context) => {
-    // Only check for POST requests to /verify
-    if (req.method === 'POST') {
-      try {
-        const body = await req.clone().json();
-        const requestedMethods = Object.keys(body.methods || {});
-        const planLimits = PLAN_LIMITS[req.organization.planType as PlanType];
-        const allowedMethods = planLimits.allowedMethods as readonly string[];
-
-        const disallowedMethods = requestedMethods.filter(
-          (method) => !allowedMethods.includes(method)
-        );
-
-        if (disallowedMethods.length > 0) {
-          return NextResponse.json(
-            {
-              error: `Methods not available on ${req.organization.planType} plan`,
-              code: 'METHODS_NOT_ALLOWED',
-              details: {
-                disallowedMethods,
-                allowedMethods: [...allowedMethods],
-                upgradeTo: req.organization.planType === 'free' ? 'pro' : 'enterprise',
-              },
-            },
-            { status: 403 }
-          );
-        }
-      } catch {
-        // If body parsing fails, let validation handle it
-      }
-    }
-
-    return handler(req, context);
-  };
+  return handler;
 }
 
 // =============================================================================

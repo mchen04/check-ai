@@ -169,13 +169,14 @@ describe('createDefaultOrganization', () => {
     };
   }
 
-  it('creates org with free plan and 100 limit', async () => {
+  it('creates org with free plan and 1000 limit', async () => {
     setupMock();
     await createDefaultOrganization('user_1', 'Test', 'test@example.com');
 
     const orgValues = mockInsertValues.mock.calls[0][0];
     expect(orgValues.planType).toBe('free');
-    expect(orgValues.verificationsLimit).toBe(100);
+    expect(orgValues.verificationsLimit).toBe(1000);
+    expect(orgValues.verificationRetentionDays).toBe(7);
   });
 
   it('adds user as owner', async () => {

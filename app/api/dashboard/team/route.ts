@@ -1,9 +1,9 @@
 import { randomBytes } from 'crypto';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '@/utils/db/db';
-import { orgMembersTable, usersTable, orgInvitesTable } from '@/utils/db/schema';
+import { orgMembersTable, usersTable, orgInvitesTable, PLAN_LIMITS, type PlanType } from '@/utils/db/schema';
 import { sendInviteEmail } from '@/lib/email';
 import { createAuditLogger } from '@/lib/audit';
 import { withDashboardAuth, type DashboardRequest, parseAndValidate, errorResponse } from '@/lib/api';
@@ -77,6 +77,20 @@ async function postHandler(req: DashboardRequest) {
   if (!result.success) return result.error;
 
   const { email, role } = result.data;
+
+  // Check team member limit based on plan
+  const planLimits = PLAN_LIMITS[context.organization.planType as PlanType];
+  const [memberCount] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(orgMembersTable)
+    .where(eq(orgMembersTable.orgId, context.orgId));
+  const currentMembers = Number(memberCount?.count || 0);
+
+  if (currentMembers >= planLimits.maxTeamMembers) {
+    return errorResponse.forbidden(
+      `Team member limit reached (${currentMembers}/${planLimits.maxTeamMembers}). Upgrade your plan to add more members.`
+    );
+  }
 
   // Check if user is already a member
   const existingUser = await db
@@ -165,4 +179,4 @@ async function postHandler(req: DashboardRequest) {
   });
 }
 
-export const POST = withDashboardAuth(postHandler, { permission: 'team:invite', requireProPlan: true });
+export const POST = withDashboardAuth(postHandler, { permission: 'team:invite' });

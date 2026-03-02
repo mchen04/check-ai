@@ -145,7 +145,7 @@ export const organizationsTable = pgTable('organizations', {
   stripeCustomerId: text('stripe_customer_id'),
   stripeSubscriptionId: text('stripe_subscription_id'),
   verificationsUsed: integer('verifications_used').default(0).notNull(),
-  verificationsLimit: integer('verifications_limit').default(100).notNull(), // Free tier default
+  verificationsLimit: integer('verifications_limit').default(1000).notNull(), // Free tier default
   billingCycleStart: timestamptz('billing_cycle_start'),
   billingCycleEnd: timestamptz('billing_cycle_end'),
   // Settings columns
@@ -944,37 +944,40 @@ export const analyticsDailySnapshotsRelations = relations(analyticsDailySnapshot
 // PLAN LIMITS CONFIGURATION
 // =============================================================================
 
+export const ALL_METHODS = [
+  'semantic',
+  'reasoning',
+  'tool',
+  'biprm',
+  'ensemble',
+  'entropy',
+  'formal',
+] as const;
+
 export const PLAN_LIMITS = {
   free: {
-    verificationsPerMonth: 100,
-    allowedMethods: ['semantic'] as const,
-    rateLimit: { windowMs: 60000, maxRequests: 10 }, // 10/min
+    verificationsPerMonth: 1000,
+    allowedMethods: ALL_METHODS,
+    rateLimit: { windowMs: 60000, maxRequests: 20 }, // 20/min
+    maxTeamMembers: 1,
+    dataRetentionDays: 7,
+    batchProcessing: false,
   },
   pro: {
-    verificationsPerMonth: 5000,
-    allowedMethods: [
-      'semantic',
-      'reasoning',
-      'tool',
-      'biprm',
-      'ensemble',
-      'entropy',
-      'formal',
-    ] as const,
-    rateLimit: { windowMs: 60000, maxRequests: 100 }, // 100/min
+    verificationsPerMonth: 25000,
+    allowedMethods: ALL_METHODS,
+    rateLimit: { windowMs: 60000, maxRequests: 200 }, // 200/min
+    maxTeamMembers: 5,
+    dataRetentionDays: 30,
+    batchProcessing: true,
   },
   enterprise: {
     verificationsPerMonth: Infinity,
-    allowedMethods: [
-      'semantic',
-      'reasoning',
-      'tool',
-      'biprm',
-      'ensemble',
-      'entropy',
-      'formal',
-    ] as const,
+    allowedMethods: ALL_METHODS,
     rateLimit: { windowMs: 60000, maxRequests: 1000 }, // 1000/min
+    maxTeamMembers: Infinity,
+    dataRetentionDays: 90,
+    batchProcessing: true,
   },
 } as const;
 

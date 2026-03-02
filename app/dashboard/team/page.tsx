@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { db } from '@/utils/db/db';
-import { orgMembersTable, usersTable, orgInvitesTable } from '@/utils/db/schema';
+import { orgMembersTable, usersTable, orgInvitesTable, PLAN_LIMITS, type PlanType } from '@/utils/db/schema';
 import { formatRelativeTime } from '@/lib/utils';
 import { InviteMemberDialog } from './InviteMemberDialog';
 import { TeamMemberActions } from './TeamMemberActions';
@@ -63,8 +63,12 @@ export default async function TeamPage() {
     )
     .orderBy(desc(orgInvitesTable.createdAt));
 
+  const planLimits = PLAN_LIMITS[context.organization.planType as PlanType];
+  const memberCount = members.length;
+  const atMemberLimit = memberCount >= planLimits.maxTeamMembers;
+
   const canInvite =
-    context.organization.planType !== 'free' &&
+    !atMemberLimit &&
     (context.role === 'owner' || context.role === 'admin');
 
   const canManageRoles = context.role === 'owner' || context.role === 'admin';
@@ -77,14 +81,14 @@ export default async function TeamPage() {
         {canInvite && <InviteMemberDialog />}
       </div>
 
-      {/* Pro Plan Gate */}
-      {context.organization.planType === 'free' && (
+      {/* Team Member Limit */}
+      {atMemberLimit && (
         <Card className="mb-6 border-amber-200 bg-amber-50 px-4 py-3">
           <div className="flex items-center gap-3">
             <Users className="h-5 w-5 shrink-0 text-amber-600" />
             <p className="flex-1 text-sm text-amber-800">
-              <span className="font-medium">Pro plan required</span>
-              <span className="text-amber-700"> to invite team members</span>
+              <span className="font-medium">Team member limit reached</span>
+              <span className="text-amber-700"> ({memberCount}/{planLimits.maxTeamMembers}). Upgrade to add more members.</span>
             </p>
             <Button size="sm" asChild>
               <Link href="/subscribe">Upgrade</Link>

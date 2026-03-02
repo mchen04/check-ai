@@ -31,9 +31,10 @@ async function handleUploadFile(req: ApiRequest): Promise<NextResponse> {
   const { organization } = req;
 
   // Check plan allows batch processing
-  if (organization.planType === 'free') {
+  const planLimits = PLAN_LIMITS[organization.planType];
+  if (!planLimits.batchProcessing) {
     throw new QuotaExceededError(
-      'Batch processing is not available on the free plan. Please upgrade to Pro or Enterprise.'
+      'Batch processing is not available on your current plan. Please upgrade to Pro or Enterprise.'
     );
   }
 

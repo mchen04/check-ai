@@ -32,9 +32,9 @@ async function handleCreateBatch(req: ApiRequest): Promise<NextResponse> {
 
   // Check plan allows batch processing
   const planLimits = PLAN_LIMITS[organization.planType];
-  if (organization.planType === 'free') {
+  if (!planLimits.batchProcessing) {
     throw new QuotaExceededError(
-      'Batch processing is not available on the free plan. Please upgrade to Pro or Enterprise.'
+      'Batch processing is not available on your current plan. Please upgrade to Pro or Enterprise.'
     );
   }
 

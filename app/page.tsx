@@ -297,15 +297,17 @@ if (result.decision === "accept")   serve(result);`}</code>
               </p>
             </div>
 
-            <div className="mx-auto grid max-w-3xl gap-6 lg:grid-cols-2">
+            <div className="mx-auto grid max-w-4xl gap-6 lg:grid-cols-3">
               {/* Free */}
               <div className="rounded-2xl border border-border/60 bg-card p-8">
                 <div className="mb-1 text-sm font-medium text-muted-foreground">Free</div>
                 <div className="mb-4 text-4xl font-semibold tracking-tight">$0</div>
-                <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-                  100 verifications/month. Semantic method only.
-                  Good for testing whether Check fits your use case.
-                </p>
+                <ul className="mb-6 space-y-2 text-sm text-muted-foreground">
+                  <li>1,000 verifications/month</li>
+                  <li>All 7 methods</li>
+                  <li>20 requests/min</li>
+                  <li>7-day data retention</li>
+                </ul>
                 <Button variant="outline" asChild className="w-full">
                   <Link href="/signup">Get API key</Link>
                 </Button>
@@ -314,28 +316,38 @@ if (result.decision === "accept")   serve(result);`}</code>
               {/* Pro */}
               <div className="rounded-2xl border-2 border-primary/40 bg-card p-8">
                 <div className="mb-1 text-sm font-medium text-primary">Pro</div>
-                <div className="mb-1 text-4xl font-semibold tracking-tight">$99–299</div>
+                <div className="mb-1 text-4xl font-semibold tracking-tight">$99</div>
                 <div className="mb-4 text-sm text-muted-foreground">/month</div>
-                <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-                  5,000 verifications/month. All 7 methods. Custom weights.
-                  Bring your own LLM keys.
-                </p>
+                <ul className="mb-6 space-y-2 text-sm text-muted-foreground">
+                  <li>25,000 verifications/month</li>
+                  <li>All 7 methods</li>
+                  <li>200 requests/min</li>
+                  <li>Batch processing</li>
+                  <li>Up to 5 team members</li>
+                  <li>30-day data retention</li>
+                </ul>
                 <Button asChild className="w-full">
                   <Link href="/signup">Subscribe</Link>
                 </Button>
               </div>
-            </div>
 
-            <p className="mx-auto mt-6 max-w-3xl text-center text-sm text-muted-foreground">
-              <span className="font-medium">Enterprise:</span>{' '}
-              Need unlimited verifications or custom SLAs?{' '}
-              <a
-                href="mailto:sales@checkapi.ai"
-                className="underline underline-offset-4 transition-colors hover:text-foreground"
-              >
-                Talk to us
-              </a>.
-            </p>
+              {/* Enterprise */}
+              <div className="rounded-2xl border border-border/60 bg-card p-8">
+                <div className="mb-1 text-sm font-medium text-muted-foreground">Enterprise</div>
+                <div className="mb-4 text-4xl font-semibold tracking-tight">Custom</div>
+                <ul className="mb-6 space-y-2 text-sm text-muted-foreground">
+                  <li>Unlimited verifications</li>
+                  <li>All 7 methods</li>
+                  <li>1,000 requests/min</li>
+                  <li>Batch processing</li>
+                  <li>Unlimited team members</li>
+                  <li>90-day data retention</li>
+                </ul>
+                <Button variant="outline" asChild className="w-full">
+                  <a href="mailto:sales@checkapi.ai">Talk to sales</a>
+                </Button>
+              </div>
+            </div>
           </div>
         </section>
       </main>
@@ -349,7 +361,7 @@ if (result.decision === "accept")   serve(result);`}</code>
           </div>
 
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <span>100 free verifications, no credit card.</span>
+            <span>1,000 free verifications, no credit card.</span>
             <Button asChild variant="outline" size="sm" className="h-7 text-xs">
               <Link href="/signup">Get started</Link>
             </Button>

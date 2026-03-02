@@ -37,6 +37,9 @@ export interface PlanDetails {
     windowMs: number;
     maxRequests: number;
   };
+  maxTeamMembers: number;
+  dataRetentionDays: number;
+  batchProcessing: boolean;
 }
 
 // =============================================================================
@@ -97,6 +100,9 @@ export async function getOrgPlanDetails(orgId: string): Promise<PlanDetails> {
     verificationsRemaining,
     allowedMethods: limits.allowedMethods,
     rateLimit: limits.rateLimit,
+    maxTeamMembers: limits.maxTeamMembers,
+    dataRetentionDays: limits.dataRetentionDays,
+    batchProcessing: limits.batchProcessing,
   };
 }
 

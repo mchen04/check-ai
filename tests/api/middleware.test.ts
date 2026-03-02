@@ -28,10 +28,11 @@ vi.mock('@/utils/db/db', () => ({ db: mockDb }));
 vi.mock('@/utils/db/schema', () => ({
   apiKeysTable: { id: 'id', orgId: 'orgId', keyHash: 'keyHash', isActive: 'isActive', expiresAt: 'expiresAt', name: 'name', keyPrefix: 'keyPrefix', paradigmConfig: 'paradigmConfig', defaultThresholds: 'defaultThresholds', deletedAt: 'deletedAt', lastUsedAt: 'lastUsedAt' },
   organizationsTable: { id: 'id', name: 'name', slug: 'slug', planType: 'planType', verificationsUsed: 'verificationsUsed', verificationsLimit: 'verificationsLimit', verificationRetentionDays: 'verificationRetentionDays', dataRetentionEnabled: 'dataRetentionEnabled' },
+  ALL_METHODS: ['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal'],
   PLAN_LIMITS: {
-    free: { verificationsPerMonth: 100, allowedMethods: ['semantic'], rateLimit: { windowMs: 60000, maxRequests: 10 } },
-    pro: { verificationsPerMonth: 5000, allowedMethods: ['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal'], rateLimit: { windowMs: 60000, maxRequests: 100 } },
-    enterprise: { verificationsPerMonth: Infinity, allowedMethods: ['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal'], rateLimit: { windowMs: 60000, maxRequests: 1000 } },
+    free: { verificationsPerMonth: 1000, allowedMethods: ['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal'], rateLimit: { windowMs: 60000, maxRequests: 20 }, maxTeamMembers: 1, dataRetentionDays: 7, batchProcessing: false },
+    pro: { verificationsPerMonth: 25000, allowedMethods: ['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal'], rateLimit: { windowMs: 60000, maxRequests: 200 }, maxTeamMembers: 5, dataRetentionDays: 30, batchProcessing: true },
+    enterprise: { verificationsPerMonth: Infinity, allowedMethods: ['semantic', 'reasoning', 'tool', 'biprm', 'ensemble', 'entropy', 'formal'], rateLimit: { windowMs: 60000, maxRequests: 1000 }, maxTeamMembers: Infinity, dataRetentionDays: 90, batchProcessing: true },
   },
 }));
 vi.mock('@/lib/llm', () => ({
@@ -369,100 +370,30 @@ describe('withRateLimit', () => {
 });
 
 // =============================================================================
-// withMethodCheck
+// withMethodCheck (now a pass-through since all plans have all methods)
 // =============================================================================
 
 describe('withMethodCheck', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('returns 403 for disallowed methods on free plan', async () => {
+  it('is a pass-through that returns the same handler', () => {
+    const handler = withMethodCheck(successHandler);
+    expect(handler).toBe(successHandler);
+  });
+
+  it('free plan allows all 7 methods', async () => {
     const handler = withMethodCheck(successHandler);
     const req = createAuthenticatedRequest({ planType: 'free' });
-    // Override the method and body
-    const postReq = new NextRequest('http://localhost:3000/api/v1/verify', {
-      method: 'POST',
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ methods: { reasoning: 1, tool: 1 } }),
-    });
-    (postReq as any).organization = req.organization;
 
-    const res = await handler(postReq as any, { params: Promise.resolve({}) });
-    const body = await res.json();
-
-    expect(res.status).toBe(403);
-    expect(body.code).toBe('METHODS_NOT_ALLOWED');
-    expect(body.details.disallowedMethods).toContain('reasoning');
-    expect(body.details.upgradeTo).toBe('pro');
-  });
-
-  it('passes through for allowed methods', async () => {
-    const handler = withMethodCheck(successHandler);
-    const postReq = new NextRequest('http://localhost:3000/api/v1/verify', {
-      method: 'POST',
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ methods: { semantic: 1 } }),
-    });
-    (postReq as any).organization = createMockOrganization({ planType: 'free' });
-
-    const res = await handler(postReq as any, { params: Promise.resolve({}) });
+    const res = await handler(req, { params: Promise.resolve({}) });
     expect(res.status).toBe(200);
-  });
-
-  it('skips check for non-POST requests', async () => {
-    const handler = withMethodCheck(successHandler);
-    const req = createAuthenticatedRequest({ planType: 'free' });
-    // GET request - should pass through
-    const getReq = new NextRequest('http://localhost:3000/api/v1/verify', { method: 'GET' });
-    (getReq as any).organization = req.organization;
-
-    const res = await handler(getReq as any, { params: Promise.resolve({}) });
-    expect(res.status).toBe(200);
-  });
-
-  it('passes through when body parsing fails', async () => {
-    const handler = withMethodCheck(successHandler);
-    const postReq = new NextRequest('http://localhost:3000/api/v1/verify', {
-      method: 'POST',
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: 'not-json',
-    });
-    (postReq as any).organization = createMockOrganization({ planType: 'free' });
-
-    const res = await handler(postReq as any, { params: Promise.resolve({}) });
-    expect(res.status).toBe(200);
-  });
-
-  it('lists all disallowed methods when multiple are requested on free plan', async () => {
-    const handler = withMethodCheck(successHandler);
-    const postReq = new NextRequest('http://localhost:3000/api/v1/verify', {
-      method: 'POST',
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ methods: { reasoning: 1, tool: 1, formal: 1 } }),
-    });
-    (postReq as any).organization = createMockOrganization({ planType: 'free' });
-
-    const res = await handler(postReq as any, { params: Promise.resolve({}) });
-    const body = await res.json();
-
-    expect(res.status).toBe(403);
-    expect(body.details.disallowedMethods).toContain('reasoning');
-    expect(body.details.disallowedMethods).toContain('tool');
-    expect(body.details.disallowedMethods).toContain('formal');
-    expect(body.details.disallowedMethods).toHaveLength(3);
   });
 
   it('pro plan allows all 7 methods', async () => {
     const handler = withMethodCheck(successHandler);
-    const postReq = new NextRequest('http://localhost:3000/api/v1/verify', {
-      method: 'POST',
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({
-        methods: { semantic: 1, reasoning: 1, tool: 1, biprm: 1, ensemble: 1, entropy: 1, formal: 1 },
-      }),
-    });
-    (postReq as any).organization = createMockOrganization({ planType: 'pro' });
+    const req = createAuthenticatedRequest({ planType: 'pro' });
 
-    const res = await handler(postReq as any, { params: Promise.resolve({}) });
+    const res = await handler(req, { params: Promise.resolve({}) });
     expect(res.status).toBe(200);
   });
 });

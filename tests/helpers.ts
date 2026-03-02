@@ -15,8 +15,8 @@ export function createMockOrganization(overrides?: Record<string, unknown>) {
     slug: 'test-org-abc123',
     planType: 'pro' as const,
     verificationsUsed: 10,
-    verificationsLimit: 5000,
-    verificationRetentionDays: 90,
+    verificationsLimit: 25000,
+    verificationRetentionDays: 30,
     dataRetentionEnabled: true,
     ...overrides,
   };
